@@ -9,8 +9,8 @@ export default function Navbar() {
                 </Link>
 
                 <div className="hidden md:flex items-center space-x-12 text-sm uppercase tracking-widest font-sans text-text-secondary">
-                    <Link href="/restoration" className="hover:text-brand-terracotta transition-colors">Restauración</Link>
-                    <Link href="/tailoring" className="hover:text-brand-terracotta transition-colors">Sastrería</Link>
+                    <Link href="/restauracion" className="hover:text-brand-terracotta transition-colors">Restauración</Link>
+                    <Link href="/sastreria" className="hover:text-brand-terracotta transition-colors">Sastrería</Link>
                     <Link href="/b2b" className="hover:text-brand-terracotta transition-colors">B2B</Link>
                     <Link href="/appointment" className="bg-brand-charcoal text-white px-6 py-3 rounded-sm hover:bg-brand-terracotta transition-all">
                         Agendar Cita

@@ -1,4 +1,5 @@
 import Hero from "@/components/Hero";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -8,20 +9,20 @@ export default function Home() {
       {/* Value Proposition Section */}
       <section className="py-32 px-6 bg-white">
         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-24">
-          <div className="space-y-6">
+          <Link href="/restauracion" className="space-y-6 group cursor-pointer block">
             <span className="text-brand-terracotta font-serif text-4xl block">01</span>
-            <h3 className="font-serif text-2xl">Elevamos Inversiones</h3>
+            <h3 className="font-serif text-2xl group-hover:text-brand-terracotta transition-colors">Elevamos Inversiones</h3>
             <p className="text-text-secondary leading-relaxed">
               Transformamos prendas favoritas en tesoros de calce impecable. Nuestra restauración técnica extiende la vida útil de cada fibra con maestría artesanal.
             </p>
-          </div>
-          <div className="space-y-6">
+          </Link>
+          <Link href="/sastreria" className="space-y-6 group cursor-pointer block">
             <span className="text-brand-terracotta font-serif text-4xl block">02</span>
-            <h3 className="font-serif text-2xl">Sastrería Consciente</h3>
+            <h3 className="font-serif text-2xl group-hover:text-brand-terracotta transition-colors">Sastrería Consciente</h3>
             <p className="text-text-secondary leading-relaxed">
               Confección a medida que prioriza la calidad sobre la tendencia. Creamos piezas esenciales, éticas y trazables que representan una inversión real en su armario.
             </p>
-          </div>
+          </Link>
           <div className="space-y-6">
             <span className="text-brand-terracotta font-serif text-4xl block">03</span>
             <h3 className="font-serif text-2xl">Producción Responsable</h3>
