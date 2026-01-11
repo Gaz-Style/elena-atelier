@@ -47,11 +47,13 @@ export default function Home() {
               Agendar Visita
             </button>
           </div>
-          <div className="flex-1 bg-brand-charcoal/5 h-[500px] w-full rounded-sm overflow-hidden relative">
-            {/* Placeholder for Map or Location Image */}
-            <div className="absolute inset-0 flex items-center justify-center grayscale opacity-50 italic font-serif">
-              Atelier Vitacura
-            </div>
+          <div className="flex-1 h-[500px] w-full rounded-sm overflow-hidden relative shadow-2xl">
+            <img
+              src="/assets/media/elena_atelier_vitacura_showroom.png"
+              alt="Elena Atelier Showroom Vitacura"
+              className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+            />
+            <div className="absolute inset-0 bg-black/10 pointer-events-none" />
           </div>
         </div>
       </section>
