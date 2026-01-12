@@ -35,9 +35,9 @@ export default function Hero() {
                         initial={{ opacity: 0 }}
                         whileInView={{ opacity: 1 }}
                         transition={{ delay: 0.4 }}
-                        className="font-sans text-base md:text-xl text-white/90 max-w-2xl mx-auto mb-12 px-4"
+                        className="font-sans text-base md:text-xl text-white/90 max-w-3xl mx-auto mb-12 px-4"
                     >
-                        No solo reparamos prendas, elevamos inversiones. Restauración de Prendas y Sastrería Tecnológica para transformar su guardarropa en Vitacura.
+                        Arreglos de alta calidad y sastreria profesional. Transformamos tus prendas con precisión para que luzcas impecable todos los días.
                     </motion.p>
 
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 px-4">

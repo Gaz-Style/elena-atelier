@@ -11,21 +11,21 @@ export default function Home() {
         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-16 md:gap-24">
           <Link href="/restauracion" className="space-y-6 group cursor-pointer block">
             <span className="text-brand-terracotta font-serif text-3xl md:text-4xl block">01</span>
-            <h3 className="font-serif text-xl md:text-2xl group-hover:text-brand-terracotta transition-colors">Elevamos Inversiones</h3>
+            <h3 className="font-serif text-xl md:text-2xl group-hover:text-brand-terracotta transition-colors">Expertos en arreglos</h3>
             <p className="text-text-secondary leading-relaxed text-sm md:text-base">
               Transformamos prendas favoritas en tesoros de calce impecable. Nuestra restauración técnica extiende la vida útil de cada fibra con maestría artesanal.
             </p>
           </Link>
           <Link href="/sastreria" className="space-y-6 group cursor-pointer block">
             <span className="text-brand-terracotta font-serif text-3xl md:text-4xl block">02</span>
-            <h3 className="font-serif text-xl md:text-2xl group-hover:text-brand-terracotta transition-colors">Sastrería Consciente</h3>
+            <h3 className="font-serif text-xl md:text-2xl group-hover:text-brand-terracotta transition-colors">Sastrería de calidad</h3>
             <p className="text-text-secondary leading-relaxed text-sm md:text-base">
               Confección a medida que prioriza la calidad sobre la tendencia. Creamos piezas esenciales, éticas y trazables que representan una inversión real en su armario.
             </p>
           </Link>
           <div className="space-y-6">
             <span className="text-brand-terracotta font-serif text-3xl md:text-4xl block">03</span>
-            <h3 className="font-serif text-xl md:text-2xl">Producción Responsable</h3>
+            <h3 className="font-serif text-xl md:text-2xl">Trabajo responsable</h3>
             <p className="text-text-secondary leading-relaxed text-sm md:text-base">
               Colaboramos con boutiques locales para fabricar lotes pequeños, reduciendo el desperdicio y garantizando un pago justo por artesanía de alto nivel.
             </p>
