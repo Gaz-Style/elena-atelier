@@ -20,10 +20,10 @@ export default function B2BPortal() {
                     <div className="max-w-2xl">
                         <div className="flex items-center gap-2 mb-4 text-brand-terracotta">
                             <Lock className="w-4 h-4" />
-                            <span className="text-[10px] uppercase tracking-[0.2em] font-bold">Portal Restringido B2B</span>
+                            <span className="text-[10px] uppercase tracking-[0.2em] font-bold">Portal Exclusivo para Empresas</span>
                         </div>
                         <h1 className="font-serif text-6xl leading-tight mb-4 text-brand-charcoal">
-                            Producción Responsable & <br /> Maestría a Escala
+                            Producción Profesional y <br /> Confección a Gran Escala
                         </h1>
                         <p className="text-gray-500 text-lg">
                             Bienvenido al portal exclusivo para partners de Elena Atelier. Gestione sus producciones técnicas y acceda a la trazabilidad total de sus lotes.
@@ -37,9 +37,9 @@ export default function B2BPortal() {
                 {/* B2B Value Props */}
                 <section className="grid md:grid-cols-3 gap-12 border-b border-gray-100 pb-20">
                     {[
-                        { title: 'Velocidad de Respuesta', desc: 'Sastrería tecnológica que optimiza los tiempos de corte y confección sin sacrificar el acabado artesanal.', icon: Factory },
-                        { title: 'Trazabilidad Digital', desc: 'Cada prenda en su lote cuenta con un Pasaporte Digital que certifica su origen y materiales.', icon: ClipboardCheck },
-                        { title: 'Logística Blanca', desc: 'Despacho consolidado con empaques premium y control de inventario en tiempo real.', icon: Truck },
+                        { title: 'Entregas Rápidas', desc: 'Sastrería tecnológica que optimiza los tiempos de corte y confección sin sacrificar el acabado artesanal.', icon: Factory },
+                        { title: 'Control de Producción', desc: 'Cada prenda en su lote cuenta con un Pasaporte Digital que certifica su origen y materiales.', icon: ClipboardCheck },
+                        { title: 'Logística y Despacho Premium', desc: 'Despacho consolidado con empaques premium y control de inventario en tiempo real.', icon: Truck },
                     ].map((item, i) => (
                         <div key={i} className="space-y-4">
                             <item.icon className="w-8 h-8 text-brand-terracotta mb-4" />

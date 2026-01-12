@@ -17,7 +17,7 @@ export default function RestauracionPage() {
                         <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-brand-terracotta">Servicio Especializado</span>
                         <h1 className="font-serif text-6xl leading-tight text-brand-charcoal">
                             Restauración Técnica: <br />
-                            <span className="italic text-brand-terracotta">Elevamos su Inversión</span>
+                            <span className="italic text-brand-terracotta">Prendas como Nuevas</span>
                         </h1>
                         <p className="text-gray-600 text-lg leading-relaxed">
                             No es solo un arreglo; es una cirugía textil. En Elena Atelier aplicamos maestría técnica para preservar la integridad de sus prendas más valiosas, extendiendo su vida útil mediante procesos de restauración invisibles y estructurales.
@@ -42,9 +42,9 @@ export default function RestauracionPage() {
 
                     <div className="grid md:grid-cols-3 gap-12">
                         {[
-                            { title: 'Diagnóstico Estructural', desc: 'Analizamos la composición de la fibra y el estado de la trama para determinar el proceso menos invasivo.', icon: ShieldCheck },
-                            { title: 'Intervención Artesanal', desc: 'Uso de hilos de seda y técnicas de costura invisibles para recuperar la forma y caída original.', icon: Sparkles },
-                            { title: 'Garantía de Calce', desc: 'Cada restauración incluye una prueba final para asegurar que la prenda se ajuste perfectamente a su fisonomía.', icon: Ruler },
+                            { title: 'Revisión Detallada', desc: 'Analizamos la composición de la fibra y el estado de la trama para determinar el proceso menos invasivo.', icon: ShieldCheck },
+                            { title: 'Arreglos de Precisión', desc: 'Uso de hilos de seda y técnicas de costura invisibles para recuperar la forma y caída original.', icon: Sparkles },
+                            { title: 'Calce Perfecto', desc: 'Cada restauración incluye una prueba final para asegurar que la prenda se ajuste perfectamente a su fisonomía.', icon: Ruler },
                         ].map((feature, i) => (
                             <div key={i} className="bg-white p-12 border border-gray-100 space-y-6 hover:shadow-xl transition-shadow">
                                 <feature.icon className="w-10 h-10 text-brand-terracotta" />
@@ -58,7 +58,7 @@ export default function RestauracionPage() {
                 {/* Call to Action Portfolio */}
                 <section className="bg-brand-charcoal text-white p-20 flex flex-col lg:flex-row justify-between items-center gap-12 rounded-sm">
                     <div className="max-w-xl">
-                        <h2 className="font-serif text-4xl mb-4">Portafolio de Preservación</h2>
+                        <h2 className="font-serif text-4xl mb-4">Galería de Trabajos</h2>
                         <p className="text-gray-400 text-sm">Vea cómo hemos transformado piezas de alta costura mediante nuestra restauración técnica. Cada intervención cuenta una historia de durabilidad.</p>
                     </div>
                     <button className="whitespace-nowrap flex items-center gap-2 border border-white/20 px-10 py-5 text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-white hover:text-brand-charcoal transition-all">
