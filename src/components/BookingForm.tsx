@@ -99,7 +99,8 @@ export default function BookingForm() {
                 <form className="space-y-6" onSubmit={handleSubmit}>
                     <h2 className="font-serif text-3xl mb-8">Personalización Previa</h2>
                     <p className="text-sm text-text-secondary italic mb-6">
-                        Para que su visita sea impecable, cuéntenos sus preferencias. Tendremos una selección preparada para usted.
+                        Para que su visita sea impecable, cuéntenos sus preferencias. <br />
+                        Sus medidas serán guardadas en su <strong>Historial Digital de Medidas</strong> para futuras confecciones sin necesidad de nuevas pruebas.
                     </p>
 
                     <div className="grid grid-cols-2 gap-4">

@@ -43,24 +43,24 @@ export const ElenaAtelierSchema = {
                 "@type": "Offer",
                 "itemOffered": {
                     "@type": "Service",
-                    "name": "Restauración de prendas de lujo Santiago",
-                    "description": "Servicio experto de restauración y upcycling de prendas de alta gama en Vitacura."
+                    "name": "Restauración de vestidos de gala en Vitacura",
+                    "description": "Servicio experto de restauración y cirugía textil para vestidos de fiesta y prendas de alta gama en Santiago."
                 }
             },
             {
                 "@type": "Offer",
                 "itemOffered": {
                     "@type": "Service",
-                    "name": "Sastrería tecnológica en Vitacura",
-                    "description": "Confección a medida combinando técnicas tradicionales con patronaje digital y pasaporte de trazabilidad."
+                    "name": "Alta Costura y Diseños a Medida Santiago",
+                    "description": "Confección exclusiva de vestidos de gala y sastrería femenina con trazabilidad digital."
                 }
             },
             {
                 "@type": "Offer",
                 "itemOffered": {
                     "@type": "Service",
-                    "name": "Producción Small Batch Chile",
-                    "description": "Manufactura ética de lotes pequeños para boutiques de lujo y marcas locales."
+                    "name": "Manufactura Ética Small Batch Chile",
+                    "description": "Producción local de lotes pequeños para marcas de lujo y boutiques con enfoque en sostenibilidad."
                 }
             }
         ]

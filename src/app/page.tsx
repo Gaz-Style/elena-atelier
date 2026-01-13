@@ -23,12 +23,45 @@ export default function Home() {
               Confección exclusiva de vestidos y piezas de noche que priorizan su elegancia y comodidad. Diseños trazables que representan una inversión real en su estilo personal.
             </p>
           </Link>
-          <div className="space-y-6">
+          <Link href="/b2b" className="space-y-6 group cursor-pointer block">
             <span className="text-brand-terracotta font-serif text-3xl md:text-4xl block">03</span>
-            <h3 className="font-serif text-xl md:text-2xl">Trabajo responsable</h3>
+            <h3 className="font-serif text-xl md:text-2xl group-hover:text-brand-terracotta transition-colors">Producción Ética</h3>
             <p className="text-text-secondary leading-relaxed text-sm md:text-base">
-              Colaboramos con boutiques locales para fabricar lotes pequeños, reduciendo el desperdicio y garantizando un pago justo por artesanía de alto nivel.
+              Colaboramos con boutiques locales para fabricar lotes pequeños (Small Batch), reduciendo el desperdicio textil y garantizando artesanía de alto nivel en Chile.
             </p>
+          </Link>
+        </div>
+      </section>
+
+      {/* Slow Fashion / Sustainability Section */}
+      <section className="py-20 bg-white border-t border-gray-100 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="order-2 lg:order-1 relative h-[400px] rounded-sm overflow-hidden">
+              <img
+                src="/assets/media/restauracion_vestido.png"
+                alt="Detalle de costura a mano"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-brand-charcoal/20" />
+            </div>
+            <div className="order-1 lg:order-2 space-y-8 text-center lg:text-left">
+              <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-terracotta block">Manifiesto Slow Fashion</span>
+              <h2 className="font-serif text-4xl md:text-5xl leading-tight">No lo botes, <br /><span className="italic">renuévalo</span></h2>
+              <p className="text-text-secondary text-lg leading-relaxed">
+                En un mundo saturado de moda desechable, en Elena Atelier creemos que reparar es el acto más sostenible. La verdadera elegancia reside en la durabilidad y en el respeto por las piezas que ya amamos.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-8 pt-4">
+                <div className="space-y-2">
+                  <h4 className="font-serif text-xl">Transparencia Radical</h4>
+                  <p className="text-xs text-text-secondary uppercase tracking-widest">Taller abierto a la comunidad</p>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="font-serif text-xl">Artesanía de Oficio</h4>
+                  <p className="text-xs text-text-secondary uppercase tracking-widest">Hecho a mano en Vitacura</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

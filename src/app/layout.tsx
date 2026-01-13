@@ -15,11 +15,11 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "ELENA ATELIER | El Verdadero Lujo es el Calce Perfecto",
-  description: "Restauración de Prendas y Sastrería Tecnológica en Vitacura. Especialistas en preservación técnica, diseño consciente y trazabilidad digital.",
+  title: "ELENA ATELIER | Alta Costura & Restauración en Vitacura",
+  description: "Taller de alta costura y restauración de vestidos de gala en Vitacura. Expertos en arreglos de lujo, diseño a medida y confección ética en Santiago.",
   openGraph: {
-    title: "ELENA ATELIER | Sastrería & Restauración de Lujo",
-    description: "No solo reparamos prendas, elevamos inversiones. Maestría técnica en el corazón de Vitacura.",
+    title: "ELENA ATELIER | Sastrería & Alta Costura en Vitacura",
+    description: "No solo reparamos prendas, elevamos inversiones. Maestría técnica en vestidos de gala y restauración profesional.",
     url: "https://elenaatelier.cl",
     siteName: "Elena Atelier",
     images: [
