@@ -9,9 +9,9 @@ export default function Hero() {
         <section className="relative h-screen bg-brand-sand overflow-hidden">
             <div className="absolute inset-0 z-0">
                 <div
-                    className="absolute inset-0 bg-[url('/hero-after.jpg')] bg-cover bg-center"
+                    className="absolute inset-0 bg-[url('/assets/media/hero_main.png')] bg-cover bg-center"
                 >
-                    <div className="absolute inset-0 bg-black/30" />
+                    <div className="absolute inset-0 bg-black/40" />
                 </div>
             </div>
 

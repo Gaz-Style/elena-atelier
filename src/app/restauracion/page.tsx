@@ -29,7 +29,7 @@ export default function RestauracionPage() {
                         </div>
                     </div>
                     <div className="aspect-[4/5] bg-gray-200 overflow-hidden rounded-sm shadow-2xl">
-                        <img src="/assets/media/restauracion_vestido.png" alt="Restauración de vestidos de gala" className="w-full h-full object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-700" />
+                        <img src="/assets/media/restauracion_vestido_gala.png" alt="Alta Costura y Vestidos de Gala" className="w-full h-full object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-700" />
                     </div>
                 </section>
 

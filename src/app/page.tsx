@@ -54,7 +54,7 @@ export default function Home() {
           </div>
           <div className="flex-1 h-[350px] md:h-[500px] w-full rounded-sm overflow-hidden relative shadow-2xl">
             <img
-              src="/assets/media/elena_atelier_vitacura_showroom.png"
+              src="/assets/media/showroom_main.png"
               alt="Elena Atelier Showroom Vitacura"
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
             />
