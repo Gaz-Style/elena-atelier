@@ -51,7 +51,7 @@ export default function BookingForm() {
                         >
                             <div>
                                 <span className="block font-medium">Ajuste y Reparación</span>
-                                <span className="text-xs text-text-secondary italic">Upcycling y arreglos técnicos</span>
+                                <span className="text-xs text-text-secondary italic">Upcycling y Arreglos Técnicos</span>
                             </div>
                             <div className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center">
                                 {formData.serviceType === 'Ajuste y Reparación' && <div className="w-2 h-2 rounded-full bg-brand-terracotta" />}
