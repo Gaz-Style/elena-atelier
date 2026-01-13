@@ -32,18 +32,18 @@ export default function SastreriaPage() {
                 </section>
 
                 {/* Technical Showcase */}
-                <section className="grid lg:grid-cols-3 gap-1 grid-bg">
-                    <div className="lg:col-span-2 aspect-video bg-gray-100 overflow-hidden">
+                <section className="grid lg:grid-cols-3 gap-4 md:gap-1 items-stretch bg-gray-50">
+                    <div className="lg:col-span-2 min-h-[300px] md:h-auto overflow-hidden relative">
                         <video
-                            src="/assets/media/Fashion week 2025 Argentina.mp4"
+                            src="/assets/media/Fashion%20week%202025%20Argentina.mp4"
                             autoPlay
                             loop
                             muted
                             playsInline
-                            className="w-full h-full object-cover"
+                            className="absolute inset-0 w-full h-full object-cover"
                         />
                     </div>
-                    <div className="bg-brand-charcoal text-white p-16 flex flex-col justify-center space-y-8">
+                    <div className="bg-brand-charcoal text-white p-12 md:p-16 flex flex-col justify-center space-y-8">
                         <h3 className="font-serif text-3xl">Telas de Primera Calidad</h3>
                         <p className="text-gray-400 text-sm leading-relaxed">
                             Trabajamos con las casas textiles más prestigiosas del mundo (Loro Piana, Zegna, Scabal) para garantizar que su prenda no solo se vea perfecta, sino que se sienta como una segunda piel.
