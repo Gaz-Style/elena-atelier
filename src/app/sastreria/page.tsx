@@ -13,7 +13,7 @@ export default function SastreriaPage() {
             <main className="max-w-7xl mx-auto px-8 pt-32 pb-24 space-y-32">
                 {/* Luxury Hero for Sastreria */}
                 <section className="flex flex-col items-center text-center space-y-10">
-                    <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-terracotta">Sastrería Profesional</span>
+                    <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-terracotta">Oficio Moderno</span>
                     <h1 className="font-serif text-7xl leading-tight text-brand-charcoal max-w-4xl">
                         Diseño Consciente: <br />
                         <span className="italic text-brand-terracotta font-light">Piezas con Alma</span>
@@ -41,9 +41,9 @@ export default function SastreriaPage() {
                         />
                     </div>
                     <div className="bg-brand-charcoal text-white p-12 md:p-16 flex flex-col justify-center space-y-8">
-                        <h3 className="font-serif text-3xl">Telas de Primera Calidad</h3>
+                        <h3 className="font-serif text-3xl">Materiales Reales</h3>
                         <p className="text-gray-400 text-sm leading-relaxed">
-                            Trabajamos con las casas textiles más prestigiosas del mundo (Loro Piana, Zegna, Scabal) para garantizar que su prenda no solo se vea perfecta, sino que se sienta como una segunda piel.
+                            Buscamos las mejores telas para que tu prenda no solo se vea impecable, sino que se sienta como una extensión de tu personalidad. Calidad que se toca y se siente.
                         </p>
                         <ul className="space-y-4 text-xs uppercase tracking-widest font-bold text-brand-terracotta">
                             <li className="flex items-center gap-3"><Scissors className="w-4 h-4" /> Corte Láser de Precisión</li>
@@ -58,16 +58,16 @@ export default function SastreriaPage() {
                     <div className="flex-1 space-y-6">
                         <h2 className="font-serif text-4xl">Tu Estilo, Tu Medida</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            El proceso de sastrería en Elena Atelier comienza con una conversación. Entendemos su estilo de vida, sus ocasiones y sus preferencias para crear algo que no solo sea una prenda, sino una herramienta de confianza.
+                            El proceso en Elena Atelier comienza con una conversación honesta. Entendemos tu estilo de vida y tus gustos para crear una pieza que sea una verdadera expresión de quien eres.
                         </p>
                         <div className="grid grid-cols-2 gap-8 pt-8">
                             <div>
-                                <h4 className="font-serif text-xl mb-2">Pruebas Personalizadas</h4>
-                                <p className="text-xs text-gray-500">Sesiones privadas en nuestro atelier de Tabancura con especialistas en calce.</p>
+                                <h4 className="font-serif text-xl mb-2">Pruebas Cercanas</h4>
+                                <p className="text-xs text-gray-500">Sesiones en nuestro taller de Tabancura, donde nos tomamos el tiempo para escucharte.</p>
                             </div>
                             <div>
-                                <h4 className="font-serif text-xl mb-2">Seguimiento Digital</h4>
-                                <p className="text-xs text-gray-500">Monitoree el estado de confección de su pieza a través de su Pasaporte Digital.</p>
+                                <h4 className="font-serif text-xl mb-2">Proceso Transparente</h4>
+                                <p className="text-xs text-gray-500">Sigue el avance de tu pieza y conoce quién está detrás de cada proceso.</p>
                             </div>
                         </div>
                     </div>

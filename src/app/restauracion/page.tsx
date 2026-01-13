@@ -14,7 +14,7 @@ export default function RestauracionPage() {
                 {/* Luxury Hero for Service */}
                 <section className="grid lg:grid-cols-2 gap-16 items-center border-b border-gray-200 pb-24">
                     <div className="space-y-8">
-                        <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-brand-terracotta">Servicio Especializado</span>
+                        <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-brand-terracotta">Compromiso con el Oficio</span>
                         <h1 className="font-serif text-6xl leading-tight text-brand-charcoal">
                             El Oficio del Detalle: <br />
                             <span className="italic text-brand-terracotta">Tu Ropa, Tu Historia</span>
@@ -42,9 +42,9 @@ export default function RestauracionPage() {
 
                     <div className="grid md:grid-cols-3 gap-12">
                         {[
-                            { title: 'Revisión Detallada', desc: 'Analizamos la composición de la fibra y el estado de la trama para determinar el proceso menos invasivo.', icon: ShieldCheck },
-                            { title: 'Arreglos de Precisión', desc: 'Uso de hilos de seda y técnicas de costura invisibles para recuperar la forma y caída original.', icon: Sparkles },
-                            { title: 'Calce Perfecto', desc: 'Cada restauración incluye una prueba final para asegurar que la prenda se ajuste perfectamente a su fisonomía.', icon: Ruler },
+                            { title: 'Revisión Honesta', desc: 'Analizamos tu prenda contigo para determinar el proceso más respetuoso con el diseño original.', icon: ShieldCheck },
+                            { title: 'Manos Expertas', desc: 'Recuperamos la forma y caída original usando técnicas de costura invisibles y materiales de calidad.', icon: Sparkles },
+                            { title: 'Tu Calce Real', desc: 'Cada restauración incluye una prueba final para que te sientas cómoda y segura con el resultado.', icon: Ruler },
                         ].map((feature, i) => (
                             <div key={i} className="bg-white p-12 border border-gray-100 space-y-6 hover:shadow-xl transition-shadow">
                                 <feature.icon className="w-10 h-10 text-brand-terracotta" />
@@ -58,8 +58,8 @@ export default function RestauracionPage() {
                 {/* Call to Action Portfolio */}
                 <section className="bg-brand-charcoal text-white p-20 flex flex-col lg:flex-row justify-between items-center gap-12 rounded-sm">
                     <div className="max-w-xl">
-                        <h2 className="font-serif text-4xl mb-4">Galería de Trabajos</h2>
-                        <p className="text-gray-400 text-sm">Vea cómo hemos transformado piezas de alta costura mediante nuestra restauración técnica. Cada intervención cuenta una historia de durabilidad.</p>
+                        <h2 className="font-serif text-4xl mb-4">Nuestro Trabajo</h2>
+                        <p className="text-gray-400 text-sm">Mira cómo hemos cuidado y transformado prendas que sus dueños daban por perdidas. Cada intervención es un compromiso con la longevidad de tu armario.</p>
                     </div>
                     <Link
                         href="/appointment"

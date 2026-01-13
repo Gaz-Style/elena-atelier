@@ -29,7 +29,7 @@ export default function Navbar() {
                             </Link>
                         ))}
                         <Link href="/appointment" className="bg-brand-charcoal text-white px-6 py-3 rounded-sm hover:bg-brand-terracotta transition-all">
-                            Agendar Cita
+                            Agendar Visita
                         </Link>
                     </div>
 
@@ -70,7 +70,7 @@ export default function Navbar() {
                             onClick={() => setIsOpen(false)}
                             className="bg-brand-charcoal text-white px-10 py-4 rounded-sm hover:bg-brand-terracotta transition-all uppercase tracking-widest text-sm"
                         >
-                            Agendar Cita
+                            Agendar Visita
                         </Link>
                     </motion.div>
                 )}
