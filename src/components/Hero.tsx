@@ -30,7 +30,7 @@ export default function Hero() {
                         transition={{ delay: 0.2 }}
                         className="font-serif text-5xl md:text-8xl text-white mb-8 leading-tight"
                     >
-                        El Verdadero Lujo es <br /> <span className="italic">el Calce Perfecto</span>
+                        Ropa que se siente <br /> <span className="italic">Hecha para Ti</span>
                     </motion.h1>
                     <motion.p
                         initial={{ opacity: 0 }}
@@ -38,7 +38,7 @@ export default function Hero() {
                         transition={{ delay: 0.4 }}
                         className="font-sans text-base md:text-xl text-white/90 max-w-3xl mx-auto mb-12 px-4"
                     >
-                        Arreglos de alta calidad y sastreria profesional. Transformamos tus prendas con precisión para que luzcas impecable todos los días.
+                        Expertos en arreglos y confección a medida. Ajustamos tus prendas favoritas para que te queden perfectas y duren mucho más tiempo.
                     </motion.p>
 
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 px-4">

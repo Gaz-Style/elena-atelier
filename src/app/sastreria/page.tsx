@@ -15,11 +15,11 @@ export default function SastreriaPage() {
                 <section className="flex flex-col items-center text-center space-y-10">
                     <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-terracotta">Sastrería Profesional</span>
                     <h1 className="font-serif text-7xl leading-tight text-brand-charcoal max-w-4xl">
-                        Sastrería a Medida: <br />
-                        <span className="italic text-brand-terracotta font-light">Calidad y Durabilidad</span>
+                        Ropa a Medida: <br />
+                        <span className="italic text-brand-terracotta font-light">Calce y Durabilidad</span>
                     </h1>
                     <p className="text-gray-500 text-xl max-w-2xl leading-relaxed">
-                        Creamos piezas únicas que son el reflejo de su personalidad. Nuestra sastrería combina la tradición antigua con tecnología moderna de calce para lograr una experiencia inigualable.
+                        Hacemos prendas que se adaptan a tu cuerpo y ritmo de vida. Combinamos costura tradicional con ajustes modernos para que te sientas cómodo y seguro.
                     </p>
                     <div className="flex gap-4">
                         <Link href="/appointment" className="bg-brand-charcoal text-white px-12 py-5 text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all shadow-xl">
@@ -44,9 +44,9 @@ export default function SastreriaPage() {
                         />
                     </div>
                     <div className="bg-brand-charcoal text-white p-12 md:p-16 flex flex-col justify-center space-y-8">
-                        <h3 className="font-serif text-3xl">Telas de Primera Calidad</h3>
+                        <h3 className="font-serif text-3xl">Telas de Alta Calidad</h3>
                         <p className="text-gray-400 text-sm leading-relaxed">
-                            Trabajamos con las casas textiles más prestigiosas del mundo (Loro Piana, Zegna, Scabal) para garantizar que su prenda no solo se vea perfecta, sino que se sienta como una segunda piel.
+                            Seleccionamos telas resistentes y de buen tacto para asegurar que tu prenda no solo te quede bien hoy, sino que mantenga su forma y calidad con el paso del tiempo.
                         </p>
                         <ul className="space-y-4 text-xs uppercase tracking-widest font-bold text-brand-terracotta">
                             <li className="flex items-center gap-3"><Scissors className="w-4 h-4" /> Corte Láser de Precisión</li>
@@ -59,9 +59,9 @@ export default function SastreriaPage() {
                 {/* Clienteling section */}
                 <section className="py-24 bg-brand-sand/20 rounded-sm p-16 flex flex-col md:flex-row gap-16 items-center">
                     <div className="flex-1 space-y-6">
-                        <h2 className="font-serif text-4xl">Tu Estilo, Tu Medida</h2>
+                        <h2 className="font-serif text-4xl">Tu Estilo, Tu Comodidad</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            El proceso de sastrería en Elena Atelier comienza con una conversación. Entendemos su estilo de vida, sus ocasiones y sus preferencias para crear algo que no solo sea una prenda, sino una herramienta de confianza.
+                            En Elena Atelier nos enfocamos en lo que tú necesitas. Te escuchamos para entender tu día a día y así crear prendas que sean funcionales y te queden impecables.
                         </p>
                         <div className="grid grid-cols-2 gap-8 pt-8">
                             <div>
