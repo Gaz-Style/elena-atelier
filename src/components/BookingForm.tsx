@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
 export default function BookingForm() {
@@ -32,15 +32,15 @@ export default function BookingForm() {
                     <div className="grid gap-4">
                         <button
                             type="button"
-                            onClick={() => setFormData({ ...formData, serviceType: 'Cita de Diseño Bespoke' })}
-                            className={`p-4 border text-left flex justify-between items-center transition-all ${formData.serviceType === 'Cita de Diseño Bespoke' ? 'border-brand-terracotta bg-brand-sand/30' : 'border-gray-200 hover:border-brand-terracotta'}`}
+                            onClick={() => setFormData({ ...formData, serviceType: 'Diseño a Medida' })}
+                            className={`p-4 border text-left flex justify-between items-center transition-all ${formData.serviceType === 'Diseño a Medida' ? 'border-brand-terracotta bg-brand-sand/30' : 'border-gray-200 hover:border-brand-terracotta'}`}
                         >
                             <div>
-                                <span className="block font-medium">Cita de Diseño Bespoke</span>
-                                <span className="text-xs text-text-secondary italic">Confección desde cero</span>
+                                <span className="block font-medium">Diseño a Medida</span>
+                                <span className="text-xs text-text-secondary italic">Confección personalizada</span>
                             </div>
                             <div className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center">
-                                {formData.serviceType === 'Cita de Diseño Bespoke' && <div className="w-2 h-2 rounded-full bg-brand-terracotta" />}
+                                {formData.serviceType === 'Diseño a Medida' && <div className="w-2 h-2 rounded-full bg-brand-terracotta" />}
                             </div>
                         </button>
 
@@ -64,6 +64,7 @@ export default function BookingForm() {
                             required
                             className="w-full border-b border-gray-300 py-3 focus:border-brand-terracotta outline-none transition-colors"
                             placeholder="Nombre Completo"
+                            value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         />
                         <input
@@ -71,6 +72,7 @@ export default function BookingForm() {
                             type="email"
                             className="w-full border-b border-gray-300 py-3 focus:border-brand-terracotta outline-none transition-colors"
                             placeholder="Email"
+                            value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         />
                         <input
@@ -78,6 +80,7 @@ export default function BookingForm() {
                             type="tel"
                             className="w-full border-b border-gray-300 py-3 focus:border-brand-terracotta outline-none transition-colors"
                             placeholder="WhatsApp (ej. +569...)"
+                            value={formData.phone}
                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         />
                     </div>
