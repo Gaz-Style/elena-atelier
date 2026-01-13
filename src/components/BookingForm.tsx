@@ -46,15 +46,15 @@ export default function BookingForm() {
 
                         <button
                             type="button"
-                            onClick={() => setFormData({ ...formData, serviceType: 'Ajuste & Restauración Premium' })}
-                            className={`p-4 border text-left flex justify-between items-center transition-all ${formData.serviceType === 'Ajuste & Restauración Premium' ? 'border-brand-terracotta bg-brand-sand/30' : 'border-gray-200 hover:border-brand-terracotta'}`}
+                            onClick={() => setFormData({ ...formData, serviceType: 'Ajuste y Reparación' })}
+                            className={`p-4 border text-left flex justify-between items-center transition-all ${formData.serviceType === 'Ajuste y Reparación' ? 'border-brand-terracotta bg-brand-sand/30' : 'border-gray-200 hover:border-brand-terracotta'}`}
                         >
                             <div>
-                                <span className="block font-medium">Ajuste & Restauración Premium</span>
+                                <span className="block font-medium">Ajuste y Reparación</span>
                                 <span className="text-xs text-text-secondary italic">Upcycling y arreglos técnicos</span>
                             </div>
                             <div className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center">
-                                {formData.serviceType === 'Ajuste & Restauración Premium' && <div className="w-2 h-2 rounded-full bg-brand-terracotta" />}
+                                {formData.serviceType === 'Ajuste y Reparación' && <div className="w-2 h-2 rounded-full bg-brand-terracotta" />}
                             </div>
                         </button>
                     </div>
