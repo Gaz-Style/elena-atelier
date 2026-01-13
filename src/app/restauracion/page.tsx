@@ -16,11 +16,11 @@ export default function RestauracionPage() {
                     <div className="space-y-8">
                         <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-brand-terracotta">Servicio Especializado</span>
                         <h1 className="font-serif text-6xl leading-tight text-brand-charcoal">
-                            Arreglos Técnicos: <br />
-                            <span className="italic text-brand-terracotta">Tu Ropa como Nueva</span>
+                            Restauración Técnica: <br />
+                            <span className="italic text-brand-terracotta">Prendas como Nuevas</span>
                         </h1>
                         <p className="text-gray-600 text-lg leading-relaxed">
-                            No es solo un arreglo común; es un trabajo de precisión. En Elena Atelier aplicamos técnicas profesionales para cuidar tus prendas favoritas, recuperando su ajuste original y extendiendo su vida útil.
+                            No es solo un arreglo; es una cirugía textil. En Elena Atelier aplicamos maestría técnica para preservar la integridad de sus prendas más valiosas, extendiendo su vida útil mediante procesos de restauración invisibles y estructurales.
                         </p>
                         <div className="flex gap-6">
                             <Link href="/appointment" className="bg-brand-charcoal text-white px-8 py-4 text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all">
@@ -42,9 +42,9 @@ export default function RestauracionPage() {
 
                     <div className="grid md:grid-cols-3 gap-12">
                         {[
-                            { title: 'Revisión Directa', desc: 'Evaluamos el material y el daño para elegir la mejor forma de arreglarlo sin afectar la prenda.', icon: ShieldCheck },
-                            { title: 'Costura de Precisión', desc: 'Usamos técnicas de costura invisible para recuperar los cortes y uniones originales de la ropa.', icon: Sparkles },
-                            { title: 'El Calce que Buscas', desc: 'Probamos cada arreglo para asegurar que la prenda te quede cómoda y como a ti te gusta.', icon: Ruler },
+                            { title: 'Revisión Detallada', desc: 'Analizamos la composición de la fibra y el estado de la trama para determinar el proceso menos invasivo.', icon: ShieldCheck },
+                            { title: 'Arreglos de Precisión', desc: 'Uso de hilos de seda y técnicas de costura invisibles para recuperar la forma y caída original.', icon: Sparkles },
+                            { title: 'Calce Perfecto', desc: 'Cada restauración incluye una prueba final para asegurar que la prenda se ajuste perfectamente a su fisonomía.', icon: Ruler },
                         ].map((feature, i) => (
                             <div key={i} className="bg-white p-12 border border-gray-100 space-y-6 hover:shadow-xl transition-shadow">
                                 <feature.icon className="w-10 h-10 text-brand-terracotta" />

@@ -32,15 +32,15 @@ export default function BookingForm() {
                     <div className="grid gap-4">
                         <button
                             type="button"
-                            onClick={() => setFormData({ ...formData, serviceType: 'Diseño a Medida' })}
-                            className={`p-4 border text-left flex justify-between items-center transition-all ${formData.serviceType === 'Diseño a Medida' ? 'border-brand-terracotta bg-brand-sand/30' : 'border-gray-200 hover:border-brand-terracotta'}`}
+                            onClick={() => setFormData({ ...formData, serviceType: 'Cita de Diseño Bespoke' })}
+                            className={`p-4 border text-left flex justify-between items-center transition-all ${formData.serviceType === 'Cita de Diseño Bespoke' ? 'border-brand-terracotta bg-brand-sand/30' : 'border-gray-200 hover:border-brand-terracotta'}`}
                         >
                             <div>
-                                <span className="block font-medium">Diseño a Medida</span>
-                                <span className="text-xs text-text-secondary italic">Confección personalizada</span>
+                                <span className="block font-medium">Cita de Diseño Bespoke</span>
+                                <span className="text-xs text-text-secondary italic">Confección desde cero</span>
                             </div>
                             <div className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center">
-                                {formData.serviceType === 'Diseño a Medida' && <div className="w-2 h-2 rounded-full bg-brand-terracotta" />}
+                                {formData.serviceType === 'Cita de Diseño Bespoke' && <div className="w-2 h-2 rounded-full bg-brand-terracotta" />}
                             </div>
                         </button>
 
@@ -184,10 +184,10 @@ export default function BookingForm() {
                     className="text-center py-12"
                 >
                     <div className="w-16 h-16 bg-brand-sand rounded-full flex items-center justify-center mx-auto mb-6 text-brand-terracotta text-2xl">✓</div>
-                    <h2 className="font-serif text-3xl mb-4">Solicitud Enviada</h2>
+                    <h2 className="font-serif text-3xl mb-4">Solicitud de Experiencia Enviada</h2>
                     <p className="text-text-secondary mb-8">
-                        Gracias {formData.name.split(' ')[0]}. Hemos recibido tu solicitud para {formData.serviceType}. <br />
-                        Te contactaremos por WhatsApp en breve para confirmar la hora exacta en Tabancura 1091.
+                        Gracias {formData.name.split(' ')[0]}. Hemos recibido su solicitud de {formData.serviceType}. <br />
+                        Recibirá una confirmación vía WhatsApp en breve para coordinar su llegada a Tabancura 1091.
                     </p>
                     <button
                         onClick={() => setStep(1)}
