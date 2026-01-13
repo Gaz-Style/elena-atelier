@@ -34,7 +34,14 @@ export default function SastreriaPage() {
                 {/* Technical Showcase */}
                 <section className="grid lg:grid-cols-3 gap-1 grid-bg">
                     <div className="lg:col-span-2 aspect-video bg-gray-100 overflow-hidden">
-                        <img src="/assets/media/elena_atelier_showroom_interior_1768080112223.png" alt="Showroom Sastrería" className="w-full h-full object-cover" />
+                        <video
+                            src="/assets/media/Fashion week 2025 Argentina.mp4"
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="w-full h-full object-cover"
+                        />
                     </div>
                     <div className="bg-brand-charcoal text-white p-16 flex flex-col justify-center space-y-8">
                         <h3 className="font-serif text-3xl">Telas de Primera Calidad</h3>
