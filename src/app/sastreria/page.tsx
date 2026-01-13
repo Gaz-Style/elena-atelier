@@ -79,10 +79,13 @@ export default function SastreriaPage() {
                             <UserCheck className="w-12 h-12 text-brand-terracotta mx-auto mb-6" />
                             <h3 className="font-serif text-2xl mb-4">¿Hablamos?</h3>
                             <p className="text-xs text-gray-400 mb-8 uppercase tracking-widest">Atención hiper-personalizada</p>
-                            <Link href="https://wa.me/56912345678" target="_blank" rel="noopener noreferrer">
-                                <button className="w-full bg-green-600 text-white py-4 flex items-center justify-center gap-2 text-xs uppercase tracking-widest font-bold hover:bg-green-700 transition-all">
-                                    <MessageCircle className="w-4 h-4" /> WhatsApp Directo
-                                </button>
+                            <Link
+                                href="https://wa.me/56912345678"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full bg-green-600 text-white py-4 flex items-center justify-center gap-2 text-xs uppercase tracking-widest font-bold hover:bg-green-700 transition-all text-center"
+                            >
+                                <MessageCircle className="w-4 h-4" /> WhatsApp Directo
                             </Link>
                         </div>
                     </div>

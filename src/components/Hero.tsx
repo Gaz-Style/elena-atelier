@@ -42,15 +42,17 @@ export default function Hero() {
                     </motion.p>
 
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 px-4">
-                        <Link href="/appointment" className="w-full md:w-auto">
-                            <button className="bg-white text-brand-charcoal px-10 py-4 rounded-sm font-sans text-sm uppercase tracking-widest hover:bg-brand-terracotta hover:text-white transition-all w-full">
-                                Reservar Restauración
-                            </button>
+                        <Link
+                            href="/appointment"
+                            className="w-full md:w-auto bg-white text-brand-charcoal px-10 py-4 rounded-sm font-sans text-sm uppercase tracking-widest hover:bg-brand-terracotta hover:text-white transition-all text-center"
+                        >
+                            Reservar Restauración
                         </Link>
-                        <Link href="/sastreria" className="w-full md:w-auto">
-                            <button className="border border-white text-white px-10 py-4 rounded-sm font-sans text-sm uppercase tracking-widest hover:bg-white hover:text-brand-charcoal transition-all w-full">
-                                Ver Colección
-                            </button>
+                        <Link
+                            href="/sastreria"
+                            className="w-full md:w-auto border border-white text-white px-10 py-4 rounded-sm font-sans text-sm uppercase tracking-widest hover:bg-white hover:text-brand-charcoal transition-all text-center"
+                        >
+                            Ver Colección
                         </Link>
                     </div>
                 </div>

@@ -152,9 +152,9 @@ export default function BookingForm() {
                             <span className="block text-brand-terracotta font-medium mb-1">Subir Foto de Referencia</span>
                             <span className="text-xs text-text-secondary italic">Opcional pero recomendado para mayor precisión</span>
                             {formData.referencePhoto && (
-                                <div className="mt-4 text-xs font-sans text-brand-charcoal bg-brand-sand py-1 px-3 rounded-full inline-block">
+                                <span className="mt-4 text-xs font-sans text-brand-charcoal bg-brand-sand py-1 px-3 rounded-full inline-block">
                                     ✓ {formData.referencePhoto.name}
-                                </div>
+                                </span>
                             )}
                         </label>
                     </div>

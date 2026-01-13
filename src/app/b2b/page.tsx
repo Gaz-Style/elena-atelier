@@ -30,10 +30,11 @@ export default function B2BPortal() {
                             Bienvenido al portal exclusivo para partners de Elena Atelier. Gestione sus producciones técnicas y acceda a la trazabilidad total de sus lotes.
                         </p>
                     </div>
-                    <Link href="/appointment">
-                        <button className="bg-brand-charcoal text-white px-8 py-4 text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all shadow-lg">
-                            Solicitar Nuevo Lote
-                        </button>
+                    <Link
+                        href="/appointment"
+                        className="bg-brand-charcoal text-white px-8 py-4 text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all shadow-lg text-center flex items-center justify-center"
+                    >
+                        Solicitar Nuevo Lote
                     </Link>
                 </header>
 
@@ -111,15 +112,17 @@ export default function B2BPortal() {
                         Nuestro equipo de diseño y producción técnica está listo para materializar colecciones de gran escala manteniendo la calidad de un atelier boutique.
                     </p>
                     <div className="flex justify-center gap-8 pt-4">
-                        <Link href="/appointment">
-                            <button className="bg-brand-terracotta px-10 py-4 text-xs uppercase tracking-widest hover:bg-white hover:text-brand-charcoal transition-all">
-                                Hablar con un Experto
-                            </button>
+                        <Link
+                            href="/appointment"
+                            className="bg-brand-terracotta px-10 py-4 text-xs uppercase tracking-widest hover:bg-white hover:text-brand-charcoal transition-all text-center flex items-center justify-center"
+                        >
+                            Hablar con un Experto
                         </Link>
-                        <Link href="#">
-                            <button className="border border-white/20 px-10 py-4 text-xs uppercase tracking-widest hover:bg-white/10 transition-all">
-                                Descargar Dossier Capacidad
-                            </button>
+                        <Link
+                            href="#"
+                            className="border border-white/20 px-10 py-4 text-xs uppercase tracking-widest hover:bg-white/10 transition-all text-center flex items-center justify-center"
+                        >
+                            Descargar Dossier Capacidad
                         </Link>
                     </div>
                 </section>
