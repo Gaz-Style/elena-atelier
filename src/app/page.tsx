@@ -87,8 +87,8 @@ export default function Home() {
           </div>
           <div className="flex-1 h-[350px] md:h-[500px] w-full rounded-sm overflow-hidden relative shadow-2xl">
             <img
-              src="/assets/media/showroom_main.png"
-              alt="Elena Atelier Showroom Vitacura"
+              src="/assets/media/espacio_atelier.png"
+              alt="Espacio Elena Atelier Vitacura"
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
             />
             <div className="absolute inset-0 bg-black/10 pointer-events-none" />
