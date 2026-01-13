@@ -33,13 +33,10 @@ export default function SastreriaPage() {
 
                 {/* Technical Showcase */}
                 <section className="grid lg:grid-cols-3 gap-4 md:gap-1 items-stretch bg-gray-50">
-                    <div className="lg:col-span-2 min-h-[300px] md:h-auto overflow-hidden relative">
-                        <video
-                            src="/assets/media/Fashion%20week%202025%20Argentina.mp4"
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
+                    <div className="lg:col-span-2 min-h-[400px] md:h-auto overflow-hidden relative shadow-inner">
+                        <img
+                            src="/assets/media/confeccion_gala_pink.png"
+                            alt="Confección de alta costura - Vestido de gala"
                             className="absolute inset-0 w-full h-full object-cover"
                         />
                     </div>
