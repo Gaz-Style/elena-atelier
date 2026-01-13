@@ -44,9 +44,11 @@ export default function Home() {
               <p className="text-xs md:text-sm">Lunes a Viernes: 10:00 - 19:00 <br />Sábados: Con cita previa</p>
             </div>
             <div className="flex justify-center md:justify-start">
-              <button className="bg-brand-charcoal text-white px-10 py-4 rounded-sm hover:bg-brand-terracotta transition-all uppercase tracking-widest text-xs font-medium w-full md:w-auto">
-                Agendar Visita
-              </button>
+              <Link href="/appointment" className="w-full md:w-auto">
+                <button className="bg-brand-charcoal text-white px-10 py-4 rounded-sm hover:bg-brand-terracotta transition-all uppercase tracking-widest text-xs font-medium w-full">
+                  Agendar Visita
+                </button>
+              </Link>
             </div>
           </div>
           <div className="flex-1 h-[350px] md:h-[500px] w-full rounded-sm overflow-hidden relative shadow-2xl">

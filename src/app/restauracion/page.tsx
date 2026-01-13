@@ -61,9 +61,11 @@ export default function RestauracionPage() {
                         <h2 className="font-serif text-4xl mb-4">Galería de Trabajos</h2>
                         <p className="text-gray-400 text-sm">Vea cómo hemos transformado piezas de alta costura mediante nuestra restauración técnica. Cada intervención cuenta una historia de durabilidad.</p>
                     </div>
-                    <button className="whitespace-nowrap flex items-center gap-2 border border-white/20 px-10 py-5 text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-white hover:text-brand-charcoal transition-all">
-                        Ver Casos de Éxito <ArrowRight className="w-4 h-4" />
-                    </button>
+                    <Link href="/appointment">
+                        <button className="whitespace-nowrap flex items-center gap-2 border border-white/20 px-10 py-5 text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-white hover:text-brand-charcoal transition-all">
+                            Ver Casos de Éxito <ArrowRight className="w-4 h-4" />
+                        </button>
+                    </Link>
                 </section>
             </main>
         </div>
