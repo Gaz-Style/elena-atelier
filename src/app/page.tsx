@@ -11,16 +11,16 @@ export default function Home() {
         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-16 md:gap-24">
           <Link href="/restauracion" className="space-y-6 group cursor-pointer block">
             <span className="text-brand-terracotta font-serif text-3xl md:text-4xl block">01</span>
-            <h3 className="font-serif text-xl md:text-2xl group-hover:text-brand-terracotta transition-colors">Expertos en arreglos</h3>
+            <h3 className="font-serif text-xl md:text-2xl group-hover:text-brand-terracotta transition-colors">Oficio & Cuidado</h3>
             <p className="text-text-secondary leading-relaxed text-sm md:text-base">
-              Transformamos vestidos de gala y prendas favoritas en piezas de calce impecable. Nuestra restauración técnica preserva la elegancia de cada fibra con maestría artesanal.
+              Más que ajustes, cuidamos tu ropa. Restauramos tus prendas favoritas en nuestro taller de Vitacura, donde el oficio artesanal se une a una mirada joven y comprometida.
             </p>
           </Link>
           <Link href="/sastreria" className="space-y-6 group cursor-pointer block">
             <span className="text-brand-terracotta font-serif text-3xl md:text-4xl block">02</span>
-            <h3 className="font-serif text-xl md:text-2xl group-hover:text-brand-terracotta transition-colors">Alta Costura & Gala</h3>
+            <h3 className="font-serif text-xl md:text-2xl group-hover:text-brand-terracotta transition-colors">Diseño con Sentido</h3>
             <p className="text-text-secondary leading-relaxed text-sm md:text-base">
-              Confección exclusiva de vestidos y piezas de noche que priorizan su elegancia y comodidad. Diseños trazables que representan una inversión real en su estilo personal.
+              Creamos contigo prendas únicas que reflejan tu estilo real. Un proceso de co-creación en nuestro taller para piezas que están hechas para durar y ser amadas.
             </p>
           </Link>
           <Link href="/b2b" className="space-y-6 group cursor-pointer block">
@@ -73,7 +73,7 @@ export default function Home() {
             <h2 className="font-serif text-4xl md:text-5xl leading-tight text-center md:text-left">Expertise local <br className="hidden md:block" />en Vitacura</h2>
             <div className="space-y-4 font-sans text-text-secondary text-center md:text-left">
               <p className="text-lg md:text-xl text-brand-charcoal">Av. Tabancura 1091, Santiago, Chile</p>
-              <p className="text-sm md:text-base">Nuestro estudio combina la tradición manual con trazabilidad digital. Venga a conocer el proceso detrás de cada costura.</p>
+              <p className="text-sm md:text-base">Nuestro taller es un espacio abierto donde la tradición se encuentra con la creatividad. Ven a conocernos y a ver cómo trabajamos cada prenda con alma y oficio.</p>
               <p className="text-xs md:text-sm">Lunes a Viernes: 10:00 - 19:00 <br />Sábados: Con cita previa</p>
             </div>
             <div className="flex justify-center md:justify-start">

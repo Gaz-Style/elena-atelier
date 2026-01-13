@@ -16,11 +16,11 @@ export default function RestauracionPage() {
                     <div className="space-y-8">
                         <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-brand-terracotta">Servicio Especializado</span>
                         <h1 className="font-serif text-6xl leading-tight text-brand-charcoal">
-                            Alta Costura: <br />
-                            <span className="italic text-brand-terracotta">Restauración de Gala</span>
+                            El Oficio del Detalle: <br />
+                            <span className="italic text-brand-terracotta">Tu Ropa, Tu Historia</span>
                         </h1>
                         <p className="text-gray-600 text-lg leading-relaxed">
-                            Especialistas en la preservación de vestidos de fiesta y prendas de alta gama. En Elena Atelier aplicamos maestría técnica en sedas, encajes y pedrería para que sus piezas más memorables mantengan su esplendor original.
+                            Más que arreglar, cuidamos lo que amas. En nuestro taller de Vitacura, nos comprometemos con cada puntada para que tus prendas favoritas te acompañen por siempre, aplicando una curaduría técnica que respeta el diseño original.
                         </p>
                         <div className="flex gap-6">
                             <Link href="/appointment" className="bg-brand-charcoal text-white px-8 py-4 text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all">

@@ -15,11 +15,11 @@ export default function SastreriaPage() {
                 <section className="flex flex-col items-center text-center space-y-10">
                     <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-terracotta">Sastrería Profesional</span>
                     <h1 className="font-serif text-7xl leading-tight text-brand-charcoal max-w-4xl">
-                        Confección de Gala: <br />
-                        <span className="italic text-brand-terracotta font-light">Diseños a Medida</span>
+                        Diseño Consciente: <br />
+                        <span className="italic text-brand-terracotta font-light">Piezas con Alma</span>
                     </h1>
                     <p className="text-gray-500 text-xl max-w-2xl leading-relaxed">
-                        Creamos vestidos y piezas exclusivas que realzan su figura y estilo. Nuestra maestría en alta costura femenina asegura un calce perfecto para sus momentos más especiales.
+                        Co-creamos contigo prendas que nacen de una conversación. En nuestro taller, la sastrería es una forma de expresión personal, joven y honesta, donde cada diseño cuenta tu propia historia.
                     </p>
                     <div className="flex gap-4">
                         <Link href="/appointment" className="bg-brand-charcoal text-white px-12 py-5 text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all shadow-xl">

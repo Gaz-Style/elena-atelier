@@ -30,7 +30,7 @@ export default function Hero() {
                         transition={{ delay: 0.2 }}
                         className="font-serif text-5xl md:text-8xl text-white mb-8 leading-tight"
                     >
-                        El Verdadero Lujo es <br /> <span className="italic">el Calce Perfecto</span>
+                        El Arte de Crear <br /> <span className="italic">Tu Calce Perfecto</span>
                     </motion.h1>
                     <motion.p
                         initial={{ opacity: 0 }}
@@ -38,7 +38,7 @@ export default function Hero() {
                         transition={{ delay: 0.4 }}
                         className="font-sans text-base md:text-xl text-white/90 max-w-3xl mx-auto mb-12 px-4"
                     >
-                        Maestría en alta costura y restauración de vestidos de gala. Transformamos sus piezas con precisión para que luzca impecable en sus momentos más especiales.
+                        Abrimos las puertas de nuestro taller para transformar tus prendas favoritas. Un espacio joven dedicado al oficio, donde la técnica y tu estilo se encuentran para crear algo único.
                     </motion.p>
 
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 px-4">

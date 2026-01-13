@@ -27,20 +27,20 @@ export default function BookingForm() {
         <div className="max-w-xl mx-auto p-8 bg-white border border-brand-sand shadow-sm">
             {step === 1 && (
                 <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setStep(2); }}>
-                    <h2 className="font-serif text-3xl mb-8">Reservar Experiencia</h2>
+                    <h2 className="font-serif text-3xl mb-8">Comencemos a Crear</h2>
 
                     <div className="grid gap-4">
                         <button
                             type="button"
-                            onClick={() => setFormData({ ...formData, serviceType: 'Cita de Diseño Bespoke' })}
-                            className={`p-4 border text-left flex justify-between items-center transition-all ${formData.serviceType === 'Cita de Diseño Bespoke' ? 'border-brand-terracotta bg-brand-sand/30' : 'border-gray-200 hover:border-brand-terracotta'}`}
+                            onClick={() => setFormData({ ...formData, serviceType: 'Co-creación & Diseño' })}
+                            className={`p-4 border text-left flex justify-between items-center transition-all ${formData.serviceType === 'Co-creación & Diseño' ? 'border-brand-terracotta bg-brand-sand/30' : 'border-gray-200 hover:border-brand-terracotta'}`}
                         >
                             <div>
-                                <span className="block font-medium">Cita de Diseño Bespoke</span>
-                                <span className="text-xs text-text-secondary italic">Alta Costura & Gala</span>
+                                <span className="block font-medium">Co-creación & Diseño</span>
+                                <span className="text-xs text-text-secondary italic">Tu estilo, nuestra técnica</span>
                             </div>
                             <div className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center">
-                                {formData.serviceType === 'Cita de Diseño Bespoke' && <div className="w-2 h-2 rounded-full bg-brand-terracotta" />}
+                                {formData.serviceType === 'Co-creación & Diseño' && <div className="w-2 h-2 rounded-full bg-brand-terracotta" />}
                             </div>
                         </button>
 
@@ -185,10 +185,10 @@ export default function BookingForm() {
                     className="text-center py-12"
                 >
                     <div className="w-16 h-16 bg-brand-sand rounded-full flex items-center justify-center mx-auto mb-6 text-brand-terracotta text-2xl">✓</div>
-                    <h2 className="font-serif text-3xl mb-4">Solicitud de Experiencia Enviada</h2>
+                    <h2 className="font-serif text-3xl mb-4">¡Todo Listo!</h2>
                     <p className="text-text-secondary mb-8">
-                        Gracias {formData.name.split(' ')[0]}. Hemos recibido su solicitud de {formData.serviceType}. <br />
-                        Recibirá una confirmación vía WhatsApp en breve para coordinar su llegada a Tabancura 1091.
+                        Gracias {formData.name.split(' ')[0]}. Hemos recibido tu interés en {formData.serviceType}. <br />
+                        Te hablaremos por WhatsApp muy pronto para coordinar tu visita al taller en Tabancura 1091.
                     </p>
                     <button
                         onClick={() => setStep(1)}
