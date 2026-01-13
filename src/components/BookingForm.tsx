@@ -27,34 +27,34 @@ export default function BookingForm() {
         <div className="max-w-xl mx-auto p-8 bg-white border border-brand-sand shadow-sm">
             {step === 1 && (
                 <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setStep(2); }}>
-                    <h2 className="font-serif text-3xl mb-8">Pedir una cita</h2>
+                    <h2 className="font-serif text-3xl mb-8">Reservar Experiencia</h2>
 
                     <div className="grid gap-4">
                         <button
                             type="button"
-                            onClick={() => setFormData({ ...formData, serviceType: 'Confección a medida' })}
-                            className={`p-4 border text-left flex justify-between items-center transition-all ${formData.serviceType === 'Confección a medida' ? 'border-brand-terracotta bg-brand-sand/30' : 'border-gray-200 hover:border-brand-terracotta'}`}
+                            onClick={() => setFormData({ ...formData, serviceType: 'Cita de Diseño Bespoke' })}
+                            className={`p-4 border text-left flex justify-between items-center transition-all ${formData.serviceType === 'Cita de Diseño Bespoke' ? 'border-brand-terracotta bg-brand-sand/30' : 'border-gray-200 hover:border-brand-terracotta'}`}
                         >
                             <div>
-                                <span className="block font-medium">Confección a medida</span>
-                                <span className="text-xs text-text-secondary italic">Diseñamos una prenda nueva para ti</span>
+                                <span className="block font-medium">Cita de Diseño Bespoke</span>
+                                <span className="text-xs text-text-secondary italic">Confección desde cero</span>
                             </div>
                             <div className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center">
-                                {formData.serviceType === 'Confección a medida' && <div className="w-2 h-2 rounded-full bg-brand-terracotta" />}
+                                {formData.serviceType === 'Cita de Diseño Bespoke' && <div className="w-2 h-2 rounded-full bg-brand-terracotta" />}
                             </div>
                         </button>
 
                         <button
                             type="button"
-                            onClick={() => setFormData({ ...formData, serviceType: 'Arreglos y composturas' })}
-                            className={`p-4 border text-left flex justify-between items-center transition-all ${formData.serviceType === 'Arreglos y composturas' ? 'border-brand-terracotta bg-brand-sand/30' : 'border-gray-200 hover:border-brand-terracotta'}`}
+                            onClick={() => setFormData({ ...formData, serviceType: 'Ajuste & Restauración Premium' })}
+                            className={`p-4 border text-left flex justify-between items-center transition-all ${formData.serviceType === 'Ajuste & Restauración Premium' ? 'border-brand-terracotta bg-brand-sand/30' : 'border-gray-200 hover:border-brand-terracotta'}`}
                         >
                             <div>
-                                <span className="block font-medium">Arreglos y composturas</span>
-                                <span className="text-xs text-text-secondary italic">Ajustamos y reparamos tu ropa favorita</span>
+                                <span className="block font-medium">Ajuste & Restauración Premium</span>
+                                <span className="text-xs text-text-secondary italic">Upcycling y arreglos técnicos</span>
                             </div>
                             <div className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center">
-                                {formData.serviceType === 'Arreglos y composturas' && <div className="w-2 h-2 rounded-full bg-brand-terracotta" />}
+                                {formData.serviceType === 'Ajuste & Restauración Premium' && <div className="w-2 h-2 rounded-full bg-brand-terracotta" />}
                             </div>
                         </button>
                     </div>
@@ -94,9 +94,9 @@ export default function BookingForm() {
 
             {step === 2 && (
                 <form className="space-y-6" onSubmit={handleSubmit}>
-                    <h2 className="font-serif text-3xl mb-8">Algunos detalles</h2>
+                    <h2 className="font-serif text-3xl mb-8">Personalización Previa</h2>
                     <p className="text-sm text-text-secondary italic mb-6">
-                        Cuéntanos un poco más sobre lo que necesitas para que podamos atenderte mejor.
+                        Para que su visita sea impecable, cuéntenos sus preferencias. Tendremos una selección preparada para usted.
                     </p>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -183,8 +183,8 @@ export default function BookingForm() {
                     <div className="w-16 h-16 bg-brand-sand rounded-full flex items-center justify-center mx-auto mb-6 text-brand-terracotta text-2xl">✓</div>
                     <h2 className="font-serif text-3xl mb-4">Solicitud Enviada</h2>
                     <p className="text-text-secondary mb-8">
-                        Gracias {formData.name.split(' ')[0]}. Recibimos tu pedido de {formData.serviceType}. <br />
-                        Te contactaremos por WhatsApp para coordinar tu visita a nuestro taller en Av. Tabancura 1091.
+                        Gracias {formData.name.split(' ')[0]}. Hemos recibido tu solicitud para {formData.serviceType}. <br />
+                        Te contactaremos por WhatsApp en breve para confirmar la hora exacta en Tabancura 1091.
                     </p>
                     <button
                         onClick={() => setStep(1)}
