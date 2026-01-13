@@ -38,7 +38,7 @@ export default function Hero() {
                         transition={{ delay: 0.4 }}
                         className="font-sans text-base md:text-xl text-white/90 max-w-3xl mx-auto mb-12 px-4"
                     >
-                        Arreglos de alta calidad y sastreria profesional. Transformamos tus prendas con precisión para que luzcas impecable todos los días.
+                        Maestría en alta costura y restauración de vestidos de gala. Transformamos sus piezas con precisión para que luzca impecable en sus momentos más especiales.
                     </motion.p>
 
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 px-4">

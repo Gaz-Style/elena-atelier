@@ -13,14 +13,14 @@ export default function Home() {
             <span className="text-brand-terracotta font-serif text-3xl md:text-4xl block">01</span>
             <h3 className="font-serif text-xl md:text-2xl group-hover:text-brand-terracotta transition-colors">Expertos en arreglos</h3>
             <p className="text-text-secondary leading-relaxed text-sm md:text-base">
-              Transformamos prendas favoritas en tesoros de calce impecable. Nuestra restauración técnica extiende la vida útil de cada fibra con maestría artesanal.
+              Transformamos vestidos de gala y prendas favoritas en piezas de calce impecable. Nuestra restauración técnica preserva la elegancia de cada fibra con maestría artesanal.
             </p>
           </Link>
           <Link href="/sastreria" className="space-y-6 group cursor-pointer block">
             <span className="text-brand-terracotta font-serif text-3xl md:text-4xl block">02</span>
-            <h3 className="font-serif text-xl md:text-2xl group-hover:text-brand-terracotta transition-colors">Sastrería de calidad</h3>
+            <h3 className="font-serif text-xl md:text-2xl group-hover:text-brand-terracotta transition-colors">Alta Costura & Gala</h3>
             <p className="text-text-secondary leading-relaxed text-sm md:text-base">
-              Confección a medida que prioriza la calidad sobre la tendencia. Creamos piezas esenciales, éticas y trazables que representan una inversión real en su armario.
+              Confección exclusiva de vestidos y piezas de noche que priorizan su elegancia y comodidad. Diseños trazables que representan una inversión real en su estilo personal.
             </p>
           </Link>
           <div className="space-y-6">

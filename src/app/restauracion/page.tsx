@@ -16,11 +16,11 @@ export default function RestauracionPage() {
                     <div className="space-y-8">
                         <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-brand-terracotta">Servicio Especializado</span>
                         <h1 className="font-serif text-6xl leading-tight text-brand-charcoal">
-                            Restauración Técnica: <br />
-                            <span className="italic text-brand-terracotta">Prendas como Nuevas</span>
+                            Alta Costura: <br />
+                            <span className="italic text-brand-terracotta">Restauración de Gala</span>
                         </h1>
                         <p className="text-gray-600 text-lg leading-relaxed">
-                            No es solo un arreglo; es una cirugía textil. En Elena Atelier aplicamos maestría técnica para preservar la integridad de sus prendas más valiosas, extendiendo su vida útil mediante procesos de restauración invisibles y estructurales.
+                            Especialistas en la preservación de vestidos de fiesta y prendas de alta gama. En Elena Atelier aplicamos maestría técnica en sedas, encajes y pedrería para que sus piezas más memorables mantengan su esplendor original.
                         </p>
                         <div className="flex gap-6">
                             <Link href="/appointment" className="bg-brand-charcoal text-white px-8 py-4 text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all">
@@ -29,7 +29,7 @@ export default function RestauracionPage() {
                         </div>
                     </div>
                     <div className="aspect-[4/5] bg-gray-200 overflow-hidden rounded-sm shadow-2xl">
-                        <img src="/assets/media/restauracion_hero.png" alt="Restauración técnica" className="w-full h-full object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-700" />
+                        <img src="/assets/media/restauracion_vestido.png" alt="Restauración de vestidos de gala" className="w-full h-full object-cover grayscale-[0.2] hover:grayscale-0 transition-all duration-700" />
                     </div>
                 </section>
 

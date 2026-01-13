@@ -37,7 +37,7 @@ export default function BookingForm() {
                         >
                             <div>
                                 <span className="block font-medium">Cita de Diseño Bespoke</span>
-                                <span className="text-xs text-text-secondary italic">Confección desde cero</span>
+                                <span className="text-xs text-text-secondary italic">Alta Costura & Gala</span>
                             </div>
                             <div className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center">
                                 {formData.serviceType === 'Cita de Diseño Bespoke' && <div className="w-2 h-2 rounded-full bg-brand-terracotta" />}
