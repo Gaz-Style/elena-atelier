@@ -1,21 +1,20 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import Link from 'next/link';
 
 export default function Hero() {
     return (
-        <section className="relative h-screen bg-brand-sand overflow-hidden">
-            <div className="absolute inset-0 z-0 overflow-hidden bg-brand-charcoal">
+        <section className="relative h-screen">
+            <div className="fixed inset-0 -z-10 bg-brand-charcoal">
                 <video
                     autoPlay
                     loop
                     muted
                     playsInline
-                    className="absolute inset-0 w-full h-full object-cover opacity-80"
+                    className="absolute inset-0 w-full h-full object-cover"
                 >
-                    <source src="/hero-video.mp4" type="video/mp4" />
+                    <source src="/Elena%20cociendo.mp4" type="video/mp4" />
                 </video>
                 <div className="absolute inset-0 bg-black/50" />
             </div>
@@ -42,7 +41,7 @@ export default function Hero() {
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 px-4">
                         <Link
                             href="/appointment"
-                            className="w-full md:w-auto bg-white text-brand-charcoal px-6 py-4 md:px-10 md:py-4 rounded-sm font-sans text-xs md:text-sm uppercase tracking-widest hover:bg-brand-terracotta hover:text-white transition-all text-center"
+                            className="w-full md:w-auto border border-white/50 text-white px-6 py-4 md:px-10 md:py-4 rounded-sm font-sans text-xs md:text-sm uppercase tracking-widest hover:bg-brand-terracotta hover:border-brand-terracotta transition-all text-center"
                         >
                             Habla con Elena
                         </Link>
@@ -56,7 +55,7 @@ export default function Hero() {
                 </div>
             </div>
 
-            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center text-white/60">
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center text-white/60 z-10">
                 <div className="w-px h-12 bg-gradient-to-b from-white/60 to-transparent" />
             </div>
         </section>

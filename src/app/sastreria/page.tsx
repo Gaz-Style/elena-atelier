@@ -2,91 +2,120 @@
 
 import React from 'react';
 import Navbar from '@/components/Navbar';
-import { Ruler, Scissors, UserCheck, Award, MessageCircle } from 'lucide-react';
+import { Scissors, Coffee, MessageCircle, Heart } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SastreriaPage() {
     return (
-        <div className="min-h-screen bg-white font-sans">
+        <div className="min-h-screen bg-transparent font-sans">
+            {/* Fixed Parallax Background Video */}
+            <div className="fixed inset-0 -z-10 bg-brand-charcoal">
+                <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover"
+                >
+                    <source src="/Elena%20vestido%20de%20novia%20.mp4" type="video/mp4" />
+                </video>
+                <div className="absolute inset-0 bg-black/60" />
+            </div>
+
             <Navbar />
 
-            <main className="max-w-7xl mx-auto px-8 pt-32 pb-24 space-y-32">
-                {/* Luxury Hero for Sastreria */}
-                <section className="flex flex-col items-center text-center space-y-10">
-                    <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-terracotta">Oficio Moderno</span>
-                    <h1 className="font-serif text-7xl leading-tight text-brand-charcoal max-w-4xl">
-                        Diseño Consciente: <br />
-                        <span className="italic text-brand-terracotta font-light">Piezas con Alma</span>
-                    </h1>
-                    <p className="text-gray-500 text-xl max-w-2xl leading-relaxed">
-                        Co-creo contigo prendas que nacen de una conversación. En mi taller, la sastrería es una forma de expresión personal y honesta, donde cada diseño cuenta tu propia historia.
-                    </p>
-                    <div className="flex gap-4">
-                        <Link href="/appointment" className="bg-brand-charcoal text-white px-12 py-5 text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all shadow-xl">
-                            Diseñar mi prenda
-                        </Link>
-                        <Link href="/b2b" className="border border-brand-charcoal px-12 py-5 text-xs uppercase tracking-widest hover:bg-brand-sand transition-all">
-                            Consultoría B2B
-                        </Link>
-                    </div>
-                </section>
-
-                {/* Technical Showcase */}
-                <section className="grid lg:grid-cols-3 gap-4 md:gap-1 items-stretch bg-gray-50">
-                    <div className="lg:col-span-2 min-h-[400px] md:h-auto overflow-hidden relative shadow-inner">
-                        <img
-                            src="/assets/media/confeccion_gala_pink.png"
-                            alt="Confección de alta costura - Vestido de gala"
-                            className="absolute inset-0 w-full h-full object-cover"
-                        />
-                    </div>
-                    <div className="bg-brand-charcoal text-white p-12 md:p-16 flex flex-col justify-center space-y-8">
-                        <h3 className="font-serif text-3xl">Materiales Reales</h3>
-                        <p className="text-gray-400 text-sm leading-relaxed">
-                            Busco personalmente las mejores telas para que tu prenda no solo se vea impecable, sino que se sienta como una extensión de tu personalidad. Calidad que se toca y se siente.
+            <main className="max-w-7xl mx-auto px-6 pt-32 pb-24 space-y-24">
+                {/* Hero Section */}
+                <section className="relative h-[50vh] md:h-[60vh] flex flex-col justify-center items-center text-center">
+                    <div className="space-y-8 max-w-3xl mx-auto">
+                        <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-terracotta block">Confección a Medida</span>
+                        <h1 className="font-serif text-5xl md:text-7xl leading-tight text-white">
+                            Tu historia,<br />
+                            <span className="italic text-brand-terracotta">hecha a mano</span>
+                        </h1>
+                        <p className="text-white/90 text-base md:text-xl leading-relaxed max-w-2xl mx-auto">
+                            Diseño y confecciono prendas desde cero. En mi taller, la creación de una pieza a medida nace de una conversación honesta para entender tu cuerpo, tu estilo y lo que quieres expresar.
                         </p>
-                        <ul className="space-y-4 text-xs uppercase tracking-widest font-bold text-brand-terracotta">
-                            <li className="flex items-center gap-3"><Scissors className="w-4 h-4" /> Patronaje Arquitectónico</li>
-                            <li className="flex items-center gap-3"><Ruler className="w-4 h-4" /> Confección a Medida</li>
-                            <li className="flex items-center gap-3"><Award className="w-4 h-4" /> Técnicas de Alta Costura</li>
-                        </ul>
-                    </div>
-                </section>
-
-                {/* Clienteling section */}
-                <section className="py-24 bg-brand-sand/20 rounded-sm p-16 flex flex-col md:flex-row gap-16 items-center">
-                    <div className="flex-1 space-y-6">
-                        <h2 className="font-serif text-4xl">Tu Estilo, Tu Medida</h2>
-                        <p className="text-gray-600 leading-relaxed">
-                            Mi proceso comienza con una conversación honesta. Entiendo tu estilo de vida y tus gustos para diseñar desde cero una pieza única, hecha a mano, que se convierta en patrimonio de tu armario.
-                        </p>
-                        <div className="grid grid-cols-2 gap-8 pt-8">
-                            <div>
-                                <h4 className="font-serif text-xl mb-2">Pruebas Cercanas</h4>
-                                <p className="text-xs text-gray-500">Sesiones en mi taller de Vitacura, donde me tomo el tiempo necesario para escucharte.</p>
-                            </div>
-                            <div>
-                                <h4 className="font-serif text-xl mb-2">Proceso Transparente</h4>
-                                <p className="text-xs text-gray-500">Sigue el avance de tu pieza y sé parte de cada etapa de la confección.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="w-full md:w-[400px] space-y-8">
-                        <div className="bg-white p-10 border border-gray-100 shadow-sm text-center">
-                            <UserCheck className="w-12 h-12 text-brand-terracotta mx-auto mb-6" />
-                            <h3 className="font-serif text-2xl mb-4">Hablemos de tu idea</h3>
-                            <p className="text-xs text-gray-400 mb-8 uppercase tracking-widest">Atención personal con Elena</p>
-                            <Link
-                                href="https://walink.co/5cm5kh"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="w-full bg-green-600 text-white py-4 flex items-center justify-center gap-2 text-xs uppercase tracking-widest font-bold hover:bg-green-700 transition-all text-center"
-                            >
-                                <MessageCircle className="w-4 h-4" /> WhatsApp Directo
+                        <div className="pt-4 flex justify-center">
+                            <Link href="#contacto" className="border border-white/50 text-white px-10 py-5 text-xs uppercase tracking-widest font-bold hover:bg-brand-terracotta hover:border-brand-terracotta transition-all inline-block">
+                                Comenzar mi diseño
                             </Link>
                         </div>
                     </div>
                 </section>
+
+                {/* The Process */}
+                <section className="py-16 md:py-24 bg-transparent border-t border-white/10 px-8 md:px-16">
+                    <div className="text-center mb-16">
+                        <h2 className="font-serif text-3xl md:text-4xl text-white">¿Cómo trabajaremos juntas?</h2>
+                        <p className="text-white/80 mt-4 max-w-2xl mx-auto">Un proceso artesanal donde tú eres parte de cada decisión.</p>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-12">
+                        <div className="text-center space-y-4">
+                            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <Coffee className="w-6 h-6 text-brand-terracotta" />
+                            </div>
+                            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50 block">Paso 01</span>
+                            <h3 className="font-serif text-2xl text-white">La Conversación</h3>
+                            <p className="text-sm text-white/80 leading-relaxed">
+                                Nos sentamos a tomar un café en el taller. Escucho tus ideas, entiendo tu estilo de vida y estudiamos juntas lo que mejor resalta tu figura.
+                            </p>
+                        </div>
+                        
+                        <div className="text-center space-y-4">
+                            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <Heart className="w-6 h-6 text-brand-terracotta" />
+                            </div>
+                            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50 block">Paso 02</span>
+                            <h3 className="font-serif text-2xl text-white">Las Telas</h3>
+                            <p className="text-sm text-white/80 leading-relaxed">
+                                Busco y selecciono personalmente los mejores materiales para tu diseño. Telas que no solo se vean hermosas, sino que tengan la caída y el tacto perfecto.
+                            </p>
+                        </div>
+
+                        <div className="text-center space-y-4">
+                            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <Scissors className="w-6 h-6 text-brand-terracotta" />
+                            </div>
+                            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50 block">Paso 03</span>
+                            <h3 className="font-serif text-2xl text-white">El Calce</h3>
+                            <p className="text-sm text-white/80 leading-relaxed">
+                                A través de pruebas en mi taller de Vitacura, ajustamos la prenda "puntada a puntada" hasta lograr que te quede como una segunda piel.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                {/* WhatsApp Contact Section */}
+                <section id="contacto" className="bg-transparent border-t border-white/10 text-white rounded-sm overflow-hidden flex flex-col md:flex-row">
+                    <div className="flex-1 p-12 md:p-20 flex flex-col justify-center space-y-8">
+                        <h2 className="font-serif text-4xl md:text-5xl leading-tight">Tu prenda única<br className="hidden md:block"/><span className="italic text-brand-terracotta">comienza aquí</span></h2>
+                        <p className="text-white/80 leading-relaxed text-sm md:text-base max-w-md">
+                            La confección a medida requiere tiempo y dedicación. Escríbeme directamente por WhatsApp para agendar tu primera visita al taller y empezar a darle forma a tu idea.
+                        </p>
+                        <div className="pt-4">
+                            <Link
+                                href="https://walink.co/5cm5kh"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center w-full md:w-auto gap-3 border border-white/50 text-white px-8 py-5 text-xs uppercase tracking-widest font-bold hover:bg-brand-terracotta hover:border-brand-terracotta transition-all"
+                            >
+                                <MessageCircle className="w-5 h-5" /> Hablemos por WhatsApp
+                            </Link>
+                        </div>
+                        <p className="text-[10px] text-white/50 uppercase tracking-widest mt-4 text-center md:text-left">Atención personal con Elena</p>
+                    </div>
+                    <div className="flex-1 min-h-[300px] md:min-h-full relative">
+                        <img
+                            src="/Elena%20basos%20cruzados.jpeg"
+                            alt="Elena en su taller"
+                            className="absolute inset-0 w-full h-full object-cover rounded-sm"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-black/80 to-transparent opacity-90 md:opacity-50 rounded-sm" />
+                    </div>
+                </section>
+
             </main>
         </div>
     );

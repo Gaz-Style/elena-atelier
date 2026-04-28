@@ -18,14 +18,14 @@ export default function Navbar() {
 
     return (
         <>
-            <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-brand-sand">
+            <nav className="fixed top-0 w-full z-50 bg-black/20 backdrop-blur-xl border-b border-white/10 transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <Link href="/" className="flex flex-col items-stretch justify-center w-max mx-auto md:mx-0">
-                        <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-brand-charcoal leading-none">
+                        <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-white leading-none drop-shadow-sm">
                             <span>E</span><span>L</span><span>E</span><span>N</span><span>A</span>
                         </div>
                         <div 
-                            className="font-sans text-[0.65rem] md:text-[0.75rem] font-bold uppercase text-brand-charcoal/70 mt-1 text-center"
+                            className="font-sans text-[0.65rem] md:text-[0.75rem] font-bold uppercase text-white/70 mt-1 text-center"
                             style={{ letterSpacing: '0.35em', marginRight: '-0.35em' }}
                         >
                             La Costurera
@@ -33,20 +33,20 @@ export default function Navbar() {
                     </Link>
 
                     {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center gap-8 text-sm uppercase tracking-widest font-sans text-text-secondary">
+                    <div className="hidden md:flex items-center gap-8 text-sm uppercase tracking-widest font-sans text-white/80">
                         {navLinks.map((link) => (
                             <Link key={link.href} href={link.href} className="hover:text-brand-terracotta transition-colors">
                                 {link.label}
                             </Link>
                         ))}
-                        <Link href="/appointment" className="bg-brand-charcoal text-white px-6 py-3 rounded-sm hover:bg-brand-terracotta transition-all">
+                        <Link href="/appointment" className="border border-white/50 text-white px-6 py-3 rounded-sm hover:bg-brand-terracotta hover:border-brand-terracotta transition-all">
                             Habla con Elena
                         </Link>
                     </div>
 
                     {/* Mobile Menu Toggle */}
                     <button
-                        className="md:hidden p-2 text-brand-charcoal z-50"
+                        className="md:hidden p-2 text-white z-50"
                         onClick={() => setIsOpen(!isOpen)}
                         aria-label="Toggle menu"
                     >
@@ -62,14 +62,14 @@ export default function Navbar() {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="absolute top-20 left-0 w-full bg-white border-b border-brand-sand p-6 flex flex-col gap-6 shadow-xl z-40"
+                        className="absolute top-20 left-0 w-full bg-black/80 backdrop-blur-xl border-b border-white/10 p-6 flex flex-col gap-6 shadow-xl z-40"
                     >
                         {navLinks.map((link) => (
                             <Link
                                 key={link.href}
                                 href={link.href}
                                 onClick={() => setIsOpen(false)}
-                                className="text-lg uppercase tracking-widest text-brand-charcoal hover:text-brand-terracotta transition-colors"
+                                className="text-lg uppercase tracking-widest text-white hover:text-brand-terracotta transition-colors"
                             >
                                 {link.label}
                             </Link>
@@ -77,7 +77,7 @@ export default function Navbar() {
                         <Link
                             href="/appointment"
                             onClick={() => setIsOpen(false)}
-                            className="bg-brand-charcoal text-white px-10 py-4 rounded-sm hover:bg-brand-terracotta transition-all uppercase tracking-widest text-sm text-center"
+                            className="border border-white/50 text-white px-10 py-4 rounded-sm hover:bg-brand-terracotta hover:border-brand-terracotta transition-all uppercase tracking-widest text-sm text-center"
                         >
                             Habla con Elena
                         </Link>
