@@ -64,7 +64,7 @@ export default function AdminDashboard() {
                             <ShieldCheck className="w-4 h-4" />
                             <span className="text-[10px] uppercase tracking-widest font-bold">Consola de Administración Central</span>
                         </div>
-                        <h1 className="font-serif text-5xl text-brand-charcoal">Elena Atelier OS</h1>
+                        <h1 className="font-serif text-5xl text-brand-charcoal">elenalacosturera OS</h1>
                         <p className="text-gray-500 mt-2">Sistema Operativo de Gestión de Lujo - Tabancura 1091</p>
                     </div>
                     <div className="flex items-center gap-4">

@@ -1,11 +1,11 @@
 export const ElenaAtelierSchema = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    "name": "Elena Atelier",
+    "name": "elenalacosturera",
     "image": "https://elenaatelier.cl/images/facade.jpg",
     "@id": "https://elenaatelier.cl",
     "url": "https://elenaatelier.cl",
-    "telephone": "+56912345678",
+    "telephone": "+56937667709",
     "priceRange": "$$$",
     "address": {
         "@type": "PostalAddress",

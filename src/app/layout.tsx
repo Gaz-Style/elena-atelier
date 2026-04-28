@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import { ElenaAtelierSchema } from "@/lib/seo";
+import WhatsAppButton from "@/components/WhatsAppButton";
 import "./globals.css";
 
 const inter = Inter({
@@ -10,18 +11,18 @@ const inter = Inter({
 });
 
 const playfair = Playfair_Display({
-  variable: "--font-playfair",
+  variable: "--font-heading",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "ELENA ATELIER | Alta Costura & Restauración en Vitacura",
-  description: "Taller de alta costura y restauración de vestidos de gala en Vitacura. Expertos en arreglos de lujo, diseño a medida y confección ética en Santiago.",
+  title: "elenalacosturera | Patrimonio Textil & Lujo Silencioso",
+  description: "Taller de alta costura en Vitacura. No hacemos ropa; construimos patrimonio textil. Maestría técnica, escasez deliberada y estética Wabi-Sabi.",
   openGraph: {
-    title: "ELENA ATELIER | Sastrería & Alta Costura en Vitacura",
-    description: "No solo reparamos prendas, elevamos inversiones. Maestría técnica en vestidos de gala y restauración profesional.",
-    url: "https://elenaatelier.cl",
-    siteName: "Elena Atelier",
+    title: "elenalacosturera | Patrimonio Textil",
+    description: "Lujo que no se grita, se susurra en cada puntada. Restauración y sastrería de alta gama.",
+    url: "https://elenalacosturera.cl",
+    siteName: "elenalacosturera",
     images: [
       {
         url: "/og-image.jpg",
@@ -34,8 +35,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ELENA ATELIER | Phygital Luxury Tailoring",
-    description: "Artesanía y tecnología unidas para la longevidad de su armario.",
+    title: "elenalacosturera | Lujo Silencioso",
+    description: "El alma de la imperfección perfecta. Artesanía y tiempo.",
     images: ["/og-image.jpg"],
   },
 };
@@ -58,6 +59,7 @@ export default function RootLayout({
         <main className="pt-20">
           {children}
         </main>
+        <WhatsAppButton />
       </body>
     </html>
   );

@@ -27,7 +27,7 @@ export default function B2BPortal() {
                             Socio de Producción Ágil para <br /> Marcas y Boutiques
                         </h1>
                         <p className="text-gray-500 text-lg">
-                            Bienvenido al portal exclusivo para partners de Elena Atelier. Gestione sus producciones técnicas y acceda a la trazabilidad total de sus lotes.
+                            Bienvenido al portal exclusivo para partners de elenalacosturera. Gestione sus producciones técnicas y acceda a la trazabilidad total de sus lotes bajo el concepto de Tectonic Craft.
                         </p>
                     </div>
                     <Link
@@ -43,7 +43,7 @@ export default function B2BPortal() {
                     {[
                         { title: 'Manufactura Ética', desc: 'Producción Small Batch con pago justo y trazabilidad total. La calidad de un atelier para su marca.', icon: Factory },
                         { title: 'Socio Ágil', desc: 'Optimice sus inventarios. Producimos lotes pequeños de alta calidad con tiempos de entrega competitivos.', icon: ClipboardCheck },
-                        { title: 'Etiqueta Colaborativa', desc: 'Potencie su marca con el respaldo de Elena Atelier. Calidad certificada en cada costura.', icon: Truck },
+                        { title: 'Etiqueta Colaborativa', desc: 'Potencie su marca con el respaldo de la artesanía técnica de elenalacosturera. Calidad certificada en cada costura.', icon: Truck },
                     ].map((item, i) => (
                         <div key={i} className="space-y-4">
                             <item.icon className="w-8 h-8 text-brand-terracotta mb-4" />

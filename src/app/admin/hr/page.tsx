@@ -22,7 +22,7 @@ export default function HRDashboard() {
                 <header className="flex justify-between items-end border-b border-gray-200 pb-8">
                     <div>
                         <h1 className="font-serif text-5xl">Gestión de Talento (Buk)</h1>
-                        <p className="text-text-secondary mt-2">Administración de RRHH, Contratos y Bienestar - Elena Atelier</p>
+                        <p className="text-text-secondary mt-2">Administración de RRHH, Contratos y Bienestar - elenalacosturera</p>
                     </div>
                     <button className="flex items-center gap-2 bg-brand-charcoal text-white px-6 py-3 text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all rounded-sm">
                         <UserPlus className="w-4 h-4" />

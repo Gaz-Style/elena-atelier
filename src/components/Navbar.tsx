@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
+import { Menu, X } from 'lucide-react';
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -10,6 +12,7 @@ export default function Navbar() {
     const navLinks = [
         { href: '/restauracion', label: 'Restauración' },
         { href: '/sastreria', label: 'Sastrería' },
+        { href: '/portafolio', label: 'Portafolio' },
         { href: '/b2b', label: 'B2B' },
     ];
 
@@ -17,31 +20,37 @@ export default function Navbar() {
         <>
             <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-brand-sand">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <Link href="/" className="font-serif text-2xl tracking-tight text-brand-charcoal">
-                        ELENA ATELIER
+                    <Link href="/" className="flex flex-col items-stretch justify-center w-max mx-auto md:mx-0">
+                        <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-brand-charcoal leading-none">
+                            <span>E</span><span>L</span><span>E</span><span>N</span><span>A</span>
+                        </div>
+                        <div 
+                            className="font-sans text-[0.65rem] md:text-[0.75rem] font-bold uppercase text-brand-charcoal/70 mt-1 text-center"
+                            style={{ letterSpacing: '0.35em', marginRight: '-0.35em' }}
+                        >
+                            La Costurera
+                        </div>
                     </Link>
 
                     {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center space-x-12 text-sm uppercase tracking-widest font-sans text-text-secondary">
+                    <div className="hidden md:flex items-center gap-8 text-sm uppercase tracking-widest font-sans text-text-secondary">
                         {navLinks.map((link) => (
                             <Link key={link.href} href={link.href} className="hover:text-brand-terracotta transition-colors">
                                 {link.label}
                             </Link>
                         ))}
                         <Link href="/appointment" className="bg-brand-charcoal text-white px-6 py-3 rounded-sm hover:bg-brand-terracotta transition-all">
-                            Agendar Visita
+                            Habla con Elena
                         </Link>
                     </div>
 
                     {/* Mobile Menu Toggle */}
                     <button
-                        className="md:hidden flex flex-col gap-1.5 z-50 p-2"
+                        className="md:hidden p-2 text-brand-charcoal z-50"
                         onClick={() => setIsOpen(!isOpen)}
                         aria-label="Toggle menu"
                     >
-                        <div className={`w-6 h-0.5 bg-brand-charcoal transition-transform ${isOpen ? 'rotate-45 translate-y-[8px]' : ''}`} />
-                        <div className={`w-6 h-0.5 bg-brand-charcoal transition-opacity ${isOpen ? 'opacity-0' : ''}`} />
-                        <div className={`w-6 h-0.5 bg-brand-charcoal transition-transform ${isOpen ? '-rotate-45 -translate-y-[8px]' : ''}`} />
+                        {isOpen ? <X size={24} /> : <Menu size={24} />}
                     </button>
                 </div>
             </nav>
@@ -53,14 +62,14 @@ export default function Navbar() {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="fixed inset-0 bg-white z-40 flex flex-col items-center justify-center space-y-8 md:hidden"
+                        className="absolute top-20 left-0 w-full bg-white border-b border-brand-sand p-6 flex flex-col gap-6 shadow-xl z-40"
                     >
                         {navLinks.map((link) => (
                             <Link
                                 key={link.href}
                                 href={link.href}
                                 onClick={() => setIsOpen(false)}
-                                className="font-serif text-3xl text-brand-charcoal hover:text-brand-terracotta transition-colors"
+                                className="text-lg uppercase tracking-widest text-brand-charcoal hover:text-brand-terracotta transition-colors"
                             >
                                 {link.label}
                             </Link>
@@ -68,9 +77,9 @@ export default function Navbar() {
                         <Link
                             href="/appointment"
                             onClick={() => setIsOpen(false)}
-                            className="bg-brand-charcoal text-white px-10 py-4 rounded-sm hover:bg-brand-terracotta transition-all uppercase tracking-widest text-sm"
+                            className="bg-brand-charcoal text-white px-10 py-4 rounded-sm hover:bg-brand-terracotta transition-all uppercase tracking-widest text-sm text-center"
                         >
-                            Agendar Visita
+                            Habla con Elena
                         </Link>
                     </motion.div>
                 )}

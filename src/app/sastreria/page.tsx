@@ -19,7 +19,7 @@ export default function SastreriaPage() {
                         <span className="italic text-brand-terracotta font-light">Piezas con Alma</span>
                     </h1>
                     <p className="text-gray-500 text-xl max-w-2xl leading-relaxed">
-                        Co-creamos contigo prendas que nacen de una conversación. En nuestro taller, la sastrería es una forma de expresión personal, joven y honesta, donde cada diseño cuenta tu propia historia.
+                        Co-creo contigo prendas que nacen de una conversación. En mi taller, la sastrería es una forma de expresión personal y honesta, donde cada diseño cuenta tu propia historia.
                     </p>
                     <div className="flex gap-4">
                         <Link href="/appointment" className="bg-brand-charcoal text-white px-12 py-5 text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all shadow-xl">
@@ -43,12 +43,12 @@ export default function SastreriaPage() {
                     <div className="bg-brand-charcoal text-white p-12 md:p-16 flex flex-col justify-center space-y-8">
                         <h3 className="font-serif text-3xl">Materiales Reales</h3>
                         <p className="text-gray-400 text-sm leading-relaxed">
-                            Buscamos las mejores telas para que tu prenda no solo se vea impecable, sino que se sienta como una extensión de tu personalidad. Calidad que se toca y se siente.
+                            Busco personalmente las mejores telas para que tu prenda no solo se vea impecable, sino que se sienta como una extensión de tu personalidad. Calidad que se toca y se siente.
                         </p>
                         <ul className="space-y-4 text-xs uppercase tracking-widest font-bold text-brand-terracotta">
-                            <li className="flex items-center gap-3"><Scissors className="w-4 h-4" /> Corte Láser de Precisión</li>
-                            <li className="flex items-center gap-3"><Ruler className="w-4 h-4" /> 42 Puntos de Medición</li>
-                            <li className="flex items-center gap-3"><Award className="w-4 h-4" /> Origen Garantizado</li>
+                            <li className="flex items-center gap-3"><Scissors className="w-4 h-4" /> Patronaje Arquitectónico</li>
+                            <li className="flex items-center gap-3"><Ruler className="w-4 h-4" /> Confección a Medida</li>
+                            <li className="flex items-center gap-3"><Award className="w-4 h-4" /> Técnicas de Alta Costura</li>
                         </ul>
                     </div>
                 </section>
@@ -58,24 +58,24 @@ export default function SastreriaPage() {
                     <div className="flex-1 space-y-6">
                         <h2 className="font-serif text-4xl">Tu Estilo, Tu Medida</h2>
                         <p className="text-gray-600 leading-relaxed">
-                            El proceso en Elena Atelier comienza con una conversación honesta. Entendemos tu estilo de vida y tus gustos para crear una pieza que sea una verdadera expresión de quien eres.
+                            Mi proceso comienza con una conversación honesta. Entiendo tu estilo de vida y tus gustos para diseñar desde cero una pieza única, hecha a mano, que se convierta en patrimonio de tu armario.
                         </p>
                         <div className="grid grid-cols-2 gap-8 pt-8">
                             <div>
                                 <h4 className="font-serif text-xl mb-2">Pruebas Cercanas</h4>
-                                <p className="text-xs text-gray-500">Sesiones en nuestro taller de Tabancura, donde nos tomamos el tiempo para escucharte.</p>
+                                <p className="text-xs text-gray-500">Sesiones en mi taller de Vitacura, donde me tomo el tiempo necesario para escucharte.</p>
                             </div>
                             <div>
                                 <h4 className="font-serif text-xl mb-2">Proceso Transparente</h4>
-                                <p className="text-xs text-gray-500">Sigue el avance de tu pieza y conoce quién está detrás de cada proceso.</p>
+                                <p className="text-xs text-gray-500">Sigue el avance de tu pieza y sé parte de cada etapa de la confección.</p>
                             </div>
                         </div>
                     </div>
                     <div className="w-full md:w-[400px] space-y-8">
                         <div className="bg-white p-10 border border-gray-100 shadow-sm text-center">
                             <UserCheck className="w-12 h-12 text-brand-terracotta mx-auto mb-6" />
-                            <h3 className="font-serif text-2xl mb-4">¿Hablamos?</h3>
-                            <p className="text-xs text-gray-400 mb-8 uppercase tracking-widest">Atención hiper-personalizada</p>
+                            <h3 className="font-serif text-2xl mb-4">Hablemos de tu idea</h3>
+                            <p className="text-xs text-gray-400 mb-8 uppercase tracking-widest">Atención personal con Elena</p>
                             <Link
                                 href="https://walink.co/5cm5kh"
                                 target="_blank"

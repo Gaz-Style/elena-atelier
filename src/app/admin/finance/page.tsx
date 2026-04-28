@@ -17,7 +17,7 @@ export default function FinanceDashboard() {
                 <header className="flex justify-between items-end border-b border-gray-200 pb-8">
                     <div>
                         <h1 className="font-serif text-5xl">Dashboard Financiero</h1>
-                        <p className="text-text-secondary mt-2">Control de ingresos, egresos e impuestos - Elena Atelier</p>
+                        <p className="text-text-secondary mt-2">Control de ingresos, egresos e impuestos - elenalacosturera</p>
                     </div>
                     <div className="space-x-4">
                         <button className="px-6 py-2 border border-brand-charcoal text-xs uppercase tracking-widest hover:bg-brand-charcoal hover:text-white transition-all">

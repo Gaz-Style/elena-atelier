@@ -8,7 +8,7 @@ export default function AppointmentPage() {
                     <span className="font-sans text-sm uppercase tracking-[0.3em] text-brand-terracotta">Calidad & Transparencia</span>
                     <h1 className="font-serif text-5xl md:text-7xl leading-tight">Tu ropa merece <br />una <span className="italic">segunda vida</span></h1>
                     <p className="text-xl text-text-secondary max-w-lg leading-relaxed">
-                        En Elena Atelier creemos que la mejor prenda es la que ya tienes o la que decides crear para que te acompañe por años. Ven a conversar con nosotros a nuestro taller en Tabancura.
+                        En elenalacosturera creemos que la elegancia está en el tiempo y el detalle. Te invitamos a vivir el proceso lento y humano de la creación textil en nuestro taller.
                     </p>
 
                     <div className="space-y-6 pt-12">

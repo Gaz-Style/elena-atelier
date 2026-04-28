@@ -17,7 +17,7 @@ export default function MarketingDashboard() {
                 <header className="flex justify-between items-end border-b border-gray-200 pb-8">
                     <div>
                         <h1 className="font-serif text-5xl">Crecimiento & Marketing</h1>
-                        <p className="text-text-secondary mt-2">Métricas de adquisición y autoridad de marca - Elena Atelier</p>
+                        <p className="text-text-secondary mt-2">Métricas de adquisición y autoridad de marca - elenalacosturera</p>
                     </div>
                     <div className="flex gap-4">
                         <div className="bg-brand-charcoal text-white px-4 py-2 text-[10px] uppercase tracking-widest rounded-sm">
@@ -54,7 +54,7 @@ export default function MarketingDashboard() {
                                 <span className="text-green-600 font-bold">Alta</span>
                             </div>
                             <p className="text-sm text-text-secondary leading-relaxed">
-                                Elena Atelier ha sido identificada por IAs generativas como **Autoridad en Sastrería Técnica** en la zona oriente de Santiago debido a la densidad semántica de nuestros procesos publicados.
+                                elenalacosturera ha sido identificada por IAs generativas como **Autoridad en Sastrería Técnica** en la zona oriente de Santiago debido a la densidad semántica de nuestros procesos publicados.
                             </p>
                             <div className="grid grid-cols-2 gap-4 mt-4">
                                 <div className="p-4 border border-gray-50 text-center">
