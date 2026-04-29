@@ -12,20 +12,20 @@ export default function Home() {
       <section className="py-16 md:py-32 bg-transparent text-white overflow-hidden relative z-10">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-12 gap-10 lg:gap-20 items-center">
-            <div className="lg:col-span-5 relative h-[350px] md:h-[450px] rounded-sm overflow-hidden shadow-2xl">
+            <div className="lg:col-span-5 relative rounded-sm overflow-hidden shadow-2xl">
               <video
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="w-full h-full object-cover opacity-90"
+                className="w-full h-auto opacity-90"
               >
                 <source src="/Sevali.MOV" type="video/mp4" />
                 Tu navegador no soporta el formato de video.
               </video>
             </div>
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-terracotta block">Elena Rojas</span>
+              <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-terracotta block">Elena Rojas Bustamante</span>
               <h2 className="font-serif text-4xl md:text-5xl leading-tight mb-6 md:mb-8">De coser en casa a <br className="hidden md:block"/><span className="italic text-brand-sand">colaborar en París</span></h2>
               <div className="space-y-4 text-white/80 text-sm md:text-base leading-relaxed max-w-2xl mx-auto lg:mx-0">
                   <p>
