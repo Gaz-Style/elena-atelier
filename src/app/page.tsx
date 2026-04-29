@@ -151,8 +151,8 @@ export default function Home() {
           </div>
           <div className="flex-1 h-[300px] md:h-[500px] w-full rounded-sm overflow-hidden relative shadow-2xl">
             <img
-              src="/elena-taller.png"
-              alt="Elena La Costurera en su Taller"
+              src="/Elena%20basos%20cruzados.jpeg"
+              alt="Elena La Costurera de brazos cruzados"
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
