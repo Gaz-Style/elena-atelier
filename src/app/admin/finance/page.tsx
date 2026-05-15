@@ -23,11 +23,8 @@ export default function FinanceDashboard() {
                         <h1 className="font-serif text-5xl">Dashboard Financiero</h1>
                         <p className="text-text-secondary mt-2">Control de ingresos, egresos e impuestos - elenalacosturera</p>
                     </div>
-                    <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                        <Link href="/admin/finance/costing" className="bg-brand-charcoal text-white px-6 py-3 md:py-2 text-[10px] uppercase tracking-widest hover:bg-brand-terracotta transition-all text-center rounded-sm">
-                            Simulador ERP
-                        </Link>
-                        <button className="px-6 py-3 md:py-2 border border-brand-charcoal text-[10px] uppercase tracking-widest hover:bg-brand-charcoal hover:text-white transition-all text-center rounded-sm">
+                    <div className="space-x-4">
+                        <button className="px-6 py-2 border border-brand-charcoal text-xs uppercase tracking-widest hover:bg-brand-charcoal hover:text-white transition-all">
                             Exportar Informe SII
                         </button>
                     </div>
