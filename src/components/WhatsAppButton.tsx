@@ -12,9 +12,9 @@ export default function WhatsAppButton() {
     
     const [isScrolling, setIsScrolling] = useState(false);
 
-    if (pathname.startsWith('/admin')) return null;
-
     useEffect(() => {
+        if (pathname.startsWith('/admin')) return;
+
         let scrollTimeout: NodeJS.Timeout;
 
         const handleScroll = () => {
@@ -35,7 +35,9 @@ export default function WhatsAppButton() {
             window.removeEventListener('scroll', handleScroll);
             clearTimeout(scrollTimeout);
         };
-    }, []);
+    }, [pathname]);
+
+    if (pathname.startsWith('/admin')) return null;
 
     return (
         <motion.a
