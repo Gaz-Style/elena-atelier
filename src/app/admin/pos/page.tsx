@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ShoppingCart, User, Search, CreditCard, Tag, X, Plus } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, User, Search, CreditCard, Tag, X, Plus, MessageSquare, Mail } from 'lucide-react';
 
 export default function POSPage() {
     const [cart, setCart] = useState<any[]>([]);
@@ -26,6 +26,8 @@ export default function POSPage() {
     const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
     const [generatedLink, setGeneratedLink] = useState('');
     const [copySuccess, setCopySuccess] = useState(false);
+    const [clientPhone, setClientPhone] = useState('');
+    const [clientEmail, setClientEmail] = useState('');
     const [customOrderName, setCustomOrderName] = useState('');
     const [customOrderCategory, setCustomOrderCategory] = useState('Confección');
     
@@ -90,6 +92,20 @@ export default function POSPage() {
         navigator.clipboard.writeText(generatedLink);
         setCopySuccess(true);
         setTimeout(() => setCopySuccess(false), 2000);
+    };
+
+    const shareViaWhatsApp = () => {
+        if (!clientPhone) return;
+        const message = encodeURIComponent(`¡Hola! Te envío el presupuesto formal de Elena Atelier para tu proyecto de alta costura. Puedes verlo y aceptarlo aquí: ${generatedLink}`);
+        const cleanPhone = clientPhone.replace(/\D/g, '');
+        window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+    };
+
+    const shareViaEmail = () => {
+        if (!clientEmail) return;
+        const subject = encodeURIComponent("Presupuesto Formal - Elena Atelier");
+        const body = encodeURIComponent(`¡Hola!\n\nTe envío el presupuesto formal para tu proyecto. Puedes verlo y aceptarlo directamente en el siguiente enlace interactivo:\n\n${generatedLink}\n\nQuedamos atentos a tus comentarios.\n\nSaludos,\nElena Atelier`);
+        window.location.href = `mailto:${clientEmail}?subject=${subject}&body=${body}`;
     };
 
     return (
@@ -354,21 +370,65 @@ export default function POSPage() {
                                 <p className="text-sm text-gray-500 px-8">Hemos generado un link interactivo para tu clienta. Puede verlo y pagar desde su celular.</p>
                             </div>
                             
-                            <div className="bg-gray-50 p-4 rounded-sm border border-gray-100 flex flex-col gap-2">
-                                <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400 text-left">Link para WhatsApp</p>
-                                <div className="flex gap-2">
-                                    <input 
-                                        type="text" 
-                                        readOnly 
-                                        value={generatedLink} 
-                                        className="flex-1 bg-white border border-gray-200 px-3 py-2 text-xs text-gray-400 rounded-sm outline-none" 
-                                    />
-                                    <button 
-                                        onClick={copyToClipboard}
-                                        className={`px-4 py-2 text-[10px] uppercase tracking-widest font-bold transition-all rounded-sm flex items-center gap-2 ${copySuccess ? 'bg-green-600 text-white' : 'bg-brand-charcoal text-white hover:bg-brand-terracotta'}`}
-                                    >
-                                        {copySuccess ? 'Copiado' : 'Copiar'}
-                                    </button>
+                            <div className="bg-gray-50 p-4 rounded-sm border border-gray-100 flex flex-col gap-4">
+                                <div className="space-y-4">
+                                    <div className="flex flex-col gap-2">
+                                        <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400 text-left italic">Enviar por WhatsApp</p>
+                                        <div className="flex gap-2">
+                                            <input 
+                                                type="tel" 
+                                                value={clientPhone}
+                                                onChange={(e) => setClientPhone(e.target.value)}
+                                                placeholder="Ej. 56912345678" 
+                                                className="flex-1 bg-white border border-gray-200 px-3 py-2 text-xs rounded-sm outline-none focus:border-brand-terracotta" 
+                                            />
+                                            <button 
+                                                onClick={shareViaWhatsApp}
+                                                disabled={!clientPhone}
+                                                className="bg-[#25D366] text-white px-4 py-2 text-[10px] uppercase tracking-widest font-bold hover:bg-[#128C7E] transition-all rounded-sm flex items-center gap-2 disabled:opacity-50"
+                                            >
+                                                <MessageSquare className="w-3 h-3" /> WhatsApp
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-2 border-t border-gray-200 pt-4">
+                                        <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400 text-left italic">Enviar por Correo</p>
+                                        <div className="flex gap-2">
+                                            <input 
+                                                type="email" 
+                                                value={clientEmail}
+                                                onChange={(e) => setClientEmail(e.target.value)}
+                                                placeholder="cliente@email.com" 
+                                                className="flex-1 bg-white border border-gray-200 px-3 py-2 text-xs rounded-sm outline-none focus:border-brand-terracotta" 
+                                            />
+                                            <button 
+                                                onClick={shareViaEmail}
+                                                disabled={!clientEmail}
+                                                className="bg-brand-charcoal text-white px-4 py-2 text-[10px] uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all rounded-sm flex items-center gap-2 disabled:opacity-50"
+                                            >
+                                                <Mail className="w-3 h-3" /> Email
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="border-t border-gray-200 pt-4">
+                                    <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400 text-left mb-2">Link Directo</p>
+                                    <div className="flex gap-2">
+                                        <input 
+                                            type="text" 
+                                            readOnly 
+                                            value={generatedLink} 
+                                            className="flex-1 bg-white border border-gray-200 px-3 py-2 text-[10px] text-gray-400 rounded-sm outline-none" 
+                                        />
+                                        <button 
+                                            onClick={copyToClipboard}
+                                            className={`px-4 py-2 text-[10px] uppercase tracking-widest font-bold transition-all rounded-sm flex items-center gap-2 ${copySuccess ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
+                                        >
+                                            {copySuccess ? 'Copiado' : 'Copiar Link'}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
