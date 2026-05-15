@@ -24,26 +24,48 @@ export default function POSPage() {
 
     const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
     const [customOrderName, setCustomOrderName] = useState('');
-    const [customOrderCategory, setCustomOrderCategory] = useState('Servicio');
-    const [customOrderPrice, setCustomOrderPrice] = useState('');
+    const [customOrderCategory, setCustomOrderCategory] = useState('Confección');
+    
+    // ERP Costing States
+    const [hoursEstimated, setHoursEstimated] = useState<number>(0);
+    const [hourlyRate, setHourlyRate] = useState<number>(25000);
+    const [materialsCost, setMaterialsCost] = useState<number>(0);
+    const [extraCost, setExtraCost] = useState<number>(0);
+    const [fixedCost, setFixedCost] = useState<number>(349000);
+    const [marginPercentage, setMarginPercentage] = useState<number>(0);
+
+    const laborCost = hoursEstimated * hourlyRate;
+    const totalCost = laborCost + materialsCost + extraCost + fixedCost;
+    const calculatedPrice = marginPercentage > 0 ? totalCost / (1 - (marginPercentage / 100)) : totalCost;
 
     const handleAddCustomOrder = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!customOrderName || !customOrderPrice) return;
-        
-        const price = parseInt(customOrderPrice.toString().replace(/\D/g, ''), 10) || 0;
+        if (!customOrderName) return;
         
         addToCart({
             id: Date.now(),
             name: customOrderName,
-            price: price,
-            category: customOrderCategory
+            price: Math.round(calculatedPrice),
+            category: customOrderCategory,
+            costBreakdown: {
+                labor: laborCost,
+                materials: materialsCost + extraCost,
+                fixed: fixedCost,
+                margin: marginPercentage
+            }
         });
         
         setCustomOrderName('');
-        setCustomOrderCategory('Servicio');
-        setCustomOrderPrice('');
+        setCustomOrderCategory('Confección');
+        setHoursEstimated(0);
+        setMaterialsCost(0);
+        setExtraCost(0);
+        setMarginPercentage(0);
         setIsCustomModalOpen(false);
+    };
+
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(value);
     };
 
     return (
@@ -117,8 +139,13 @@ export default function POSPage() {
                         cart.map((item, i) => (
                             <div key={i} className="flex justify-between items-center p-4 bg-gray-50 rounded-sm group relative">
                                 <div>
-                                    <p className="text-sm font-medium">{item.name}</p>
-                                    <p className="text-xs text-gray-400">${item.price.toLocaleString('es-CL')}</p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-sm font-medium">{item.name}</p>
+                                        {item.costBreakdown && (
+                                            <span className="bg-brand-charcoal text-white px-1.5 py-0.5 rounded-[2px] text-[8px] uppercase tracking-widest font-bold">ERP Costeado</span>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-gray-400 mt-1">${item.price.toLocaleString('es-CL')}</p>
                                 </div>
                                 <button onClick={() => removeFromCart(i)} className="text-gray-300 hover:text-red-500 transition-colors">
                                     <X className="w-4 h-4" />
@@ -158,61 +185,123 @@ export default function POSPage() {
                 </div>
             </div>
 
-            {/* Custom Order Modal */}
+            {/* ERP Custom Order Modal */}
             {isCustomModalOpen && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-                    <div className="bg-white p-8 rounded-sm shadow-xl w-full max-w-md">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="font-serif text-2xl text-brand-charcoal">Orden Personalizada</h2>
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-sm shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+                        <div className="flex justify-between items-center p-6 border-b border-gray-100">
+                            <div>
+                                <h2 className="font-serif text-2xl text-brand-charcoal">Orden Especial / Alta Costura</h2>
+                                <p className="text-xs text-gray-500 mt-1">Costeo ERP en tiempo real para mantener la rentabilidad del Atelier.</p>
+                            </div>
                             <button onClick={() => setIsCustomModalOpen(false)} className="text-gray-400 hover:text-brand-terracotta">
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
-                        <form onSubmit={handleAddCustomOrder} className="space-y-4">
-                            <div>
-                                <label className="block text-xs uppercase tracking-widest text-brand-charcoal mb-2 font-bold">Nombre del Trabajo</label>
-                                <input
-                                    type="text"
-                                    value={customOrderName}
-                                    onChange={(e) => setCustomOrderName(e.target.value)}
-                                    placeholder="Ej. Ajuste de mangas"
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta"
-                                    required
-                                />
+                        
+                        <div className="flex-1 overflow-y-auto p-6 flex flex-col md:flex-row gap-8">
+                            <form id="erp-form" onSubmit={handleAddCustomOrder} className="flex-1 space-y-6">
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta border-b border-gray-100 pb-2">1. Definición</h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="col-span-2">
+                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Nombre del Proyecto *</label>
+                                            <input type="text" value={customOrderName} onChange={(e) => setCustomOrderName(e.target.value)} placeholder="Ej. Vestido Novia María" className="w-full p-2 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" required />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Categoría</label>
+                                            <select value={customOrderCategory} onChange={(e) => setCustomOrderCategory(e.target.value)} className="w-full p-2 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta">
+                                                <option value="Confección">Confección</option>
+                                                <option value="Servicio">Servicio / Arreglo</option>
+                                                <option value="Suministro">Suministro</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta border-b border-gray-100 pb-2">2. Costos Directos</h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Horas Estimadas</label>
+                                            <input type="number" min="0" value={hoursEstimated || ''} onChange={(e) => setHoursEstimated(Number(e.target.value))} className="w-full p-2 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Tarifa por Hora ($)</label>
+                                            <input type="number" min="0" value={hourlyRate || ''} onChange={(e) => setHourlyRate(Number(e.target.value))} className="w-full p-2 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Costo Materiales ($)</label>
+                                            <input type="number" min="0" value={materialsCost || ''} onChange={(e) => setMaterialsCost(Number(e.target.value))} className="w-full p-2 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Extras / Pedrería ($)</label>
+                                            <input type="number" min="0" value={extraCost || ''} onChange={(e) => setExtraCost(Number(e.target.value))} className="w-full p-2 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta border-b border-gray-100 pb-2">3. Operación y Margen</h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Costo Fijo Asignado ($)</label>
+                                            <input type="number" min="0" value={fixedCost || ''} onChange={(e) => setFixedCost(Number(e.target.value))} className="w-full p-2 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Margen Ganancia (%)</label>
+                                            <input type="number" min="0" max="100" value={marginPercentage || ''} onChange={(e) => setMarginPercentage(Number(e.target.value))} className="w-full p-2 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+
+                            {/* Resumen Receipt */}
+                            <div className="w-full md:w-72 bg-brand-charcoal text-white p-6 rounded-sm shadow-inner flex flex-col h-fit">
+                                <h3 className="font-serif text-lg mb-6 border-b border-white/10 pb-4">Desglose (Ficha)</h3>
+                                
+                                <div className="space-y-4 text-sm flex-1">
+                                    <div className="flex justify-between">
+                                        <span className="text-white/60">Mano de Obra</span>
+                                        <span>{formatCurrency(laborCost)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-white/60">Insumos</span>
+                                        <span>{formatCurrency(materialsCost + extraCost)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-white/60">Costo Fijo</span>
+                                        <span>{formatCurrency(fixedCost)}</span>
+                                    </div>
+                                    
+                                    <div className="flex justify-between pt-4 border-t border-white/10 text-white/80">
+                                        <span className="text-xs uppercase tracking-widest">Costo Real</span>
+                                        <span className="font-mono">{formatCurrency(totalCost)}</span>
+                                    </div>
+
+                                    {marginPercentage > 0 && (
+                                        <div className="flex justify-between text-brand-terracotta text-xs font-bold pt-2">
+                                            <span>Margen ({marginPercentage}%)</span>
+                                            <span>+{formatCurrency(calculatedPrice - totalCost)}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-8 pt-4 border-t border-white/20">
+                                    <p className="text-[10px] uppercase tracking-widest text-white/50 mb-1">Precio Final Sugerido</p>
+                                    <p className="text-3xl font-serif">{formatCurrency(calculatedPrice)}</p>
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-xs uppercase tracking-widest text-brand-charcoal mb-2 font-bold">Categoría</label>
-                                <select
-                                    value={customOrderCategory}
-                                    onChange={(e) => setCustomOrderCategory(e.target.value)}
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta"
-                                >
-                                    <option value="Servicio">Servicio</option>
-                                    <option value="Confección">Confección</option>
-                                    <option value="Suministro">Suministro</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs uppercase tracking-widest text-brand-charcoal mb-2 font-bold">Precio (CLP)</label>
-                                <input
-                                    type="number"
-                                    value={customOrderPrice}
-                                    onChange={(e) => setCustomOrderPrice(e.target.value)}
-                                    placeholder="Ej. 25000"
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta"
-                                    required
-                                    min="0"
-                                />
-                            </div>
-                            <div className="pt-4 flex gap-4">
-                                <button type="button" onClick={() => setIsCustomModalOpen(false)} className="flex-1 py-3 border border-gray-200 text-brand-charcoal text-xs uppercase tracking-widest hover:bg-gray-50 transition-all">
-                                    Cancelar
-                                </button>
-                                <button type="submit" className="flex-1 py-3 bg-brand-charcoal text-white text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all">
-                                    Agregar
-                                </button>
-                            </div>
-                        </form>
+                        </div>
+
+                        <div className="p-6 border-t border-gray-100 flex gap-4 bg-gray-50">
+                            <button type="button" onClick={() => setIsCustomModalOpen(false)} className="px-6 py-3 border border-gray-200 text-brand-charcoal text-xs uppercase tracking-widest font-bold hover:bg-white transition-all rounded-sm">
+                                Cancelar
+                            </button>
+                            <button type="submit" form="erp-form" className="flex-1 py-3 bg-brand-charcoal text-white text-xs uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all rounded-sm">
+                                Agregar Pedido al Carrito
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
