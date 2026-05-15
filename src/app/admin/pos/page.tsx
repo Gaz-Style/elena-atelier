@@ -24,6 +24,8 @@ export default function POSPage() {
 
     const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
     const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+    const [generatedLink, setGeneratedLink] = useState('');
+    const [copySuccess, setCopySuccess] = useState(false);
     const [customOrderName, setCustomOrderName] = useState('');
     const [customOrderCategory, setCustomOrderCategory] = useState('Confección');
     
@@ -67,6 +69,27 @@ export default function POSPage() {
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(value);
+    };
+
+    const generateBudgetLink = () => {
+        const budgetData = {
+            cart: cart,
+            total: total,
+            date: new Date().toISOString()
+        };
+        const jsonStr = JSON.stringify(budgetData);
+        // UTF-8 friendly base64 encoding
+        const base64 = btoa(unescape(encodeURIComponent(jsonStr)));
+        const baseUrl = window.location.origin;
+        const link = `${baseUrl}/presupuesto?d=${base64}`;
+        setGeneratedLink(link);
+        setIsBudgetModalOpen(true);
+    };
+
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(generatedLink);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
     };
 
     return (
@@ -183,10 +206,10 @@ export default function POSPage() {
 
                     <div className="grid grid-cols-1 gap-2 mt-4">
                         <button 
-                            onClick={() => setIsBudgetModalOpen(true)}
+                            onClick={generateBudgetLink}
                             disabled={cart.length === 0}
                             className="w-full border border-brand-charcoal text-brand-charcoal py-4 text-[10px] uppercase tracking-widest font-bold hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                            Generar Presupuesto (PDF)
+                            Generar Presupuesto Web (Link)
                         </button>
                         <button 
                             disabled={cart.length === 0}
@@ -318,80 +341,50 @@ export default function POSPage() {
                 </div>
             )}
 
-            {/* Printable Budget Modal */}
+            {/* Interactive Budget Link Modal */}
             {isBudgetModalOpen && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 print:relative print:p-0 print:bg-white print:block">
-                    <div className="bg-white rounded-sm shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col print:shadow-none print:max-h-none print:h-auto">
-                        <div className="flex justify-between items-center p-6 border-b border-gray-100 print:hidden">
-                            <h2 className="font-serif text-2xl text-brand-charcoal">Vista Previa de Presupuesto</h2>
-                            <div className="flex gap-4">
-                                <button onClick={() => window.print()} className="bg-brand-charcoal text-white px-6 py-2 text-xs uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all rounded-sm">
-                                    Imprimir / Guardar PDF
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-sm shadow-xl w-full max-w-lg flex flex-col overflow-hidden animate-in zoom-in duration-300">
+                        <div className="p-8 text-center space-y-6">
+                            <div className="w-16 h-16 bg-brand-sand/30 rounded-full flex items-center justify-center mx-auto">
+                                <Plus className="w-8 h-8 text-brand-terracotta rotate-45" />
+                            </div>
+                            <div className="space-y-2">
+                                <h2 className="font-serif text-3xl text-brand-charcoal">¡Presupuesto Web Listo!</h2>
+                                <p className="text-sm text-gray-500 px-8">Hemos generado un link interactivo para tu clienta. Puede verlo y pagar desde su celular.</p>
+                            </div>
+                            
+                            <div className="bg-gray-50 p-4 rounded-sm border border-gray-100 flex flex-col gap-2">
+                                <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400 text-left">Link para WhatsApp</p>
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="text" 
+                                        readOnly 
+                                        value={generatedLink} 
+                                        className="flex-1 bg-white border border-gray-200 px-3 py-2 text-xs text-gray-400 rounded-sm outline-none" 
+                                    />
+                                    <button 
+                                        onClick={copyToClipboard}
+                                        className={`px-4 py-2 text-[10px] uppercase tracking-widest font-bold transition-all rounded-sm flex items-center gap-2 ${copySuccess ? 'bg-green-600 text-white' : 'bg-brand-charcoal text-white hover:bg-brand-terracotta'}`}
+                                    >
+                                        {copySuccess ? 'Copiado' : 'Copiar'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="pt-4 grid grid-cols-2 gap-4">
+                                <button 
+                                    onClick={() => window.open(generatedLink, '_blank')}
+                                    className="flex items-center justify-center gap-2 py-3 border border-gray-200 text-brand-charcoal text-[10px] uppercase tracking-widest font-bold hover:bg-gray-50 transition-all rounded-sm"
+                                >
+                                    Ver como Cliente
                                 </button>
-                                <button onClick={() => setIsBudgetModalOpen(false)} className="text-gray-400 hover:text-brand-terracotta">
-                                    <X className="w-6 h-6" />
+                                <button 
+                                    onClick={() => setIsBudgetModalOpen(false)}
+                                    className="py-3 bg-brand-charcoal text-white text-[10px] uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all rounded-sm"
+                                >
+                                    Finalizar
                                 </button>
-                            </div>
-                        </div>
-                        
-                        {/* Printable Area */}
-                        <div id="printable-budget" className="p-8 md:p-12 overflow-y-auto flex-1 text-brand-charcoal bg-white print:p-0 print:overflow-visible">
-                            <div className="flex justify-between items-start mb-12 border-b pb-8">
-                                <div>
-                                    <h1 className="font-serif text-3xl font-bold tracking-tight">ELENA ATELIER</h1>
-                                    <p className="text-sm text-gray-500 mt-1 uppercase tracking-widest text-[10px]">Alta Costura & Sastrería</p>
-                                </div>
-                                <div className="text-right text-sm text-gray-500">
-                                    <p className="font-bold text-brand-charcoal uppercase tracking-widest text-[10px] mb-1">Presupuesto Formal</p>
-                                    <p>Fecha: {new Date().toLocaleDateString('es-CL')}</p>
-                                    <p>Validez: 15 días</p>
-                                </div>
-                            </div>
-
-                            <table className="w-full mb-12">
-                                <thead>
-                                    <tr className="border-b-2 border-brand-charcoal text-left uppercase tracking-widest text-[10px]">
-                                        <th className="py-4 font-bold">Descripción</th>
-                                        <th className="py-4 font-bold text-right">Categoría</th>
-                                        <th className="py-4 font-bold text-right">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {cart.map((item, i) => (
-                                        <tr key={i} className="border-b border-gray-100 text-sm">
-                                            <td className="py-4">
-                                                <p className="font-medium">{item.name}</p>
-                                                {item.costBreakdown && (
-                                                    <p className="text-[10px] text-gray-400 mt-1">Confección a medida / Diseño personalizado</p>
-                                                )}
-                                            </td>
-                                            <td className="py-4 text-right text-gray-500">{item.category}</td>
-                                            <td className="py-4 text-right font-medium">{formatCurrency(item.price)}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-
-                            <div className="flex justify-end mb-16">
-                                <div className="w-64 space-y-3 text-sm">
-                                    <div className="flex justify-between text-gray-500">
-                                        <span>Subtotal Neto</span>
-                                        <span>{formatCurrency(Math.round(total / 1.19))}</span>
-                                    </div>
-                                    <div className="flex justify-between text-gray-500">
-                                        <span>IVA (19%)</span>
-                                        <span>{formatCurrency(Math.round(total - (total / 1.19)))}</span>
-                                    </div>
-                                    <div className="flex justify-between font-serif text-2xl pt-4 border-t-2 border-brand-charcoal font-bold">
-                                        <span>TOTAL</span>
-                                        <span>{formatCurrency(total)}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="text-[10px] text-gray-500 border-t pt-8 text-center mt-auto">
-                                <p>Este documento es una cotización y no representa un comprobante de pago o boleta fiscal.</p>
-                                <p className="mt-1">Para dar inicio al trabajo se requiere un abono del 50%. Los precios incluyen IVA.</p>
                             </div>
                         </div>
                     </div>
