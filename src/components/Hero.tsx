@@ -40,10 +40,10 @@ export default function Hero() {
 
                     <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 px-4">
                         <Link
-                            href="/appointment"
+                            href="/restauracion"
                             className="w-full md:w-auto border border-white/50 text-white px-6 py-4 md:px-10 md:py-4 rounded-sm font-sans text-xs md:text-sm uppercase tracking-widest hover:bg-brand-terracotta hover:border-brand-terracotta transition-all text-center"
                         >
-                            Habla con Elena
+                            Reparaciones
                         </Link>
                         <Link
                             href="/sastreria"
