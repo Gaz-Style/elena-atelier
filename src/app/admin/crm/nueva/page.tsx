@@ -28,14 +28,14 @@ export default function NewCustomerPage() {
     <div className="min-h-screen bg-gray-50 font-sans pb-24">
       <Navbar />
 
-      <main className="max-w-4xl mx-auto px-8 pt-32 space-y-8">
+      <main className="max-w-4xl mx-auto px-4 md:px-8 pt-20 md:pt-32 space-y-8">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-gray-200 pb-8">
           <div>
             <Link href="/admin/crm" className="text-[10px] uppercase tracking-widest font-bold text-gray-400 hover:text-brand-terracotta transition-colors flex items-center gap-2 mb-4">
               <ArrowLeft className="w-3 h-3" /> Volver al Directorio
             </Link>
-            <h1 className="font-serif text-4xl text-brand-charcoal">Ficha de Clienteling</h1>
-            <p className="text-gray-500 mt-2">Registro de nueva clienta y medidas corporales maestras.</p>
+            <h1 className="font-serif text-3xl md:text-4xl text-brand-charcoal">Ficha de Clienteling</h1>
+            <p className="text-gray-500 mt-2 text-sm md:text-base">Registro de nueva clienta y medidas corporales maestras.</p>
           </div>
         </header>
 
@@ -47,13 +47,13 @@ export default function NewCustomerPage() {
           )}
 
           {/* Section 1: Perfil */}
-          <div className="bg-white p-8 rounded-sm shadow-sm border border-gray-100 space-y-6">
+          <div className="bg-white p-6 md:p-8 rounded-sm shadow-sm border border-gray-100 space-y-6">
             <div className="flex items-center gap-2 text-brand-charcoal border-b border-gray-100 pb-4 mb-6">
               <User className="w-5 h-5 text-brand-terracotta" />
               <h2 className="font-serif text-2xl">Perfil General</h2>
             </div>
             
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Nombre Completo *</label>
                 <input required type="text" name="full_name" className="w-full border border-gray-200 px-4 py-3 text-sm rounded-sm focus:outline-none focus:border-brand-terracotta transition-colors" />

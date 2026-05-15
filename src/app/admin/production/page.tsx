@@ -22,24 +22,24 @@ export default function ProductionPage() {
                         <Link href="/admin" className="text-[10px] uppercase tracking-widest font-bold text-gray-400 hover:text-brand-terracotta transition-colors flex items-center gap-2 mb-4">
                             <ArrowLeft className="w-3 h-3" /> Volver al Dashboard
                         </Link>
-                        <h1 className="font-serif text-5xl">Gobernanza de Producción</h1>
-                        <p className="text-text-secondary mt-2">Seguimiento de pedidos activos y flujo artesanal - Atelier Tabancura</p>
+                        <h1 className="font-serif text-3xl md:text-5xl">Gobernanza de Producción</h1>
+                        <p className="text-text-secondary mt-2 text-sm md:text-base">Seguimiento de pedidos activos y flujo artesanal - Atelier Tabancura</p>
                     </div>
-                    <div className="flex gap-4">
-                        <div className="relative">
+                    <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto mt-4 md:mt-0">
+                        <div className="relative flex-grow">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input type="text" placeholder="Buscar órden..." className="pl-10 pr-4 py-2 border border-gray-200 rounded-sm text-sm" />
+                            <input type="text" placeholder="Buscar órden..." className="w-full pl-10 pr-4 py-3 md:py-2 border border-gray-200 rounded-sm text-sm" />
                         </div>
-                        <button className="bg-brand-charcoal text-white px-6 py-2 text-[10px] uppercase tracking-widest hover:bg-brand-terracotta transition-all">
-                            Nueva Órden de Producción
+                        <button className="bg-brand-charcoal text-white px-6 py-3 md:py-2 text-[10px] uppercase tracking-widest hover:bg-brand-terracotta transition-all whitespace-nowrap">
+                            Nueva Órden
                         </button>
                     </div>
                 </header>
 
                 {/* Kanban Board Simulation */}
-                <div className="grid grid-cols-5 gap-6 h-[700px]">
+                <div className="flex overflow-x-auto snap-x md:grid md:grid-cols-5 gap-6 h-[700px] pb-4">
                     {stages.map(stage => (
-                        <div key={stage} className="bg-white/40 p-4 border border-gray-100 flex flex-col rounded-sm">
+                        <div key={stage} className="min-w-[280px] md:min-w-0 snap-center bg-white/40 p-4 border border-gray-100 flex flex-col rounded-sm">
                             <div className="flex justify-between items-center mb-6 border-b border-gray-200 pb-2">
                                 <h3 className="font-serif text-lg">{stage}</h3>
                                 <span className="text-[10px] bg-white px-2 py-1 border border-gray-100 rounded-full font-bold">
@@ -47,7 +47,7 @@ export default function ProductionPage() {
                                 </span>
                             </div>
 
-                            <div className="space-y-4 flex-1 overflow-y-auto">
+                            <div className="space-y-4 flex-1 overflow-y-auto pr-1">
                                 {tasks.filter(t => t.stage === stage).map(task => (
                                     <div key={task.id} className="bg-white p-6 shadow-sm border border-gray-100 hover:border-brand-terracotta transition-colors group cursor-grab active:cursor-grabbing">
                                         <div className="flex justify-between items-start mb-4">
@@ -72,7 +72,7 @@ export default function ProductionPage() {
 
                                 <button className="w-full border-2 border-dashed border-gray-200 py-4 text-gray-300 hover:border-brand-terracotta hover:text-brand-terracotta transition-all text-xs flex items-center justify-center gap-2 rounded-sm mt-4">
                                     <Scissors className="w-4 h-4" />
-                                    + Asignar Tarea
+                                    + Asignar
                                 </button>
                             </div>
                         </div>
@@ -80,7 +80,7 @@ export default function ProductionPage() {
                 </div>
 
                 {/* Global Stats Footer */}
-                <div className="grid grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
                     {[
                         { label: 'En Tiempo', value: '92%', icon: CheckCircle2, color: 'text-green-600' },
                         { label: 'Retrasos', value: '3', icon: AlertCircle, color: 'text-red-500' },

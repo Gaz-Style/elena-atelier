@@ -20,15 +20,15 @@ export default function HRDashboard() {
     return (
         <div className="min-h-screen bg-brand-sand/20 p-8 pt-20 font-sans">
             <div className="max-w-7xl mx-auto space-y-12">
-                <header className="flex justify-between items-end border-b border-gray-200 pb-8">
+                <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-gray-200 pb-8">
                     <div>
                         <Link href="/admin" className="text-[10px] uppercase tracking-widest font-bold text-gray-400 hover:text-brand-terracotta transition-colors flex items-center gap-2 mb-4">
                             <ArrowLeft className="w-3 h-3" /> Volver al Dashboard
                         </Link>
-                        <h1 className="font-serif text-5xl">Gestión de Talento (Buk)</h1>
-                        <p className="text-text-secondary mt-2">Administración de RRHH, Contratos y Bienestar - elenalacosturera</p>
+                        <h1 className="font-serif text-3xl md:text-5xl">Gestión de Talento (Buk)</h1>
+                        <p className="text-text-secondary mt-2 text-sm md:text-base">Administración de RRHH, Contratos y Bienestar - elenalacosturera</p>
                     </div>
-                    <button className="flex items-center gap-2 bg-brand-charcoal text-white px-6 py-3 text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all rounded-sm">
+                    <button className="flex items-center gap-2 bg-brand-charcoal text-white px-6 py-3 md:py-3 text-[10px] md:text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all rounded-sm w-full md:w-auto justify-center">
                         <UserPlus className="w-4 h-4" />
                         Nueva Contratación
                     </button>
@@ -37,32 +37,33 @@ export default function HRDashboard() {
                 {/* HR Quick Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {stats.map((s) => (
-                        <div key={s.title} className="bg-white p-8 rounded-sm shadow-sm border border-gray-100 flex items-center gap-6">
+                        <div key={s.title} className="bg-white p-6 md:p-8 rounded-sm shadow-sm border border-gray-100 flex items-center gap-6">
                             <div className={`p-4 bg-brand-sand/30 rounded-full ${s.color}`}>
                                 <s.icon className="w-6 h-6" />
                             </div>
                             <div>
-                                <p className="text-xs text-text-secondary uppercase tracking-widest mb-1">{s.title}</p>
-                                <p className="text-2xl font-serif">{s.value}</p>
+                                <p className="text-[10px] md:text-xs text-text-secondary uppercase tracking-widest mb-1">{s.title}</p>
+                                <p className="text-xl md:text-2xl font-serif">{s.value}</p>
                             </div>
                         </div>
                     ))}
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                     {/* Employee List */}
                     <div className="md:col-span-2 space-y-6">
                         <h2 className="font-serif text-2xl mb-4">Plantilla del Atelier</h2>
                         <div className="bg-white border border-gray-100 overflow-hidden rounded-sm">
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="bg-brand-sand/10 text-[10px] uppercase tracking-widest text-text-secondary">
-                                        <th className="p-4 font-medium">Nombre</th>
-                                        <th className="p-4 font-medium">Cargo</th>
-                                        <th className="p-4 font-medium">Estado</th>
-                                        <th className="p-4 font-medium">Salario</th>
-                                        <th className="p-4"></th>
-                                    </tr>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left min-w-[600px]">
+                                    <thead>
+                                        <tr className="bg-brand-sand/10 text-[10px] uppercase tracking-widest text-text-secondary">
+                                            <th className="p-4 font-medium whitespace-nowrap">Nombre</th>
+                                            <th className="p-4 font-medium whitespace-nowrap">Cargo</th>
+                                            <th className="p-4 font-medium whitespace-nowrap">Estado</th>
+                                            <th className="p-4 font-medium whitespace-nowrap">Salario</th>
+                                            <th className="p-4"></th>
+                                        </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
                                     {employees.map((emp) => (
@@ -85,6 +86,7 @@ export default function HRDashboard() {
                                     ))}
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                     </div>
 

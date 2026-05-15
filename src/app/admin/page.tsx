@@ -64,8 +64,8 @@ export default function AdminDashboard() {
         <div className="min-h-screen bg-gray-50 font-sans">
             <Navbar />
 
-            <main className="max-w-7xl mx-auto px-8 pt-32 pb-24 space-y-12">
-                <header className="flex justify-between items-end border-b border-gray-200 pb-8">
+            <main className="max-w-7xl mx-auto px-4 md:px-8 pt-32 pb-24 space-y-12">
+                <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-gray-200 pb-8">
                     <div>
                         <div className="flex items-center gap-2 mb-2 text-brand-terracotta">
                             <ShieldCheck className="w-4 h-4" />
