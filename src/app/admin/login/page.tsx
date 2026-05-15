@@ -56,9 +56,9 @@ export default function AdminLogin() {
             <input 
               type="text" 
               name="email"
-              defaultValue="admin@elenalacosturera.cl"
-              disabled
-              className="w-full bg-gray-50 border border-gray-200 px-4 py-3 text-sm rounded-sm text-gray-400 focus:outline-none"
+              placeholder="ejemplo@correo.com"
+              required
+              className="w-full border border-gray-200 px-4 py-3 text-sm rounded-sm focus:outline-none focus:border-brand-terracotta transition-colors bg-white"
             />
           </div>
 
