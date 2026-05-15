@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { ElenaAtelierSchema } from "@/lib/seo";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import "./globals.css";
@@ -49,16 +50,17 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${inter.variable} ${playfair.variable} antialiased font-sans text-brand-charcoal bg-brand-sand/30`}
+        className={`${inter.variable} ${playfair.variable} antialiased font-sans text-brand-charcoal bg-brand-sand/30 flex flex-col min-h-screen`}
       >
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ElenaAtelierSchema) }}
         />
         <Navbar />
-        <main className="pt-20">
+        <main className="pt-20 flex-grow">
           {children}
         </main>
+        <Footer />
         <WhatsAppButton />
       </body>
     </html>

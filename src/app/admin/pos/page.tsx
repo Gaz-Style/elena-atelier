@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ShoppingCart, User, Search, CreditCard, Tag, X } from 'lucide-react';
+import { ShoppingCart, User, Search, CreditCard, Tag, X, Plus } from 'lucide-react';
 
 export default function POSPage() {
     const [cart, setCart] = useState<any[]>([]);
@@ -21,6 +21,30 @@ export default function POSPage() {
 
     const total = cart.reduce((sum, item) => sum + item.price, 0);
 
+    const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
+    const [customOrderName, setCustomOrderName] = useState('');
+    const [customOrderCategory, setCustomOrderCategory] = useState('Servicio');
+    const [customOrderPrice, setCustomOrderPrice] = useState('');
+
+    const handleAddCustomOrder = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!customOrderName || !customOrderPrice) return;
+        
+        const price = parseInt(customOrderPrice.toString().replace(/\D/g, ''), 10) || 0;
+        
+        addToCart({
+            id: Date.now(),
+            name: customOrderName,
+            price: price,
+            category: customOrderCategory
+        });
+        
+        setCustomOrderName('');
+        setCustomOrderCategory('Servicio');
+        setCustomOrderPrice('');
+        setIsCustomModalOpen(false);
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 flex font-sans">
             {/* Product Selection Area */}
@@ -35,6 +59,13 @@ export default function POSPage() {
                         />
                     </div>
                     <div className="flex items-center gap-4 ml-8">
+                        <button
+                            onClick={() => setIsCustomModalOpen(true)}
+                            className="flex items-center gap-2 bg-brand-charcoal text-white px-4 py-2 rounded-sm text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Orden Personalizada
+                        </button>
                         <div className="bg-brand-sand/30 p-2 rounded-sm cursor-pointer hover:bg-brand-sand transition-all">
                             <Tag className="w-5 h-5 text-brand-terracotta" />
                         </div>
@@ -118,6 +149,65 @@ export default function POSPage() {
                     </button>
                 </div>
             </div>
+
+            {/* Custom Order Modal */}
+            {isCustomModalOpen && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+                    <div className="bg-white p-8 rounded-sm shadow-xl w-full max-w-md">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="font-serif text-2xl text-brand-charcoal">Orden Personalizada</h2>
+                            <button onClick={() => setIsCustomModalOpen(false)} className="text-gray-400 hover:text-brand-terracotta">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleAddCustomOrder} className="space-y-4">
+                            <div>
+                                <label className="block text-xs uppercase tracking-widest text-brand-charcoal mb-2 font-bold">Nombre del Trabajo</label>
+                                <input
+                                    type="text"
+                                    value={customOrderName}
+                                    onChange={(e) => setCustomOrderName(e.target.value)}
+                                    placeholder="Ej. Ajuste de mangas"
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs uppercase tracking-widest text-brand-charcoal mb-2 font-bold">Categoría</label>
+                                <select
+                                    value={customOrderCategory}
+                                    onChange={(e) => setCustomOrderCategory(e.target.value)}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta"
+                                >
+                                    <option value="Servicio">Servicio</option>
+                                    <option value="Confección">Confección</option>
+                                    <option value="Suministro">Suministro</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs uppercase tracking-widest text-brand-charcoal mb-2 font-bold">Precio (CLP)</label>
+                                <input
+                                    type="number"
+                                    value={customOrderPrice}
+                                    onChange={(e) => setCustomOrderPrice(e.target.value)}
+                                    placeholder="Ej. 25000"
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta"
+                                    required
+                                    min="0"
+                                />
+                            </div>
+                            <div className="pt-4 flex gap-4">
+                                <button type="button" onClick={() => setIsCustomModalOpen(false)} className="flex-1 py-3 border border-gray-200 text-brand-charcoal text-xs uppercase tracking-widest hover:bg-gray-50 transition-all">
+                                    Cancelar
+                                </button>
+                                <button type="submit" className="flex-1 py-3 bg-brand-charcoal text-white text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all">
+                                    Agregar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

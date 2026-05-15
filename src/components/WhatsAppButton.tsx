@@ -49,12 +49,10 @@ export default function WhatsAppButton() {
             whileTap={{ scale: 0.9 }}
             className={`fixed bottom-6 right-6 md:bottom-8 md:right-8 z-50 flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full group ${isScrolling ? 'pointer-events-none' : ''}`}
             style={{
-                // Efecto esférico mucho más suave
-                background: 'radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.05) 25%, rgba(37, 211, 102, 0.05) 60%, rgba(37, 211, 102, 0.3) 100%)',
+                background: 'radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.1) 25%, rgba(37, 211, 102, 0.4) 60%, rgba(37, 211, 102, 0.75) 100%)',
                 backdropFilter: 'blur(8px)',
                 WebkitBackdropFilter: 'blur(8px)',
-                // Sombra interna muy difusa para que no parezca una "línea" fuerte
-                boxShadow: 'inset 0px -4px 8px rgba(0, 0, 0, 0.1), inset 0px 3px 8px rgba(255, 255, 255, 0.25), 0px 8px 24px rgba(0, 0, 0, 0.2)',
+                boxShadow: 'inset 0px -4px 8px rgba(0, 0, 0, 0.1), inset 0px 3px 8px rgba(255, 255, 255, 0.4), 0px 8px 24px rgba(37, 211, 102, 0.35)',
                 border: 'none'
             }}
             aria-label="Contactar por WhatsApp"

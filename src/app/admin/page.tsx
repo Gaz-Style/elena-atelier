@@ -38,6 +38,13 @@ export default function AdminDashboard() {
             color: 'bg-purple-100 text-purple-700'
         },
         {
+            title: 'CRM & Clienteling',
+            desc: 'Gestión de clientas, historial y medidas corporales.',
+            href: '/admin/crm',
+            icon: Users, // Using Users icon here since it's imported
+            color: 'bg-rose-100 text-rose-700'
+        },
+        {
             title: 'Punto de Venta (POS)',
             desc: 'Terminal de ventas showroom y emisión de boletas.',
             href: '/admin/pos',
