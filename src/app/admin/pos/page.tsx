@@ -47,16 +47,16 @@ export default function POSPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex font-sans">
+        <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row font-sans">
             {/* Product Selection Area */}
-            <div className="flex-1 p-8 pt-20 space-y-8 overflow-y-auto">
+            <div className="flex-1 p-4 md:p-8 pt-20 space-y-8 overflow-y-auto">
                 <div className="mb-4">
                     <Link href="/admin" className="text-[10px] uppercase tracking-widest font-bold text-gray-400 hover:text-brand-terracotta transition-colors flex items-center gap-2 w-fit">
                         <ArrowLeft className="w-3 h-3" /> Volver al Dashboard
                     </Link>
                 </div>
-                <header className="flex justify-between items-center bg-white p-6 rounded-sm shadow-sm border border-gray-100">
-                    <div className="relative flex-1 max-w-md">
+                <header className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 md:p-6 rounded-sm shadow-sm border border-gray-100">
+                    <div className="relative w-full flex-1 max-w-md">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
                             type="text"
@@ -64,24 +64,26 @@ export default function POSPage() {
                             className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none outline-none text-sm rounded-sm"
                         />
                     </div>
-                    <div className="flex items-center gap-4 ml-8">
+                    <div className="flex items-center gap-2 md:gap-4 ml-0 md:ml-8 w-full md:w-auto justify-between md:justify-end">
                         <button
                             onClick={() => setIsCustomModalOpen(true)}
-                            className="flex items-center gap-2 bg-brand-charcoal text-white px-4 py-2 rounded-sm text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all"
+                            className="flex items-center gap-2 bg-brand-charcoal text-white px-4 py-2 rounded-sm text-[10px] md:text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all whitespace-nowrap"
                         >
                             <Plus className="w-4 h-4" />
-                            Orden Personalizada
+                            Orden
                         </button>
-                        <div className="bg-brand-sand/30 p-2 rounded-sm cursor-pointer hover:bg-brand-sand transition-all">
-                            <Tag className="w-5 h-5 text-brand-terracotta" />
-                        </div>
-                        <div className="bg-brand-sand/30 p-2 rounded-sm cursor-pointer hover:bg-brand-sand transition-all">
-                            <User className="w-5 h-5 text-brand-terracotta" />
+                        <div className="flex gap-2">
+                            <div className="bg-brand-sand/30 p-2 rounded-sm cursor-pointer hover:bg-brand-sand transition-all">
+                                <Tag className="w-5 h-5 text-brand-terracotta" />
+                            </div>
+                            <div className="bg-brand-sand/30 p-2 rounded-sm cursor-pointer hover:bg-brand-sand transition-all">
+                                <User className="w-5 h-5 text-brand-terracotta" />
+                            </div>
                         </div>
                     </div>
                 </header>
 
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {products.map(p => (
                         <div
                             key={p.id}
@@ -91,7 +93,7 @@ export default function POSPage() {
                             <span className="text-[10px] uppercase tracking-tighter text-brand-terracotta font-bold mb-2 block">{p.category}</span>
                             <h3 className="font-serif text-lg mb-4">{p.name}</h3>
                             <p className="text-xl font-medium">${p.price.toLocaleString('es-CL')}</p>
-                            <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] uppercase font-bold tracking-widest text-brand-charcoal">
+                            <div className="mt-4 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity text-[10px] uppercase font-bold tracking-widest text-brand-charcoal">
                                 + Agregar al pedido
                             </div>
                         </div>
@@ -100,7 +102,7 @@ export default function POSPage() {
             </div>
 
             {/* Cart Summary & Checkout */}
-            <div className="w-[450px] bg-white border-l border-gray-200 p-8 pt-24 shadow-2xl flex flex-col">
+            <div className="w-full lg:w-[450px] bg-white border-t lg:border-t-0 lg:border-l border-gray-200 p-6 md:p-8 pt-8 md:pt-24 shadow-2xl flex flex-col h-[500px] lg:h-auto">
                 <div className="flex items-center gap-3 mb-8">
                     <ShoppingCart className="w-6 h-6 text-brand-charcoal" />
                     <h2 className="font-serif text-2xl">Pedido Actual</h2>
