@@ -2,9 +2,41 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, TrendingUp, Users, Receipt, DollarSign } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Users, Receipt, DollarSign, Settings, Save, Loader2, CheckCircle2 } from 'lucide-react';
+import { getCostSettings, saveCostSettings } from './actions';
 
 export default function FinanceDashboard() {
+    const [settings, setSettings] = React.useState<any>(null);
+    const [isSaving, setIsSaving] = React.useState(false);
+    const [saveStatus, setSaveStatus] = React.useState<'idle' | 'success' | 'error'>('idle');
+
+    React.useEffect(() => {
+        getCostSettings().then(setSettings);
+    }, []);
+
+    const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsSaving(true);
+        setSaveStatus('idle');
+        const formData = new FormData(e.currentTarget);
+        const result = await saveCostSettings(formData);
+        setIsSaving(false);
+        if (result.success) {
+            setSaveStatus('success');
+            setTimeout(() => setSaveStatus('idle'), 3000);
+        } else {
+            setSaveStatus('error');
+        }
+    };
+
+    if (!settings) {
+        return (
+            <div className="min-h-screen bg-brand-sand/20 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-brand-terracotta" />
+            </div>
+        );
+    }
+
     const metrics = [
         { title: 'Ventas Netas', value: '$4.250.000', icon: DollarSign, trend: '+12%', color: 'text-green-600' },
         { title: 'Gastos Operativos', value: '$1.800.000', icon: TrendingUp, trend: '-5%', color: 'text-red-500' },
@@ -50,11 +82,68 @@ export default function FinanceDashboard() {
 
                 <div className="grid md:grid-cols-3 gap-12">
                     {/* Sales chart placeholder */}
-                    <div className="md:col-span-2 bg-white p-10 h-[400px] border border-gray-100 flex flex-col">
-                        <h2 className="font-serif text-2xl mb-8">Rendimiento Mensual vs Objetivos</h2>
-                        <div className="flex-1 bg-brand-sand/10 rounded-sm border border-dashed border-gray-200 flex items-center justify-center italic text-text-secondary">
-                            Visualización de Gráfico Proyectada (Mercado Pago Sync)
+                    <div className="md:col-span-2 bg-white p-10 border border-gray-100 flex flex-col space-y-8">
+                        <div className="flex justify-between items-center">
+                            <h2 className="font-serif text-2xl">Estructura de Costos Administrativos</h2>
+                            <Settings className="w-5 h-5 text-gray-400" />
                         </div>
+                        
+                        <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-4">
+                                <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500">Tarifa Hora Hombre (CLP)</label>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xl font-serif text-gray-400">$</span>
+                                    <input 
+                                        name="labor_hourly_rate"
+                                        type="number" 
+                                        defaultValue={settings.labor_hourly_rate} 
+                                        className="w-full bg-gray-50 border-none p-3 text-lg font-serif outline-none focus:ring-1 focus:ring-brand-terracotta" 
+                                    />
+                                </div>
+                                <p className="text-[10px] text-gray-400 italic">Costo por hora de costura y confección.</p>
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500">Costo Fijo Operativo (CLP)</label>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xl font-serif text-gray-400">$</span>
+                                    <input 
+                                        name="operational_fixed_cost"
+                                        type="number" 
+                                        defaultValue={settings.operational_fixed_cost} 
+                                        className="w-full bg-gray-50 border-none p-3 text-lg font-serif outline-none focus:ring-1 focus:ring-brand-terracotta" 
+                                    />
+                                </div>
+                                <p className="text-[10px] text-gray-400 italic">Gastos generales base (luz, arriendo, etc).</p>
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500">Margen de Ganancia Estándar (%)</label>
+                                <div className="flex items-center gap-3">
+                                    <input 
+                                        name="default_margin_percentage"
+                                        type="number" 
+                                        defaultValue={settings.default_margin_percentage} 
+                                        className="w-full bg-gray-50 border-none p-3 text-lg font-serif outline-none focus:ring-1 focus:ring-brand-terracotta" 
+                                    />
+                                    <span className="text-xl font-serif text-gray-400">%</span>
+                                </div>
+                                <p className="text-[10px] text-gray-400 italic">Margen de utilidad sobre el costo total.</p>
+                            </div>
+
+                            <div className="flex items-end">
+                                <button 
+                                    type="submit"
+                                    disabled={isSaving}
+                                    className={`w-full py-4 text-[10px] uppercase tracking-widest font-bold transition-all flex items-center justify-center gap-2 ${
+                                        saveStatus === 'success' ? 'bg-green-600 text-white' : 'bg-brand-charcoal text-white hover:bg-brand-terracotta'
+                                    }`}
+                                >
+                                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : saveStatus === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                                    {saveStatus === 'success' ? 'Guardado Correctamente' : 'Guardar Estructura'}
+                                </button>
+                            </div>
+                        </form>
                     </div>
 
                     {/* Tax summary list */}

@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ShoppingCart, User, Search, CreditCard, Tag, X, Plus, MessageSquare, Mail } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, User, Search, CreditCard, Tag, X, Plus, MessageSquare, Mail, ClipboardList, TrendingUp } from 'lucide-react';
+import { getCostSettings } from '../finance/actions';
 
 export default function POSPage() {
     const [cart, setCart] = useState<any[]>([]);
@@ -37,10 +38,21 @@ export default function POSPage() {
     const [materialsCost, setMaterialsCost] = useState<number>(0);
     const [extraCost, setExtraCost] = useState<number>(0);
     const [fixedCost, setFixedCost] = useState<number>(349000);
-    const [marginPercentage, setMarginPercentage] = useState<number>(0);
+    const [marginPercentage, setMarginPercentage] = useState<number>(15);
+    const [globalSettings, setGlobalSettings] = useState<any>(null);
+
+    React.useEffect(() => {
+        getCostSettings().then(data => {
+            setGlobalSettings(data);
+            setHourlyRate(data.labor_hourly_rate);
+            setFixedCost(data.operational_fixed_cost);
+            setMarginPercentage(data.default_margin_percentage);
+        });
+    }, []);
 
     const laborCost = hoursEstimated * hourlyRate;
-    const totalCost = laborCost + materialsCost + extraCost + fixedCost;
+    const productionCost = laborCost + materialsCost + extraCost;
+    const totalCost = productionCost + fixedCost;
     const calculatedPrice = marginPercentage > 0 ? totalCost / (1 - (marginPercentage / 100)) : totalCost;
 
     const handleAddCustomOrder = (e: React.FormEvent) => {
@@ -132,8 +144,8 @@ export default function POSPage() {
                             onClick={() => setIsCustomModalOpen(true)}
                             className="flex items-center gap-2 bg-brand-charcoal text-white px-4 py-2 rounded-sm text-[10px] md:text-xs uppercase tracking-widest hover:bg-brand-terracotta transition-all whitespace-nowrap"
                         >
-                            <Plus className="w-4 h-4" />
-                            Orden
+                            <ClipboardList className="w-4 h-4" />
+                            Orden de Trabajo
                         </button>
                         <div className="flex gap-2">
                             <div className="bg-brand-sand/30 p-2 rounded-sm cursor-pointer hover:bg-brand-sand transition-all">
@@ -241,9 +253,14 @@ export default function POSPage() {
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-sm shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
                         <div className="flex justify-between items-center p-6 border-b border-gray-100">
-                            <div>
-                                <h2 className="font-serif text-2xl text-brand-charcoal">Orden Especial / Alta Costura</h2>
-                                <p className="text-xs text-gray-500 mt-1">Costeo ERP en tiempo real para mantener la rentabilidad del Atelier.</p>
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-brand-sand/20 rounded-sm">
+                                    <ClipboardList className="w-6 h-6 text-brand-terracotta" />
+                                </div>
+                                <div>
+                                    <h2 className="font-serif text-2xl text-brand-charcoal">Ficha de Orden de Trabajo</h2>
+                                    <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mt-1">Alta Costura & Patrimonio Textil</p>
+                                </div>
                             </div>
                             <button onClick={() => setIsCustomModalOpen(false)} className="text-gray-400 hover:text-brand-terracotta">
                                 <X className="w-6 h-6" />
@@ -271,76 +288,77 @@ export default function POSPage() {
                                 </div>
 
                                 <div className="space-y-4">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta border-b border-gray-100 pb-2">2. Costos Directos</h3>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-terracotta border-b border-gray-100 pb-2">2. Especificaciones Técnicas</h3>
+                                    <div className="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Horas Estimadas</label>
-                                            <input type="number" min="0" value={hoursEstimated || ''} onChange={(e) => setHoursEstimated(Number(e.target.value))} className="w-full p-2 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                            <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">Horas Estimadas de Taller</label>
+                                            <input type="number" min="0" value={hoursEstimated || ''} onChange={(e) => setHoursEstimated(Number(e.target.value))} className="w-full p-3 text-sm bg-gray-50 border border-gray-100 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta transition-all" placeholder="0" />
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Tarifa por Hora ($)</label>
-                                            <input type="number" min="0" value={hourlyRate || ''} onChange={(e) => setHourlyRate(Number(e.target.value))} className="w-full p-2 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                            <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">Costo Materiales / Telas ($)</label>
+                                            <input type="number" min="0" value={materialsCost || ''} onChange={(e) => setMaterialsCost(Number(e.target.value))} className="w-full p-3 text-sm bg-gray-50 border border-gray-100 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta transition-all" placeholder="0" />
                                         </div>
-                                        <div>
-                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Costo Materiales ($)</label>
-                                            <input type="number" min="0" value={materialsCost || ''} onChange={(e) => setMaterialsCost(Number(e.target.value))} className="w-full p-2 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Extras / Pedrería ($)</label>
-                                            <input type="number" min="0" value={extraCost || ''} onChange={(e) => setExtraCost(Number(e.target.value))} className="w-full p-2 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                        <div className="col-span-2">
+                                            <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-2">Extras e Insumos Especiales (Pedrería, Botones, etc)</label>
+                                            <input type="number" min="0" value={extraCost || ''} onChange={(e) => setExtraCost(Number(e.target.value))} className="w-full p-3 text-sm bg-gray-50 border border-gray-100 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta transition-all" placeholder="0" />
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="space-y-4">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta border-b border-gray-100 pb-2">3. Operación y Margen</h3>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Costo Fijo Asignado ($)</label>
-                                            <input type="number" min="0" value={fixedCost || ''} onChange={(e) => setFixedCost(Number(e.target.value))} className="w-full p-2 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                <div className="space-y-4 p-4 bg-brand-sand/5 rounded-sm border border-brand-sand/20">
+                                    <div className="flex justify-between items-center border-b border-brand-sand/20 pb-2">
+                                        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">3. Parámetros Administrativos (Configurados)</h3>
+                                        <Link href="/admin/finance" className="text-[9px] uppercase tracking-widest text-brand-terracotta hover:underline">Ajustar en CRM</Link>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="opacity-60">
+                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Tarifa Taller (Hora)</label>
+                                            <p className="text-sm font-serif">{formatCurrency(hourlyRate)}</p>
                                         </div>
-                                        <div>
-                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Margen Ganancia (%)</label>
-                                            <input type="number" min="0" max="100" value={marginPercentage || ''} onChange={(e) => setMarginPercentage(Number(e.target.value))} className="w-full p-2 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                        <div className="opacity-60">
+                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Costo Fijo Base</label>
+                                            <p className="text-sm font-serif">{formatCurrency(fixedCost)}</p>
                                         </div>
                                     </div>
                                 </div>
                             </form>
 
                             {/* Resumen Receipt */}
-                            <div className="w-full md:w-72 bg-brand-charcoal text-white p-6 rounded-sm shadow-inner flex flex-col h-fit">
-                                <h3 className="font-serif text-lg mb-6 border-b border-white/10 pb-4">Desglose (Ficha)</h3>
+                            <div className="w-full md:w-80 bg-brand-charcoal text-white p-8 rounded-sm shadow-2xl flex flex-col h-fit relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <TrendingUp className="w-24 h-24" />
+                                </div>
+                                <h3 className="font-serif text-xl mb-8 border-b border-white/10 pb-4 relative z-10">Análisis Financiero</h3>
                                 
-                                <div className="space-y-4 text-sm flex-1">
+                                <div className="space-y-5 text-sm flex-1 relative z-10">
                                     <div className="flex justify-between">
-                                        <span className="text-white/60">Mano de Obra</span>
-                                        <span>{formatCurrency(laborCost)}</span>
+                                        <span className="text-white/40 uppercase text-[10px] tracking-widest">Mano de Obra</span>
+                                        <span className="font-medium">{formatCurrency(laborCost)}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-white/60">Insumos</span>
-                                        <span>{formatCurrency(materialsCost + extraCost)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-white/60">Costo Fijo</span>
-                                        <span>{formatCurrency(fixedCost)}</span>
+                                        <span className="text-white/40 uppercase text-[10px] tracking-widest">Materiales</span>
+                                        <span className="font-medium">{formatCurrency(materialsCost + extraCost)}</span>
                                     </div>
                                     
                                     <div className="flex justify-between pt-4 border-t border-white/10 text-white/80">
-                                        <span className="text-xs uppercase tracking-widest">Costo Real</span>
-                                        <span className="font-mono">{formatCurrency(totalCost)}</span>
+                                        <span className="text-[10px] uppercase tracking-widest font-bold">Costo de Producción</span>
+                                        <span className="font-serif text-lg">{formatCurrency(productionCost)}</span>
                                     </div>
 
-                                    {marginPercentage > 0 && (
-                                        <div className="flex justify-between text-brand-terracotta text-xs font-bold pt-2">
-                                            <span>Margen ({marginPercentage}%)</span>
-                                            <span>+{formatCurrency(calculatedPrice - totalCost)}</span>
-                                        </div>
-                                    )}
+                                    <div className="flex justify-between opacity-50">
+                                        <span className="text-[10px] uppercase tracking-widest">Gasto Operativo (Fijo)</span>
+                                        <span className="text-xs">{formatCurrency(fixedCost)}</span>
+                                    </div>
+                                    
+                                    <div className="flex justify-between pt-4 border-t border-white/10 text-brand-terracotta font-bold italic">
+                                        <span>Margen Sugerido ({marginPercentage}%)</span>
+                                        <span>+{formatCurrency(calculatedPrice - totalCost)}</span>
+                                    </div>
                                 </div>
 
-                                <div className="mt-8 pt-4 border-t border-white/20">
-                                    <p className="text-[10px] uppercase tracking-widest text-white/50 mb-1">Precio Final Sugerido</p>
-                                    <p className="text-3xl font-serif">{formatCurrency(calculatedPrice)}</p>
+                                <div className="mt-12 pt-6 border-t border-white/20 relative z-10">
+                                    <p className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-2 font-bold">Precio Final de Venta</p>
+                                    <p className="text-4xl font-serif text-white">{formatCurrency(calculatedPrice)}</p>
                                 </div>
                             </div>
                         </div>
