@@ -2,13 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 
 export default function WhatsAppButton() {
+    const pathname = usePathname();
     const phoneNumber = '56937667709';
     const message = 'Hola, me gustaría agendar una cita o hacer una consulta.';
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     
     const [isScrolling, setIsScrolling] = useState(false);
+
+    if (pathname.startsWith('/admin')) return null;
 
     useEffect(() => {
         let scrollTimeout: NodeJS.Timeout;
