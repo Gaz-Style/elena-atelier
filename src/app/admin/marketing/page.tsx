@@ -13,7 +13,7 @@ export default function MarketingDashboard() {
     ];
 
     return (
-        <div className="min-h-screen bg-brand-sand/20 p-8 pt-16 md:pt-24 font-sans">
+        <div className="min-h-screen bg-brand-sand/20 p-8 pt-20 font-sans">
             <div className="max-w-7xl mx-auto space-y-12">
                 <header className="flex justify-between items-end border-b border-gray-200 pb-8">
                     <div>
