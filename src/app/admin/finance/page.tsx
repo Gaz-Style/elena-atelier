@@ -13,7 +13,7 @@ export default function FinanceDashboard() {
     ];
 
     return (
-        <div className="min-h-screen bg-brand-sand/20 p-8 pt-16 md:pt-24 font-sans">
+        <div className="min-h-screen bg-brand-sand/20 p-8 pt-20 font-sans">
             <div className="max-w-7xl mx-auto space-y-12">
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-gray-200 pb-8">
                     <div>

@@ -16,7 +16,7 @@ export default async function CRMPage() {
   return (
     <div className="min-h-screen bg-gray-50 font-sans pb-24">
 
-      <main className="max-w-7xl mx-auto px-8 pt-16 md:pt-24 space-y-8">
+      <main className="max-w-7xl mx-auto px-8 pt-20 space-y-8">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-gray-200 pb-8">
           <div>
             <Link href="/admin" className="text-[10px] uppercase tracking-widest font-bold text-gray-400 hover:text-brand-terracotta transition-colors flex items-center gap-2 mb-4">

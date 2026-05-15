@@ -15,7 +15,7 @@ export default function ProductionPage() {
     const stages = ['Ingresado', 'Corte', 'Confección', 'Fitting', 'Final QC'];
 
     return (
-        <div className="min-h-screen bg-brand-sand/10 p-8 pt-16 md:pt-24 font-sans text-brand-charcoal">
+        <div className="min-h-screen bg-brand-sand/10 p-8 pt-20 font-sans text-brand-charcoal">
             <div className="max-w-screen-2xl mx-auto space-y-12">
                 <header className="flex justify-between items-end border-b border-gray-200 pb-8">
                     <div>

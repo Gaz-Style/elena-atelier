@@ -49,7 +49,7 @@ export default function POSPage() {
     return (
         <div className="min-h-screen bg-gray-50 flex font-sans">
             {/* Product Selection Area */}
-            <div className="flex-1 p-8 pt-16 md:pt-24 space-y-8 overflow-y-auto">
+            <div className="flex-1 p-8 pt-20 space-y-8 overflow-y-auto">
                 <div className="mb-4">
                     <Link href="/admin" className="text-[10px] uppercase tracking-widest font-bold text-gray-400 hover:text-brand-terracotta transition-colors flex items-center gap-2 w-fit">
                         <ArrowLeft className="w-3 h-3" /> Volver al Dashboard
