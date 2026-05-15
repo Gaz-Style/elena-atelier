@@ -20,3 +20,9 @@ export async function loginAction(formData: FormData) {
 
   redirect('/admin');
 }
+
+export async function logoutAction() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect('/admin/login');
+}
