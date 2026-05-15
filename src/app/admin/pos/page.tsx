@@ -2,17 +2,14 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ShoppingCart, User, Search, CreditCard, Tag, X, Plus, MessageSquare, Mail, ClipboardList, TrendingUp } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, User, Search, CreditCard, Tag, X, Plus, MessageSquare, Mail, ClipboardList, TrendingUp, Loader2, Package } from 'lucide-react';
 import { getCostSettings } from '../finance/actions';
+import { getCatalog } from '../catalog/actions';
 
 export default function POSPage() {
     const [cart, setCart] = useState<any[]>([]);
-    const products = [
-        { id: 1, name: 'Restauración Técnia - Abrigo', price: 120000, category: 'Servicio' },
-        { id: 2, name: 'Sastrería a Medida - Pantalón', price: 180000, category: 'Confección' },
-        { id: 3, name: 'Ajuste de Calce - Vestido', price: 45000, category: 'Servicio' },
-        { id: 4, name: 'Botones Vintage (Set)', price: 15000, category: 'Suministro' },
-    ];
+    const [products, setProducts] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
     const addToCart = (p: any) => setCart([...cart, p]);
     const removeFromCart = (index: number) => {
@@ -42,11 +39,17 @@ export default function POSPage() {
     const [globalSettings, setGlobalSettings] = useState<any>(null);
 
     React.useEffect(() => {
-        getCostSettings().then(data => {
-            setGlobalSettings(data);
-            setHourlyRate(data.labor_hourly_rate);
-            setFixedCost(data.operational_fixed_cost);
-            setMarginPercentage(data.default_margin_percentage);
+        setLoading(true);
+        Promise.all([
+            getCostSettings(),
+            getCatalog()
+        ]).then(([costData, catalogData]) => {
+            setGlobalSettings(costData);
+            setHourlyRate(costData.labor_hourly_rate);
+            setFixedCost(costData.operational_fixed_cost);
+            setMarginPercentage(costData.default_margin_percentage);
+            setProducts(catalogData);
+            setLoading(false);
         });
     }, []);
 
@@ -159,20 +162,32 @@ export default function POSPage() {
                 </header>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                    {products.map(p => (
-                        <div
-                            key={p.id}
-                            onClick={() => addToCart(p)}
-                            className="bg-white p-6 rounded-sm border border-gray-100 hover:border-brand-terracotta transition-all cursor-pointer shadow-sm group"
-                        >
-                            <span className="text-[10px] uppercase tracking-tighter text-brand-terracotta font-bold mb-2 block">{p.category}</span>
-                            <h3 className="font-serif text-lg mb-4">{p.name}</h3>
-                            <p className="text-xl font-medium">${p.price.toLocaleString('es-CL')}</p>
-                            <div className="mt-4 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity text-[10px] uppercase font-bold tracking-widest text-brand-charcoal">
-                                + Agregar al pedido
-                            </div>
+                    {loading ? (
+                        <div className="col-span-full h-64 flex items-center justify-center">
+                            <Loader2 className="w-8 h-8 animate-spin text-brand-terracotta" />
                         </div>
-                    ))}
+                    ) : products.length === 0 ? (
+                        <div className="col-span-full h-64 flex flex-col items-center justify-center text-gray-400 gap-4 border-2 border-dashed border-gray-100 rounded-sm">
+                            <Package className="w-12 h-12 opacity-20" />
+                            <p className="italic">El catálogo está vacío. Agrega servicios desde el panel administrativo.</p>
+                            <Link href="/admin/catalog" className="text-xs uppercase tracking-widest font-bold text-brand-terracotta hover:underline">Gestionar Catálogo</Link>
+                        </div>
+                    ) : (
+                        products.map(p => (
+                            <div
+                                key={p.id}
+                                onClick={() => addToCart(p)}
+                                className="bg-white p-6 rounded-sm border border-gray-100 hover:border-brand-terracotta transition-all cursor-pointer shadow-sm group"
+                            >
+                                <span className="text-[10px] uppercase tracking-tighter text-brand-terracotta font-bold mb-2 block">{p.category}</span>
+                                <h3 className="font-serif text-lg mb-4">{p.name}</h3>
+                                <p className="text-xl font-medium">${p.price.toLocaleString('es-CL')}</p>
+                                <div className="mt-4 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity text-[10px] uppercase font-bold tracking-widest text-brand-charcoal">
+                                    + Agregar al pedido
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
 
