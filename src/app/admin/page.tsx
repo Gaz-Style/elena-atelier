@@ -10,7 +10,8 @@ import {
     Settings,
     Scissors,
     ArrowRight,
-    ShieldCheck
+    ShieldCheck,
+    Package
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 
@@ -50,6 +51,13 @@ export default function AdminDashboard() {
             href: '/admin/pos',
             icon: ShoppingBag,
             color: 'bg-orange-100 text-orange-700'
+        },
+        {
+            title: 'Catálogo de Servicios',
+            desc: 'Administración de productos, precios y oferta comercial.',
+            href: '/admin/catalog',
+            icon: Package,
+            color: 'bg-indigo-100 text-indigo-700'
         },
         {
             title: 'Gobernanza de Producción',
