@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Users, UserPlus, Calendar, CreditCard, FileText, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, Users, UserPlus, Calendar, CreditCard, FileText, ChevronRight } from 'lucide-react';
 
 export default function HRDashboard() {
     const [employees] = useState([
@@ -17,10 +18,13 @@ export default function HRDashboard() {
     ];
 
     return (
-        <div className="min-h-screen bg-brand-sand/20 p-8 pt-24 font-sans">
+        <div className="min-h-screen bg-brand-sand/20 p-8 pt-16 md:pt-24 font-sans">
             <div className="max-w-7xl mx-auto space-y-12">
                 <header className="flex justify-between items-end border-b border-gray-200 pb-8">
                     <div>
+                        <Link href="/admin" className="text-[10px] uppercase tracking-widest font-bold text-gray-400 hover:text-brand-terracotta transition-colors flex items-center gap-2 mb-4">
+                            <ArrowLeft className="w-3 h-3" /> Volver al Dashboard
+                        </Link>
                         <h1 className="font-serif text-5xl">Gestión de Talento (Buk)</h1>
                         <p className="text-text-secondary mt-2">Administración de RRHH, Contratos y Bienestar - elenalacosturera</p>
                     </div>

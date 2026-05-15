@@ -3,11 +3,14 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
+    const pathname = usePathname();
+
+    if (pathname.startsWith('/admin')) return null;
 
     const navLinks = [
         { href: '/restauracion', label: 'Restauración' },
