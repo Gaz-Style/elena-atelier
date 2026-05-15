@@ -23,6 +23,7 @@ export default function POSPage() {
     const total = cart.reduce((sum, item) => sum + item.price, 0);
 
     const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
+    const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
     const [customOrderName, setCustomOrderName] = useState('');
     const [customOrderCategory, setCustomOrderCategory] = useState('Confección');
     
@@ -69,7 +70,8 @@ export default function POSPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row font-sans">
+        <>
+        <div className={`min-h-screen bg-gray-50 flex flex-col lg:flex-row font-sans ${isBudgetModalOpen ? 'print:hidden' : ''}`}>
             {/* Product Selection Area */}
             <div className="flex-1 p-4 md:p-8 pt-20 space-y-8 overflow-y-auto">
                 <div className="mb-4">
@@ -179,9 +181,19 @@ export default function POSPage() {
                         </button>
                     </div>
 
-                    <button className="w-full mt-4 bg-green-600 text-white py-4 text-[10px] uppercase tracking-widest hover:bg-green-700 transition-all font-bold">
-                        Cobrar y Emitir Boleta SimpleAPI
-                    </button>
+                    <div className="grid grid-cols-1 gap-2 mt-4">
+                        <button 
+                            onClick={() => setIsBudgetModalOpen(true)}
+                            disabled={cart.length === 0}
+                            className="w-full border border-brand-charcoal text-brand-charcoal py-4 text-[10px] uppercase tracking-widest font-bold hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            Generar Presupuesto (PDF)
+                        </button>
+                        <button 
+                            disabled={cart.length === 0}
+                            className="w-full bg-green-600 text-white py-4 text-[10px] uppercase tracking-widest hover:bg-green-700 transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed">
+                            Cobrar y Emitir Boleta
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -305,6 +317,87 @@ export default function POSPage() {
                     </div>
                 </div>
             )}
+
+            {/* Printable Budget Modal */}
+            {isBudgetModalOpen && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 print:relative print:p-0 print:bg-white print:block">
+                    <div className="bg-white rounded-sm shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col print:shadow-none print:max-h-none print:h-auto">
+                        <div className="flex justify-between items-center p-6 border-b border-gray-100 print:hidden">
+                            <h2 className="font-serif text-2xl text-brand-charcoal">Vista Previa de Presupuesto</h2>
+                            <div className="flex gap-4">
+                                <button onClick={() => window.print()} className="bg-brand-charcoal text-white px-6 py-2 text-xs uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all rounded-sm">
+                                    Imprimir / Guardar PDF
+                                </button>
+                                <button onClick={() => setIsBudgetModalOpen(false)} className="text-gray-400 hover:text-brand-terracotta">
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {/* Printable Area */}
+                        <div id="printable-budget" className="p-8 md:p-12 overflow-y-auto flex-1 text-brand-charcoal bg-white print:p-0 print:overflow-visible">
+                            <div className="flex justify-between items-start mb-12 border-b pb-8">
+                                <div>
+                                    <h1 className="font-serif text-3xl font-bold tracking-tight">ELENA ATELIER</h1>
+                                    <p className="text-sm text-gray-500 mt-1 uppercase tracking-widest text-[10px]">Alta Costura & Sastrería</p>
+                                </div>
+                                <div className="text-right text-sm text-gray-500">
+                                    <p className="font-bold text-brand-charcoal uppercase tracking-widest text-[10px] mb-1">Presupuesto Formal</p>
+                                    <p>Fecha: {new Date().toLocaleDateString('es-CL')}</p>
+                                    <p>Validez: 15 días</p>
+                                </div>
+                            </div>
+
+                            <table className="w-full mb-12">
+                                <thead>
+                                    <tr className="border-b-2 border-brand-charcoal text-left uppercase tracking-widest text-[10px]">
+                                        <th className="py-4 font-bold">Descripción</th>
+                                        <th className="py-4 font-bold text-right">Categoría</th>
+                                        <th className="py-4 font-bold text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {cart.map((item, i) => (
+                                        <tr key={i} className="border-b border-gray-100 text-sm">
+                                            <td className="py-4">
+                                                <p className="font-medium">{item.name}</p>
+                                                {item.costBreakdown && (
+                                                    <p className="text-[10px] text-gray-400 mt-1">Confección a medida / Diseño personalizado</p>
+                                                )}
+                                            </td>
+                                            <td className="py-4 text-right text-gray-500">{item.category}</td>
+                                            <td className="py-4 text-right font-medium">{formatCurrency(item.price)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                            <div className="flex justify-end mb-16">
+                                <div className="w-64 space-y-3 text-sm">
+                                    <div className="flex justify-between text-gray-500">
+                                        <span>Subtotal Neto</span>
+                                        <span>{formatCurrency(Math.round(total / 1.19))}</span>
+                                    </div>
+                                    <div className="flex justify-between text-gray-500">
+                                        <span>IVA (19%)</span>
+                                        <span>{formatCurrency(Math.round(total - (total / 1.19)))}</span>
+                                    </div>
+                                    <div className="flex justify-between font-serif text-2xl pt-4 border-t-2 border-brand-charcoal font-bold">
+                                        <span>TOTAL</span>
+                                        <span>{formatCurrency(total)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="text-[10px] text-gray-500 border-t pt-8 text-center mt-auto">
+                                <p>Este documento es una cotización y no representa un comprobante de pago o boleta fiscal.</p>
+                                <p className="mt-1">Para dar inicio al trabajo se requiere un abono del 50%. Los precios incluyen IVA.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
+        </>
     );
 }
