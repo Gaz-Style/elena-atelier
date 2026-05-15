@@ -9,7 +9,8 @@ export async function loginAction(formData: FormData) {
   // Contraseña estática para la demo (Opción B del plan)
   if (password === 'elena2026') {
     // Configurar cookie segura (dura 1 día)
-    cookies().set({
+    const cookieStore = await cookies();
+    cookieStore.set({
       name: 'ea_admin_session',
       value: 'authenticated',
       httpOnly: true,
