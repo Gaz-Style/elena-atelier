@@ -1,5 +1,6 @@
 import Hero from "@/components/Hero";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 export default function Home() {
   return (
@@ -126,6 +127,27 @@ export default function Home() {
                 ¿Hacemos algo juntas? Escríbeme
               </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Community Registration Section */}
+      <section className="py-24 bg-brand-charcoal px-6 relative z-10 border-t border-white/10">
+        <div className="max-w-4xl mx-auto text-center space-y-8">
+            <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-terracotta">Exclusividad Atelier</span>
+            <h2 className="font-serif text-4xl md:text-6xl text-white">Únete a nuestra <br/><span className="italic text-brand-sand">comunidad privada</span></h2>
+            <p className="text-white/60 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+                Regístrate para agilizar tus futuras órdenes, recibir invitaciones a pruebas exclusivas y obtener beneficios personalizados según tu estilo.
+            </p>
+            <div className="pt-4">
+                <Link 
+                    href="/registro"
+                    className="inline-flex items-center gap-2 bg-brand-terracotta text-white px-10 py-5 rounded-sm hover:bg-white hover:text-brand-charcoal transition-all uppercase tracking-widest text-sm font-bold"
+                >
+                    Crear mi Perfil de Clienta
+                    <ArrowRight className="w-4 h-4" />
+                </Link>
+            </div>
+            <p className="text-[10px] text-white/30 uppercase tracking-widest pt-4">Integración automática con nuestro sistema de taller</p>
         </div>
       </section>
 

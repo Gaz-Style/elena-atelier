@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import Navbar from '@/components/Navbar';
-import { Users, Plus, ChevronRight, Search, ArrowLeft } from 'lucide-react';
+import { Users, Plus, ChevronRight, Search, ArrowLeft, MessageCircle } from 'lucide-react';
 
 export const revalidate = 0; // Disable caching for CRM
 
@@ -91,8 +91,18 @@ export default async function CRMPage() {
                           </span>
                           <div className="text-xs text-gray-500">{customer.typical_occasion}</div>
                         </td>
-                        <td className="py-4 px-6 text-right">
-                          <button className="text-xs font-bold uppercase tracking-widest text-brand-terracotta hover:text-brand-charcoal transition-colors inline-flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100">
+                        <td className="py-4 px-6 text-right space-x-4">
+                          {customer.phone && (
+                            <a 
+                              href={`https://wa.me/${customer.phone.replace(/\D/g, '')}?text=Hola%20${customer.full_name.split(' ')[0]},%20te%20saludamos%20de%20Elena%20Atelier...`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-green-600 hover:text-green-700 transition-colors inline-flex items-center gap-1 text-xs font-bold uppercase tracking-widest"
+                            >
+                              <MessageCircle className="w-4 h-4" /> <span className="hidden md:inline">WhatsApp</span>
+                            </a>
+                          )}
+                          <button className="text-xs font-bold uppercase tracking-widest text-brand-terracotta hover:text-brand-charcoal transition-colors inline-flex items-center gap-1">
                             Ver <span className="hidden md:inline">Perfil</span> <ChevronRight className="w-3 h-3" />
                           </button>
                         </td>

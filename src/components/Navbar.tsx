@@ -42,8 +42,8 @@ export default function Navbar() {
                                 {link.label}
                             </Link>
                         ))}
-                        <Link href="/appointment" className="border border-white/50 text-white px-6 py-3 rounded-sm hover:bg-brand-terracotta hover:border-brand-terracotta transition-all">
-                            Habla con Elena
+                        <Link href="/registro" className="border border-white/50 text-white px-6 py-3 rounded-sm hover:bg-brand-terracotta hover:border-brand-terracotta transition-all font-bold">
+                            Únete
                         </Link>
                     </div>
 
@@ -78,11 +78,11 @@ export default function Navbar() {
                             </Link>
                         ))}
                         <Link
-                            href="/appointment"
+                            href="/registro"
                             onClick={() => setIsOpen(false)}
-                            className="border border-white/50 text-white px-10 py-4 rounded-sm hover:bg-brand-terracotta hover:border-brand-terracotta transition-all uppercase tracking-widest text-sm text-center"
+                            className="border border-white/50 text-white px-10 py-4 rounded-sm hover:bg-brand-terracotta hover:border-brand-terracotta transition-all uppercase tracking-widest text-sm text-center font-bold"
                         >
-                            Habla con Elena
+                            Únete
                         </Link>
                     </motion.div>
                 )}
