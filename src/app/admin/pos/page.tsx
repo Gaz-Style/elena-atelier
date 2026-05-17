@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, 
 import { getCostSettings } from '../finance/actions';
 import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
-import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction } from './actions';
+import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, getWeeklyWorkloadAction } from './actions';
 
 const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.6): Promise<string> => {
     return new Promise((resolve) => {
@@ -104,6 +104,21 @@ export default function POSPage() {
     const [orderNotes, setOrderNotes] = useState('');
     const [orderImages, setOrderImages] = useState<{ url: string; notes: string }[]>([]);
     const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
+    const [deadline, setDeadline] = useState<string>('');
+    const [weeklyWorkload, setWeeklyWorkload] = useState<number | null>(null);
+    const [loadingWorkload, setLoadingWorkload] = useState<boolean>(false);
+
+    React.useEffect(() => {
+        if (!deadline) {
+            setWeeklyWorkload(null);
+            return;
+        }
+        setLoadingWorkload(true);
+        getWeeklyWorkloadAction(deadline).then(res => {
+            setWeeklyWorkload(res.count);
+            setLoadingWorkload(false);
+        });
+    }, [deadline]);
  
     React.useEffect(() => {
         setLoading(true);
@@ -197,7 +212,8 @@ export default function POSPage() {
                     category: item.category,
                     notes: item.notes || '',
                     isCustom: !!item.isCustom
-                }))
+                })),
+                deadline: deadline || null
             });
 
             if (!res.success) {
@@ -241,6 +257,8 @@ export default function POSPage() {
             
             setCart([]);
             setPaymentMethod(null);
+            setDeadline('');
+            setWeeklyWorkload(null);
         } catch (error: any) {
             console.error('Error during checkout processing:', error);
             alert("Ocurrió un error inesperado al procesar el cobro: " + (error.message || String(error)));
@@ -255,6 +273,8 @@ export default function POSPage() {
         setOrderNotes('');
         setOrderImages([]);
         setActiveImageIndex(0);
+        setDeadline('');
+        setWeeklyWorkload(null);
     };
 
     const formatCurrency = (value: number) => {
@@ -917,6 +937,56 @@ export default function POSPage() {
                     <div className="flex justify-between text-2xl font-serif pt-4">
                         <span>Total</span>
                         <span>${total.toLocaleString('es-CL')}</span>
+                    </div>
+
+                    {/* Time Blocking & Delivery Date Selector */}
+                    <div className="border-t border-gray-100 pt-6 mt-6 space-y-4">
+                        <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Tiempos de Entrega & Agendamiento</h4>
+                        
+                        <div className="space-y-2">
+                            <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500">Fecha Prometida de Entrega</label>
+                            <input 
+                                type="date" 
+                                value={deadline}
+                                onChange={(e) => setDeadline(e.target.value)}
+                                className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta" 
+                            />
+                        </div>
+
+                        {deadline && (
+                            <div className="bg-brand-sand/10 border border-brand-sand/30 p-4 rounded-sm space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
+                                <div className="flex justify-between items-center text-[10px] uppercase tracking-wider font-bold">
+                                    <span className="text-gray-500">Bloques Ocupados (Semana)</span>
+                                    {loadingWorkload ? (
+                                        <span className="text-brand-terracotta animate-pulse">Calculando...</span>
+                                    ) : (
+                                        <span className="text-brand-charcoal">{weeklyWorkload !== null ? `${weeklyWorkload} / 5 órdenes` : 'N/A'}</span>
+                                    )}
+                                </div>
+                                
+                                {weeklyWorkload !== null && !loadingWorkload && (
+                                    <>
+                                        <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                                            <div 
+                                                className={`h-full transition-all duration-500 ${
+                                                    weeklyWorkload < 3 ? 'bg-green-600' :
+                                                    weeklyWorkload < 5 ? 'bg-amber-500' : 'bg-rose-600'
+                                                }`}
+                                                style={{ width: `${Math.min((weeklyWorkload / 5) * 100, 100)}%` }}
+                                            />
+                                        </div>
+                                        <p className={`text-[10px] italic font-medium ${
+                                            weeklyWorkload < 3 ? 'text-green-700' :
+                                            weeklyWorkload < 5 ? 'text-amber-700' : 'text-rose-700'
+                                        }`}>
+                                            {weeklyWorkload < 3 ? '🟢 Capacidad Óptima: Taller con espacio disponible.' :
+                                             weeklyWorkload < 5 ? '🟡 Capacidad Intermedia: Taller con carga moderada.' :
+                                             '🔴 Capacidad Completa: Taller al límite. Se sugiere coordinar otra fecha.'}
+                                        </p>
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 mt-8">
