@@ -126,8 +126,9 @@ export async function sendBudgetEmailAction(payload: {
     `;
 
     try {
+        const fromAddress = smtpUser.includes('gmail.com') ? 'contacto@elenalacosturera.cl' : smtpUser;
         const info = await transporter.sendMail({
-            from: `"Elena Atelier" <${smtpUser}>`,
+            from: `"Elena Atelier" <${fromAddress}>`,
             to: customerEmail,
             subject: 'Presupuesto Formal - Elena Atelier 👗',
             html: htmlContent,
