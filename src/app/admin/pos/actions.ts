@@ -1,6 +1,7 @@
 'use server';
 
 import nodemailer from 'nodemailer';
+import { createClient } from '@/lib/supabase/server';
 
 export async function sendBudgetEmailAction(payload: {
     customerEmail: string;
@@ -305,4 +306,42 @@ export async function sendOrderConfirmationEmailAction(payload: {
         console.error('Error al enviar correo por SMTP de Google:', err);
         return { success: false, error: err.message || String(err) };
     }
+}
+
+export async function createPOSOrdersAction(payload: {
+    customerId: string;
+    items: {
+        name: string;
+        price: number;
+        category: string;
+        notes?: string;
+        isCustom?: boolean;
+    }[];
+}) {
+    const { customerId, items } = payload;
+    const supabase = await createClient();
+
+    const insertPromises = items.map(item => {
+        const orderType = item.isCustom ? 'bespoke' : 'b2b_batch';
+        return supabase
+            .from('production_orders')
+            .insert([{
+                customer_id: customerId,
+                description: item.name,
+                order_type: orderType,
+                status: 'draft',
+                notes: item.notes || '',
+                deadline: null
+            }]);
+    });
+
+    const results = await Promise.all(insertPromises);
+    const errors = results.filter(r => r.error);
+
+    if (errors.length > 0) {
+        console.error('Errors inserting POS production orders:', errors.map(e => e.error?.message));
+        return { success: false, error: errors[0].error?.message };
+    }
+
+    return { success: true };
 }
