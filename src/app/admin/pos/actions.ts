@@ -347,33 +347,33 @@ export async function createPOSOrdersAction(payload: {
     return { success: true };
 }
 
-export async function getWeeklyWorkloadAction(dateStr: string) {
+export async function getDailyWorkloadAction(dateStr: string) {
     const supabase = await createClient();
     
     const selectedDate = new Date(dateStr);
     if (isNaN(selectedDate.getTime())) {
-        return { count: 0 };
+        return { count: 0, totalHours: 0 };
     }
     
-    const day = selectedDate.getDay();
-    const diff = selectedDate.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(selectedDate.setDate(diff));
-    monday.setHours(0, 0, 0, 0);
+    const startOfDay = new Date(selectedDate);
+    startOfDay.setHours(0, 0, 0, 0);
     
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    sunday.setHours(23, 59, 59, 999);
+    const endOfDay = new Date(selectedDate);
+    endOfDay.setHours(23, 59, 59, 999);
     
-    const { count, error } = await supabase
+    const { data, error } = await supabase
         .from('production_orders')
-        .select('*', { count: 'exact', head: true })
-        .gte('deadline', monday.toISOString())
-        .lte('deadline', sunday.toISOString());
+        .select('estimated_hours')
+        .gte('deadline', startOfDay.toISOString())
+        .lte('deadline', endOfDay.toISOString());
         
     if (error) {
-        console.error('Error fetching weekly workload:', error);
-        return { count: 0, error: error.message };
+        console.error('Error fetching daily workload:', error);
+        return { count: 0, totalHours: 0, error: error.message };
     }
     
-    return { count: count || 0 };
+    const count = data?.length || 0;
+    const totalHours = data?.reduce((sum, order) => sum + Number(order.estimated_hours || 0), 0) || 0;
+    
+    return { count, totalHours };
 }

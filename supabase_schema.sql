@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS public.production_orders (
     fabric_id UUID REFERENCES public.fabric_inventory(id),
     qr_code_id UUID DEFAULT uuid_generate_v4() UNIQUE, -- For Digital Passport
     deadline TIMESTAMP WITH TIME ZONE,
+    estimated_hours DECIMAL DEFAULT 0,
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
