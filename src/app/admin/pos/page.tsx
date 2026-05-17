@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, 
 import { getCostSettings } from '../finance/actions';
 import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
-import { sendBudgetEmailAction, sendOrderConfirmationEmailAction } from './actions';
+import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction } from './actions';
 
 const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.6): Promise<string> => {
     return new Promise((resolve) => {
@@ -188,45 +188,65 @@ export default function POSPage() {
         if (cart.length === 0 || !paymentMethod || !selectedCustomer) return;
         setIsProcessing(true);
         
-        // Simular llamada a API y guardado
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        const orderId = Math.floor(Math.random() * 90000) + 10000;
-        const dateStr = new Date().toLocaleDateString();
-        
-        setCheckoutResult({
-            orderId: orderId,
-            customer: selectedCustomer,
-            items: [...cart],
-            total: total,
-            method: paymentMethod,
-            date: dateStr
-        });
-
-        // Enviar automáticamente el correo de confirmación de orden si el cliente tiene correo
-        if (selectedCustomer.email) {
-            sendOrderConfirmationEmailAction({
-                customerEmail: selectedCustomer.email,
-                customerName: selectedCustomer.full_name,
-                orderId: orderId,
+        try {
+            const res = await createPOSOrdersAction({
+                customerId: selectedCustomer.id,
                 items: cart.map(item => ({
                     name: item.name,
                     price: item.price,
                     category: item.category,
                     notes: item.notes || '',
-                    images: item.images || []
-                })),
-                total: total,
-                paymentMethod: paymentMethod,
-                date: dateStr
-            }).catch(err => {
-                console.error('Error al enviar correo automático de confirmación:', err);
+                    isCustom: !!item.isCustom
+                }))
             });
+
+            if (!res.success) {
+                alert("Error al registrar la orden en producción: " + res.error);
+                setIsProcessing(false);
+                return;
+            }
+
+            const orderId = Math.floor(Math.random() * 90000) + 10000;
+            const dateStr = new Date().toLocaleDateString();
+            
+            setCheckoutResult({
+                orderId: orderId,
+                customer: selectedCustomer,
+                items: [...cart],
+                total: total,
+                method: paymentMethod,
+                date: dateStr
+            });
+
+            // Enviar automáticamente el correo de confirmación de orden si el cliente tiene correo
+            if (selectedCustomer.email) {
+                sendOrderConfirmationEmailAction({
+                    customerEmail: selectedCustomer.email,
+                    customerName: selectedCustomer.full_name,
+                    orderId: orderId,
+                    items: cart.map(item => ({
+                        name: item.name,
+                        price: item.price,
+                        category: item.category,
+                        notes: item.notes || '',
+                        images: item.images || []
+                    })),
+                    total: total,
+                    paymentMethod: paymentMethod,
+                    date: dateStr
+                }).catch(err => {
+                    console.error('Error al enviar correo automático de confirmación:', err);
+                });
+            }
+            
+            setCart([]);
+            setPaymentMethod(null);
+        } catch (error: any) {
+            console.error('Error during checkout processing:', error);
+            alert("Ocurrió un error inesperado al procesar el cobro: " + (error.message || String(error)));
+        } finally {
+            setIsProcessing(false);
         }
-        
-        setIsProcessing(false);
-        setCart([]);
-        setPaymentMethod(null);
     };
 
     const handleCloseCheckout = () => {
