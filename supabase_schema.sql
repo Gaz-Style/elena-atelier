@@ -152,3 +152,17 @@ ALTER TABLE public.fabric_inventory ADD COLUMN IF NOT EXISTS price DECIMAL DEFAU
 -- Disable Row Level Security on inventory table for seamless internal updates
 ALTER TABLE public.fabric_inventory DISABLE ROW LEVEL SECURITY;
 
+-- Table: Purchase Items (Desglose de Facturas)
+CREATE TABLE IF NOT EXISTS public.purchase_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    purchase_id UUID REFERENCES public.purchase_ledger(id) ON DELETE CASCADE,
+    inventory_item_id UUID REFERENCES public.fabric_inventory(id) ON DELETE SET NULL,
+    quantity DECIMAL NOT NULL DEFAULT 0,
+    price_unit DECIMAL NOT NULL DEFAULT 0,
+    total DECIMAL NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Disable Row Level Security on purchase items table for seamless internal updates
+ALTER TABLE public.purchase_items DISABLE ROW LEVEL SECURITY;
+
