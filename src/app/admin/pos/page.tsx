@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, 
 import { getCostSettings } from '../finance/actions';
 import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
-import { sendBudgetEmailAction } from './actions';
+import { sendBudgetEmailAction, sendOrderConfirmationEmailAction } from './actions';
 
 export default function POSPage() {
     const [cart, setCart] = useState<any[]>([]);
@@ -145,14 +145,37 @@ export default function POSPage() {
         // Simular llamada a API y guardado
         await new Promise(resolve => setTimeout(resolve, 1500));
         
+        const orderId = Math.floor(Math.random() * 90000) + 10000;
+        const dateStr = new Date().toLocaleDateString();
+        
         setCheckoutResult({
-            orderId: Math.floor(Math.random() * 90000) + 10000,
+            orderId: orderId,
             customer: selectedCustomer,
             items: [...cart],
             total: total,
             method: paymentMethod,
-            date: new Date().toLocaleDateString()
+            date: dateStr
         });
+
+        // Enviar automáticamente el correo de confirmación de orden si el cliente tiene correo
+        if (selectedCustomer.email) {
+            sendOrderConfirmationEmailAction({
+                customerEmail: selectedCustomer.email,
+                customerName: selectedCustomer.full_name,
+                orderId: orderId,
+                items: cart.map(item => ({
+                    name: item.name,
+                    price: item.price,
+                    category: item.category,
+                    notes: item.notes
+                })),
+                total: total,
+                paymentMethod: paymentMethod,
+                date: dateStr
+            }).catch(err => {
+                console.error('Error al enviar correo automático de confirmación:', err);
+            });
+        }
         
         setIsProcessing(false);
         setCart([]);
@@ -1064,6 +1087,68 @@ export default function POSPage() {
                             <div className="bg-brand-sand/10 p-4 rounded-sm border border-brand-sand/30 text-center">
                                 <p className="text-[10px] uppercase tracking-widest text-brand-charcoal mb-1">Total de la Orden</p>
                                 <p className="text-3xl font-serif text-brand-terracotta">{formatCurrency(checkoutResult.total)}</p>
+                            </div>
+
+                            <div className="border-t border-gray-100 pt-6 space-y-4 print:hidden">
+                                <div className="bg-gray-50 p-4 rounded-sm border border-gray-200/60 flex flex-col md:flex-row gap-4 items-center justify-between">
+                                    <div className="text-left">
+                                        <p className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Notificaciones al Cliente</p>
+                                        <p className="text-xs text-gray-500 font-medium">Reenviar comprobante a: {checkoutResult.customer.email || 'Sin correo'}</p>
+                                    </div>
+                                    <div className="flex gap-2 w-full md:w-auto justify-end">
+                                        {checkoutResult.customer.email && (
+                                            <button 
+                                                onClick={async (e) => {
+                                                    const btn = e.currentTarget;
+                                                    btn.disabled = true;
+                                                    const originalText = btn.innerHTML;
+                                                    btn.innerHTML = 'Enviando...';
+                                                    try {
+                                                        const res = await sendOrderConfirmationEmailAction({
+                                                            customerEmail: checkoutResult.customer.email,
+                                                            customerName: checkoutResult.customer.full_name,
+                                                            orderId: checkoutResult.orderId,
+                                                            items: checkoutResult.items.map((item: any) => ({
+                                                                name: item.name,
+                                                                price: item.price,
+                                                                category: item.category,
+                                                                notes: item.notes
+                                                            })),
+                                                            total: checkoutResult.total,
+                                                            paymentMethod: checkoutResult.method,
+                                                            date: checkoutResult.date
+                                                        });
+                                                        if (res.success) {
+                                                            alert('¡Comprobante enviado por correo con éxito! ✨');
+                                                        } else {
+                                                            alert('Error: ' + res.error);
+                                                        }
+                                                    } catch (err: any) {
+                                                        alert('Error: ' + err.message);
+                                                    } finally {
+                                                        btn.disabled = false;
+                                                        btn.innerHTML = originalText;
+                                                    }
+                                                }}
+                                                className="px-4 py-2 border border-brand-charcoal text-brand-charcoal text-[9px] uppercase tracking-widest font-bold hover:bg-white transition-all rounded-sm flex items-center gap-2"
+                                            >
+                                                <Mail className="w-3.5 h-3.5" /> Reenviar Correo
+                                            </button>
+                                        )}
+                                        {checkoutResult.customer.phone && (
+                                            <button 
+                                                onClick={() => {
+                                                    const message = encodeURIComponent(`¡Hola! Tu orden de trabajo #${checkoutResult.orderId} en Elena Atelier por un total de $${checkoutResult.total.toLocaleString('es-CL')} ha sido ingresada con éxito. ¡Muchas gracias por tu preferencia! ✨`);
+                                                    const cleanPhone = checkoutResult.customer.phone.replace(/\D/g, '');
+                                                    window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+                                                }}
+                                                className="px-4 py-2 bg-[#25D366] text-white text-[9px] uppercase tracking-widest font-bold hover:bg-[#128C7E] transition-all rounded-sm flex items-center gap-2"
+                                            >
+                                                <MessageSquare className="w-3.5 h-3.5" /> Enviar WhatsApp
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
