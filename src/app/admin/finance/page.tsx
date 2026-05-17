@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, TrendingUp, Receipt, DollarSign, Settings, Save, Loader2, CheckCircle2, Building2, Plus, Calendar, Hash, Tag, FileText, History, User, Trash2, Calculator, Info } from 'lucide-react';
 import { getCostSettings, saveCostSettings, getExpenses, getFixedCosts, registerPurchaseDocument, getRecentDocuments, deletePurchaseDocument, calculateSuggestedRate } from './actions';
+import { getInventoryItems } from '../inventory/actions';
 
 export default function FinanceDashboard() {
     const [settings, setSettings] = useState<any>(null);
@@ -18,10 +19,18 @@ export default function FinanceDashboard() {
     const [suggestedData, setSuggestedData] = useState<{rate: number, total: number} | null>(null);
     const [currentHourlyRate, setCurrentHourlyRate] = useState<number>(0);
 
+    // Generalised Inventory States
+    const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+    const [loadToInventory, setLoadToInventory] = useState(false);
+    const [purchaseLines, setPurchaseLines] = useState<any[]>([{ inventory_item_id: '', quantity: 1, price_unit: 0 }]);
+
     useEffect(() => {
         getCostSettings().then(data => {
             setSettings(data);
             setCurrentHourlyRate(data.labor_hourly_rate);
+        });
+        getInventoryItems().then(data => {
+            setInventoryItems(data || []);
         });
         refreshData();
     }, []);
@@ -69,10 +78,27 @@ export default function FinanceDashboard() {
         const form = e.currentTarget;
         setIsRegistering(true);
         const formData = new FormData(form);
+
+        if (loadToInventory) {
+            const validLines = purchaseLines.filter(line => line.inventory_item_id && Number(line.quantity) > 0);
+            formData.append('purchase_items', JSON.stringify(validLines));
+            
+            // Auto-overwrite total_amount inside formData
+            const calculatedTotal = validLines.reduce((sum, line) => sum + (Number(line.quantity || 0) * Number(line.price_unit || 0)), 0);
+            formData.set('total_amount', calculatedTotal.toString());
+        }
+
         const result = await registerPurchaseDocument(formData);
         setIsRegistering(false);
         if (result.success) {
             form.reset();
+            setLoadToInventory(false);
+            setPurchaseLines([{ inventory_item_id: '', quantity: 1, price_unit: 0 }]);
+            
+            // Re-fetch both inventory lists and recent ledger documents
+            getInventoryItems().then(data => {
+                setInventoryItems(data || []);
+            });
             await refreshData();
         } else {
             alert("Error: " + result.error);
@@ -209,15 +235,143 @@ export default function FinanceDashboard() {
                                     </select>
                                 </div>
 
+                                {/* Desglose de Insumos para Inventario */}
+                                <div className="md:col-span-6 space-y-4 bg-brand-sand/5 p-6 rounded-sm border border-brand-sand/20">
+                                    <div className="flex items-center justify-between">
+                                        <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-charcoal cursor-pointer select-none">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={loadToInventory}
+                                                onChange={(e) => setLoadToInventory(e.target.checked)}
+                                                className="w-4 h-4 border-gray-300 rounded text-brand-terracotta focus:ring-brand-terracotta"
+                                            />
+                                            <span>📦 Cargar Compra en el Inventario de Elena Atelier</span>
+                                        </label>
+                                        <span className="text-[9px] uppercase tracking-widest text-gray-400 font-bold bg-white px-2 py-0.5 border rounded-sm">
+                                            {loadToInventory ? "Activo" : "Inactivo"}
+                                        </span>
+                                    </div>
+
+                                    {loadToInventory && (
+                                        <div className="space-y-4 animate-in fade-in duration-300">
+                                            <p className="text-[10px] text-gray-400 font-medium">Elige las telas o insumos comprados. Su stock se incrementará automáticamente al guardar la factura.</p>
+                                            
+                                            <div className="space-y-3">
+                                                {purchaseLines.map((line, idx) => (
+                                                    <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end bg-white p-3 border border-gray-100 rounded-sm shadow-sm">
+                                                        {/* Select Item */}
+                                                        <div className="md:col-span-6 space-y-1">
+                                                            <label className="text-[8px] uppercase tracking-widest font-bold text-gray-400">Seleccionar Insumo / Tela *</label>
+                                                            <select
+                                                                required
+                                                                value={line.inventory_item_id}
+                                                                onChange={(e) => {
+                                                                    const updated = [...purchaseLines];
+                                                                    updated[idx].inventory_item_id = e.target.value;
+                                                                    setPurchaseLines(updated);
+                                                                }}
+                                                                className="w-full p-2 bg-gray-50 border-none outline-none text-xs rounded-sm focus:ring-1 focus:ring-brand-terracotta text-brand-charcoal"
+                                                            >
+                                                                <option value="">-- Elegir de Inventario --</option>
+                                                                {inventoryItems.map(item => (
+                                                                    <option key={item.id} value={item.id}>
+                                                                        {item.name} [{item.category.toUpperCase()}] ({item.stock} {item.unit})
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+
+                                                        {/* Quantity */}
+                                                        <div className="md:col-span-2 space-y-1">
+                                                            <label className="text-[8px] uppercase tracking-widest font-bold text-gray-400">Cantidad</label>
+                                                            <input
+                                                                type="number"
+                                                                min="0.01"
+                                                                step="any"
+                                                                required
+                                                                value={line.quantity}
+                                                                onChange={(e) => {
+                                                                    const updated = [...purchaseLines];
+                                                                    updated[idx].quantity = Number(e.target.value);
+                                                                    setPurchaseLines(updated);
+                                                                }}
+                                                                className="w-full p-2 bg-gray-50 border-none outline-none text-xs rounded-sm focus:ring-1 focus:ring-brand-terracotta text-right text-brand-charcoal"
+                                                            />
+                                                        </div>
+
+                                                        {/* Price Unit */}
+                                                        <div className="md:col-span-3 space-y-1">
+                                                            <label className="text-[8px] uppercase tracking-widest font-bold text-gray-400">Costo Unit ($)</label>
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                required
+                                                                value={line.price_unit}
+                                                                onChange={(e) => {
+                                                                    const updated = [...purchaseLines];
+                                                                    updated[idx].price_unit = Number(e.target.value);
+                                                                    setPurchaseLines(updated);
+                                                                }}
+                                                                className="w-full p-2 bg-gray-50 border-none outline-none text-xs rounded-sm focus:ring-1 focus:ring-brand-terracotta text-right text-brand-charcoal"
+                                                            />
+                                                        </div>
+
+                                                        {/* Remove button */}
+                                                        <div className="md:col-span-1 flex justify-center pb-1">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    if (purchaseLines.length > 1) {
+                                                                        setPurchaseLines(purchaseLines.filter((_, i) => i !== idx));
+                                                                    }
+                                                                }}
+                                                                className="p-2 text-gray-300 hover:text-red-500 transition-colors"
+                                                                title="Quitar Fila"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setPurchaseLines([...purchaseLines, { inventory_item_id: '', quantity: 1, price_unit: 0 }])}
+                                                className="px-4 py-2 border border-dashed border-gray-200 text-gray-400 hover:text-brand-terracotta hover:border-brand-terracotta transition-all text-[9px] uppercase tracking-widest font-bold rounded-sm bg-white flex items-center gap-1.5"
+                                            >
+                                                <Plus className="w-3.5 h-3.5" /> Agregar Insumo a la Lista
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div className="md:col-span-4 space-y-2">
                                     <label className="text-[10px] uppercase font-bold text-gray-400">Concepto Detallado</label>
-                                    <input name="description" required type="text" placeholder="Ej: Pago quincena Rebeca" className="w-full bg-gray-50 p-4 text-sm outline-none focus:ring-1 focus:ring-brand-terracotta rounded-sm" />
+                                    <input name="description" required type="text" placeholder="Ej: Compra de insumos quincenal" className="w-full bg-gray-50 p-4 text-sm outline-none focus:ring-1 focus:ring-brand-terracotta rounded-sm" />
                                 </div>
                                 <div className="md:col-span-2 space-y-2">
                                     <label className="text-[10px] uppercase font-bold text-gray-400">Monto Total Bruto (CLP)</label>
                                     <div className="relative">
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-charcoal font-bold">$</span>
-                                        <input name="total_amount" required type="number" placeholder="Total" className="w-full bg-brand-terracotta/5 pl-8 p-4 text-xl outline-none focus:ring-1 focus:ring-brand-terracotta rounded-sm font-serif font-bold text-brand-charcoal" />
+                                        {loadToInventory ? (
+                                            <input 
+                                                name="total_amount" 
+                                                required 
+                                                type="number" 
+                                                readOnly
+                                                value={purchaseLines.reduce((sum, line) => sum + (Number(line.quantity || 0) * Number(line.price_unit || 0)), 0)} 
+                                                className="w-full bg-amber-50 pl-8 p-4 text-xl outline-none border border-amber-200 rounded-sm font-serif font-bold text-brand-charcoal cursor-not-allowed" 
+                                            />
+                                        ) : (
+                                            <input 
+                                                name="total_amount" 
+                                                required 
+                                                type="number" 
+                                                placeholder="Total" 
+                                                className="w-full bg-brand-terracotta/5 pl-8 p-4 text-xl outline-none focus:ring-1 focus:ring-brand-terracotta rounded-sm font-serif font-bold text-brand-charcoal" 
+                                            />
+                                        )}
                                     </div>
                                 </div>
 

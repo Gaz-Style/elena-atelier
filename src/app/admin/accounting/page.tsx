@@ -45,15 +45,15 @@ export default function AccountingDashboard() {
                         <Link href="/admin/accounting/ledger" className="bg-brand-charcoal text-white px-6 py-3 rounded-sm text-xs uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all flex items-center gap-2">
                             <BookOpen className="w-4 h-4" /> Libro Mayor
                         </Link>
-                        <button className="bg-white border border-gray-200 text-brand-charcoal px-6 py-3 rounded-sm text-xs uppercase tracking-widest font-bold hover:bg-gray-50 transition-all flex items-center gap-2">
-                            <PieChart className="w-4 h-4" /> Balances
-                        </button>
+                        <Link href="/admin/accounting/results" className="bg-white border border-gray-200 text-brand-charcoal px-6 py-3 rounded-sm text-xs uppercase tracking-widest font-bold hover:bg-gray-50 transition-all flex items-center gap-2">
+                            <PieChart className="w-4 h-4" /> Estado de Resultados
+                        </Link>
                     </div>
                 </header>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <div className="flex flex-col lg:flex-row gap-8">
                     {/* Stats Sidebar */}
-                    <div className="lg:col-span-1 space-y-6">
+                    <div className="w-full lg:w-1/4 space-y-6">
                         <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm">
                             <ShieldCheck className="w-6 h-6 text-emerald-600 mb-4" />
                             <h3 className="font-serif text-lg mb-2">Normativa Fiscal</h3>
@@ -76,7 +76,7 @@ export default function AccountingDashboard() {
                     </div>
 
                     {/* Chart of Accounts List */}
-                    <div className="lg:col-span-3 space-y-6">
+                    <div className="w-full lg:w-3/4 space-y-6">
                         <div className="bg-white rounded-sm border border-gray-100 shadow-sm overflow-hidden">
                             <div className="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                                 <h2 className="font-serif text-xl">Plan de Cuentas (Chart of Accounts)</h2>

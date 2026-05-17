@@ -19,46 +19,11 @@ import Navbar from '@/components/Navbar';
 export default function AdminDashboard() {
     const modules = [
         {
-            title: 'Finanzas & Contabilidad',
-            desc: 'Libro mayor, P&L, impuestos SII y conciliación bancaria.',
-            href: '/admin/finance',
-            icon: DollarSign,
-            color: 'bg-green-100 text-green-700'
-        },
-        {
-            title: 'Recursos Humanos (Buk)',
-            desc: 'Gestión de personal, nómina, vacaciones y contratos.',
-            href: '/admin/hr',
-            icon: Users,
-            color: 'bg-blue-100 text-blue-700'
-        },
-        {
-            title: 'Crecimiento & Marketing',
-            desc: 'Métricas de ROAS, SEO/GEO Authority e influencia.',
-            href: '/admin/marketing',
-            icon: TrendingUp,
-            color: 'bg-purple-100 text-purple-700'
-        },
-        {
-            title: 'CRM & Clienteling',
-            desc: 'Gestión de clientas, historial y medidas corporales.',
-            href: '/admin/crm',
-            icon: Users, // Using Users icon here since it's imported
-            color: 'bg-rose-100 text-rose-700'
-        },
-        {
             title: 'Punto de Venta (POS)',
             desc: 'Terminal de ventas showroom y emisión de boletas.',
             href: '/admin/pos',
             icon: ShoppingBag,
             color: 'bg-orange-100 text-orange-700'
-        },
-        {
-            title: 'Catálogo de Servicios',
-            desc: 'Administración de productos, precios y oferta comercial.',
-            href: '/admin/catalog',
-            icon: Package,
-            color: 'bg-indigo-100 text-indigo-700'
         },
         {
             title: 'Gobernanza de Producción',
@@ -68,11 +33,46 @@ export default function AdminDashboard() {
             color: 'bg-brand-sand/50 text-brand-charcoal'
         },
         {
-            title: 'Inventario de Telas',
-            desc: 'Control de metros, tipos de tela y suministros críticos.',
+            title: 'Catálogo de Servicios',
+            desc: 'Administración de productos, precios y oferta comercial.',
+            href: '/admin/catalog',
+            icon: Package,
+            color: 'bg-indigo-100 text-indigo-700'
+        },
+        {
+            title: 'Finanzas & Contabilidad',
+            desc: 'Libro mayor, P&L, impuestos SII y conciliación bancaria.',
+            href: '/admin/finance',
+            icon: DollarSign,
+            color: 'bg-green-100 text-green-700'
+        },
+        {
+            title: 'Inventario General',
+            desc: 'Control de metros de telas, hilos, agujas y suministros de taller.',
             href: '/admin/inventory',
             icon: Package,
             color: 'bg-gray-200 text-brand-charcoal'
+        },
+        {
+            title: 'CRM & Clienteling',
+            desc: 'Gestión de clientas, historial y medidas corporales.',
+            href: '/admin/crm',
+            icon: Users,
+            color: 'bg-rose-100 text-rose-700'
+        },
+        {
+            title: 'Crecimiento & Marketing',
+            desc: 'Métricas de ROAS, SEO/GEO Authority e influencia.',
+            href: '/admin/marketing',
+            icon: TrendingUp,
+            color: 'bg-purple-100 text-purple-700'
+        },
+        {
+            title: 'Recursos Humanos (Buk)',
+            desc: 'Gestión de personal, nómina, vacaciones y contratos.',
+            href: '/admin/hr',
+            icon: Users,
+            color: 'bg-blue-100 text-blue-700'
         },
         {
             title: 'Contabilidad ERP',

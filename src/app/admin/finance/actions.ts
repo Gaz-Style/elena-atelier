@@ -255,6 +255,16 @@ export async function registerPurchaseDocument(formData: FormData) {
 
   if (!provider_id) return { error: "No se pudo identificar o crear al proveedor." };
 
+  const purchaseItemsRaw = formData.get('purchase_items') as string;
+  let purchaseItems: any[] = [];
+  if (purchaseItemsRaw) {
+    try {
+      purchaseItems = JSON.parse(purchaseItemsRaw);
+    } catch (e) {
+      console.error("Failed to parse purchase items", e);
+    }
+  }
+
   // 3. Prevent Duplicates (Check if Provider + Doc Number already exists)
   const { data: duplicate } = await supabase.from('purchase_ledger')
     .select('id')
@@ -266,7 +276,7 @@ export async function registerPurchaseDocument(formData: FormData) {
   if (duplicate) return { error: `El documento ${document_type} N°${document_number} ya está registrado para este proveedor.` };
 
   // 4. Save to Ledger V2
-  const { error: docError } = await supabase.from('purchase_ledger').insert([{
+  const { data: doc, error: docError } = await supabase.from('purchase_ledger').insert([{
     date: dateStr, 
     provider_id,
     document_type, 
@@ -277,9 +287,49 @@ export async function registerPurchaseDocument(formData: FormData) {
     total_amount, 
     category, 
     expense_item
-  }]);
+  }]).select().maybeSingle();
 
-  if (docError) return { error: docError.message };
+  if (docError || !doc) return { error: docError?.message || "No se pudo registrar el documento en el Ledger." };
+
+  // 4b. Save item lines and increment inventory stock
+  if (purchaseItems && purchaseItems.length > 0) {
+    const linesToInsert = purchaseItems.map(item => ({
+      purchase_id: doc.id,
+      inventory_item_id: item.inventory_item_id,
+      quantity: Number(item.quantity),
+      price_unit: Number(item.price_unit),
+      total: Number(item.quantity) * Number(item.price_unit)
+    }));
+
+    const { error: linesError } = await supabase.from('purchase_items').insert(linesToInsert);
+    if (linesError) console.error("Error saving purchase items detail:", linesError);
+
+    // Update inventory stocks in Supabase
+    for (const item of purchaseItems) {
+      if (!item.inventory_item_id) continue;
+      
+      const { data: invItem } = await supabase
+        .from('fabric_inventory')
+        .select('stock, category')
+        .eq('id', item.inventory_item_id)
+        .maybeSingle();
+      
+      if (invItem) {
+        const addedQty = Number(item.quantity);
+        const newStock = Number(invItem.stock || 0) + addedQty;
+        
+        const updates: any = { stock: newStock };
+        if (invItem.category === 'telas') {
+          updates.stock_meters = newStock;
+        }
+
+        await supabase
+          .from('fabric_inventory')
+          .update(updates)
+          .eq('id', item.inventory_item_id);
+      }
+    }
+  }
 
   // 5. Sync with Budget Tables
   if (category === 'variable') {
