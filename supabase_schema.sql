@@ -136,3 +136,8 @@ CREATE TABLE IF NOT EXISTS public.journal_items (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     CONSTRAINT double_entry_integrity CHECK (debit >= 0 AND credit >= 0)
 );
+
+-- Disable Row Level Security on operational tables to allow internal Server Actions to write/read
+ALTER TABLE public.production_orders DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.order_status_logs DISABLE ROW LEVEL SECURITY;
+
