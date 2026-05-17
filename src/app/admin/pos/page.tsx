@@ -167,8 +167,8 @@ export default function POSPage() {
                     name: item.name,
                     price: item.price,
                     category: item.category,
-                    notes: item.notes,
-                    images: item.images
+                    notes: item.notes || '',
+                    images: item.images || []
                 })),
                 total: total,
                 paymentMethod: paymentMethod,
@@ -1121,8 +1121,8 @@ export default function POSPage() {
                                                                 name: item.name,
                                                                 price: item.price,
                                                                 category: item.category,
-                                                                notes: item.notes,
-                                                                images: item.images
+                                                                notes: item.notes || '',
+                                                                images: item.images || []
                                                             })),
                                                             total: checkoutResult.total,
                                                             paymentMethod: checkoutResult.method,
