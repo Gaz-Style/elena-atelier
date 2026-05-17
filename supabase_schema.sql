@@ -142,3 +142,13 @@ CREATE TABLE IF NOT EXISTS public.journal_items (
 ALTER TABLE public.production_orders DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_status_logs DISABLE ROW LEVEL SECURITY;
 
+-- Generalize fabric_inventory to general workshop supplies (needles, thread, buttons, etc.)
+ALTER TABLE public.fabric_inventory ADD COLUMN IF NOT EXISTS category TEXT DEFAULT 'telas';
+ALTER TABLE public.fabric_inventory ADD COLUMN IF NOT EXISTS stock DECIMAL DEFAULT 0;
+ALTER TABLE public.fabric_inventory ADD COLUMN IF NOT EXISTS unit TEXT DEFAULT 'm';
+ALTER TABLE public.fabric_inventory ADD COLUMN IF NOT EXISTS color TEXT DEFAULT '';
+ALTER TABLE public.fabric_inventory ADD COLUMN IF NOT EXISTS price DECIMAL DEFAULT 0;
+
+-- Disable Row Level Security on inventory table for seamless internal updates
+ALTER TABLE public.fabric_inventory DISABLE ROW LEVEL SECURITY;
+
