@@ -249,7 +249,7 @@ export async function sendOrderConfirmationEmailAction(payload: {
                 <div class="body">
                     <h2 class="greeting">Estimada ${customerName},</h2>
                     <p class="lead-text">
-                        ¡Tu orden de trabajo ha sido ingresada con éxito a nuestro atelier! Ya se encuentra en manos de nuestras artesanas expertas.
+                        ¡Tu orden de trabajo ha sido ingresada con éxito a nuestro atelier! Ya se encuentra en manos de nuestras costureras expertas.
                         A continuación te enviamos el comprobante y detalle de los servicios contratados:
                     </p>
                     
