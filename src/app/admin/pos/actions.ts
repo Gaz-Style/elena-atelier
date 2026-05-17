@@ -317,8 +317,9 @@ export async function createPOSOrdersAction(payload: {
         notes?: string;
         isCustom?: boolean;
     }[];
+    deadline?: string | null;
 }) {
-    const { customerId, items } = payload;
+    const { customerId, items, deadline } = payload;
     const supabase = await createClient();
 
     const insertPromises = items.map(item => {
@@ -331,7 +332,7 @@ export async function createPOSOrdersAction(payload: {
                 order_type: orderType,
                 status: 'draft',
                 notes: item.notes || '',
-                deadline: null
+                deadline: deadline || null
             }]);
     });
 
@@ -344,4 +345,35 @@ export async function createPOSOrdersAction(payload: {
     }
 
     return { success: true };
+}
+
+export async function getWeeklyWorkloadAction(dateStr: string) {
+    const supabase = await createClient();
+    
+    const selectedDate = new Date(dateStr);
+    if (isNaN(selectedDate.getTime())) {
+        return { count: 0 };
+    }
+    
+    const day = selectedDate.getDay();
+    const diff = selectedDate.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(selectedDate.setDate(diff));
+    monday.setHours(0, 0, 0, 0);
+    
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+    
+    const { count, error } = await supabase
+        .from('production_orders')
+        .select('*', { count: 'exact', head: true })
+        .gte('deadline', monday.toISOString())
+        .lte('deadline', sunday.toISOString());
+        
+    if (error) {
+        console.error('Error fetching weekly workload:', error);
+        return { count: 0, error: error.message };
+    }
+    
+    return { count: count || 0 };
 }
