@@ -167,7 +167,8 @@ export default function POSPage() {
                     name: item.name,
                     price: item.price,
                     category: item.category,
-                    notes: item.notes
+                    notes: item.notes,
+                    images: item.images
                 })),
                 total: total,
                 paymentMethod: paymentMethod,
@@ -180,6 +181,14 @@ export default function POSPage() {
         setIsProcessing(false);
         setCart([]);
         setPaymentMethod(null);
+    };
+
+    const handleCloseCheckout = () => {
+        setCheckoutResult(null);
+        setSelectedCustomer(null);
+        setOrderNotes('');
+        setOrderImages([]);
+        setActiveImageIndex(0);
     };
 
     const formatCurrency = (value: number) => {
@@ -1002,7 +1011,7 @@ export default function POSPage() {
                                     <p className="text-[8px] uppercase tracking-[0.3em] text-brand-sand/60">Elena Atelier - Alta Costura</p>
                                 </div>
                             </div>
-                            <button onClick={() => setCheckoutResult(null)} className="text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
+                            <button onClick={handleCloseCheckout} className="text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
                         </div>
 
                         <div className="p-8 space-y-8 overflow-y-auto max-h-[70vh]">
@@ -1112,7 +1121,8 @@ export default function POSPage() {
                                                                 name: item.name,
                                                                 price: item.price,
                                                                 category: item.category,
-                                                                notes: item.notes
+                                                                notes: item.notes,
+                                                                images: item.images
                                                             })),
                                                             total: checkoutResult.total,
                                                             paymentMethod: checkoutResult.method,
@@ -1156,7 +1166,7 @@ export default function POSPage() {
                             <button onClick={() => window.print()} className="flex-1 py-3 border border-brand-charcoal text-brand-charcoal text-[10px] uppercase tracking-widest font-bold hover:bg-white transition-all rounded-sm">
                                 Imprimir Orden (Taller)
                             </button>
-                            <button onClick={() => setCheckoutResult(null)} className="flex-1 py-3 bg-brand-charcoal text-white text-[10px] uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all rounded-sm">
+                            <button onClick={handleCloseCheckout} className="flex-1 py-3 bg-brand-charcoal text-white text-[10px] uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all rounded-sm">
                                 Finalizar y Nueva Orden
                             </button>
                         </div>

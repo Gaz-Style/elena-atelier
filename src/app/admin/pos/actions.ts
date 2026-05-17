@@ -146,7 +146,13 @@ export async function sendOrderConfirmationEmailAction(payload: {
     customerEmail: string;
     customerName: string;
     orderId: number;
-    items: { name: string; price: number; category: string; notes?: string }[];
+    items: { 
+        name: string; 
+        price: number; 
+        category: string; 
+        notes?: string;
+        images?: { url: string; notes?: string }[];
+    }[];
     total: number;
     paymentMethod: string;
     date: string;
@@ -181,6 +187,26 @@ export async function sendOrderConfirmationEmailAction(payload: {
                 <p style="margin: 0; font-size: 13px; font-weight: 600; color: #1E293B;">${item.name}</p>
                 <span style="font-size: 9px; text-transform: uppercase; color: #C36B53; font-weight: bold; letter-spacing: 1px;">${item.category}</span>
                 ${item.notes ? `<p style="margin: 4px 0 0 0; font-size: 11px; color: #64748B; font-style: italic;">"${item.notes}"</p>` : ''}
+                
+                ${item.images && item.images.length > 0 ? `
+                    <div style="margin-top: 15px; border-top: 1px dashed #E5E7EB; padding-top: 10px;">
+                        <p style="margin: 0 0 8px 0; font-size: 9px; text-transform: uppercase; font-weight: bold; color: #C36B53; letter-spacing: 0.5px;">Registro Fotográfico (${item.images.length})</p>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td>
+                                    ${item.images.map((img) => `
+                                        <div style="display: inline-block; vertical-align: top; margin-right: 12px; margin-bottom: 12px; background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: 6px; border-radius: 2px; width: 100px; text-align: center;">
+                                            <div style="width: 100px; height: 100px; overflow: hidden; background-color: #F8FAFC; text-align: center; line-height: 100px; border-radius: 1px;">
+                                                <img src="${img.url}" style="max-width: 100px; max-height: 100px; vertical-align: middle; display: inline-block;" alt="Registro" />
+                                            </div>
+                                            ${img.notes ? `<p style="margin: 5px 0 0 0; font-size: 8px; color: #64748B; font-style: italic; line-height: 1.2; word-break: break-word;">"${img.notes}"</p>` : ''}
+                                        </div>
+                                    `).join('')}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                ` : ''}
             </td>
             <td style="padding: 12px 8px; text-align: right; vertical-align: top; font-size: 13px; font-weight: bold; color: #1E293B;">
                 ${formatCurrency(item.price)}
