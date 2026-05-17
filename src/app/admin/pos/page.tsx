@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, 
 import { getCostSettings } from '../finance/actions';
 import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
+import { sendBudgetEmailAction } from './actions';
 
 export default function POSPage() {
     const [cart, setCart] = useState<any[]>([]);
@@ -32,6 +33,7 @@ export default function POSPage() {
     const [copySuccess, setCopySuccess] = useState(false);
     const [clientPhone, setClientPhone] = useState('');
     const [clientEmail, setClientEmail] = useState('');
+    const [isSendingEmail, setIsSendingEmail] = useState(false);
     const [customOrderName, setCustomOrderName] = useState('');
     const [customOrderCategory, setCustomOrderCategory] = useState('Diseño y confección');
     const [selectedCatalogCategory, setSelectedCatalogCategory] = useState('');
@@ -173,6 +175,10 @@ export default function POSPage() {
         const baseUrl = window.location.origin;
         const link = `${baseUrl}/presupuesto?d=${base64}`;
         setGeneratedLink(link);
+        if (selectedCustomer) {
+            setClientPhone(selectedCustomer.phone || '');
+            setClientEmail(selectedCustomer.email || '');
+        }
         setIsBudgetModalOpen(true);
     };
 
@@ -189,11 +195,32 @@ export default function POSPage() {
         window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
     };
 
-    const shareViaEmail = () => {
+    const shareViaEmail = async () => {
         if (!clientEmail) return;
-        const subject = encodeURIComponent("Presupuesto Formal - Elena Atelier");
-        const body = encodeURIComponent(`¡Hola!\n\nTe envío el presupuesto formal para tu proyecto. Puedes verlo y aceptarlo directamente en el siguiente enlace interactivo:\n\n${generatedLink}\n\nQuedamos atentos a tus comentarios.\n\nSaludos,\nElena Atelier`);
-        window.location.href = `mailto:${clientEmail}?subject=${subject}&body=${body}`;
+        setIsSendingEmail(true);
+        try {
+            const res = await sendBudgetEmailAction({
+                customerEmail: clientEmail,
+                customerName: selectedCustomer?.full_name || 'Estimada Clienta',
+                budgetLink: generatedLink,
+                items: cart.map(item => ({
+                    name: item.name,
+                    price: item.price,
+                    category: item.category,
+                    notes: item.notes
+                })),
+                total: total
+            });
+            if (res.success) {
+                alert('¡El presupuesto ha sido enviado con éxito a la clienta por correo corporativo! ✨');
+            } else {
+                alert('Error al enviar el correo: ' + res.error);
+            }
+        } catch (err: any) {
+            alert('Error inesperado: ' + err.message);
+        } finally {
+            setIsSendingEmail(false);
+        }
     };
 
     return (
@@ -889,10 +916,15 @@ export default function POSPage() {
                                             />
                                             <button 
                                                 onClick={shareViaEmail}
-                                                disabled={!clientEmail}
-                                                className="bg-brand-charcoal text-white px-4 py-2 text-[10px] uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all rounded-sm flex items-center gap-2 disabled:opacity-50"
+                                                disabled={!clientEmail || isSendingEmail}
+                                                className="bg-brand-charcoal text-white px-4 py-2 text-[10px] uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all rounded-sm flex items-center gap-2 disabled:opacity-50 min-w-[100px] justify-center"
                                             >
-                                                <Mail className="w-3 h-3" /> Email
+                                                {isSendingEmail ? (
+                                                    <Loader2 className="w-3 h-3 animate-spin text-brand-sand" />
+                                                ) : (
+                                                    <Mail className="w-3 h-3" />
+                                                )}
+                                                {isSendingEmail ? 'Enviando...' : 'Email'}
                                             </button>
                                         </div>
                                     </div>
