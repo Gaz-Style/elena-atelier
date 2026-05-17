@@ -11,7 +11,8 @@ import {
     Scissors,
     ArrowRight,
     ShieldCheck,
-    Package
+    Package,
+    Receipt
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 
@@ -65,6 +66,20 @@ export default function AdminDashboard() {
             href: '/admin/production',
             icon: Scissors,
             color: 'bg-brand-sand/50 text-brand-charcoal'
+        },
+        {
+            title: 'Inventario de Telas',
+            desc: 'Control de metros, tipos de tela y suministros críticos.',
+            href: '/admin/inventory',
+            icon: Package,
+            color: 'bg-gray-200 text-brand-charcoal'
+        },
+        {
+            title: 'Contabilidad ERP',
+            desc: 'Libro mayor, asientos contables y centros de costo bajo norma.',
+            href: '/admin/accounting',
+            icon: Receipt,
+            color: 'bg-emerald-100 text-emerald-700'
         },
     ];
 
