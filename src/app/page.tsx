@@ -142,16 +142,42 @@ export default function Home() {
             <h2 className="font-serif text-4xl md:text-5xl leading-tight text-white">Portafolio <br className="hidden md:block" /><span className="italic text-brand-sand">Destacado</span></h2>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            {['PHOTO-2026-02-25-13-20-08.jpg', 'PHOTO-2026-02-25-13-20-09.jpg', 'PHOTO-2026-02-25-13-20-10.jpg', 'PHOTO-2026-02-25-13-20-11.jpg'].map((img, idx) => (
-              <div key={idx} className="aspect-[3/4] relative group rounded-sm overflow-hidden bg-brand-sand shadow-sm hover:shadow-xl transition-all duration-500">
-                <img 
-                  src={`/trabajos/${img}`} 
-                  alt={`Trabajo Destacado ${idx + 1}`} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-              </div>
-            ))}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 items-center">
+            {/* Imagen 1 - Alta y Estilizada */}
+            <div className="aspect-[3/5] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500 md:translate-y-[-10px]">
+              <img 
+                src="/trabajos/PHOTO-2026-02-25-13-20-08.jpg" 
+                alt="Trabajo Destacado 1" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+            </div>
+            
+            {/* Imagen 2 - Horizontal / Apaisada, Desplazada hacia abajo */}
+            <div className="aspect-[4/3] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500 md:translate-y-[20px]">
+              <img 
+                src="/trabajos/PHOTO-2026-02-25-13-20-09.jpg" 
+                alt="Trabajo Destacado 2" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+            </div>
+
+            {/* Imagen 3 - Cuadrada, Elevada */}
+            <div className="aspect-[1/1] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500 md:translate-y-[-20px]">
+              <img 
+                src="/trabajos/PHOTO-2026-02-25-13-20-10.jpg" 
+                alt="Trabajo Destacado 3" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+            </div>
+
+            {/* Imagen 4 - Apaisada Panorámica, Desplazada hacia abajo */}
+            <div className="aspect-[16/10] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500 md:translate-y-[40px]">
+              <img 
+                src="/trabajos/PHOTO-2026-02-25-13-20-11.jpg" 
+                alt="Trabajo Destacado 4" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+            </div>
           </div>
           
           <div className="mt-16 flex justify-center">
