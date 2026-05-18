@@ -41,11 +41,11 @@ export default function AccountingDashboard() {
                         <p className="text-gray-500 mt-2 italic text-sm">Escalabilidad, Inmutabilidad y Partida Doble.</p>
                     </div>
                     
-                    <div className="flex gap-4">
-                        <Link href="/admin/accounting/ledger" className="bg-brand-charcoal text-white px-6 py-3 rounded-sm text-xs uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                        <Link href="/admin/accounting/ledger" className="bg-brand-charcoal text-white px-6 py-3 rounded-sm text-xs uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all flex items-center justify-center gap-2 w-full sm:w-auto text-center">
                             <BookOpen className="w-4 h-4" /> Libro Mayor
                         </Link>
-                        <Link href="/admin/accounting/results" className="bg-white border border-gray-200 text-brand-charcoal px-6 py-3 rounded-sm text-xs uppercase tracking-widest font-bold hover:bg-gray-50 transition-all flex items-center gap-2">
+                        <Link href="/admin/accounting/results" className="bg-white border border-gray-200 text-brand-charcoal px-6 py-3 rounded-sm text-xs uppercase tracking-widest font-bold hover:bg-gray-50 transition-all flex items-center justify-center gap-2 w-full sm:w-auto text-center">
                             <PieChart className="w-4 h-4" /> Estado de Resultados
                         </Link>
                     </div>
@@ -78,16 +78,16 @@ export default function AccountingDashboard() {
                     {/* Chart of Accounts List */}
                     <div className="w-full lg:w-3/4 space-y-6">
                         <div className="bg-white rounded-sm border border-gray-100 shadow-sm overflow-hidden">
-                            <div className="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                             <div className="p-6 border-b border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
                                 <h2 className="font-serif text-xl">Plan de Cuentas (Chart of Accounts)</h2>
-                                <div className="relative">
+                                <div className="relative w-full sm:w-auto">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                     <input 
                                         type="text" 
                                         placeholder="Buscar código o nombre..." 
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta text-sm w-64"
+                                        className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta text-sm w-full sm:w-64"
                                     />
                                 </div>
                             </div>
@@ -101,8 +101,8 @@ export default function AccountingDashboard() {
                                     filteredAccounts.map((acc) => (
                                         <div 
                                             key={acc.id} 
-                                            className={`p-4 flex items-center justify-between hover:bg-gray-50 transition-colors group ${acc.level === 1 ? 'bg-gray-50/50' : ''}`}
-                                            style={{ paddingLeft: `${acc.level * 1.5}rem` }}
+                                            className={`p-4 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50 transition-colors group gap-3 ${acc.level === 1 ? 'bg-gray-50/50' : ''}`}
+                                            style={{ paddingLeft: `calc(${acc.level} * 0.5rem + 1rem)` }}
                                         >
                                             <div className="flex items-center gap-4">
                                                 <span className={`text-[10px] font-mono px-2 py-1 rounded-sm ${acc.level === 1 ? 'bg-brand-charcoal text-white' : 'bg-gray-100 text-gray-500'}`}>
@@ -112,12 +112,14 @@ export default function AccountingDashboard() {
                                                     {acc.name}
                                                 </span>
                                             </div>
-                                            <div className="flex items-center gap-4">
+                                            <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto mt-1 sm:mt-0">
                                                 <span className="text-[9px] uppercase tracking-widest text-gray-400 font-bold">{acc.account_type}</span>
-                                                {acc.is_selectable && (
-                                                    <span className="text-[9px] uppercase font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-sm">Operativa</span>
-                                                )}
-                                                <ChevronRight className="w-4 h-4 text-gray-200 group-hover:text-brand-terracotta transition-colors" />
+                                                <div className="flex items-center gap-2">
+                                                    {acc.is_selectable && (
+                                                        <span className="text-[9px] uppercase font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-sm">Operativa</span>
+                                                    )}
+                                                    <ChevronRight className="w-4 h-4 text-gray-200 group-hover:text-brand-terracotta transition-colors" />
+                                                </div>
                                             </div>
                                         </div>
                                     ))
