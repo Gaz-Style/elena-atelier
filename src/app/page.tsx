@@ -111,11 +111,11 @@ export default function Home() {
                 className="group relative flex-1 min-h-[350px] md:min-h-[260px] overflow-hidden rounded-sm flex flex-col justify-end p-8 shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700"
               >
                 <img 
-                  src="/trabajos/PHOTO-2026-02-25-13-20-14.jpg" 
+                  src="/Desarrollo de marca.png" 
                   alt="Desarrollo para Marcas" 
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]" 
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] brightness-95 contrast-[1.02] saturate-[0.85] group-hover:saturate-[0.95]" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-95 group-hover:opacity-90 transition-opacity duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-80 group-hover:opacity-70 transition-opacity duration-700" />
                 
                 <div className="relative z-10 flex flex-col items-start w-full space-y-3">
                   <h3 className="font-serif text-2xl text-white leading-tight">Desarrollo para Marcas</h3>
