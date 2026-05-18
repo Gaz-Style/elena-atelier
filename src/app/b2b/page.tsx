@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Scissors, Users, GraduationCap, Coffee, Sparkles, ArrowRight } from 'lucide-react';
+import { Scissors, Users, GraduationCap, Coffee, Sparkles, ArrowRight, ArrowLeft } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 
@@ -11,6 +11,16 @@ export default function CollaborationsPage() {
             <Navbar />
 
             <main className="max-w-7xl mx-auto px-6 pt-32 pb-24 space-y-24">
+                {/* Back Link */}
+                <div className="-mb-16">
+                    <Link 
+                        href="/" 
+                        className="inline-flex items-center gap-2 text-[#f5f2eb]/50 hover:text-[#f5f2eb] transition-colors font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] font-medium"
+                    >
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                        Volver al Inicio
+                    </Link>
+                </div>
                 
                 {/* Header Section */}
                 <header className="flex flex-col md:flex-row gap-12 items-center">
