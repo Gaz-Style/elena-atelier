@@ -61,7 +61,7 @@ export default function PublicRegistrationPage() {
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1558603668-6570496b66f8?q=80&w=2000')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
 
             {/* Back Link */}
-            <div className="absolute top-[6.5rem] left-6 md:left-12 z-30">
+            <div className="absolute top-5 left-6 md:left-12 z-30">
                 <Link 
                     href="/" 
                     className="inline-flex items-center gap-2 text-[#f5f2eb]/50 hover:text-[#f5f2eb] transition-colors font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] font-medium"
