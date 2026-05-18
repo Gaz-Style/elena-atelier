@@ -91,7 +91,7 @@ export default function Home() {
                   alt="Del Boceto a la Prenda" 
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] brightness-95 contrast-[1.02] saturate-[0.85] group-hover:saturate-[0.95]" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-95 group-hover:opacity-90 transition-opacity duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-80 group-hover:opacity-70 transition-opacity duration-700" />
                 
                 <div className="relative z-10 flex flex-col items-start w-full space-y-3">
                   <span className="text-brand-sand font-mono text-xs tracking-widest font-bold">02</span>
