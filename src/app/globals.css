@@ -31,3 +31,52 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Global Glassmorphic Design System Buttons */
+.glass-btn {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 0.5px solid rgba(255, 255, 255, 0.26) !important;
+  border-top-color: rgba(255, 255, 255, 0.48) !important;
+  border-left-color: rgba(255, 255, 255, 0.48) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.15) !important;
+  border-right-color: rgba(255, 255, 255, 0.15) !important;
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+  border-radius: 1px !important;
+}
+
+.glass-btn:hover {
+  background-color: rgba(245, 242, 235, 0.92) !important;
+  border-color: #f5f2eb !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.35), 0 0 32px 0 rgba(245, 242, 235, 0.22) !important;
+}
+
+.glass-text {
+  font-family: var(--font-heading), serif !important;
+  color: #f5f2eb !important;
+  font-size: 0.68rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.32em !important;
+  text-shadow: 0 1px 2.5px rgba(0, 0, 0, 0.9) !important;
+  text-transform: uppercase !important;
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.glass-btn:hover .glass-text {
+  text-shadow: none !important;
+  color: #121212 !important;
+  letter-spacing: 0.32em !important;
+}
+
+.glass-arrow {
+  stroke: #f5f2eb !important;
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.glass-btn:hover .glass-arrow {
+  stroke: #121212 !important;
+  transform: translateX(4px) !important;
+}
