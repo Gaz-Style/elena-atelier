@@ -25,7 +25,7 @@ export default function SastreriaPage() {
             <Navbar />
 
             {/* Back Link */}
-            <div className="absolute top-[6.5rem] left-6 md:left-12 z-30">
+            <div className="absolute top-5 left-6 md:left-12 z-30">
                 <Link 
                     href="/" 
                     className="inline-flex items-center gap-2 text-[#f5f2eb]/50 hover:text-[#f5f2eb] transition-colors font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] font-medium"
