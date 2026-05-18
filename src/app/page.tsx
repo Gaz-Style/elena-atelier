@@ -68,7 +68,7 @@ export default function Home() {
               <div className="relative z-10 flex flex-col items-start w-full space-y-4">
                 <h3 className="font-serif text-3xl md:text-4xl text-white leading-tight">Alta Costura Personal</h3>
                 <p className="text-white/70 text-sm max-w-lg leading-relaxed">
-                  Piezas creadas para mujeres que buscan presencia, sofisticación y una experiencia profundamente personalizada en cada detalle.
+                  Piezas exclusivas creadas bajo una experiencia íntima y profundamente personalizada.
                 </p>
                 <div className="pt-2 w-full sm:w-auto">
                   <span className="inline-flex border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[10px] uppercase tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] px-8 py-4 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-[#f5f2eb]/90 group-hover:text-[#121212] group-hover:border-[#f5f2eb] group-hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] rounded-[1px] w-full sm:w-auto text-center justify-center items-center whitespace-nowrap">
@@ -95,7 +95,7 @@ export default function Home() {
                 <div className="relative z-10 flex flex-col items-start w-full space-y-3">
                   <h3 className="font-serif text-2xl text-white leading-tight">Del Boceto a la Prenda</h3>
                   <p className="text-white/60 text-xs max-w-md leading-relaxed">
-                    Acompañamiento técnico y desarrollo de piezas para estudiantes y procesos creativos que necesitan transformar ideas en construcción real.
+                    Acompañamiento técnico y desarrollo para transformar ideas creativas en construcción textil real.
                   </p>
                   <div className="pt-2 w-full sm:w-auto">
                     <span className="inline-flex border border-white/10 border-t-white/20 border-l-white/20 border-b-white/5 border-r-white/5 text-white font-sans text-[9px] uppercase tracking-[0.25em] font-semibold bg-white/[0.04] backdrop-blur-[5px] px-6 py-3.5 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-[#f5f2eb]/90 group-hover:text-[#121212] group-hover:border-[#f5f2eb] rounded-[1px] w-full sm:w-auto text-center justify-center items-center whitespace-nowrap">
@@ -120,7 +120,7 @@ export default function Home() {
                 <div className="relative z-10 flex flex-col items-start w-full space-y-3">
                   <h3 className="font-serif text-2xl text-white leading-tight">Desarrollo para Marcas</h3>
                   <p className="text-white/60 text-xs max-w-md leading-relaxed">
-                    Desarrollo técnico, prototipado y confección para marcas independientes que buscan calidad, precisión y continuidad en cada colección.
+                    Desarrollo técnico, prototipado y confección de alta calidad para firmas y marcas independientes.
                   </p>
                   <div className="pt-2 w-full sm:w-auto">
                     <span className="inline-flex border border-white/10 border-t-white/20 border-l-white/20 border-b-white/5 border-r-white/5 text-white font-sans text-[9px] uppercase tracking-[0.25em] font-semibold bg-white/[0.04] backdrop-blur-[5px] px-6 py-3.5 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-[#f5f2eb]/90 group-hover:text-[#121212] group-hover:border-[#f5f2eb] rounded-[1px] w-full sm:w-auto text-center justify-center items-center whitespace-nowrap">
