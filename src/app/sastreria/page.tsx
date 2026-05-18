@@ -7,7 +7,7 @@ import Link from 'next/link';
 
 export default function SastreriaPage() {
     return (
-        <div className="min-h-screen bg-transparent font-sans">
+        <div className="min-h-screen bg-transparent font-sans relative">
             {/* Fixed Parallax Background Video */}
             <div className="fixed inset-0 -z-10 bg-brand-charcoal">
                 <video
@@ -24,18 +24,18 @@ export default function SastreriaPage() {
 
             <Navbar />
 
-            <main className="max-w-7xl mx-auto px-6 pt-32 pb-24 space-y-24">
-                {/* Back Link */}
-                <div className="-mb-16">
-                    <Link 
-                        href="/" 
-                        className="inline-flex items-center gap-2 text-[#f5f2eb]/50 hover:text-[#f5f2eb] transition-colors font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] font-medium"
-                    >
-                        <ArrowLeft className="w-3.5 h-3.5" />
-                        Volver al Inicio
-                    </Link>
-                </div>
+            {/* Back Link */}
+            <div className="absolute top-[6.5rem] left-6 md:left-12 z-30">
+                <Link 
+                    href="/" 
+                    className="inline-flex items-center gap-2 text-[#f5f2eb]/50 hover:text-[#f5f2eb] transition-colors font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] font-medium"
+                >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    Volver al Inicio
+                </Link>
+            </div>
 
+            <main className="max-w-7xl mx-auto px-6 pt-32 pb-24 space-y-24">
                 {/* Hero Section */}
                 <section className="relative h-[50vh] md:h-[60vh] flex flex-col justify-center items-center text-center">
                     <div className="space-y-8 max-w-3xl mx-auto">
