@@ -137,19 +137,9 @@ export default function Home() {
       {/* Portfolio Preview Section */}
       <section className="py-16 md:py-32 bg-transparent px-6 relative z-10 border-t border-white/10">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 md:mb-12 gap-4 md:gap-6">
-            <div className="text-center md:text-left">
-              <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-sand block mb-3 md:mb-4">Archivo Elena</span>
-              <h2 className="font-serif text-4xl md:text-5xl leading-tight text-white">Portafolio <br className="hidden md:block" /><span className="italic text-brand-sand">Destacado</span></h2>
-            </div>
-            <div className="flex justify-center md:justify-end">
-              <Link
-                href="/portafolio"
-                className="inline-block border-b border-white/50 pb-1 text-sm uppercase tracking-widest font-bold hover:text-brand-sand hover:border-brand-sand transition-all duration-300 text-white"
-              >
-                Ver Galería Completa
-              </Link>
-            </div>
+          <div className="text-center md:text-left mb-10 md:mb-12">
+            <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-sand block mb-3 md:mb-4">Archivo Elena</span>
+            <h2 className="font-serif text-4xl md:text-5xl leading-tight text-white">Portafolio <br className="hidden md:block" /><span className="italic text-brand-sand">Destacado</span></h2>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
@@ -166,11 +156,11 @@ export default function Home() {
           
           <div className="mt-16 flex justify-center">
              <Link
-                href="/appointment"
+                href="/portafolio"
                 className="glass-btn group relative inline-flex items-center justify-center gap-3 px-6 py-3.5 md:px-12 md:py-5 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] max-w-full"
               >
                 <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-white group-hover:text-[#121212] transition-colors duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] text-center">
-                  ¿Hacemos algo juntas? Escríbeme
+                  Entrar al Archivo
                   <svg 
                     className="w-3.5 h-3.5 stroke-white group-hover:stroke-[#121212] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] transform group-hover:translate-x-1 flex-shrink-0" 
                     fill="none" 
