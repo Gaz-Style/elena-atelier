@@ -66,7 +66,6 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-95 group-hover:opacity-90 transition-opacity duration-700" />
               
               <div className="relative z-10 flex flex-col items-start w-full space-y-4">
-                <span className="text-brand-sand font-mono text-xs tracking-widest font-bold">01</span>
                 <h3 className="font-serif text-3xl md:text-4xl text-white leading-tight">Alta Costura Personal</h3>
                 <p className="text-white/70 text-sm max-w-lg leading-relaxed">
                   Piezas creadas para mujeres que buscan presencia, sofisticación y una experiencia profundamente personalizada en cada detalle.
@@ -94,7 +93,6 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-80 group-hover:opacity-70 transition-opacity duration-700" />
                 
                 <div className="relative z-10 flex flex-col items-start w-full space-y-3">
-                  <span className="text-brand-sand font-mono text-xs tracking-widest font-bold">02</span>
                   <h3 className="font-serif text-2xl text-white leading-tight">Del Boceto a la Prenda</h3>
                   <p className="text-white/60 text-xs max-w-md leading-relaxed">
                     Acompañamiento técnico y desarrollo de piezas para estudiantes y procesos creativos que necesitan transformar ideas en construcción real.
@@ -120,7 +118,6 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-95 group-hover:opacity-90 transition-opacity duration-700" />
                 
                 <div className="relative z-10 flex flex-col items-start w-full space-y-3">
-                  <span className="text-brand-sand font-mono text-xs tracking-widest font-bold">03</span>
                   <h3 className="font-serif text-2xl text-white leading-tight">Desarrollo para Marcas</h3>
                   <p className="text-white/60 text-xs max-w-md leading-relaxed">
                     Desarrollo técnico, prototipado y confección para marcas independientes que buscan calidad, precisión y continuidad en cada colección.
