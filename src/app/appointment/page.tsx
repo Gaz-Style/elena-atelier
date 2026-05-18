@@ -1,7 +1,6 @@
 import BookingForm from "@/components/BookingForm";
 import Navbar from "@/components/Navbar";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import BackLink from "@/components/BackLink";
 
 export default function AppointmentPage() {
     return (
@@ -9,15 +8,7 @@ export default function AppointmentPage() {
             <Navbar />
 
             {/* Back Link */}
-            <div className="absolute top-5 left-6 md:left-12 z-30">
-                <Link 
-                    href="/" 
-                    className="inline-flex items-center gap-2 text-[#f5f2eb]/50 hover:text-[#f5f2eb] transition-colors font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] font-medium"
-                >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    Volver al Inicio
-                </Link>
-            </div>
+            <BackLink />
             
             <div className="max-w-7xl mx-auto px-6 pt-32 pb-24">
                 <div className="grid md:grid-cols-2 gap-16 md:gap-24 items-start">

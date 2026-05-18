@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2, Loader2, Mail, User, Phone, Sparkles, Heart, ArrowLeft } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Loader2, Mail, User, Phone, Sparkles, Heart } from 'lucide-react';
 import { createCustomer } from '../admin/crm/actions';
+import BackLink from '@/components/BackLink';
 
 export default function PublicRegistrationPage() {
     const [isSaving, setIsSaving] = useState(false);
@@ -61,15 +62,7 @@ export default function PublicRegistrationPage() {
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1558603668-6570496b66f8?q=80&w=2000')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
 
             {/* Back Link */}
-            <div className="absolute top-5 left-6 md:left-12 z-30">
-                <Link 
-                    href="/" 
-                    className="inline-flex items-center gap-2 text-[#f5f2eb]/50 hover:text-[#f5f2eb] transition-colors font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] font-medium"
-                >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    Volver al Inicio
-                </Link>
-            </div>
+            <BackLink />
 
             <div className="max-w-5xl w-full mx-auto px-6 py-20 relative z-10">
                 <div className="flex flex-col lg:flex-row gap-16 items-center">
