@@ -118,9 +118,9 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-80 group-hover:opacity-70 transition-opacity duration-700" />
                 
                 <div className="relative z-10 flex flex-col items-start w-full space-y-3">
-                  <h3 className="font-serif text-2xl text-white leading-tight">Desarrollo para Marcas</h3>
+                  <h3 className="font-serif text-2xl text-white leading-tight">Producción Boutique</h3>
                   <p className="text-white/60 text-xs max-w-md leading-relaxed">
-                    Desarrollo boutique para marcas que entienden el valor de los detalles.
+                    Desarrollo y confección para marcas que valoran precisión, continuidad y detalle.
                   </p>
                   <div className="pt-2 w-full sm:w-auto">
                     <span className="inline-flex border border-white/10 border-t-white/20 border-l-white/20 border-b-white/5 border-r-white/5 text-white font-sans text-[9px] uppercase tracking-[0.25em] font-semibold bg-white/[0.04] backdrop-blur-[5px] px-6 py-3.5 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-[#f5f2eb]/90 group-hover:text-[#121212] group-hover:border-[#f5f2eb] rounded-[1px] w-full sm:w-auto text-center justify-center items-center whitespace-nowrap">
