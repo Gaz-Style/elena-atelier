@@ -2,13 +2,24 @@
 
 import React from 'react';
 import Navbar from '@/components/Navbar';
-import { ShieldCheck, Sparkles, Ruler, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Sparkles, Ruler, ArrowRight, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function RestauracionPage() {
     return (
         <div className="relative min-h-screen font-sans bg-brand-charcoal text-white">
             <Navbar />
+
+            {/* Back Link */}
+            <div className="absolute top-28 left-6 md:left-12 z-20">
+                <Link 
+                    href="/" 
+                    className="inline-flex items-center gap-2 text-[#f5f2eb]/50 hover:text-[#f5f2eb] transition-colors font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] font-medium"
+                >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    Volver al Inicio
+                </Link>
+            </div>
 
             {/* ── Hero Section: Video con overlay premium ── */}
             <section className="relative min-h-screen flex items-center justify-center text-center px-6 pt-20 overflow-hidden">

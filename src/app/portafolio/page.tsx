@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import Image from 'next/image';
 import Navbar from '@/components/Navbar';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 export const metadata = {
   title: 'Portafolio | Elena La Costurera',
@@ -24,6 +26,17 @@ export default function PortfolioPage() {
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-6 pt-32 pb-24">
+        {/* Back Link */}
+        <div className="mb-10 md:mb-12">
+          <Link 
+            href="/" 
+            className="inline-flex items-center gap-2 text-[#f5f2eb]/50 hover:text-[#f5f2eb] transition-colors font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] font-medium"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Volver al Inicio
+          </Link>
+        </div>
+
         <div className="text-center mb-16 md:mb-24">
           <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-4">Archivo Elena</span>
           <h1 className="font-serif text-5xl md:text-7xl font-bold uppercase tracking-tight text-white mb-6">Portafolio</h1>
