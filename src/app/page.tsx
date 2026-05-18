@@ -27,13 +27,13 @@ export default function Home() {
             </div>
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
               <span className="text-[10px] uppercase tracking-[0.45em] font-medium text-brand-sand block">Elena Rojas Bustamante</span>
-              <h2 className="font-serif text-4xl md:text-5xl leading-tight mb-6 md:mb-8">Del living de casa a <br className="hidden md:block"/><span className="italic text-brand-sand">las pasarelas de París</span></h2>
+              <h2 className="font-serif text-4xl md:text-5xl leading-tight mb-6 md:mb-8">El oficio detrás <br className="hidden md:block"/><span className="italic text-brand-sand">de ELENA</span></h2>
               <div className="space-y-4 text-white/80 text-sm md:text-base leading-relaxed max-w-2xl mx-auto lg:mx-0">
                   <p>
-                    Mi historia es la evolución del oficio textil real. Empecé en el living de mi casa, dominando las bases de la costura técnica a fuerza de constancia. Esa precisión manual y la transparencia de mi trabajo rompieron fronteras, llevándome a colaborar desde Chile con la marca de vanguardia SEVALI en Francia y en proyectos con Levi's, además de recibir invitaciones a los Fashion Weeks de Nueva York y París.
+                    Empecé en el living de mi casa, entre arreglos, pruebas y horas aprendiendo a escuchar lo que cada prenda necesitaba. Con el tiempo, esa dedicación y la precisión de mi trabajo me llevaron a colaborar desde Chile en proyectos vinculados a pasarela, vestuario y diseño contemporáneo, participando en experiencias que expandieron mi manera de entender el oficio textil.
                   </p>
                   <p>
-                    Hoy, el epicentro de esa maestría está en Vitacura. En nuestro Hub de Diseño sigo trabajando con la misma rigurosidad técnica y el corazón de siempre, recibiendo a cada cliente con un café y la dedicación exclusiva que define a nuestra comunidad.
+                    Hoy, desde mi atelier en Vitacura, sigo trabajando con la misma cercanía y dedicación de siempre. Cada ajuste, restauración o pieza a medida nace desde la idea de que la costura no solo transforma prendas, sino también la forma en que una persona se siente al habitarlas.
                   </p>
               </div>
             </div>
