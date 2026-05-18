@@ -37,8 +37,8 @@ export default function SastreriaPage() {
                             Tu historia,<br />
                             <span className="italic text-brand-sand">hecha a mano</span>
                         </h1>
-                        <p className="text-white/90 text-base md:text-xl leading-relaxed max-w-2xl mx-auto">
-                            Diseño y confecciono prendas desde cero. En mi taller, la creación de una pieza a medida nace de una conversación honesta para entender tu cuerpo, tu estilo y lo que quieres expresar.
+                        <p className="text-white/90 text-base md:text-xl leading-relaxed max-w-2xl mx-auto font-light">
+                            Cada pieza nace desde una conversación honesta entre tu cuerpo, tu estilo y lo que quieres expresar.
                         </p>
                         <div className="pt-4 flex justify-center">
                             <Link 
