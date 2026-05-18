@@ -341,7 +341,7 @@ export default function FinanceDashboard() {
                                                 className="px-4 py-2 border border-dashed border-gray-200 text-gray-400 hover:text-brand-terracotta hover:border-brand-terracotta transition-all text-[9px] uppercase tracking-widest font-bold rounded-sm bg-white flex items-center gap-1.5"
                                             >
                                                 <Plus className="w-3.5 h-3.5" /> Agregar Insumo a la Lista
-                                            </button>
+                            </button>
                                         </div>
                                     )}
                                 </div>
@@ -356,6 +356,7 @@ export default function FinanceDashboard() {
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-charcoal font-bold">$</span>
                                         {loadToInventory ? (
                                             <input 
+                                                key="controlled-amount"
                                                 name="total_amount" 
                                                 required 
                                                 type="number" 
@@ -365,6 +366,7 @@ export default function FinanceDashboard() {
                                             />
                                         ) : (
                                             <input 
+                                                key="uncontrolled-amount"
                                                 name="total_amount" 
                                                 required 
                                                 type="number" 
@@ -494,7 +496,7 @@ export default function FinanceDashboard() {
                                     <input 
                                         name="labor_hourly_rate" 
                                         type="number" 
-                                        value={currentHourlyRate} 
+                                        value={currentHourlyRate ?? 0} 
                                         onChange={(e) => setCurrentHourlyRate(Number(e.target.value))}
                                         className="w-full bg-brand-charcoal/5 p-4 text-xl font-serif outline-none focus:ring-1 focus:ring-brand-terracotta rounded-sm font-bold text-brand-charcoal" 
                                     />
@@ -504,7 +506,7 @@ export default function FinanceDashboard() {
                                     <input 
                                         name="default_margin_percentage" 
                                         type="number" 
-                                        value={settings.default_margin_percentage} 
+                                        value={settings.default_margin_percentage ?? 0} 
                                         onChange={(e) => setSettings({...settings, default_margin_percentage: Number(e.target.value)})}
                                         className="w-full bg-gray-50 p-4 text-xl font-serif outline-none focus:ring-1 focus:ring-brand-terracotta rounded-sm" 
                                     />
