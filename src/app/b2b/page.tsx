@@ -3,6 +3,7 @@
 import React from 'react';
 import { Scissors, Users, GraduationCap, Coffee, Sparkles, ArrowRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import Link from 'next/link';
 import BackLink from '@/components/BackLink';
 
 export default function CollaborationsPage() {

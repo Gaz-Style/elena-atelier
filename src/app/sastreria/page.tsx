@@ -3,6 +3,7 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import { Scissors, Coffee, MessageCircle, Heart, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import BackLink from '@/components/BackLink';
 
 export default function SastreriaPage() {
