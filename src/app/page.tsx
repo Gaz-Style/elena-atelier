@@ -40,43 +40,99 @@ export default function Home() {
           </div>
         </div>
       </section>
- 
+
       {/* Services Section (Visual Cards Funnel) */}
-      <section className="py-16 px-6 bg-transparent relative z-10">
+      <section className="py-16 md:py-28 px-6 bg-transparent relative z-10 border-t border-white/5">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-4 md:gap-6">
-            <Link href="/restauracion" className="group relative h-[380px] overflow-hidden rounded-sm flex flex-col justify-end p-6 shadow-sm hover:shadow-xl transition-shadow duration-500 border border-transparent hover:border-white/10">
-              <img src="/trabajos/PHOTO-2026-02-25-13-20-13.jpg" alt="Reparaciones" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent opacity-90" />
-              <div className="relative z-10 flex flex-col items-start w-full">
-                <span className="text-brand-sand font-sans text-[10px] tracking-[0.2em] uppercase font-bold mb-2">01</span>
-                <h3 className="font-serif text-2xl text-white mb-2">Ajustes y Restauración</h3>
-                <p className="text-white/80 text-sm mb-6 line-clamp-2">Le doy nueva vida y el calce perfecto a tus prendas favoritas.</p>
-                <span className="border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[10px] uppercase tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] px-6 py-3.5 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-[#f5f2eb]/90 group-hover:text-[#121212] group-hover:border-[#f5f2eb] group-hover:shadow-[0_0_15px_rgba(255,255,255,0.12)] rounded-[1px] w-full text-center whitespace-nowrap">Agendar Ajuste</span>
+          <div className="text-center mb-16 md:mb-24">
+            <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-4">Estructura Creativa</span>
+            <h2 className="font-serif text-4xl md:text-6xl text-white tracking-tight uppercase">
+              Tres formas <br className="md:hidden" />
+              <span className="italic text-brand-sand font-serif normal-case tracking-normal">de habitar ELENA</span>
+            </h2>
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-stretch">
+            {/* CARD A: Alta Costura Personal - DOMINANT, CINEMATIC */}
+            <Link 
+              href="/sastreria" 
+              className="group relative flex-[1.4] min-h-[500px] md:min-h-[560px] overflow-hidden rounded-sm flex flex-col justify-end p-8 md:p-12 shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700"
+            >
+              <img 
+                src="/trabajos/PHOTO-2026-02-25-13-20-09.jpg" 
+                alt="Alta Costura Personal" 
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]" 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-95 group-hover:opacity-90 transition-opacity duration-700" />
+              
+              <div className="relative z-10 flex flex-col items-start w-full space-y-4">
+                <span className="text-brand-sand font-mono text-xs tracking-widest font-bold">01</span>
+                <h3 className="font-serif text-3xl md:text-4xl text-white leading-tight">Alta Costura Personal</h3>
+                <p className="text-white/70 text-sm max-w-lg leading-relaxed">
+                  Piezas creadas para mujeres que buscan presencia, sofisticación y una experiencia profundamente personalizada en cada detalle.
+                </p>
+                <div className="pt-2 w-full sm:w-auto">
+                  <span className="inline-flex border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[10px] uppercase tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] px-8 py-4 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-[#f5f2eb]/90 group-hover:text-[#121212] group-hover:border-[#f5f2eb] group-hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] rounded-[1px] w-full sm:w-auto text-center justify-center items-center whitespace-nowrap">
+                    Reservar experiencia
+                  </span>
+                </div>
               </div>
             </Link>
- 
-            <Link href="/sastreria" className="group relative h-[380px] overflow-hidden rounded-sm flex flex-col justify-end p-6 shadow-sm hover:shadow-xl transition-shadow duration-500 border border-transparent hover:border-white/10">
-              <img src="/trabajos/PHOTO-2026-02-25-13-20-09.jpg" alt="Confección" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent opacity-90" />
-              <div className="relative z-10 flex flex-col items-start w-full">
-                <span className="text-brand-sand font-sans text-[10px] tracking-[0.2em] uppercase font-bold mb-2">02</span>
-                <h3 className="font-serif text-2xl text-white mb-2">Diseño a Medida</h3>
-                <p className="text-white/80 text-sm mb-6 line-clamp-2">Confección desde cero, pensada y estructurada para tu cuerpo.</p>
-                <span className="border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[10px] uppercase tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] px-6 py-3.5 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-[#f5f2eb]/90 group-hover:text-[#121212] group-hover:border-[#f5f2eb] group-hover:shadow-[0_0_15px_rgba(255,255,255,0.12)] rounded-[1px] w-full text-center whitespace-nowrap">Cotizar Confección</span>
-              </div>
-            </Link>
- 
-            <Link href="/b2b" className="group relative h-[380px] overflow-hidden rounded-sm flex flex-col justify-end p-6 shadow-sm hover:shadow-xl transition-shadow duration-500 border border-transparent hover:border-white/10">
-              <img src="/trabajos/PHOTO-2026-02-25-13-20-14.jpg" alt="Colaboraciones" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent opacity-90" />
-              <div className="relative z-10 flex flex-col items-start w-full">
-                <span className="text-brand-sand font-sans text-[10px] tracking-[0.2em] uppercase font-bold mb-2">03</span>
-                <h3 className="font-serif text-2xl text-white mb-2">Colaboraciones</h3>
-                <p className="text-white/80 text-sm mb-6 line-clamp-2">Colecciones cápsula, alianzas artísticas y mentoría en mi taller.</p>
-                <span className="border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[10px] uppercase tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] px-6 py-3.5 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-[#f5f2eb]/90 group-hover:text-[#121212] group-hover:border-[#f5f2eb] group-hover:shadow-[0_0_15px_rgba(255,255,255,0.12)] rounded-[1px] w-full text-center whitespace-nowrap">Ver Proyectos</span>
-              </div>
-            </Link>
+
+            {/* Dynamic Column for Card B & Card C */}
+            <div className="flex-[1] flex flex-col gap-8 md:gap-12">
+              {/* CARD B: Del Boceto a la Prenda - WORKSPACE, PROCESS */}
+              <Link 
+                href="/appointment" 
+                className="group relative flex-1 min-h-[350px] md:min-h-[260px] overflow-hidden rounded-sm flex flex-col justify-end p-8 shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700"
+              >
+                <img 
+                  src="/trabajos/PHOTO-2026-02-25-13-20-13.jpg" 
+                  alt="Del Boceto a la Prenda" 
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-95 group-hover:opacity-90 transition-opacity duration-700" />
+                
+                <div className="relative z-10 flex flex-col items-start w-full space-y-3">
+                  <span className="text-brand-sand font-mono text-xs tracking-widest font-bold">02</span>
+                  <h3 className="font-serif text-2xl text-white leading-tight">Del Boceto a la Prenda</h3>
+                  <p className="text-white/60 text-xs max-w-md leading-relaxed">
+                    Acompañamiento técnico y desarrollo de piezas para estudiantes y procesos creativos que necesitan transformar ideas en construcción real.
+                  </p>
+                  <div className="pt-2 w-full sm:w-auto">
+                    <span className="inline-flex border border-white/10 border-t-white/20 border-l-white/20 border-b-white/5 border-r-white/5 text-white font-sans text-[9px] uppercase tracking-[0.25em] font-semibold bg-white/[0.04] backdrop-blur-[5px] px-6 py-3.5 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-[#f5f2eb]/90 group-hover:text-[#121212] group-hover:border-[#f5f2eb] rounded-[1px] w-full sm:w-auto text-center justify-center items-center whitespace-nowrap">
+                      Entrar al taller
+                    </span>
+                  </div>
+                </div>
+              </Link>
+
+              {/* CARD C: Desarrollo para Marcas - CLEAN, STRUCTURED */}
+              <Link 
+                href="/b2b" 
+                className="group relative flex-1 min-h-[350px] md:min-h-[260px] overflow-hidden rounded-sm flex flex-col justify-end p-8 shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700"
+              >
+                <img 
+                  src="/trabajos/PHOTO-2026-02-25-13-20-14.jpg" 
+                  alt="Desarrollo para Marcas" 
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-95 group-hover:opacity-90 transition-opacity duration-700" />
+                
+                <div className="relative z-10 flex flex-col items-start w-full space-y-3">
+                  <span className="text-brand-sand font-mono text-xs tracking-widest font-bold">03</span>
+                  <h3 className="font-serif text-2xl text-white leading-tight">Desarrollo para Marcas</h3>
+                  <p className="text-white/60 text-xs max-w-md leading-relaxed">
+                    Desarrollo técnico, prototipado y confección para marcas independientes que buscan calidad, precisión y continuidad en cada colección.
+                  </p>
+                  <div className="pt-2 w-full sm:w-auto">
+                    <span className="inline-flex border border-white/10 border-t-white/20 border-l-white/20 border-b-white/5 border-r-white/5 text-white font-sans text-[9px] uppercase tracking-[0.25em] font-semibold bg-white/[0.04] backdrop-blur-[5px] px-6 py-3.5 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-[#f5f2eb]/90 group-hover:text-[#121212] group-hover:border-[#f5f2eb] rounded-[1px] w-full sm:w-auto text-center justify-center items-center whitespace-nowrap">
+                      Trabajar con ELENA
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
