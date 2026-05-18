@@ -13,7 +13,7 @@ export default async function AdminLayout({
   const { data: { user } } = await supabase.auth.getUser();
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen w-full max-w-full overflow-x-hidden relative">
       {/* Admin Topbar */}
       <header className="bg-transparent h-16 flex items-center justify-between px-6 md:px-8 absolute top-0 w-full z-50 pointer-events-none">
         <Link href="/admin" className="flex flex-col items-stretch justify-center w-max pointer-events-auto">
@@ -38,7 +38,7 @@ export default async function AdminLayout({
         )}
       </header>
       
-      <div className="flex-grow">
+      <div className="flex-grow w-full max-w-full overflow-x-hidden">
         {children}
       </div>
     </div>
