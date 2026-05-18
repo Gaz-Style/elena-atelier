@@ -2,8 +2,8 @@
 
 import React from 'react';
 import Navbar from '@/components/Navbar';
-import { Scissors, Coffee, MessageCircle, Heart, ArrowRight, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { Scissors, Coffee, MessageCircle, Heart, ArrowRight } from 'lucide-react';
+import BackLink from '@/components/BackLink';
 
 export default function SastreriaPage() {
     return (
@@ -25,15 +25,7 @@ export default function SastreriaPage() {
             <Navbar />
 
             {/* Back Link */}
-            <div className="absolute top-5 left-6 md:left-12 z-30">
-                <Link 
-                    href="/" 
-                    className="inline-flex items-center gap-2 text-[#f5f2eb]/50 hover:text-[#f5f2eb] transition-colors font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] font-medium"
-                >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    Volver al Inicio
-                </Link>
-            </div>
+            <BackLink />
 
             <main className="max-w-7xl mx-auto px-6 pt-32 pb-24 space-y-24">
                 {/* Hero Section */}
