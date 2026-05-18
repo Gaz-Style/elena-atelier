@@ -210,7 +210,7 @@ export default function Home() {
       {/* Community Registration Section */}
       <section className="py-24 bg-brand-charcoal px-6 relative z-10 border-t border-white/10">
         <div className="max-w-4xl mx-auto text-center space-y-8">
-            <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-sand">Exclusividad Atelier</span>
+            <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-sand block mb-4 md:mb-6">Exclusividad Atelier</span>
             <h2 className="font-serif text-4xl md:text-6xl text-white">Únete a nuestra <br/><span className="italic text-brand-sand">comunidad privada</span></h2>
             <p className="text-white/60 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
                 Accede a pruebas privadas, beneficios exclusivos y una experiencia más cercana dentro del atelier.
