@@ -58,8 +58,8 @@ export default function WhatsAppButton() {
                 background: 'radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 30%, rgba(26, 26, 26, 0.6) 70%, rgba(10, 10, 10, 0.9) 100%)',
                 backdropFilter: 'blur(12px)',
                 WebkitBackdropFilter: 'blur(12px)',
-                boxShadow: 'inset 0px -4px 10px rgba(0, 0, 0, 0.5), inset 0px 3px 8px rgba(255, 255, 255, 0.15), 0px 12px 32px rgba(0, 0, 0, 0.45)',
-                border: '0.5px solid rgba(255, 255, 255, 0.15)'
+                boxShadow: 'inset 0px -4px 10px rgba(0, 0, 0, 0.5), inset 0px 3px 8px rgba(255, 255, 255, 0.08), 0px 12px 32px rgba(0, 0, 0, 0.45)',
+                border: '0.5px solid rgba(255, 255, 255, 0.06)'
             }}
             aria-label="Contactar por WhatsApp"
         >
