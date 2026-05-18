@@ -95,7 +95,7 @@ export default function Home() {
                 <div className="relative z-10 flex flex-col items-start w-full space-y-3">
                   <h3 className="font-serif text-2xl text-white leading-tight">Del Boceto a la Prenda</h3>
                   <p className="text-white/60 text-xs max-w-md leading-relaxed">
-                    Acompañamiento técnico y desarrollo para transformar ideas creativas en construcción textil real.
+                    Acompañamiento técnico y desarrollo para transformar ideas creativas en realidad.
                   </p>
                   <div className="pt-2 w-full sm:w-auto">
                     <span className="inline-flex border border-white/10 border-t-white/20 border-l-white/20 border-b-white/5 border-r-white/5 text-white font-sans text-[9px] uppercase tracking-[0.25em] font-semibold bg-white/[0.04] backdrop-blur-[5px] px-6 py-3.5 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-[#f5f2eb]/90 group-hover:text-[#121212] group-hover:border-[#f5f2eb] rounded-[1px] w-full sm:w-auto text-center justify-center items-center whitespace-nowrap">
