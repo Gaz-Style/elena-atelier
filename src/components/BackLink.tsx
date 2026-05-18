@@ -38,7 +38,7 @@ export default function BackLink() {
                     : { opacity: 1, x: 0, scale: 1 }
             }
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className={`fixed top-[5.25rem] left-6 md:left-12 z-40 ${isScrolling ? 'pointer-events-none' : ''}`}
+            className={`fixed top-[6.5rem] left-6 md:left-12 z-40 ${isScrolling ? 'pointer-events-none' : ''}`}
         >
             <Link 
                 href="/" 
