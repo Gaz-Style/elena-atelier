@@ -24,8 +24,9 @@ const getGarmentData = (id: string) => {
     return dummyData[id] || null;
 };
 
-export default function PassportPage({ params }: { params: { id: string } }) {
-    const data = getGarmentData(params.id);
+export default async function PassportPage({ params }: { params: Promise<{ id: string }> }) {
+    const resolvedParams = await params;
+    const data = getGarmentData(resolvedParams.id);
 
     if (!data) {
         notFound();

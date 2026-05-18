@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Navbar from '@/components/Navbar';
-import { Scissors, Coffee, MessageCircle, Heart } from 'lucide-react';
+import { Scissors, Coffee, MessageCircle, Heart, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SastreriaPage() {
@@ -28,17 +28,23 @@ export default function SastreriaPage() {
                 {/* Hero Section */}
                 <section className="relative h-[50vh] md:h-[60vh] flex flex-col justify-center items-center text-center">
                     <div className="space-y-8 max-w-3xl mx-auto">
-                        <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-terracotta block">Confección a Medida</span>
+                        <span className="text-[10px] uppercase tracking-[0.4em] font-semibold text-brand-sand block">Confección a Medida</span>
                         <h1 className="font-serif text-5xl md:text-7xl leading-tight text-white">
                             Tu historia,<br />
-                            <span className="italic text-brand-terracotta">hecha a mano</span>
+                            <span className="italic text-brand-sand">hecha a mano</span>
                         </h1>
                         <p className="text-white/90 text-base md:text-xl leading-relaxed max-w-2xl mx-auto">
                             Diseño y confecciono prendas desde cero. En mi taller, la creación de una pieza a medida nace de una conversación honesta para entender tu cuerpo, tu estilo y lo que quieres expresar.
                         </p>
                         <div className="pt-4 flex justify-center">
-                            <Link href="#contacto" className="border border-white/50 text-white px-10 py-5 text-xs uppercase tracking-widest font-bold hover:bg-brand-terracotta hover:border-brand-terracotta transition-all inline-block">
-                                Comenzar mi diseño
+                            <Link 
+                                href="#contacto" 
+                                className="glass-btn group relative inline-flex items-center justify-center gap-3 px-6 py-3.5 md:px-12 md:py-5 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] max-w-full"
+                            >
+                                <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-white group-hover:text-[#121212] transition-colors duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] text-center">
+                                    Comenzar mi diseño
+                                    <ArrowRight className="w-3.5 h-3.5 transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 flex-shrink-0" />
+                                </span>
                             </Link>
                         </div>
                     </div>
@@ -54,7 +60,7 @@ export default function SastreriaPage() {
                     <div className="grid md:grid-cols-3 gap-12">
                         <div className="text-center space-y-4">
                             <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <Coffee className="w-6 h-6 text-brand-terracotta" />
+                                <Coffee className="w-6 h-6 text-brand-sand" />
                             </div>
                             <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50 block">Paso 01</span>
                             <h3 className="font-serif text-2xl text-white">La Conversación</h3>
@@ -65,7 +71,7 @@ export default function SastreriaPage() {
                         
                         <div className="text-center space-y-4">
                             <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <Heart className="w-6 h-6 text-brand-terracotta" />
+                                <Heart className="w-6 h-6 text-brand-sand" />
                             </div>
                             <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50 block">Paso 02</span>
                             <h3 className="font-serif text-2xl text-white">Las Telas</h3>
@@ -76,7 +82,7 @@ export default function SastreriaPage() {
 
                         <div className="text-center space-y-4">
                             <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <Scissors className="w-6 h-6 text-brand-terracotta" />
+                                <Scissors className="w-6 h-6 text-brand-sand" />
                             </div>
                             <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50 block">Paso 03</span>
                             <h3 className="font-serif text-2xl text-white">El Calce</h3>
@@ -90,7 +96,7 @@ export default function SastreriaPage() {
                 {/* WhatsApp Contact Section */}
                 <section id="contacto" className="bg-transparent border-t border-white/10 text-white rounded-sm overflow-hidden flex flex-col md:flex-row">
                     <div className="flex-1 p-12 md:p-20 flex flex-col justify-center space-y-8">
-                        <h2 className="font-serif text-4xl md:text-5xl leading-tight">Tu prenda única<br className="hidden md:block"/><span className="italic text-brand-terracotta">comienza aquí</span></h2>
+                        <h2 className="font-serif text-4xl md:text-5xl leading-tight">Tu prenda única<br className="hidden md:block"/><span className="italic text-brand-sand">comienza aquí</span></h2>
                         <p className="text-white/80 leading-relaxed text-sm md:text-base max-w-md">
                             La confección a medida requiere tiempo y dedicación. Escríbeme directamente por WhatsApp para agendar tu primera visita al taller y empezar a darle forma a tu idea.
                         </p>
@@ -99,9 +105,11 @@ export default function SastreriaPage() {
                                 href="https://walink.co/5cm5kh"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center w-full md:w-auto gap-3 border border-white/50 text-white px-8 py-5 text-xs uppercase tracking-widest font-bold hover:bg-brand-terracotta hover:border-brand-terracotta transition-all"
+                                className="glass-btn group relative inline-flex items-center justify-center gap-3 px-6 py-3.5 md:px-12 md:py-5 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] w-full md:w-auto max-w-full"
                             >
-                                <MessageCircle className="w-5 h-5" /> Hablemos por WhatsApp
+                                <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-white group-hover:text-[#121212] transition-colors duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] text-center">
+                                    <MessageCircle className="w-4 h-4 flex-shrink-0" /> Hablemos por WhatsApp
+                                </span>
                             </Link>
                         </div>
                         <p className="text-[10px] text-white/50 uppercase tracking-widest mt-4 text-center md:text-left">Atención personal con Elena</p>
