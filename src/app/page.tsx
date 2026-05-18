@@ -142,9 +142,9 @@ export default function Home() {
             <h2 className="font-serif text-4xl md:text-5xl leading-tight text-white">Portafolio <br className="hidden md:block" /><span className="italic text-brand-sand">Destacado</span></h2>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 items-center">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-8 md:gap-y-16 items-center">
             {/* Imagen 1 - Alta y Estilizada */}
-            <div className="aspect-[3/5] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500 md:translate-y-[-10px]">
+            <div className="aspect-[3/5] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500 md:translate-y-[-15px]">
               <img 
                 src="/trabajos/PHOTO-2026-02-25-13-20-08.jpg" 
                 alt="Trabajo Destacado 1" 
@@ -152,8 +152,8 @@ export default function Home() {
               />
             </div>
             
-            {/* Imagen 2 - Horizontal / Apaisada, Desplazada hacia abajo */}
-            <div className="aspect-[4/3] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500 md:translate-y-[20px]">
+            {/* Imagen 2 - Horizontal */}
+            <div className="aspect-[4/3] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500 md:translate-y-[25px]">
               <img 
                 src="/trabajos/PHOTO-2026-02-25-13-20-09.jpg" 
                 alt="Trabajo Destacado 2" 
@@ -161,8 +161,8 @@ export default function Home() {
               />
             </div>
 
-            {/* Imagen 3 - Cuadrada, Elevada */}
-            <div className="aspect-[1/1] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500 md:translate-y-[-20px]">
+            {/* Imagen 3 - Cuadrada */}
+            <div className="aspect-[1/1] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500 md:translate-y-[-10px]">
               <img 
                 src="/trabajos/PHOTO-2026-02-25-13-20-10.jpg" 
                 alt="Trabajo Destacado 3" 
@@ -170,11 +170,29 @@ export default function Home() {
               />
             </div>
 
-            {/* Imagen 4 - Apaisada Panorámica, Desplazada hacia abajo */}
-            <div className="aspect-[16/10] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500 md:translate-y-[40px]">
+            {/* Imagen 4 - Apaisada Panorámica */}
+            <div className="aspect-[16/10] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500 md:translate-y-[35px]">
               <img 
                 src="/trabajos/PHOTO-2026-02-25-13-20-11.jpg" 
                 alt="Trabajo Destacado 4" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+            </div>
+
+            {/* Imagen 5 - Vertical Clásico */}
+            <div className="aspect-[3/4] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500 md:translate-y-[-20px]">
+              <img 
+                src="/trabajos/PHOTO-2026-02-25-13-20-12.jpg" 
+                alt="Trabajo Destacado 5" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+            </div>
+
+            {/* Imagen 6 - Apaisada Horizontal */}
+            <div className="aspect-[4/3] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500 md:translate-y-[15px]">
+              <img 
+                src="/trabajos/PHOTO-2026-02-25-13-20-13.jpg" 
+                alt="Trabajo Destacado 6" 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
             </div>
