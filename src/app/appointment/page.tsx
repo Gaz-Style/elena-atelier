@@ -5,21 +5,21 @@ import { ArrowLeft } from "lucide-react";
 
 export default function AppointmentPage() {
     return (
-        <div className="min-h-screen bg-brand-charcoal text-white font-sans">
+        <div className="min-h-screen bg-brand-charcoal text-white font-sans relative">
             <Navbar />
+
+            {/* Back Link */}
+            <div className="absolute top-[6.5rem] left-6 md:left-12 z-30">
+                <Link 
+                    href="/" 
+                    className="inline-flex items-center gap-2 text-[#f5f2eb]/50 hover:text-[#f5f2eb] transition-colors font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] font-medium"
+                >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    Volver al Inicio
+                </Link>
+            </div>
             
             <div className="max-w-7xl mx-auto px-6 pt-32 pb-24">
-                {/* Back Link */}
-                <div className="mb-10 md:mb-12">
-                    <Link 
-                        href="/" 
-                        className="inline-flex items-center gap-2 text-[#f5f2eb]/50 hover:text-[#f5f2eb] transition-colors font-sans text-[10px] md:text-xs uppercase tracking-[0.25em] font-medium"
-                    >
-                        <ArrowLeft className="w-3.5 h-3.5" />
-                        Volver al Inicio
-                    </Link>
-                </div>
-
                 <div className="grid md:grid-cols-2 gap-16 md:gap-24 items-start">
                     <div className="space-y-8 mt-4">
                         <span className="font-sans text-xs uppercase tracking-[0.35em] text-brand-sand block">Calidad & Transparencia</span>
