@@ -139,14 +139,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center md:text-left mb-10 md:mb-12">
             <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-sand block mb-3 md:mb-4">Archivo Elena</span>
-            <h2 className="font-serif text-4xl md:text-5xl leading-tight text-white">Portafolio <br className="hidden md:block" /><span className="italic text-brand-sand">Destacado</span></h2>
+            <h2 className="font-serif text-4xl md:text-5xl leading-tight text-white">Selección <br className="hidden md:block" /><span className="italic text-brand-sand">Curada</span></h2>
           </div>
           
           <div className="grid grid-cols-2 gap-4 md:gap-8 items-start max-w-5xl mx-auto">
             {/* Columna Izquierda */}
             <div className="flex flex-col gap-4 md:gap-8">
-              {/* Imagen 1 - Alta */}
-              <div className="aspect-[3/4.5] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500">
+              {/* Imagen 1 - Dominante (Muy Alta) */}
+              <div className="aspect-[3/5] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500">
                 <img 
                   src="/trabajos/PHOTO-2026-02-25-13-20-08.jpg" 
                   alt="Trabajo Destacado 1" 
@@ -154,20 +154,11 @@ export default function Home() {
                 />
               </div>
               
-              {/* Imagen 3 - Alta */}
-              <div className="aspect-[3/4.5] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500">
+              {/* Imagen 3 - Apaisada Horizontal */}
+              <div className="aspect-[4/3] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500">
                 <img 
                   src="/trabajos/PHOTO-2026-02-25-13-20-10.jpg" 
                   alt="Trabajo Destacado 3" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-              </div>
-
-              {/* Imagen 5 - Alta */}
-              <div className="aspect-[3/4.5] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500">
-                <img 
-                  src="/trabajos/PHOTO-2026-02-25-13-20-12.jpg" 
-                  alt="Trabajo Destacado 5" 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
               </div>
@@ -175,8 +166,8 @@ export default function Home() {
 
             {/* Columna Derecha */}
             <div className="flex flex-col gap-4 md:gap-8">
-              {/* Imagen 2 - Horizontal Corta */}
-              <div className="aspect-[16/10] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500">
+              {/* Imagen 2 - Cuadrada */}
+              <div className="aspect-[1/1] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500">
                 <img 
                   src="/trabajos/PHOTO-2026-02-25-13-20-09.jpg" 
                   alt="Trabajo Destacado 2" 
@@ -184,20 +175,11 @@ export default function Home() {
                 />
               </div>
 
-              {/* Imagen 4 - Muy Alta */}
-              <div className="aspect-[3/5] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500">
+              {/* Imagen 4 - Mediana Alta */}
+              <div className="aspect-[3/4.25] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500">
                 <img 
                   src="/trabajos/PHOTO-2026-02-25-13-20-11.jpg" 
                   alt="Trabajo Destacado 4" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-              </div>
-
-              {/* Imagen 6 - Mediana */}
-              <div className="aspect-[3/4] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500">
-                <img 
-                  src="/trabajos/PHOTO-2026-02-25-13-20-13.jpg" 
-                  alt="Trabajo Destacado 6" 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
               </div>
@@ -231,7 +213,7 @@ export default function Home() {
             <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-sand">Exclusividad Atelier</span>
             <h2 className="font-serif text-4xl md:text-6xl text-white">Únete a nuestra <br/><span className="italic text-brand-sand">comunidad privada</span></h2>
             <p className="text-white/60 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
-                Regístrate para agilizar tus futuras órdenes, recibir invitaciones a pruebas exclusivas y obtener beneficios personalizados según tu estilo.
+                Accede a pruebas privadas, beneficios exclusivos y una experiencia más cercana dentro del atelier.
             </p>
             <div className="pt-4">
                 <Link 
@@ -239,12 +221,12 @@ export default function Home() {
                     className="glass-btn group relative inline-flex items-center justify-center gap-3 px-6 py-3.5 md:px-12 md:py-5 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] max-w-full"
                 >
                     <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-white group-hover:text-[#121212] transition-colors duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] text-center">
-                        Crear mi Perfil de Clienta
+                        Solicitar acceso
                         <ArrowRight className="w-3.5 h-3.5 transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 flex-shrink-0" />
                     </span>
                 </Link>
             </div>
-            <p className="text-[10px] text-white/30 uppercase tracking-widest pt-4">Integración automática con nuestro sistema de taller</p>
+            <p className="text-[10px] text-white/30 uppercase tracking-widest pt-4">Acceso reservado para miembros ELENA</p>
         </div>
       </section>
  
@@ -254,11 +236,26 @@ export default function Home() {
           <div className="flex-1 space-y-6 md:space-y-8 w-full">
             <h2 className="font-serif text-4xl md:text-5xl leading-tight text-center md:text-left text-white">Ven a tomarte un <br className="hidden md:block" /><span className="italic text-brand-sand">café a mi taller</span></h2>
             <div className="space-y-4 font-sans text-white/80 text-center md:text-left">
-              <p className="text-lg md:text-xl text-white font-medium">Av. Tabancura 1091, Of. 319 <br/>Vitacura (Esquina Las Condes)</p>
-              <p className="text-sm md:text-base">Mi espacio siempre tiene las puertas abiertas. Ven a conocerme para reparar esa prenda que tanto quieres o para que diseñemos algo nuevo desde cero. Me encantaría escucharte.</p>
-              <p className="text-xs md:text-sm font-medium text-white/50">Lunes a Viernes: 10:00 - 19:00 <br />Sábados: Con cita previa</p>
+              <p className="text-sm md:text-base">
+                Mi taller siempre tiene las puertas abiertas. <br className="hidden md:block" />
+                Ven a conversar, ajustar una prenda o comenzar algo nuevo juntas.
+              </p>
             </div>
-            <div className="flex justify-center md:justify-start pt-4">
+          </div>
+
+
+          <div className="flex-1 w-full space-y-8">
+            <div className="h-[300px] md:h-[500px] w-full rounded-sm overflow-hidden relative shadow-2xl">
+              <img
+                src="/Elena%20basos%20cruzados.jpeg"
+                alt="Elena La Costurera de brazos cruzados"
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+            </div>
+            
+            {/* Botón entre Dirección e Imagen */}
+            <div className="flex justify-center md:justify-start pt-2">
               <Link
                 href="/appointment"
                 className="glass-btn group relative inline-flex items-center justify-center gap-3 px-6 py-3.5 md:px-12 md:py-5 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] w-full md:w-auto max-w-full"
@@ -276,16 +273,12 @@ export default function Home() {
                 </span>
               </Link>
             </div>
-          </div>
 
-
-          <div className="flex-1 h-[300px] md:h-[500px] w-full rounded-sm overflow-hidden relative shadow-2xl">
-            <img
-              src="/Elena%20basos%20cruzados.jpeg"
-              alt="Elena La Costurera de brazos cruzados"
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+            {/* Dirección */}
+            <div className="pt-8 md:pt-10 space-y-1 font-sans text-center md:text-left text-white/70 font-light text-sm md:text-base leading-relaxed">
+              <p className="text-white">Vitacura, Santiago</p>
+              <p className="text-white/60">Av. Tabancura 1091 · Of. 319</p>
+            </div>
           </div>
         </div>
       </section>
