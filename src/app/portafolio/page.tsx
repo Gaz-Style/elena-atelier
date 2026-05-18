@@ -25,7 +25,7 @@ export default function PortfolioPage() {
       
       <div className="max-w-7xl mx-auto px-6 pt-32 pb-24">
         <div className="text-center mb-16 md:mb-24">
-          <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-4">Archivo Histórico</span>
+          <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-4">Archivo Elena</span>
           <h1 className="font-serif text-5xl md:text-7xl font-bold uppercase tracking-tight text-white mb-6">Portafolio</h1>
           <p className="font-sans text-white/60 max-w-2xl mx-auto text-base md:text-lg leading-relaxed">
             Una selección de nuestros trabajos más destacados. Cada prenda es un testimonio de la maestría técnica, el tiempo y la dedicación que requiere el verdadero oficio de la costura.
