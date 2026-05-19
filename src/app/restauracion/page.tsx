@@ -157,9 +157,9 @@ export default function RestauracionPage() {
 
                     <div className="relative h-[400px] md:h-[550px] rounded-sm overflow-hidden shadow-2xl border border-white/10">
                         <img
-                            src="/Elena%20basos%20cruzados.jpeg"
+                            src="/elena-brazos-cruzados.png"
                             alt="Elena La Costurera"
-                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-700 object-center"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
                     </div>

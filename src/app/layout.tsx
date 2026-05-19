@@ -50,7 +50,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${inter.variable} ${playfair.variable} antialiased font-sans text-brand-charcoal bg-brand-sand/30 flex flex-col min-h-screen`}
+        className={`${inter.variable} ${playfair.variable} antialiased font-sans text-white bg-brand-charcoal flex flex-col min-h-screen`}
       >
         <script
           type="application/ld+json"

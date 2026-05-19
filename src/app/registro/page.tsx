@@ -30,7 +30,7 @@ export default function PublicRegistrationPage() {
     if (isSuccess) {
         return (
             <div className="min-h-screen bg-brand-charcoal flex items-center justify-center p-4 font-sans relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('/Elena%20basos%20cruzados.jpeg')] bg-cover bg-center opacity-10 blur-sm scale-105"></div>
+                <div className="absolute inset-0 bg-[url('/elena-brazos-cruzados.png')] bg-cover bg-center opacity-10 blur-sm scale-105"></div>
                 <div className="max-w-md w-full bg-white/10 backdrop-blur-2xl p-12 text-center space-y-8 shadow-2xl border border-white/10 relative z-10 animate-in fade-in zoom-in duration-500 rounded-sm">
                     <div className="w-24 h-24 bg-brand-sand/10 rounded-full flex items-center justify-center mx-auto border border-brand-sand/20">
                         <CheckCircle2 className="w-12 h-12 text-brand-sand" />
