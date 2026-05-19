@@ -15,11 +15,11 @@ export default function AppointmentPage() {
                     <div className="space-y-8 mt-4">
                         <span className="font-sans text-xs uppercase tracking-[0.35em] text-brand-sand block">Calidad & Transparencia</span>
                         <h1 className="font-serif text-5xl md:text-7xl leading-tight text-white">
-                            Tu ropa merece <br />
-                            una <span className="italic text-brand-sand">segunda vida</span>
+                            Aprender <br />
+                            <span className="italic text-brand-sand">Haciendo</span>
                         </h1>
-                        <p className="text-base md:text-lg text-white/60 max-w-lg leading-relaxed">
-                            En Elena La Costurera creemos que la elegancia está en el tiempo y el detalle. Te invitamos a vivir el proceso lento y humano de la creación textil en nuestro taller.
+                        <p className="text-base md:text-lg text-white/60 max-w-lg leading-relaxed font-light">
+                            Un espacio donde el aprendizaje ocurre entre telas, pruebas y oficio real.
                         </p>
 
                         <div className="space-y-8 pt-6">
