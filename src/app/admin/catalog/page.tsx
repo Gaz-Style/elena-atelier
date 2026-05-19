@@ -111,9 +111,6 @@ export default function CatalogManager() {
             <div className="max-w-7xl mx-auto space-y-8">
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-gray-200 pb-8">
                     <div>
-                        <Link href="/admin" className="text-[10px] uppercase tracking-widest font-bold text-gray-400 hover:text-brand-terracotta transition-colors flex items-center gap-2 mb-4">
-                            <ArrowLeft className="w-3 h-3" /> Volver al Dashboard
-                        </Link>
                         <h1 className="font-serif text-5xl tracking-tighter uppercase leading-none">Catálogo Maestro</h1>
                         <p className="text-gray-400 mt-2 italic font-serif text-lg">Auditoría y Gestión de Precios Inteligente</p>
                     </div>

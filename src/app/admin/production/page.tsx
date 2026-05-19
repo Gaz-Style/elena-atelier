@@ -178,9 +178,6 @@ export default function ProductionPage() {
                 {/* Header Section */}
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-gray-200 pb-6">
                     <div>
-                        <Link href="/admin" className="text-[10px] uppercase tracking-widest font-bold text-gray-400 hover:text-brand-terracotta transition-colors flex items-center gap-2 mb-3">
-                            <ArrowLeft className="w-3 h-3" /> Volver al Dashboard
-                        </Link>
                         <h1 className="font-serif text-3xl md:text-5xl">Gobernanza de Producción</h1>
                         <p className="text-text-secondary mt-1 text-sm">Organización de costura, control de carga diaria de 8 horas e historial del taller.</p>
                     </div>

@@ -359,11 +359,6 @@ export default function POSPage() {
         <div className={`min-h-screen bg-gray-50 flex flex-col lg:flex-row font-sans ${isBudgetModalOpen ? 'print:hidden' : ''}`}>
             {/* Product Selection Area */}
             <div className="flex-1 p-4 md:p-8 pt-20 space-y-8 overflow-y-auto">
-                <div className="mb-4">
-                    <Link href="/admin" className="text-[10px] uppercase tracking-widest font-bold text-gray-400 hover:text-brand-terracotta transition-colors flex items-center gap-2 w-fit">
-                        <ArrowLeft className="w-3 h-3" /> Volver al Dashboard
-                    </Link>
-                </div>
                 <h1 className="font-serif text-3xl text-brand-charcoal mb-8 flex items-center gap-3">
                     <ClipboardList className="w-8 h-8 text-brand-terracotta" />
                     Ingreso de Orden de Trabajo
