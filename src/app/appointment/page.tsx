@@ -23,13 +23,17 @@ export default function AppointmentPage() {
 
             {/* ━━━━━━━━━━ 1. HERO CINEMATOGRÁFICO ━━━━━━━━━━ */}
             <section className="relative h-[95vh] flex flex-col justify-end pb-20 px-6 md:px-12 overflow-hidden">
-                {/* Background Editorial Image */}
+                {/* Background Editorial Video */}
                 <div className="absolute inset-0 z-0">
-                    <img 
-                        src="/Estudiante.png" 
-                        alt="Elena guiando a una estudiante en el atelier" 
+                    <video 
+                        autoPlay 
+                        loop 
+                        muted 
+                        playsInline 
                         className="w-full h-full object-cover object-[65%_center] md:object-center brightness-[0.70] contrast-[1.05] saturate-[0.85]"
-                    />
+                    >
+                        <source src="/Elena cociendo.mp4" type="video/mp4" />
+                    </video>
                     {/* Dark Elegant Overlays */}
                     <div className="absolute inset-0 bg-gradient-to-t from-brand-charcoal via-brand-charcoal/30 to-black/40" />
                     <div className="absolute inset-0 bg-black/20 mix-blend-multiply" />
