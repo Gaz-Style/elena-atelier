@@ -17,13 +17,13 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "elenalacosturera | Patrimonio Textil & Lujo Silencioso",
-  description: "Taller de alta costura en Vitacura. No hacemos ropa; construimos patrimonio textil. Maestría técnica, escasez deliberada y estética Wabi-Sabi.",
+  title: "ELENA La Costurera | Alta Costura & Diseño a Medida",
+  description: "Atelier de alta costura y diseño a medida en Santiago. Creamos prendas exclusivas, restauración textil y desarrollo boutique con oficio artesanal, atención personalizada y confección premium.",
   openGraph: {
-    title: "elenalacosturera | Patrimonio Textil",
-    description: "Lujo que no se grita, se susurra en cada puntada. Restauración y sastrería de alta gama.",
+    title: "ELENA La Costurera | Alta Costura & Diseño a Medida",
+    description: "Atelier de alta costura y diseño a medida en Santiago. Creamos prendas exclusivas, restauración textil y desarrollo boutique con oficio artesanal, atención personalizada y confección premium.",
     url: "https://elenalacosturera.cl",
-    siteName: "elenalacosturera",
+    siteName: "ELENA La Costurera",
     images: [
       {
         url: "/og-image.jpg",
@@ -36,8 +36,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "elenalacosturera | Lujo Silencioso",
-    description: "El alma de la imperfección perfecta. Artesanía y tiempo.",
+    title: "ELENA La Costurera | Alta Costura & Diseño a Medida",
+    description: "Atelier de alta costura y diseño a medida en Santiago. Creamos prendas exclusivas, restauración textil y desarrollo boutique con oficio artesanal, atención personalizada y confección premium.",
     images: ["/og-image.jpg"],
   },
 };
