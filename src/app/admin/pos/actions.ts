@@ -307,9 +307,9 @@ export async function sendOrderConfirmationEmailAction(payload: {
 
                     <!-- GOOGLE REVIEW CARD -->
                     <div style="padding: 25px; background-color: #FBFBFA; border: 1px dashed #C36B53; border-radius: 2px; text-align: center;">
-                        <p style="margin: 0 0 8px 0; font-family: Georgia, serif; font-size: 15px; color: #1A1A1A; font-style: italic; font-weight: 500;">Tu opinión es nuestro mayor orgullo</p>
-                        <p style="margin: 0 0 15px 0; font-size: 11px; color: #64748B; line-height: 1.5;">Te invitamos a ver nuestra ubicación y conocer la experiencia de otras clientas en Google. Al retirar tu prenda, tu opinión será de gran valor para mantener nuestra tradición de excelencia.</p>
-                        <a href="https://g.page/r/Cfv2lRZLdYUuEBM/review" target="_blank" style="display: inline-block; padding: 10px 20px; background-color: #1A1A1A; color: #F0E6DF; font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; border-radius: 2px;">Ver Ficha y Opiniones en Google</a>
+                        <h3 style="margin: 0 0 8px 0; font-family: Georgia, serif; font-size: 16px; color: #1A1A1A; font-style: italic; font-weight: 500;">Gracias por confiar en nosotras</h3>
+                        <p style="margin: 0 0 15px 0; font-size: 12px; color: #64748B; line-height: 1.5;">Si disfrutaste tu experiencia con ELENA La Costurera, puedes compartir tu opinión aquí.</p>
+                        <a href="https://g.page/r/Cfv2lRZLdYUuEBM/review" target="_blank" style="display: inline-block; padding: 10px 20px; background-color: #1A1A1A; color: #F0E6DF; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; border-radius: 2px;">Dejar opinión en Google</a>
                     </div>
                 </section>
 
