@@ -20,6 +20,7 @@ interface Task {
 
 export default function MarketingDashboard() {
     const [activeTab, setActiveTab] = useState<'dashboard' | 'plan'>('dashboard');
+    const [copiedLink, setCopiedLink] = useState(false);
     
     // Checklist Tasks State
     const [tasks, setTasks] = useState<Task[]>([
@@ -53,10 +54,10 @@ export default function MarketingDashboard() {
         {
             id: '4',
             title: 'Ajuste de Ficha de Google Business Profile (Maps)',
-            description: 'Modificar el nombre oficial a "ELENA La Costurera - Alta Costura & Sastrería a Medida" y alinear la dirección física en Vitacura.',
+            description: 'Modificar el nombre oficial a "ELENA La Costurera - Alta Costura & Sastrería a Medida" y alinear la dirección física en Vitacura. (¡Logrado! Actualizados el título y la descripción optimizada).',
             category: 'SEO & GEO',
-            status: 'in_progress',
-            date: 'En Curso',
+            status: 'completed',
+            date: '20-May-2026',
             impact: 'Alto'
         },
         {
@@ -71,10 +72,10 @@ export default function MarketingDashboard() {
         {
             id: '6',
             title: 'Campaña de Reseñas de 5 Estrellas en WhatsApp',
-            description: 'Diseñar un flujo automatizado para enviar enlace de reseña directa de Google Maps a clientas que acaban de retirar una prenda exitosamente.',
+            description: 'Implementar el flujo de envío automatizado utilizando el enlace de reseña directa activo (https://g.page/r/Cfv2lRZLdYUuEBM/review) para clientas tras retirar exitosamente su prenda.',
             category: 'SEO & GEO',
-            status: 'pending',
-            date: 'Jun-2026',
+            status: 'in_progress',
+            date: 'En Curso',
             impact: 'Alto'
         },
         {
@@ -355,6 +356,29 @@ export default function MarketingDashboard() {
                                 </div>
                                 <p className="text-[10px] text-text-secondary mt-2 uppercase font-medium">{completedTasks} de {totalTasks} completados</p>
                             </div>
+                        </div>
+
+                        {/* Google Review Active Link Card */}
+                        <div className="bg-brand-charcoal text-white p-6 rounded-sm shadow-sm border border-gray-200/10 flex flex-col md:flex-row justify-between items-center gap-4 hover:shadow-md transition-shadow">
+                            <div className="flex items-center gap-4 w-full">
+                                <div className="w-10 h-10 rounded-full bg-brand-terracotta/20 flex items-center justify-center text-brand-terracotta shrink-0">
+                                    <Target className="w-5 h-5 animate-pulse" />
+                                </div>
+                                <div className="overflow-hidden">
+                                    <p className="text-[10px] uppercase tracking-widest text-brand-terracotta font-bold">Enlace Activo de Reseñas de Google Maps</p>
+                                    <p className="text-xs md:text-sm font-mono text-white/90 select-all mt-1 truncate">https://g.page/r/Cfv2lRZLdYUuEBM/review</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText("https://g.page/r/Cfv2lRZLdYUuEBM/review");
+                                    setCopiedLink(true);
+                                    setTimeout(() => setCopiedLink(false), 2000);
+                                }}
+                                className="bg-brand-terracotta hover:bg-brand-terracotta/90 text-white text-[10px] font-bold uppercase tracking-widest px-6 py-3 rounded-sm transition-all active:scale-95 duration-200 shrink-0 w-full md:w-auto text-center"
+                            >
+                                {copiedLink ? "¡Copiado!" : "Copiar Enlace"}
+                            </button>
                         </div>
 
                         {/* Complete Structured Strategy - The 5 Pillars */}
