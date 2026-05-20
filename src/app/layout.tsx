@@ -17,10 +17,10 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "ELENA La Costurera | Alta Costura & Diseño a Medida",
+  title: "ELENA La Costurera | Alta Costura & Confección a Medida",
   description: "Costurera y atelier en Santiago especializada en vestidos de novia, alta costura, confección a medida, arreglos y reparación de prendas con terminaciones de excelencia.",
   openGraph: {
-    title: "ELENA La Costurera | Alta Costura & Diseño a Medida",
+    title: "ELENA La Costurera | Alta Costura & Confección a Medida",
     description: "Costurera y atelier en Santiago especializada en vestidos de novia, alta costura, confección a medida, arreglos y reparación de prendas con terminaciones de excelencia.",
     url: "https://elenalacosturera.cl",
     siteName: "ELENA La Costurera",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ELENA La Costurera | Alta Costura & Diseño a Medida",
+    title: "ELENA La Costurera | Alta Costura & Confección a Medida",
     description: "Costurera y atelier en Santiago especializada en vestidos de novia, alta costura, confección a medida, arreglos y reparación de prendas con terminaciones de excelencia.",
     images: ["/og-image.jpg"],
   },
