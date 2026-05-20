@@ -280,6 +280,12 @@ export async function sendOrderConfirmationEmailAction(payload: {
                     <p class="lead-text">
                         Te notificaremos de inmediato en cuanto tu prenda esté lista y pase nuestro control de calidad artesanal para que puedas retirarla o coordinar el despacho.
                     </p>
+
+                    <div style="margin-top: 35px; margin-bottom: 25px; padding: 25px; background-color: #FBFBFA; border: 1px dashed #C36B53; border-radius: 2px; text-align: center;">
+                        <p style="margin: 0 0 8px 0; font-family: Georgia, serif; font-size: 15px; color: #1A1A1A; font-style: italic; font-weight: 500;">Tu opinión es nuestro mayor orgullo</p>
+                        <p style="margin: 0 0 15px 0; font-size: 11px; color: #64748B; line-height: 1.5;">Te invitamos a ver nuestra ubicación y conocer la experiencia de otras clientas en Google. Al retirar tu prenda, tu opinión será de gran valor para mantener nuestra tradición de excelencia.</p>
+                        <a href="https://g.page/r/Cfv2lRZLdYUuEBM/review" target="_blank" style="display: inline-block; padding: 10px 20px; background-color: #1A1A1A; color: #F0E6DF; font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; border-radius: 2px;">Ver Ficha y Opiniones en Google</a>
+                    </div>
                 </div>
                 
                 <div class="footer">

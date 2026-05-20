@@ -14,7 +14,10 @@ export async function sendWelcomeNotifications(customer: { id: string; full_name
     A partir de ahora, tu historial y medidas estarán centralizados para brindarte 
     una atención artesanal perfecta.
     
-    Te esperamos pronto en Av. Tabancura 1091.
+    Como parte de nuestro compromiso con la excelencia, te invitamos a conocer las opiniones de nuestra distinguida clientela y compartir tu experiencia en nuestro perfil de Google:
+    https://g.page/r/Cfv2lRZLdYUuEBM/review
+    
+    Te esperamos pronto en Av. Tabancura 1091, Vitacura.
     
     Con cariño,
     Elena Rojas
@@ -32,7 +35,7 @@ export async function sendWelcomeNotifications(customer: { id: string; full_name
   });
 
   // 2. WhatsApp Simulation (Real automation would use Meta API or Twilio)
-  const whatsappMessage = `*¡Bienvenida a Elena Atelier, ${firstName}!* ✨ %0A%0AEstamos felices de tenerte con nosotros. Tu perfil ya está activo en nuestro sistema para tu próxima visita. %0A%0AAtelier Vitacura 👗`;
+  const whatsappMessage = `*¡Bienvenida a Elena Atelier, ${firstName}!* ✨ %0A%0AEstamos felices de tenerte con nosotros. Tu perfil y medidas ya están activos en nuestro sistema para brindarte una atención artesanal perfecta. 👗%0A%0ATe invitamos a conocer nuestra reputación o compartir tu experiencia en Google: %0Ahttps://g.page/r/Cfv2lRZLdYUuEBM/review %0A%0AAtelier Vitacura (Av. Tabancura 1091) ✨`;
   
   console.log('--- ENVIANDO WHATSAPP ---');
   console.log('Para:', customer.phone);

@@ -1282,7 +1282,7 @@ export default function POSPage() {
                                         {checkoutResult.customer.phone && (
                                             <button 
                                                 onClick={() => {
-                                                    const message = encodeURIComponent(`¡Hola! Tu orden de trabajo #${checkoutResult.orderId} en Elena Atelier por un total de $${checkoutResult.total.toLocaleString('es-CL')} ha sido ingresada con éxito. ¡Muchas gracias por tu preferencia! ✨`);
+                                                    const message = encodeURIComponent(`¡Hola! Tu orden de trabajo #${checkoutResult.orderId} en Elena Atelier por un total de $${checkoutResult.total.toLocaleString('es-CL')} ha sido ingresada con éxito. ¡Muchas gracias por tu confianza! ✨\n\nTe invitamos a ver nuestra ubicación y las opiniones de nuestra distinguida clientela en Google: https://g.page/r/Cfv2lRZLdYUuEBM/review 👗`);
                                                     const cleanPhone = checkoutResult.customer.phone.replace(/\D/g, '');
                                                     window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
                                                 }}
