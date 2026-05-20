@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
-    ArrowLeft, Package, Plus, Search, Ruler, Info, Layers, 
+    Package, Plus, Search, Ruler, Info, Layers, 
     AlertTriangle, Loader2, X, Trash2, CheckCircle, Disc, Scissors, Tag, Wrench
 } from 'lucide-react';
 import { getInventoryItems, addInventoryItem, updateInventoryStock } from './actions';

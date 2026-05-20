@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import Navbar from '@/components/Navbar';
-import { Users, Plus, ChevronRight, Search, ArrowLeft, MessageCircle } from 'lucide-react';
+import { Users, Plus, ChevronRight, Search, MessageCircle } from 'lucide-react';
 
 export const revalidate = 0; // Disable caching for CRM
 

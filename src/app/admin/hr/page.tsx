@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Users, UserPlus, Calendar, CreditCard, FileText, ChevronRight } from 'lucide-react';
+import { Users, UserPlus, Calendar, CreditCard, FileText, ChevronRight } from 'lucide-react';
 
 export default function HRDashboard() {
     const [employees] = useState([

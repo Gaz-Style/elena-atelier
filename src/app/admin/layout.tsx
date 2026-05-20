@@ -11,7 +11,7 @@ export default async function AdminLayout({
   const { data: { user } } = await supabase.auth.getUser();
 
   return (
-    <div className="flex flex-col min-h-screen w-full max-w-full overflow-x-hidden relative">
+    <div className="flex flex-col min-h-screen w-full max-w-full overflow-x-hidden relative bg-white text-brand-charcoal">
       {/* Admin Topbar */}
       <AdminHeader hasUser={!!user} />
       
@@ -21,3 +21,4 @@ export default async function AdminLayout({
     </div>
   );
 }
+

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Plus, Trash2, Search, Tag, DollarSign, Package, Loader2, CheckCircle2, X, Clock, Scissors, TrendingUp, AlertCircle, Calculator, ChevronRight, Edit3 } from 'lucide-react';
+import { Plus, Trash2, Search, Tag, DollarSign, Package, Loader2, CheckCircle2, X, Clock, Scissors, TrendingUp, AlertCircle, Calculator, ChevronRight, Edit3 } from 'lucide-react';
 import { getCatalog, addCatalogItem, deleteCatalogItem, getCostStructure, updateCatalogItem } from './actions';
 
 export default function CatalogManager() {

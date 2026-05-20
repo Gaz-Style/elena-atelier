@@ -58,7 +58,7 @@ export default function AdminLogin() {
               name="email"
               placeholder="ejemplo@correo.com"
               required
-              className="w-full border border-gray-200 px-4 py-3 text-sm rounded-sm focus:outline-none focus:border-brand-terracotta transition-colors bg-white"
+              className="w-full border border-gray-200 px-4 py-3 text-sm rounded-sm focus:outline-none focus:border-brand-terracotta transition-colors bg-white text-brand-charcoal"
             />
           </div>
 
@@ -71,7 +71,7 @@ export default function AdminLogin() {
               name="password"
               placeholder="••••••••"
               required
-              className="w-full border border-gray-200 px-4 py-3 text-sm rounded-sm focus:outline-none focus:border-brand-terracotta transition-colors bg-white"
+              className="w-full border border-gray-200 px-4 py-3 text-sm rounded-sm focus:outline-none focus:border-brand-terracotta transition-colors bg-white text-brand-charcoal"
             />
           </div>
 
