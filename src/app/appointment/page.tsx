@@ -333,7 +333,17 @@ export default function AppointmentPage() {
                         {/* Ubicación block (Visible on mobile below the form, and on desktop below the title) */}
                         <div className="pt-0 space-y-2 md:pt-6 w-full text-center md:text-left">
                             <p className="text-[10px] uppercase tracking-[0.3em] text-brand-sand/60 text-center md:text-left">UBICACIÓN</p>
-                            <p className="text-sm text-white/90 font-light font-serif text-center md:text-left">Av. Tabancura 1091, Of. 319</p>
+                            <a 
+                                href="https://maps.google.com/?q=Av.+Tabancura+1091,+Oficina+319,+Vitacura,+Santiago" 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="text-sm text-white/90 hover:text-brand-terracotta transition-colors duration-300 font-light font-serif text-center md:text-left inline-flex items-center gap-1.5 justify-center md:justify-start group"
+                            >
+                                <span>Av. Tabancura 1091, Of. 319</span>
+                                <svg className="w-3.5 h-3.5 opacity-50 group-hover:opacity-100 group-hover:text-brand-terracotta transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                            </a>
                             <p className="text-xs text-white/60 font-light text-center md:text-left">Vitacura, Santiago de Chile</p>
                         </div>
                     </div>
