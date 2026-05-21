@@ -2,6 +2,24 @@
 
 import nodemailer from 'nodemailer';
 import { createClient } from '@/lib/supabase/server';
+import fs from 'fs';
+import path from 'path';
+const backgroundImgBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGUlEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAA8F8bGgABxZqVdgAAAABJRU5ErkJggg==';
+
+// ── LOGO REUTILIZABLE (editar solo aquí) ──
+const emailLogoHtml = `
+    <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto; width: 150px; text-align: center;">
+      <tr>
+        <td style="font-family:'Playfair Display', Georgia, serif; font-size: 26px; font-weight: 900; color: #FFFFFF; letter-spacing: 10px; text-transform: uppercase; text-align: center; line-height: 1; padding: 0 0 0 10px;">
+          ELENA
+        </td>
+      </tr>
+      <tr>
+        <td style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 8px; font-weight: 700; color: #FFFFFF; letter-spacing: 4.2px; text-transform: uppercase; text-align: center; padding-top: 8px; line-height: 1; padding-left: 4.2px;">
+          LA COSTURERA
+        </td>
+      </tr>
+    </table>`;
 
 export async function sendBudgetEmailAction(payload: {
     customerEmail: string;
@@ -35,96 +53,94 @@ export async function sendBudgetEmailAction(payload: {
         return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val);
     };
 
+
     const itemsRowsHtml = items.map((item) => `
-        <tr style="border-bottom: 1px solid #F3F4F6;">
-            <td style="padding: 12px 8px; text-align: left; vertical-align: top;">
-                <p style="margin: 0; font-size: 13px; font-weight: 600; color: #1E293B;">${item.name}</p>
-                <span style="font-size: 9px; text-transform: uppercase; color: #C36B53; font-weight: bold; letter-spacing: 1px;">${item.category}</span>
-                ${item.notes ? `<p style="margin: 4px 0 0 0; font-size: 11px; color: #64748B; font-style: italic;">"${item.notes}"</p>` : ''}
+        <tr style="border-bottom: 1px solid #EDE8DF;">
+            <td style="padding: 12px 8px; text-align: left; vertical-align: top; font-family:'Inter', sans-serif;">
+                <p style="margin: 0; font-size: 13px; font-weight: 500; color: #1A1A1A;">${item.name}</p>
+                <span style="font-size: 9px; text-transform: uppercase; color: #C17F5F; font-weight: 600; letter-spacing: 1px;">${item.category}</span>
+                ${item.notes ? `<p style="margin: 4px 0 0 0; font-size: 11px; color: #7A7268; font-style: italic; font-weight: 300;">"${item.notes}"</p>` : ''}
             </td>
-            <td style="padding: 12px 8px; text-align: right; vertical-align: top; font-size: 13px; font-weight: bold; color: #1E293B;">
+            <td style="padding: 12px 8px; text-align: right; vertical-align: top; font-family:'Playfair Display', Georgia, serif; font-size: 13px; font-weight: bold; color: #1A1A1A;">
                 ${formatCurrency(item.price)}
             </td>
         </tr>
     `).join('');
 
-    const htmlContent = `
-    <!DOCTYPE html>
-    <html>
+    const htmlContent = `<!DOCTYPE html>
+    <html lang="es">
     <head>
-        <meta charset="utf-8">
-        <title>Presupuesto Formal - Elena Atelier</title>
-        <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FBFBFA; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
-            .container { max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border: 1px solid #EAEAEA; border-radius: 4px; overflow: hidden; margin-top: 40px; margin-bottom: 40px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02); }
-            .header { background-color: #1A1A1A; padding: 40px; text-align: center; }
-            .logo { font-family: 'Playfair Display', Georgia, serif; font-size: 24px; color: #F0E6DF; letter-spacing: 4px; margin: 0; font-weight: 300; text-transform: uppercase; }
-            .subtitle { font-size: 9px; color: #C36B53; letter-spacing: 2px; text-transform: uppercase; margin: 6px 0 0 0; font-weight: 700; }
-            .body { padding: 40px; }
-            .greeting { font-family: 'Playfair Display', Georgia, serif; font-size: 20px; color: #1A1A1A; margin-top: 0; margin-bottom: 12px; }
-            .lead-text { font-size: 13px; color: #4A4A4A; line-height: 1.6; margin-bottom: 24px; }
-            .table-container { margin-bottom: 30px; }
-            .button-container { text-align: center; margin: 35px 0; }
-            .btn { display: inline-block; background-color: #C36B53; color: #FFFFFF !important; text-decoration: none; padding: 16px 32px; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; border-radius: 2px; }
-            .footer { background-color: #FBFBFA; padding: 30px 40px; text-align: center; border-top: 1px solid #EAEAEA; }
-            .footer-text { font-size: 11px; color: #8A8A8A; line-height: 1.5; margin: 0; }
-            .footer-signature { font-family: Georgia, serif; font-style: italic; color: #C36B53; font-size: 14px; margin-top: 15px; }
-        </style>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Presupuesto Formal — ELENA LA COSTURERA</title>
+      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+      <style>
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #F0EDE8; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 600px; margin: 40px auto; background-color: #FFFFFF; border: 1px solid #EDE8DF; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02); }
+        .header { background-color: #1A1A1A; padding: 36px 40px; text-align: center; }
+        .body { padding: 44px 40px; }
+        .greeting { font-family: 'Playfair Display', Georgia, serif; font-size: 22px; color: #1A1A1A; margin-top: 0; margin-bottom: 14px; font-weight: 400; }
+        .lead-text { font-size: 13px; color: #4A4A4A; line-height: 1.8; margin-bottom: 24px; font-weight: 300; }
+        .table-container { margin-bottom: 30px; }
+        .button-container { text-align: center; margin: 35px 0; }
+        .btn { display: inline-block; background-color: #1A1A1A; color: #FFFFFF !important; text-decoration: none; padding: 16px 32px; font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 3px; border-radius: 0; border: 1px solid #1A1A1A; }
+        .footer { background-color: #FAFAF7; border-top: 1px solid #EDE8DF; padding: 36px 40px; text-align: center; }
+        .footer-text { font-size: 11px; color: #8A857D; line-height: 1.75; margin: 0 0 4px 0; font-weight: 300; }
+        .signature { font-family: 'Playfair Display', Georgia, serif; font-size: 16px; font-style: italic; color: #C17F5F; margin-top: 12px; }
+      </style>
     </head>
     <body>
-        <div class="container">
-            <div class="header">
-                <h1 class="logo">Elena Atelier</h1>
-                <p class="subtitle">Alta Costura & Confección</p>
-            </div>
-            <div class="body">
-                <h2 class="greeting">Estimada ${customerName},</h2>
-                <p class="lead-text">
-                    Es un placer saludarte. Hemos preparado el presupuesto formal detallado para tu próximo proyecto de vestuario y alta costura. 
-                    A continuación encontrarás el desglose de los servicios solicitados:
-                </p>
-                
-                <div class="table-container">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="border-bottom: 2px solid #1A1A1A;">
-                                <th style="padding: 12px 8px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #4A4A4A;">Detalle del Servicio</th>
-                                <th style="padding: 12px 8px; text-align: right; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #4A4A4A;">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${itemsRowsHtml}
-                            <tr style="background-color: #FBFBFA; font-weight: bold;">
-                                <td style="padding: 16px 8px; text-align: left; font-size: 13px; color: #1A1A1A;">Total Estimado</td>
-                                <td style="padding: 16px 8px; text-align: right; font-size: 16px; color: #C36B53;">${formatCurrency(total)}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <p class="lead-text" style="margin-bottom: 10px;">
-                    Para ver los detalles completos del diseño, registrar tus observaciones o <strong>aprobar y pagar este presupuesto de forma 100% digital</strong>, haz clic en el siguiente botón:
-                </p>
-
-                <div class="button-container">
-                    <a href="${budgetLink}" class="btn" style="color: #FFFFFF;" target="_blank">Ver Presupuesto Interactivo</a>
-                </div>
-
-                <p style="font-size: 11px; color: #8A8A8A; text-align: center; margin-top: 10px;">
-                    Si no puedes abrir el botón, copia y pega este enlace en tu navegador: <br>
-                    <a href="${budgetLink}" style="color: #C36B53; text-decoration: underline;">${budgetLink}</a>
-                </p>
-            </div>
-            
-            <div class="footer">
-                <p class="footer-text">Av. Tabancura 1091, Vitacura</p>
-                <p class="footer-text" style="margin-top: 4px;">${smtpUser}</p>
-                <p class="footer-signature">Elena Rojas</p>
-            </div>
+      <div class="container">
+        <div class="header">
+            ${emailLogoHtml}
         </div>
+        
+        <div class="body">
+            <h2 class="greeting">Hola ${customerName},</h2>
+            <p class="lead-text">
+                Esperamos que te encuentres muy bien. Adjuntamos la propuesta y presupuesto para el servicio de costura solicitado en nuestro atelier. A continuación puedes revisar el detalle de las prendas e indicaciones:
+            </p>
+            
+            <div class="table-container">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #1A1A1A;">
+                            <th style="padding: 12px 8px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #8A857D; font-weight: 600; font-family:'Inter', sans-serif;">Detalle del Servicio</th>
+                            <th style="padding: 12px 8px; text-align: right; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #8A857D; font-weight: 600; font-family:'Inter', sans-serif;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsRowsHtml}
+                        <tr style="background-color: #FAFAF7; font-weight: bold;">
+                            <td style="padding: 16px 8px; text-align: left; font-size: 13px; color: #1A1A1A; font-family:'Inter', sans-serif;">Total Estimado</td>
+                            <td style="padding: 16px 8px; text-align: right; font-size: 16px; color: #C17F5F; font-family: 'Playfair Display', Georgia, serif;">${formatCurrency(total)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="lead-text" style="margin-bottom: 10px;">
+                Para revisar el detalle del servicio, dejar comentarios o **aprobar y pagar este presupuesto en línea**, haz clic en el siguiente enlace:
+            </p>
+
+            <div class="button-container">
+                <a href="${budgetLink}" class="btn" style="color: #FFFFFF;" target="_blank">Revisar y Pagar Presupuesto</a>
+            </div>
+
+            <p style="font-size: 11px; color: #8A857D; text-align: center; margin-top: 10px; font-weight: 300;">
+                Si no puedes abrir el botón, copia y pega este enlace en tu navegador: <br>
+                <a href="${budgetLink}" style="color: #C17F5F; text-decoration: underline;">${budgetLink}</a>
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p class="footer-text">Av. Tabancura 1091, Vitacura</p>
+            <p class="footer-text"><a href="mailto:contacto@elenalacosturera.cl" style="color: #C17F5F; text-decoration: underline;">contacto@elenalacosturera.cl</a></p>
+            <div class="signature">Elena Rojas</div>
+        </div>
+      </div>
     </body>
-    </html>
-    `;
+    </html>`;
 
     try {
         const fromAddress = smtpUser.includes('gmail.com') ? 'contacto@elenalacosturera.cl' : smtpUser;
@@ -137,9 +153,9 @@ export async function sendBudgetEmailAction(payload: {
 
         console.log('Correo enviado de forma exitosa:', info.messageId);
         return { success: true };
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error al enviar correo por SMTP de Google:', err);
-        return { success: false, error: err.message };
+        return { success: false, error: err instanceof Error ? err.message : String(err) };
     }
 }
 
@@ -157,9 +173,19 @@ export async function sendOrderConfirmationEmailAction(payload: {
     total: number;
     paymentMethod: string;
     date: string;
+    deliveryDate: string;
 }) {
     try {
-        const { customerEmail, customerName, orderId, items, total, paymentMethod, date } = payload;
+        const { customerEmail, customerName, orderId, items, total, paymentMethod, date, deliveryDate } = payload;
+
+        // Format delivery date for display
+        const deliveryDateObj = new Date(deliveryDate);
+        const deliveryDateFormatted = deliveryDateObj.toLocaleDateString('es-CL', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        const deliveryTimeFormatted = deliveryDateObj.toLocaleTimeString('es-CL', {
+            hour: '2-digit', minute: '2-digit', hour12: false
+        });
 
         const smtpUser = process.env.SMTP_USER || '';
         const smtpPassword = process.env.SMTP_PASSWORD || '';
@@ -183,164 +209,185 @@ export async function sendOrderConfirmationEmailAction(payload: {
             return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val);
         };
 
-        const allImages = items.reduce((acc, item) => {
-            if (item.images && item.images.length > 0) {
-                item.images.forEach(img => {
-                    acc.push({ url: img.url, notes: img.notes || '', itemName: item.name });
-                });
-            }
-            return acc;
-        }, [] as { url: string; notes: string; itemName: string }[]);
+        const firstName = customerName.split(' ')[0];
+        const paymentLabel = paymentMethod === 'card' ? 'Mercado Pago' : 'Efectivo / Transferencia';
 
-        const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <title>Confirmación de Orden de Trabajo - ELENA La Costurera</title>
-        </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #FBFBFA; margin: 0; padding: 0; -webkit-font-smoothing: antialiased;">
-            <div class="container" style="max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border: 1px solid #EAEAEA; border-radius: 4px; overflow: hidden; margin-top: 40px; margin-bottom: 40px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);">
-                
-                <!-- HEADER -->
-                <div class="email-header" style="background-color: #1A1A1A; padding: 40px; text-align: center; border-bottom: 3px solid #C36B53;">
-                    <h1 style="font-family: 'Playfair Display', Georgia, serif; font-size: 26px; color: #F0E6DF; letter-spacing: 4px; margin: 0; font-weight: 300; text-transform: uppercase;">ELENA La Costurera</h1>
-                    <p style="font-size: 9px; color: #C36B53; letter-spacing: 2px; text-transform: uppercase; margin: 6px 0 0 0; font-weight: 700;">Alta Costura & Confección a Medida</p>
-                </div>
+        const itemsRowsHtml = items.map((item) => `
+            <tr style="border-bottom: 1px solid #EDE8DF;">
+                <td style="padding: 12px 8px; text-align: left; vertical-align: top; font-family:'Inter', sans-serif;">
+                    <p style="margin: 0; font-size: 13px; font-weight: 500; color: #1A1A1A;">${item.name}</p>
+                    <span style="font-size: 9px; text-transform: uppercase; color: #C17F5F; font-weight: 600; letter-spacing: 1px;">${item.category}</span>
+                    ${item.notes ? `<p style="margin: 4px 0 0 0; font-size: 11px; color: #7A7268; font-style: italic; font-weight: 300;">"${item.notes}"</p>` : ''}
+                </td>
+                <td style="padding: 12px 8px; text-align: right; vertical-align: top; font-family:'Playfair Display', Georgia, serif; font-size: 13px; font-weight: bold; color: #1A1A1A;">
+                    ${formatCurrency(item.price)}
+                </td>
+            </tr>
+        `).join('');
 
-                <!-- MENSAJE -->
-                <section class="email-intro" style="padding: 40px 40px 20px 40px;">
-                    <h2 style="font-family: 'Playfair Display', Georgia, serif; font-size: 20px; color: #1A1A1A; margin-top: 0; margin-bottom: 15px; font-weight: normal; text-align: left;">Estimada ${customerName},</h2>
-                    <p style="font-size: 13px; color: #4A4A4A; line-height: 1.6; margin: 0; text-align: left;">
-                        Tu prenda ya forma parte del atelier.
-                        Hemos registrado correctamente tu ingreso y a continuación encontrarás
-                        el resumen del trabajo solicitado y el comprobante asociado.
-                    </p>
-                </section>
+        const attachments = [];
+        let cardBgUrl = '';
 
-                <!-- INFORMACIÓN -->
-                <section class="order-box" style="padding: 0 40px 25px 40px;">
-                    <table style="width: 100%; border-collapse: collapse; background-color: #FBFBFA; border: 1px solid #EAEAEA; border-radius: 2px;">
-                        <tr>
-                            <td style="padding: 15px; border-right: 1px solid #EAEAEA; text-align: center; width: 33.33%;">
-                                <span style="display: block; font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #8A8A8A; margin-bottom: 4px;">Número de Orden</span>
-                                <strong style="font-size: 14px; color: #1A1A1A; font-family: Georgia, serif;">#${orderId}</strong>
-                            </td>
-                            <td style="padding: 15px; border-right: 1px solid #EAEAEA; text-align: center; width: 33.33%;">
-                                <span style="display: block; font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #8A8A8A; margin-bottom: 4px;">Fecha de Ingreso</span>
-                                <strong style="font-size: 13px; color: #1A1A1A; font-family: Georgia, serif;">${date}</strong>
-                            </td>
-                            <td style="padding: 15px; text-align: center; width: 33.33%;">
-                                <span style="display: block; font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #8A8A8A; margin-bottom: 4px;">Forma de Pago</span>
-                                <strong style="font-size: 11px; color: #1A1A1A; text-transform: capitalize;">${paymentMethod === 'card' ? 'Mercado Pago' : 'Efectivo / Transferencia'}</strong>
-                            </td>
-                        </tr>
-                    </table>
-                </section>
+        const filePath = path.join(process.cwd(), 'public', 'trabajos', 'model_desnuda_bw.png');
+        if (fs.existsSync(filePath)) {
+            attachments.push({
+                filename: 'model_desnuda_bw.png',
+                path: filePath,
+                cid: 'luxuryPassBg'
+            });
+            cardBgUrl = 'cid:luxuryPassBg';
+        } else {
+            // Transparent 1x1 fallback so it doesn't break URL loading
+            cardBgUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGUlEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAA8F8bGgABxZqVdgAAAABJRU5ErkJggg==';
+        }
 
-                <!-- SERVICIO -->
-                <section class="service-section" style="padding: 0 40px 25px 40px;">
-                    <h3 style="font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #C36B53; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #EAEAEA; padding-bottom: 6px; font-weight: bold; text-align: left;">Trabajo Encomendado</h3>
-                    ${items.map((item) => `
-                        <div class="service-card" style="background-color: #FBFBFA; border: 1px solid #EAEAEA; padding: 15px; border-radius: 2px; margin-bottom: 12px;">
-                            <table style="width: 100%; border-collapse: collapse;">
-                                <tr>
-                                    <td style="vertical-align: top; text-align: left;">
-                                        <strong style="font-family: Georgia, serif; font-size: 14px; color: #1A1A1A; font-weight: bold; display: block;">${item.name}</strong>
-                                        <span style="display: inline-block; font-size: 8px; color: #C36B53; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; margin-top: 4px;">${item.category}</span>
-                                        ${item.notes ? `<p style="margin: 8px 0 0 0; font-size: 11px; color: #64748B; font-style: italic; line-height: 1.4;">"${item.notes}"</p>` : ''}
-                                    </td>
-                                    <td style="text-align: right; vertical-align: top; width: 100px; font-weight: bold; color: #1A1A1A; font-size: 13px; font-family: Georgia, serif; padding-left: 10px;">
-                                        ${formatCurrency(item.price)}
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    `).join('')}
-                </section>
-
-                <!-- REGISTRO -->
-                ${allImages.length > 0 ? `
-                <section class="atelier-log" style="padding: 0 40px 25px 40px;">
-                    <h3 style="font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #C36B53; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #EAEAEA; padding-bottom: 6px; font-weight: bold; text-align: left;">Bitácora del Atelier</h3>
-                    <div style="background-color: #FBFBFA; border: 1px solid #EAEAEA; padding: 15px 15px 3px 15px; border-radius: 2px; text-align: left;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td style="text-align: left; padding: 0;">
-                                    ${allImages.map((img) => `
-                                        <div style="display: inline-block; vertical-align: top; margin-right: 12px; margin-bottom: 12px; background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: 6px; border-radius: 2px; width: 130px; text-align: center;">
-                                            <div style="width: 130px; height: 130px; overflow: hidden; background-color: #F8FAFC; text-align: center; border-radius: 1px; margin-bottom: 6px;">
-                                                <img src="${img.url}" style="width: 100%; height: 100%; object-fit: cover;" alt="Registro de ingreso atelier" />
-                                            </div>
-                                            <p style="margin: 0; font-size: 8px; text-transform: uppercase; color: #8A8A8A; font-weight: bold; letter-spacing: 0.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${img.itemName}</p>
-                                            ${img.notes ? `<p style="margin: 4px 0 0 0; font-size: 9px; color: #64748B; font-style: italic; line-height: 1.2; word-break: break-word;">"${img.notes}"</p>` : ''}
-                                        </div>
-                                    `).join('')}
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </section>
-                ` : ''}
-
-                <!-- TOTAL -->
-                <section class="payment-total" style="padding: 0 40px 25px 40px;">
-                    <table style="width: 100%; border-collapse: collapse; background-color: #FBFBFA; border: 1px solid #C36B53; border-radius: 2px;">
-                        <tr>
-                            <td style="padding: 15px; text-align: left;">
-                                <span style="font-size: 8px; text-transform: uppercase; color: #8A8A8A; display: block; letter-spacing: 1px; margin-bottom: 2px;">Total Registrado</span>
-                                <strong style="font-family: Georgia, serif; font-size: 14px; font-weight: bold; color: #1A1A1A;">Total del Servicio</strong>
-                            </td>
-                            <td style="padding: 15px; text-align: right; font-family: 'Playfair Display', Georgia, serif; font-size: 22px; color: #C36B53; font-weight: bold;">
-                                ${formatCurrency(total)}
-                            </td>
-                        </tr>
-                    </table>
-                </section>
-
-                <!-- CIERRE + GOOGLE REVIEWS -->
-                <section class="closing-message" style="padding: 0 40px 25px 40px; text-align: center;">
-                    <p style="font-size: 12px; color: #4A4A4A; line-height: 1.6; margin: 0 0 30px 0; font-style: italic;">
-                        Te contactaremos personalmente cuando tu prenda esté lista para prueba,
-                        retiro o siguientes ajustes dentro del proceso.
-                    </p>
-
-                    <!-- GOOGLE REVIEW CARD -->
-                    <div style="padding: 25px; background-color: #FBFBFA; border: 1px dashed #C36B53; border-radius: 2px; text-align: center;">
-                        <h3 style="margin: 0 0 8px 0; font-family: Georgia, serif; font-size: 16px; color: #1A1A1A; font-style: italic; font-weight: 500;">Gracias por confiar en nosotras</h3>
-                        <p style="margin: 0 0 15px 0; font-size: 12px; color: #64748B; line-height: 1.5;">Si disfrutaste tu experiencia con ELENA La Costurera, puedes compartir tu opinión aquí.</p>
-                        <a href="https://g.page/r/Cfv2lRZLdYUuEBM/review" target="_blank" style="display: inline-block; padding: 10px 20px; background-color: #1A1A1A; color: #F0E6DF; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; border-radius: 2px;">Dejar opinión en Google</a>
-                    </div>
-                </section>
-
-                <!-- FOOTER -->
-                <footer class="email-footer" style="background-color: #1A1A1A; padding: 40px; text-align: center; border-top: 1px solid #EAEAEA;">
-                    <strong style="font-family: 'Playfair Display', Georgia, serif; font-size: 16px; color: #F0E6DF; letter-spacing: 2px; text-transform: uppercase; font-weight: normal; display: block; margin-bottom: 5px;">ELENA La Costurera</strong>
-                    <p style="font-size: 11px; color: #8A8A8A; margin: 0 0 4px 0;">Av. Tabancura 1091 · Vitacura</p>
-                    <a href="mailto:contacto@elenalacosturera.cl" style="font-size: 11px; color: #C36B53; text-decoration: none; display: block; margin-bottom: 10px;">contacto@elenalacosturera.cl</a>
-                    <span style="font-size: 8px; text-transform: uppercase; letter-spacing: 1px; color: #8A8A8A; display: block;">Atelier de Alta Costura & Oficio Textil</span>
-                </footer>
-
+        const garmentsSectionHtml = `
+            <div style="margin-bottom: 24px; text-align: left;">
+              <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
+                ${items.map(item => `
+                  <tr style="border-bottom: 1px solid rgba(245, 242, 235, 0.08);">
+                    <td style="padding: 10px 0; text-align: left; vertical-align: top; font-family: 'Inter', sans-serif;">
+                      <p style="margin: 0; font-size: 11px; font-weight: 500; color: #FFFFFF; line-height: 1.3; letter-spacing: 0.5px;">${item.name}</p>
+                      <span style="font-size: 8px; text-transform: uppercase; color: #8A857D; font-weight: 500; letter-spacing: 1.5px; display: inline-block; margin-top: 2px;">${item.category}</span>
+                    </td>
+                    <td style="padding: 10px 0; text-align: right; vertical-align: top; font-family: 'Playfair Display', Georgia, serif; font-size: 12px; font-weight: bold; color: #C17F5F;">
+                      ${formatCurrency(item.price)}
+                    </td>
+                  </tr>
+                `).join('')}
+              </table>
+              <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
+                <tr>
+                  <td style="padding: 4px 0; text-align: left; font-size: 8px; font-weight: 600; color: #8A857D; letter-spacing: 2px; text-transform: uppercase; font-family: 'Inter', sans-serif;">Total Pagado</td>
+                  <td style="padding: 4px 0; text-align: right; font-family: 'Playfair Display', Georgia, serif; font-size: 18px; font-weight: 300; color: #C17F5F;">
+                    ${formatCurrency(total)}
+                  </td>
+                </tr>
+              </table>
             </div>
-        </body>
-        </html>
-        `;
+            `;
+
+        // Simplified email HTML template
+        const htmlContent = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elena La Costurera — Luxury Pass</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,700;1,300&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #F0EDE8; margin: 0; padding: 24px; -webkit-font-smoothing: antialiased;">
+  <!-- Card Container -->
+  <div style="max-width: 360px; margin: 0 auto; background-color: #1A1A1A; background-image: linear-gradient(to bottom, rgba(26, 26, 26, 0.25) 0%, rgba(26, 26, 26, 0.85) 60%, #1A1A1A 100%), url('${cardBgUrl}'); background-size: cover; background-position: center; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); border: 1px solid rgba(245, 242, 235, 0.15); overflow: hidden; color: #F5F5F0;">
+    
+    <!-- Tag Hole -->
+    <div style="width: 12px; height: 12px; background-color: #F0EDE8; border-radius: 50%; margin: 28px auto 0 auto; opacity: 0.9;"></div>
+    
+    <!-- Header -->
+    <div style="text-align: center; padding: 28px 20px 24px 20px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto; width: 130px; border-collapse: collapse;">
+        <tr>
+          <td>
+            <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td align="left" style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; color: #FFFFFF; line-height: 1; padding: 0;">E</td>
+                <td align="center" style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; color: #FFFFFF; line-height: 1; padding: 0;">L</td>
+                <td align="center" style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; color: #FFFFFF; line-height: 1; padding: 0;">E</td>
+                <td align="center" style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; color: #FFFFFF; line-height: 1; padding: 0;">N</td>
+                <td align="right" style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; color: #FFFFFF; line-height: 1; padding: 0;">A</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-top: 8px; line-height: 1; font-size: 1px;">&nbsp;</td>
+        </tr>
+        <tr>
+          <td>
+            <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td align="left" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">L</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">A</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0; width: 6px;">&nbsp;</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">C</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">O</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">S</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">T</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">U</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">R</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">E</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">R</td>
+                <td align="right" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">A</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+    
+    <!-- Table-based Ticket Divider -->
+    <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; margin: 0; border-collapse: collapse;">
+      <tr>
+        <td style="width: 8px; height: 16px; background-color: #F0EDE8; border-radius: 0 8px 8px 0;"></td>
+        <td style="border-bottom: 1px dashed rgba(245, 242, 235, 0.12); vertical-align: middle; height: 8px; line-height: 1px; font-size: 1px;">&nbsp;</td>
+        <td style="width: 8px; height: 16px; background-color: #F0EDE8; border-radius: 8px 0 0 8px;"></td>
+      </tr>
+    </table>
+    
+    <!-- Body -->
+    <div style="padding: 36px 30px 40px 30px; text-align: center;">
+      <p style="font-size: 8px; font-weight: 600; color: #C17F5F; letter-spacing: 5px; text-transform: uppercase; margin: 0 0 4px 0; font-family: 'Inter', sans-serif;">Ingreso Atelier</p>
+      <h2 style="font-family: 'Playfair Display', Georgia, serif; font-size: 56px; font-weight: 300; color: #FFFFFF; margin: 0 0 28px 0; line-height: 1; letter-spacing: -2px;">#${orderId}</h2>
+      
+      <p style="font-family: 'Playfair Display', Georgia, serif; font-size: 20px; font-style: italic; font-weight: 400; color: #F5F5F0; margin: 0 0 36px 0; letter-spacing: 0.5px;">${customerName}</p>
+      
+      <div style="margin-bottom: 40px;">
+        ${garmentsSectionHtml}
+        
+        <div style="border: 1px solid rgba(245, 242, 235, 0.1); border-radius: 2px; display: inline-block; padding: 12px 24px; background-color: rgba(255, 255, 255, 0.02);">
+          <p style="font-size: 7.5px; font-weight: 600; color: #8A857D; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 4px 0; font-family: 'Inter', sans-serif;">Prueba / Retiro</p>
+          <p style="font-size: 11px; font-weight: 400; color: #F5F5F0; letter-spacing: 1px; font-family: 'Inter', sans-serif;">${deliveryDateFormatted.split(',')[1] || deliveryDateFormatted} — ${deliveryTimeFormatted} hrs</p>
+        </div>
+      </div>
+      
+      <!-- Barcode -->
+      <div style="margin: 36px 0 12px 0; text-align: center; opacity: 0.7;">
+        <span style="display: inline-block; width: 1px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 2px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 1px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 3px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 1px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 2px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 1px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 4px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 1.5px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 1px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <div style="font-size: 7.5px; color: #8A857D; letter-spacing: 4px; margin-top: 6px; text-transform: uppercase; font-family: 'Inter', sans-serif;">ELENA*${orderId}*LA*COSTURERA</div>
+      </div>
+      
+      <p style="font-size: 8px; color: #8A857D; letter-spacing: 2.5px; margin-top: 28px; font-weight: 400; font-family: 'Inter', sans-serif;">Av. Tabancura 1091 · Vitacura</p>
+    </div>
+  </div>
+</body>
+</html>`;
 
         const fromAddress = smtpUser.includes('gmail.com') ? 'contacto@elenalacosturera.cl' : smtpUser;
         const info = await transporter.sendMail({
-            from: `"Elena Atelier" <${fromAddress}>`,
+            from: `"ELENA La Costurera" <${fromAddress}>`,
             to: customerEmail,
-            subject: `Confirmación de Orden #${orderId} - Elena Atelier 👗`,
+            subject: `Tu pieza ya ingresó al atelier — ELENA La Costurera`,
             html: htmlContent,
+            attachments: attachments,
         });
 
         console.log('Correo de confirmación enviado:', info.messageId);
         return { success: true };
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Error al enviar correo por SMTP de Google:', err);
-        return { success: false, error: err.message || String(err) };
+        return { success: false, error: err instanceof Error ? err.message : String(err) };
     }
 }
+
 
 export async function createPOSOrdersAction(payload: {
     customerId: string;

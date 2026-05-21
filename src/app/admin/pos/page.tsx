@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, Plus, MessageSquare, Mail, ClipboardList, TrendingUp, Loader2, Package, Camera, FileText } from 'lucide-react';
 import { getCostSettings } from '../finance/actions';
@@ -119,6 +119,15 @@ export default function POSPage() {
     const [deadline, setDeadline] = useState<string>('');
     const [dailyWorkload, setDailyWorkload] = useState<{ count: number; totalHours: number } | null>(null);
     const [loadingWorkload, setLoadingWorkload] = useState<boolean>(false);
+    // Custom date-time picker state
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [pickerStep, setPickerStep] = useState<'date' | 'time'>('date');
+    const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
+    const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
+    const [tempDate, setTempDate] = useState('');
+    const [tempHour, setTempHour] = useState('10');
+    const [tempMinute, setTempMinute] = useState('00');
+    const datePickerRef = useRef<HTMLDivElement>(null);
 
     React.useEffect(() => {
         if (!deadline) {
@@ -131,6 +140,106 @@ export default function POSPage() {
             setLoadingWorkload(false);
         });
     }, [deadline]);
+
+    // Close picker when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (datePickerRef.current && !datePickerRef.current.contains(e.target as Node)) {
+                setShowDatePicker(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // Picker helpers
+    const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const DAY_NAMES = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
+    const getDaysInMonth = (m: number, y: number) => new Date(y, m + 1, 0).getDate();
+    const getFirstDay = (m: number, y: number) => { const d = new Date(y, m, 1).getDay(); return d === 0 ? 6 : d - 1; };
+    const HOURS = ['08','09','10','11','12','13','14','15','16','17','18','19','20'];
+    const MINUTES = ['00','15','30','45'];
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    const isDateTimePast = (dateStr: string, hourStr: string, minuteStr: string) => {
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        if (dateStr < todayStr) return true;
+        if (dateStr > todayStr) return false;
+        const h = parseInt(hourStr);
+        const m = parseInt(minuteStr);
+        if (h < now.getHours()) return true;
+        if (h === now.getHours() && m <= now.getMinutes()) return true;
+        return false;
+    };
+
+    const findFirstAvailableSlot = (dateStr: string) => {
+        let firstH = '10';
+        let firstM = '00';
+        for (const h of HOURS) {
+            if (!isDateTimePast(dateStr, h, '45')) {
+                firstH = h;
+                for (const m of MINUTES) {
+                    if (!isDateTimePast(dateStr, h, m)) {
+                        firstM = m;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+        return { hour: firstH, minute: firstM };
+    };
+
+    const openPicker = () => {
+        if (deadline) {
+            const [dp, tp] = deadline.split('T');
+            setTempDate(dp);
+            const [h, m] = (tp || '10:00').split(':');
+            setTempHour(h); setTempMinute(m);
+            const [y, mo] = dp.split('-');
+            setCalendarYear(parseInt(y)); setCalendarMonth(parseInt(mo) - 1);
+        } else {
+            setTempDate(''); 
+            const now = new Date();
+            const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const todayPast = isDateTimePast(todayStr, '20', '45');
+            const defaultDate = todayPast ? (() => {
+                const nextDay = new Date();
+                nextDay.setDate(nextDay.getDate() + 1);
+                return `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, '0')}-${String(nextDay.getDate()).padStart(2, '0')}`;
+            })() : todayStr;
+            const { hour, minute } = findFirstAvailableSlot(defaultDate);
+            setTempHour(hour); setTempMinute(minute);
+            setCalendarMonth(new Date().getMonth()); setCalendarYear(new Date().getFullYear());
+        }
+        setPickerStep('date');
+        setShowDatePicker(true);
+    };
+
+    const selectDay = (day: number) => {
+        const d = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        setTempDate(d);
+        const { hour, minute } = findFirstAvailableSlot(d);
+        setTempHour(hour);
+        setTempMinute(minute);
+        setPickerStep('time');
+    };
+
+    const confirmTime = () => {
+        setDeadline(`${tempDate}T${tempHour}:${tempMinute}`);
+        setShowDatePicker(false);
+    };
+
+    const formatDeadlineDisplay = () => {
+        if (!deadline) return null;
+        const [dp, tp] = deadline.split('T');
+        const d = new Date(dp + 'T12:00');
+        return {
+            day: d.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+            time: tp
+        };
+    };
  
     React.useEffect(() => {
         setLoading(true);
@@ -244,7 +353,8 @@ export default function POSPage() {
                 items: [...cart],
                 total: total,
                 method: paymentMethod,
-                date: dateStr
+                date: dateStr,
+                deliveryDate: deadline
             });
 
             // Enviar automáticamente el correo de confirmación de orden si el cliente tiene correo
@@ -262,7 +372,8 @@ export default function POSPage() {
                     })),
                     total: total,
                     paymentMethod: paymentMethod,
-                    date: dateStr
+                    date: dateStr,
+                    deliveryDate: deadline
                 }).catch(err => {
                     console.error('Error al enviar correo automático de confirmación:', err);
                 });
@@ -949,17 +1060,199 @@ export default function POSPage() {
 
                     {/* Time Blocking & Delivery Date Selector */}
                     <div className="border-t border-gray-100 pt-6 mt-6 space-y-4">
-                        <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Tiempos de Entrega & Agendamiento</h4>
-                        
-                        <div className="space-y-2">
-                            <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500">Fecha Prometida de Entrega</label>
-                            <input 
-                                type="date" 
-                                value={deadline}
-                                onChange={(e) => setDeadline(e.target.value)}
-                                className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta" 
-                            />
+                        <div className="flex items-center justify-between">
+                            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Fecha de Entrega</h4>
+                            {deadline
+                                ? <span className="text-[9px] text-green-600 font-bold uppercase tracking-wide">✓ Confirmada</span>
+                                : <span className="text-[9px] text-red-400 font-bold uppercase tracking-wide animate-pulse">● Obligatorio</span>
+                            }
                         </div>
+
+                        {/* Trigger display card */}
+                        <div ref={datePickerRef} className="relative">
+                            <button
+                                type="button"
+                                onClick={openPicker}
+                                className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${
+                                    deadline
+                                        ? 'border-brand-terracotta bg-gradient-to-r from-brand-terracotta/5 to-transparent'
+                                        : 'border-dashed border-gray-300 hover:border-brand-terracotta/50 bg-gray-50'
+                                }`}
+                            >
+                                {deadline ? (() => {
+                                    const fmt = formatDeadlineDisplay()!;
+                                    return (
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-lg bg-brand-terracotta flex items-center justify-center flex-shrink-0">
+                                                <span className="text-white text-lg">📅</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-0.5">Entrega programada</p>
+                                                <p className="text-sm font-bold text-brand-charcoal capitalize">{fmt.day}</p>
+                                                <p className="text-xs font-semibold text-brand-terracotta">⏰ {fmt.time} hrs</p>
+                                            </div>
+                                            <span className="ml-auto text-[10px] text-gray-400 uppercase tracking-wide">Editar →</span>
+                                        </div>
+                                    );
+                                })() : (
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-2xl">📅</span>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-0.5">Fecha y hora de entrega</p>
+                                            <p className="text-sm text-gray-400 italic">Toca para seleccionar...</p>
+                                        </div>
+                                        <span className="ml-auto text-[10px] text-brand-terracotta uppercase tracking-wide font-bold">Requerido →</span>
+                                    </div>
+                                )}
+                            </button>
+
+                            {/* ── PICKER PANEL ── */}
+                            {showDatePicker && (
+                                <div className="absolute bottom-full mb-2 left-0 right-0 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50" style={{minWidth:'300px'}}>
+
+                                    {/* ── STEP 1: CALENDAR ── */}
+                                    {pickerStep === 'date' && (
+                                        <div>
+                                            {/* Header */}
+                                            <div className="bg-brand-charcoal px-4 py-3 flex items-center justify-between">
+                                                <button type="button" onClick={() => { const d = new Date(calendarYear, calendarMonth - 1); setCalendarMonth(d.getMonth()); setCalendarYear(d.getFullYear()); }} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-white transition-all">‹</button>
+                                                <span className="text-white text-sm font-bold uppercase tracking-widest">{MONTHS[calendarMonth]} {calendarYear}</span>
+                                                <button type="button" onClick={() => { const d = new Date(calendarYear, calendarMonth + 1); setCalendarMonth(d.getMonth()); setCalendarYear(d.getFullYear()); }} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-white transition-all">›</button>
+                                            </div>
+                                            {/* Day headers */}
+                                            <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-100">
+                                                {DAY_NAMES.map(d => <div key={d} className="text-center py-2 text-[10px] font-bold uppercase tracking-wide text-gray-400">{d}</div>)}
+                                            </div>
+                                            {/* Days grid */}
+                                            <div className="grid grid-cols-7 p-2 gap-1">
+                                                {Array.from({ length: getFirstDay(calendarMonth, calendarYear) }).map((_, i) => <div key={`e${i}`} />)}
+                                                {Array.from({ length: getDaysInMonth(calendarMonth, calendarYear) }, (_, i) => i + 1).map(day => {
+                                                    const dateStr = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                                                    const dayDate = new Date(dateStr + 'T12:00'); dayDate.setHours(0,0,0,0);
+                                                    const isPast = isDateTimePast(dateStr, '20', '45');
+                                                    const isSelected = tempDate === dateStr;
+                                                    const isToday = dayDate.getTime() === today.getTime();
+                                                    return (
+                                                        <button
+                                                            key={day}
+                                                            type="button"
+                                                            disabled={isPast}
+                                                            onClick={() => selectDay(day)}
+                                                            className={`relative w-full aspect-square flex items-center justify-center rounded-lg text-sm font-semibold transition-all ${
+                                                                isPast ? 'text-gray-200 cursor-not-allowed' :
+                                                                isSelected ? 'bg-brand-terracotta text-white shadow-md scale-110' :
+                                                                isToday ? 'border-2 border-brand-terracotta text-brand-terracotta hover:bg-brand-terracotta/10' :
+                                                                'hover:bg-brand-terracotta/10 text-gray-700'
+                                                            }`}
+                                                        >
+                                                            {day}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                            <div className="px-4 pb-3 text-center">
+                                                <p className="text-[10px] text-gray-400">Selecciona el día de entrega</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ── STEP 2: TIME ── */}
+                                    {pickerStep === 'time' && (
+                                        <div>
+                                            {/* Header */}
+                                            <div className="bg-brand-charcoal px-4 py-3 flex items-center gap-3">
+                                                <button type="button" onClick={() => setPickerStep('date')} className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-white transition-all text-lg">‹</button>
+                                                <div>
+                                                    <p className="text-white text-sm font-bold capitalize">{(() => { const d = new Date(tempDate + 'T12:00'); return d.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' }); })()}</p>
+                                                    <p className="text-brand-terracotta text-[10px] uppercase tracking-widest">Selecciona la hora</p>
+                                                </div>
+                                            </div>
+                                            {/* Time display */}
+                                            <div className="bg-gray-50 border-b border-gray-100 py-3 text-center">
+                                                <span className="text-4xl font-bold text-brand-charcoal font-serif">{tempHour}:{tempMinute}</span>
+                                                <span className="text-gray-400 ml-1 text-sm">hrs</span>
+                                            </div>
+                                            {/* Hours */}
+                                            <div className="px-3 pt-3">
+                                                <p className="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Hora</p>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {HOURS.map(h => {
+                                                        const isHourPast = isDateTimePast(tempDate, h, '45');
+                                                        return (
+                                                            <button 
+                                                                key={h} 
+                                                                type="button" 
+                                                                disabled={isHourPast}
+                                                                onClick={() => {
+                                                                    setTempHour(h);
+                                                                    if (isDateTimePast(tempDate, h, tempMinute)) {
+                                                                        for (const m of MINUTES) {
+                                                                            if (!isDateTimePast(tempDate, h, m)) {
+                                                                                setTempMinute(m);
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }}
+                                                                className={`flex-1 min-w-[2.5rem] py-2 rounded-lg text-sm font-bold transition-all ${
+                                                                    isHourPast ? 'opacity-25 cursor-not-allowed bg-gray-100 text-gray-400' :
+                                                                    tempHour === h ? 'bg-brand-terracotta text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-brand-terracotta/10'
+                                                                }`}
+                                                            >
+                                                                {h}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                            {/* Minutes */}
+                                            <div className="px-3 pt-3 pb-3">
+                                                <p className="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Minutos</p>
+                                                <div className="grid grid-cols-4 gap-1.5">
+                                                    {MINUTES.map(m => {
+                                                        const isMinutePast = isDateTimePast(tempDate, tempHour, m);
+                                                        return (
+                                                            <button 
+                                                                key={m} 
+                                                                type="button" 
+                                                                disabled={isMinutePast}
+                                                                onClick={() => setTempMinute(m)}
+                                                                className={`py-2.5 rounded-lg text-sm font-bold transition-all ${
+                                                                    isMinutePast ? 'opacity-25 cursor-not-allowed bg-gray-100 text-gray-400' :
+                                                                    tempMinute === m ? 'bg-brand-terracotta text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-brand-terracotta/10'
+                                                                }`}
+                                                            >
+                                                                {m}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                            {/* Confirm */}
+                                            <div className="px-3 pb-4">
+                                                <button 
+                                                    type="button" 
+                                                    onClick={confirmTime}
+                                                    disabled={isDateTimePast(tempDate, tempHour, tempMinute)}
+                                                    className="w-full py-3 bg-brand-charcoal text-white rounded-lg text-[10px] uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                                >
+                                                    Confirmar Entrega {tempHour}:{tempMinute} hrs ✓
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                </div>
+                            )}
+                        </div>
+
+                        {!deadline && (
+                            <p className="text-[10px] text-red-400 font-medium flex items-center gap-1">
+                                <span>⚠</span> Debes ingresar la fecha y hora de entrega para continuar.
+                            </p>
+                        )}
 
                         {deadline && (
                             <div className="bg-brand-sand/10 border border-brand-sand/30 p-4 rounded-sm space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
@@ -1026,9 +1319,20 @@ export default function POSPage() {
                         <button 
                             type="button"
                             onClick={handleCheckout}
-                            disabled={cart.length === 0 || !paymentMethod || !selectedCustomer || isProcessing}
-                            className={`w-full py-4 text-[10px] uppercase tracking-widest font-bold transition-all ${cart.length === 0 || !paymentMethod || !selectedCustomer || isProcessing ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 shadow-md'}`}>
-                            {isProcessing ? 'Procesando...' : (!selectedCustomer ? 'Falta Identificar Cliente' : 'Cobrar y Emitir Boleta')}
+                            disabled={cart.length === 0 || !paymentMethod || !selectedCustomer || !deadline || isProcessing}
+                            className={`w-full py-4 text-[10px] uppercase tracking-widest font-bold transition-all ${
+                                cart.length === 0 || !paymentMethod || !selectedCustomer || !deadline || isProcessing
+                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                                    : 'bg-green-600 text-white hover:bg-green-700 shadow-md'
+                            }`}>
+                            {isProcessing
+                                ? 'Procesando...'
+                                : !selectedCustomer
+                                    ? 'Falta Identificar Cliente'
+                                    : !deadline
+                                        ? '⚠ Falta Fecha y Hora de Entrega'
+                                        : 'Cobrar y Emitir Boleta'
+                            }
                         </button>
                     </div>
                 </div>
@@ -1260,7 +1564,8 @@ export default function POSPage() {
                                                             })),
                                                             total: checkoutResult.total,
                                                             paymentMethod: checkoutResult.method,
-                                                            date: checkoutResult.date
+                                                            date: checkoutResult.date,
+                                                            deliveryDate: checkoutResult.deliveryDate || ''
                                                         });
                                                         if (res.success) {
                                                             alert('¡Comprobante enviado por correo con éxito! ✨');
@@ -1282,7 +1587,13 @@ export default function POSPage() {
                                         {checkoutResult.customer.phone && (
                                             <button 
                                                 onClick={() => {
-                                                    const message = encodeURIComponent(`¡Hola! Tu orden de trabajo #${checkoutResult.orderId} en Elena Atelier por un total de $${checkoutResult.total.toLocaleString('es-CL')} ha sido ingresada con éxito. ¡Muchas gracias por tu confianza! ✨\n\nTe invitamos a ver nuestra ubicación y las opiniones de nuestra distinguida clientela en Google: https://g.page/r/Cfv2lRZLdYUuEBM/review 👗`);
+                                                    const deliveryInfo = checkoutResult.deliveryDate ? (() => {
+                                                        const d = new Date(checkoutResult.deliveryDate);
+                                                        const day = d.toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                                                        const time = d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
+                                                        return `${day} a las ${time} hrs`;
+                                                    })() : '';
+                                                    const message = encodeURIComponent(`¡Hola ${checkoutResult.customer.full_name.split(' ')[0]}! 🎉\n\nTu pieza ya ingresó al atelier y está en proceso.\nOrden #: ${checkoutResult.orderId}\nTotal: ${checkoutResult.total.toLocaleString('es-CL')} CLP\n${deliveryInfo ? `Entrega estimada: ${deliveryInfo}\n` : ''}\nSi tienes dudas, contáctanos.\n\n— Elena La Costurera`);
                                                     const cleanPhone = checkoutResult.customer.phone.replace(/\D/g, '');
                                                     window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
                                                 }}

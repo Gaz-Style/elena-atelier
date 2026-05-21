@@ -6,22 +6,20 @@ export async function sendWelcomeNotifications(customer: { id: string; full_name
   const firstName = customer.full_name.split(' ')[0];
 
   // 1. Email Simulation
-  const emailBody = `
-    Hola ${firstName},
-    
-    ¡Bienvenida al Círculo Exclusivo de Elena Atelier! 
-    Es un honor para nosotros que seas parte de nuestra comunidad de alta costura. 
-    A partir de ahora, tu historial y medidas estarán centralizados para brindarte 
-    una atención artesanal perfecta.
-    
-    Como parte de nuestro compromiso con la excelencia, te invitamos a conocer las opiniones de nuestra distinguida clientela y compartir tu experiencia en nuestro perfil de Google:
-    https://g.page/r/Cfv2lRZLdYUuEBM/review
-    
-    Te esperamos pronto en Av. Tabancura 1091, Vitacura.
-    
-    Con cariño,
-    Elena Rojas
-  `;
+  const emailBody = `Estimada ${firstName},
+
+Es un privilegio darte la bienvenida al atelier.
+
+A partir de hoy, tu perfil está activo en ELENA La Costurera. Cada prenda que trabajemos juntas quedará registrada aquí, con la atención y el cuidado que cada pieza merece.
+
+Nuestro espacio en Av. Tabancura 1091, Vitacura, siempre está disponible para ti.
+
+Si deseas compartir tu primera impresión o conocer las experiencias de otras clientas:
+https://g.page/r/Cfv2lRZLdYUuEBM/review
+
+Con cariño,
+Elena Rojas
+ELENA La Costurera`;
 
   console.log('--- ENVIANDO CORREO ELECTRÓNICO ---');
   console.log('Para:', customer.email);
@@ -30,13 +28,13 @@ export async function sendWelcomeNotifications(customer: { id: string; full_name
   await supabase.from('notification_logs').insert({
     customer_id: customer.id,
     type: 'email',
-    template: 'welcome_v1',
+    template: 'welcome_v2',
     status: 'sent'
   });
 
-  // 2. WhatsApp Simulation (Real automation would use Meta API or Twilio)
-  const whatsappMessage = `*¡Bienvenida a Elena Atelier, ${firstName}!* ✨ %0A%0AEstamos felices de tenerte con nosotros. Tu perfil y medidas ya están activos en nuestro sistema para brindarte una atención artesanal perfecta. 👗%0A%0ATe invitamos a conocer nuestra reputación o compartir tu experiencia en Google: %0Ahttps://g.page/r/Cfv2lRZLdYUuEBM/review %0A%0AAtelier Vitacura (Av. Tabancura 1091) ✨`;
-  
+  // 2. WhatsApp Simulation
+  const whatsappMessage = `Hola ${firstName} ✨\n\nBienvenida a ELENA La Costurera. Tu perfil ya está activo en nuestro atelier.\n\nEstamos aquí para acompañarte en cada pieza.\n\n— ELENA La Costurera\nAv. Tabancura 1091, Vitacura`;
+
   console.log('--- ENVIANDO WHATSAPP ---');
   console.log('Para:', customer.phone);
   console.log('Mensaje:', whatsappMessage);
@@ -44,7 +42,7 @@ export async function sendWelcomeNotifications(customer: { id: string; full_name
   await supabase.from('notification_logs').insert({
     customer_id: customer.id,
     type: 'whatsapp',
-    template: 'welcome_v1',
+    template: 'welcome_v2',
     status: 'sent'
   });
 
