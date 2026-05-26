@@ -224,7 +224,7 @@ export async function sendOrderConfirmationEmailAction(payload: {
                     currency_id: 'CLP'
                 }));
                 
-                const mpResponse = await fetch('https://api.mercadopago.com/v1/checkouts/preferences', {
+                const mpResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${mpAccessToken}`,

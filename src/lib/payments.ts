@@ -22,7 +22,7 @@ export async function createPaymentPreference(items: any[]) {
 
         console.log('Creating Mercado Pago production preference for items:', formattedItems);
 
-        const response = await fetch('https://api.mercadopago.com/v1/checkouts/preferences', {
+        const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${mpAccessToken}`,
