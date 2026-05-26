@@ -105,6 +105,7 @@ export default function POSPage() {
     const [fixedCost, setFixedCost] = useState<number>(349000);
     const [marginPercentage, setMarginPercentage] = useState<number>(15);
     const [globalSettings, setGlobalSettings] = useState<any>(null);
+    const [customPrice, setCustomPrice] = useState<string>('');
  
     const [allCustomers, setAllCustomers] = useState<any[]>([]);
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
@@ -267,10 +268,16 @@ export default function POSPage() {
         e.preventDefault();
         if (!customOrderName) return;
         
+        const finalPrice = customPrice ? Math.round(Number(customPrice)) : Math.round(calculatedPrice);
+        const hasDiscount = finalPrice < Math.round(calculatedPrice);
+        const discountPct = hasDiscount ? Math.round(((Math.round(calculatedPrice) - finalPrice) / Math.round(calculatedPrice)) * 100) : 0;
+
         addToCart({
             id: Date.now(),
             name: customOrderName,
-            price: Math.round(calculatedPrice),
+            price: finalPrice,
+            suggestedPrice: Math.round(calculatedPrice),
+            discountPercentage: discountPct,
             category: customOrderCategory,
             isCustom: true,
             notes: orderNotes,
@@ -297,6 +304,7 @@ export default function POSPage() {
         setOrderNotes('');
         setOrderImages([]);
         setActiveImageIndex(0);
+        setCustomPrice('');
     };
 
     const handleQuickRegister = async () => {
@@ -967,15 +975,56 @@ export default function POSPage() {
                                 </div>
                             </div>
 
-                            <div className="flex flex-col md:flex-row justify-between items-center bg-brand-charcoal text-white p-6 rounded-sm mt-4 shadow-lg gap-4">
+                            <div className="flex flex-col md:flex-row justify-between items-center bg-brand-charcoal text-white p-6 rounded-sm mt-4 shadow-lg gap-6">
                                 <div className="text-center md:text-left">
                                     <p className="text-[10px] uppercase tracking-widest text-brand-sand font-bold mb-1">Precio Sugerido (Con Margen {marginPercentage}%)</p>
-                                    <p className="text-3xl font-serif">{formatCurrency(calculatedPrice)}</p>
+                                    <p className="text-3xl font-serif text-white">{formatCurrency(calculatedPrice)}</p>
                                 </div>
+                                
+                                <div className="flex flex-col items-center md:items-start gap-2">
+                                    <label className="text-[10px] uppercase tracking-widest text-brand-sand font-bold">Precio Cobrado Real (CLP)</label>
+                                    <div className="flex items-center gap-2">
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">$</span>
+                                            <input 
+                                                type="number" 
+                                                min="0" 
+                                                value={customPrice} 
+                                                onChange={(e) => setCustomPrice(e.target.value)} 
+                                                placeholder={Math.round(calculatedPrice).toString()} 
+                                                className="pl-7 pr-3 py-2.5 w-36 bg-white/10 border border-white/20 rounded-sm text-white text-sm font-bold outline-none focus:border-brand-sand focus:bg-white/15 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                            />
+                                        </div>
+                                        <button 
+                                            type="button"
+                                            onClick={() => setCustomPrice(Math.round(calculatedPrice).toString())}
+                                            className="px-3.5 py-2.5 bg-white/5 border border-white/20 hover:border-brand-sand rounded-sm text-[9px] uppercase tracking-widest font-bold text-white transition-all active:scale-95 cursor-pointer"
+                                            title="Copiar precio sugerido"
+                                        >
+                                            Copiar Sugerido
+                                        </button>
+                                    </div>
+                                    {/* Mostrar porcentaje de descuento */}
+                                    {(() => {
+                                        const finalPrice = customPrice ? Number(customPrice) : calculatedPrice;
+                                        if (finalPrice > 0 && finalPrice < calculatedPrice) {
+                                            const discountPct = Math.round(((calculatedPrice - finalPrice) / calculatedPrice) * 100);
+                                            if (discountPct > 0) {
+                                                return (
+                                                    <span className="text-[9px] bg-green-500/20 text-green-400 border border-green-500/30 px-2.5 py-1 rounded-sm font-bold uppercase tracking-widest animate-pulse">
+                                                        Descuento Realizado: {discountPct}%
+                                                    </span>
+                                                );
+                                            }
+                                        }
+                                        return null;
+                                    })()}
+                                </div>
+
                                 <button 
                                     onClick={(e) => handleAddCustomOrder(e)}
                                     disabled={!customOrderName || (!hoursEstimated && !materialsCost && !extraCost)}
-                                    className="w-full md:w-auto bg-brand-terracotta text-white px-10 py-4 text-[10px] uppercase tracking-widest font-bold rounded-sm hover:bg-white hover:text-brand-terracotta transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                    className="w-full md:w-auto bg-brand-terracotta text-white px-10 py-4 text-[10px] uppercase tracking-widest font-bold rounded-sm hover:bg-white hover:text-brand-terracotta transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md">
                                     Añadir a la Orden
                                 </button>
                             </div>
@@ -1004,6 +1053,9 @@ export default function POSPage() {
                                         <p className="text-sm font-medium text-brand-charcoal">{item.name}</p>
                                         {item.costBreakdown && (
                                             <span className="bg-brand-charcoal text-white px-1.5 py-0.5 rounded-[2px] text-[8px] uppercase tracking-widest font-bold">ERP Costeado</span>
+                                        )}
+                                        {item.discountPercentage > 0 && (
+                                            <span className="bg-green-600 text-white px-1.5 py-0.5 rounded-[2px] text-[8px] uppercase tracking-widest font-bold font-sans">-{item.discountPercentage}% Desc.</span>
                                         )}
                                         {item.images && item.images.length > 0 && (
                                             <span className="bg-brand-terracotta text-white px-1.5 py-0.5 rounded-[2px] text-[8px] uppercase tracking-widest font-bold">{item.images.length} {item.images.length === 1 ? 'Foto' : 'Fotos'}</span>
