@@ -4,6 +4,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle, CreditCard, Store, Calendar, MapPin, Check } from 'lucide-react';
 import Link from 'next/link';
+import { createPaymentPreference } from '@/lib/payments';
 
 function BudgetContent() {
     const searchParams = useSearchParams();
@@ -206,7 +207,19 @@ function BudgetContent() {
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <button 
-                                    onClick={() => setPaymentMethod('web')}
+                                    onClick={async () => {
+                                        setPaymentMethod('web');
+                                        setStatus('paying');
+                                        try {
+                                            const res = await createPaymentPreference(data.cart);
+                                            window.location.href = res.init_point;
+                                        } catch (err) {
+                                            console.error('Error redirecting to MP:', err);
+                                            alert('Ocurrió un error al conectar con Mercado Pago. Por favor reintente.');
+                                            setStatus('accepted');
+                                            setPaymentMethod(null);
+                                        }
+                                    }}
                                     className="flex flex-col items-center gap-4 p-8 border border-white/10 bg-white/5 hover:border-brand-sand rounded-sm text-white transition-all group cursor-pointer"
                                 >
                                     <div className="bg-white/5 p-4 rounded-full group-hover:scale-110 transition-transform">

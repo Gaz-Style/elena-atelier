@@ -212,6 +212,51 @@ export async function sendOrderConfirmationEmailAction(payload: {
         const firstName = customerName.split(' ')[0];
         const paymentLabel = paymentMethod === 'card' ? 'Mercado Pago' : 'Efectivo / Transferencia';
 
+        // Crear preferencia de pago en Mercado Pago para la confirmación de la orden
+        let paymentUrl = '';
+        const mpAccessToken = process.env.MP_ACCESS_TOKEN || '';
+        if (mpAccessToken) {
+            try {
+                const mpItems = items.map(item => ({
+                    title: item.name,
+                    quantity: 1,
+                    unit_price: Math.round(item.price),
+                    currency_id: 'CLP'
+                }));
+                
+                const mpResponse = await fetch('https://api.mercadopago.com/v1/checkouts/preferences', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${mpAccessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        items: mpItems,
+                        back_urls: {
+                            success: 'https://elenalacosturera.com/pago-exitoso',
+                            failure: 'https://elenalacosturera.com/pago-fallido',
+                            pending: 'https://elenalacosturera.com/pago-pendiente'
+                        },
+                        auto_return: 'approved',
+                        external_reference: `order_${orderId}`
+                    })
+                });
+                
+                if (mpResponse.ok) {
+                    const mpData = await mpResponse.json();
+                    paymentUrl = mpData.init_point;
+                } else {
+                    console.error('Failed to create MP preference for order:', await mpResponse.text());
+                }
+            } catch (err) {
+                console.error('Error creating MP preference for order email:', err);
+            }
+        }
+        
+        if (!paymentUrl) {
+            paymentUrl = `https://www.mercadopago.cl/checkout/v1/redirect?pref_id=order_${orderId}`;
+        }
+
         const itemsRowsHtml = items.map((item) => `
             <tr style="border-bottom: 1px solid #EDE8DF;">
                 <td style="padding: 12px 8px; text-align: left; vertical-align: top; font-family:'Inter', sans-serif;">
@@ -341,12 +386,20 @@ export async function sendOrderConfirmationEmailAction(payload: {
       
       <p style="font-family: 'Playfair Display', Georgia, serif; font-size: 20px; font-style: italic; font-weight: 400; color: #F5F5F0; margin: 0 0 36px 0; letter-spacing: 0.5px;">${customerName}</p>
       
-      <div style="margin-bottom: 40px;">
+      <div style="margin-bottom: 30px;">
         ${garmentsSectionHtml}
         
-        <div style="border: 1px solid rgba(245, 242, 235, 0.1); border-radius: 2px; display: inline-block; padding: 12px 24px; background-color: rgba(255, 255, 255, 0.02);">
+        <div style="border: 1px solid rgba(245, 242, 235, 0.1); border-radius: 2px; display: inline-block; padding: 12px 24px; background-color: rgba(255, 255, 255, 0.02); margin-bottom: 20px;">
           <p style="font-size: 7.5px; font-weight: 600; color: #8A857D; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 4px 0; font-family: 'Inter', sans-serif;">Prueba / Retiro</p>
           <p style="font-size: 11px; font-weight: 400; color: #F5F5F0; letter-spacing: 1px; font-family: 'Inter', sans-serif;">${deliveryDateFormatted.split(',')[1] || deliveryDateFormatted} — ${deliveryTimeFormatted} hrs</p>
+        </div>
+
+        <!-- Botón de Pago Mercado Pago -->
+        <div style="margin: 12px 0 20px 0; text-align: center;">
+          <a href="${paymentUrl}" target="_blank" style="display: block; background-color: #C17F5F; color: #FFFFFF !important; text-decoration: none; padding: 15px 24px; font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 2.5px; border-radius: 2px; border: 1px solid #C17F5F; font-family: 'Inter', sans-serif; box-shadow: 0 4px 12px rgba(193, 127, 95, 0.25);">
+            PAGAR EN LÍNEA: ${formatCurrency(total)}
+          </a>
+          <p style="font-size: 8px; color: #8A857D; margin-top: 8px; text-transform: uppercase; letter-spacing: 1px; font-family: 'Inter', sans-serif; margin-bottom: 0;">Pagar de forma segura con Mercado Pago</p>
         </div>
       </div>
       
