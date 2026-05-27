@@ -11,6 +11,9 @@ export async function getProductionOrders() {
       *,
       customers (
         full_name
+      ),
+      atelier_operators (
+        name
       )
     `)
     .order('created_at', { ascending: false });
@@ -25,6 +28,19 @@ export async function getProductionOrders() {
 export async function updateOrderStatus(id: string, newStatus: string) {
   const supabase = await createClient();
   
+  // 1. Verificar si tiene costurera asignada antes de cambiar de estado
+  const { data: order, error: fetchError } = await supabase
+    .from('production_orders')
+    .select('assigned_operator_id, status')
+    .eq('id', id)
+    .single();
+
+  if (fetchError) return { error: `No se encontró la orden: ${fetchError.message}` };
+
+  if (!order.assigned_operator_id && newStatus !== 'draft') {
+    return { error: 'No se puede avanzar el estado de producción sin asignar una costurera.' };
+  }
+
   // Update the status
   const { error: updateError } = await supabase
     .from('production_orders')
@@ -42,6 +58,7 @@ export async function updateOrderStatus(id: string, newStatus: string) {
     }]);
 
   revalidatePath('/admin/production');
+  revalidatePath('/admin/production-board');
   return { success: true };
 }
 

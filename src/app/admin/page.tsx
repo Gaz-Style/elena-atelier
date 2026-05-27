@@ -12,7 +12,8 @@ import {
     ArrowRight,
     ShieldCheck,
     Package,
-    Receipt
+    Receipt,
+    Activity
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 
@@ -31,6 +32,13 @@ export default function AdminDashboard() {
             href: '/admin/production',
             icon: Scissors,
             color: 'bg-brand-sand/50 text-brand-charcoal'
+        },
+        {
+            title: 'Live Production Board',
+            desc: 'Monitoreo en vivo de costuras y retrasos para pantallas del taller.',
+            href: '/admin/production-board',
+            icon: Activity,
+            color: 'bg-emerald-100 text-emerald-700'
         },
         {
             title: 'Catálogo de Servicios',

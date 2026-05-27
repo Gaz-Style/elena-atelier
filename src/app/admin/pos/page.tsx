@@ -6,7 +6,20 @@ import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, 
 import { getCostSettings } from '../finance/actions';
 import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
-import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, getDailyWorkloadAction } from './actions';
+import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction } from './actions';
+
+const getLocalDateString = (dateObj: Date) => {
+    const y = dateObj.getFullYear();
+    const mo = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const d = String(dateObj.getDate()).padStart(2, '0');
+    return `${y}-${mo}-${d}`;
+};
+
+const getLocalTimeString = (dateObj: Date) => {
+    const h = String(dateObj.getHours()).padStart(2, '0');
+    const m = String(dateObj.getMinutes()).padStart(2, '0');
+    return `${h}:${m}`;
+};
 
 const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.6): Promise<string> => {
     return new Promise((resolve) => {
@@ -73,6 +86,21 @@ export default function POSPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash' | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    
+    // Gobernanza de Capacidad y Algoritmo de Fechas
+    const [estimatedDates, setEstimatedDates] = useState<{
+        productionStartDate: string;
+        productionEndDate: string;
+        finalDeliveryDate: string;
+        backlogHours: number;
+        dailyCapacity: number;
+        config: any;
+        } | null>(null);
+    const [loadingEstimatedDates, setLoadingEstimatedDates] = useState(false);
+    const [adminOverride, setAdminOverride] = useState(false);
+    const [operators, setOperators] = useState<any[]>([]);
+    const [atelierConfig, setAtelierConfig] = useState<any>(null);
+    const [assignedOperatorId, setAssignedOperatorId] = useState<string>('unassigned');
 
     const addToCart = (p: any) => setCart([...cart, p]);
     const removeFromCart = (index: number) => {
@@ -82,6 +110,7 @@ export default function POSPage() {
     };
 
     const total = cart.reduce((sum, item) => sum + item.price, 0);
+    const hasUnassignedItems = cart.length > 0 && cart.some(item => !item.assignedOperatorId || item.assignedOperatorId === 'unassigned');
 
 
 
@@ -118,6 +147,86 @@ export default function POSPage() {
     const [orderImages, setOrderImages] = useState<{ url: string; notes: string }[]>([]);
     const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
     const [deadline, setDeadline] = useState<string>('');
+
+    // Adjusted dates working backward from manual deadline if needed
+    const adjustedDates = React.useMemo(() => {
+        if (!estimatedDates) return null;
+        
+        let productionStartDate = estimatedDates.productionStartDate;
+        let productionEndDate = estimatedDates.productionEndDate;
+        let finalDeliveryDate = estimatedDates.finalDeliveryDate;
+        
+        if (adminOverride && deadline) {
+            const deadlineDate = new Date(deadline);
+            if (!isNaN(deadlineDate.getTime())) {
+                finalDeliveryDate = deadline;
+                
+                // Get current time in Chile timezone and align to working hours
+                const now = new Date();
+                const nowInChile = new Date(now.toLocaleString("en-US", { timeZone: "America/Santiago" }));
+                const workingDays = atelierConfig?.workshop_working_days || [1, 2, 3, 4, 5, 6];
+                const startHourStr = atelierConfig?.workshop_working_hour_start || '09:00:00';
+                const endHourStr = atelierConfig?.workshop_working_hour_end || '18:00:00';
+                const [startH, startM] = startHourStr.split(':').map(Number);
+                const [endH, endM] = endHourStr.split(':').map(Number);
+                
+                const alignToWorkingHours = (d: Date): Date => {
+                    let res = new Date(d.getTime());
+                    let safeguard = 0;
+                    while (safeguard < 30) {
+                        safeguard++;
+                        if (!workingDays.includes(res.getDay())) {
+                            res.setDate(res.getDate() + 1);
+                            res.setHours(startH || 9, startM || 0, 0, 0);
+                            continue;
+                        }
+                        const currentH = res.getHours();
+                        const currentM = res.getMinutes();
+                        if (currentH < (startH || 9) || (currentH === (startH || 9) && currentM < (startM || 0))) {
+                            res.setHours(startH || 9, startM || 0, 0, 0);
+                            break;
+                        }
+                        if (currentH > (endH || 18) || (currentH === (endH || 18) && currentM > (endM || 0))) {
+                            res.setDate(res.getDate() + 1);
+                            res.setHours(startH || 9, startM || 0, 0, 0);
+                            continue;
+                        }
+                        break;
+                    }
+                    return res;
+                };
+                
+                const minStartDate = alignToWorkingHours(nowInChile);
+                
+                const bufferMs = (estimatedDates.config?.bufferDays || 0) * 24 * 60 * 60 * 1000;
+                const maxProductionEnd = new Date(deadlineDate.getTime() - bufferMs);
+                const autoProductionEnd = new Date(estimatedDates.productionEndDate);
+                
+                if (autoProductionEnd > maxProductionEnd) {
+                    const durationMs = autoProductionEnd.getTime() - new Date(estimatedDates.productionStartDate).getTime();
+                    let adjustedEnd = maxProductionEnd;
+                    let adjustedStart = new Date(adjustedEnd.getTime() - durationMs);
+                    
+                    // Clamp start to at least the minimum allowed start date
+                    if (adjustedStart < minStartDate) {
+                        adjustedStart = minStartDate;
+                        adjustedEnd = new Date(adjustedStart.getTime() + durationMs);
+                    }
+                    
+                    productionEndDate = adjustedEnd.toISOString();
+                    productionStartDate = adjustedStart.toISOString();
+                }
+            }
+        }
+        
+        return {
+            ...estimatedDates,
+            productionStartDate,
+            productionEndDate,
+            finalDeliveryDate
+        };
+    }, [estimatedDates, adminOverride, deadline, atelierConfig]);
+
     const [dailyWorkload, setDailyWorkload] = useState<{ count: number; totalHours: number } | null>(null);
     const [loadingWorkload, setLoadingWorkload] = useState<boolean>(false);
     // Custom date-time picker state
@@ -131,16 +240,68 @@ export default function POSPage() {
     const datePickerRef = useRef<HTMLDivElement>(null);
 
     React.useEffect(() => {
-        if (!deadline) {
+        const queryDate = adjustedDates?.productionEndDate || deadline;
+        if (!queryDate) {
             setDailyWorkload(null);
             return;
         }
         setLoadingWorkload(true);
-        getDailyWorkloadAction(deadline).then(res => {
+        getDailyWorkloadAction(queryDate).then(res => {
             setDailyWorkload(res);
             setLoadingWorkload(false);
         });
-    }, [deadline]);
+    }, [deadline, adjustedDates?.productionEndDate]);
+
+    // Calcular reactivamente las fechas sugeridas por el taller al cambiar el carrito (por costurera)
+    React.useEffect(() => {
+        // 1. Group total hours by unique operator id selected
+        const groupHoursMap: { [key: string]: number } = {};
+        
+        cart.forEach(item => {
+            const opId = item.assignedOperatorId || 'unassigned';
+            const hours = item.isCustom 
+                ? Number(item.details?.hours || 0) 
+                : getDefaultProductionHours(item.name, item.category);
+            
+            groupHoursMap[opId] = (groupHoursMap[opId] || 0) + hours;
+        });
+
+        const totalCartHours = Object.values(groupHoursMap).reduce((sum, h) => sum + h, 0);
+        
+        if (totalCartHours === 0) {
+            setEstimatedDates(null);
+            if (!adminOverride) {
+                setDeadline('');
+            }
+            return;
+        }
+
+        setLoadingEstimatedDates(true);
+
+        // 2. Fetch estimated dates for each group in parallel
+        const promises = Object.entries(groupHoursMap).map(([opId, hours]) => {
+            return getEstimatedDatesAction(hours, opId);
+        });
+
+        Promise.all(promises).then(results => {
+            // Find the latest finalDeliveryDate
+            let latestResult = results[0];
+            for (let i = 1; i < results.length; i++) {
+                if (new Date(results[i].finalDeliveryDate) > new Date(latestResult.finalDeliveryDate)) {
+                    latestResult = results[i];
+                }
+            }
+
+            setEstimatedDates(latestResult);
+            if (!adminOverride) {
+                setDeadline(latestResult.finalDeliveryDate);
+            }
+            setLoadingEstimatedDates(false);
+        }).catch(err => {
+            console.error("Error al calcular fechas estimadas de taller:", err);
+            setLoadingEstimatedDates(false);
+        });
+    }, [cart, adminOverride]);
 
     // Close picker when clicking outside
     useEffect(() => {
@@ -151,16 +312,32 @@ export default function POSPage() {
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    // Picker helpers
+    }, []);    // Picker helpers
     const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     const DAY_NAMES = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
     const getDaysInMonth = (m: number, y: number) => new Date(y, m + 1, 0).getDate();
     const getFirstDay = (m: number, y: number) => { const d = new Date(y, m, 1).getDay(); return d === 0 ? 6 : d - 1; };
-    const HOURS = ['08','09','10','11','12','13','14','15','16','17','18','19','20'];
-    const MINUTES = ['00','15','30','45'];
     const today = new Date(); today.setHours(0,0,0,0);
+
+    const windowStart = adjustedDates?.config?.windowStart || atelierConfig?.delivery_window_start || '10:00:00';
+    const windowEnd = adjustedDates?.config?.windowEnd || atelierConfig?.delivery_window_end || '18:00:00';
+    
+    const [startHStr, startMStr] = windowStart.split(':');
+    const [endHStr, endMStr] = windowEnd.split(':');
+    const startH = parseInt(startHStr) || 10;
+    const startM = parseInt(startMStr) || 0;
+    const endH = parseInt(endHStr) || 18;
+    const endM = parseInt(endMStr) || 0;
+
+    const MINUTES = ['00','15','30','45'];
+
+    const pickerHours = React.useMemo(() => {
+        const list: string[] = [];
+        for (let h = startH; h <= endH; h++) {
+            list.push(String(h).padStart(2, '0'));
+        }
+        return list.length > 0 ? list : ['10','11','12','13','14','15','16','17','18'];
+    }, [startH, endH]);
 
     const isDateTimePast = (dateStr: string, hourStr: string, minuteStr: string) => {
         const now = new Date();
@@ -174,37 +351,63 @@ export default function POSPage() {
         return false;
     };
 
+    const isDeliveryTimeDisabled = (dateStr: string, hStr: string, mStr: string) => {
+        if (isDateTimePast(dateStr, hStr, mStr)) return true;
+        const h = parseInt(hStr);
+        const m = parseInt(mStr);
+        if (h < startH || (h === startH && m < startM)) return true;
+        if (h > endH || (h === endH && m > endM)) return true;
+        return false;
+    };
+
     const findFirstAvailableSlot = (dateStr: string) => {
-        let firstH = '10';
-        let firstM = '00';
-        for (const h of HOURS) {
-            if (!isDateTimePast(dateStr, h, '45')) {
-                firstH = h;
-                for (const m of MINUTES) {
-                    if (!isDateTimePast(dateStr, h, m)) {
-                        firstM = m;
-                        break;
-                    }
+        const configStartH = String(startH).padStart(2, '0');
+        const configStartM = String(startM).padStart(2, '0');
+        
+        if (!isDeliveryTimeDisabled(dateStr, configStartH, configStartM)) {
+            return { hour: configStartH, minute: configStartM };
+        }
+        
+        let firstH = configStartH;
+        let firstM = configStartM;
+        let found = false;
+        for (const h of pickerHours) {
+            for (const m of MINUTES) {
+                if (!isDeliveryTimeDisabled(dateStr, h, m)) {
+                    firstH = h;
+                    firstM = m;
+                    found = true;
+                    break;
                 }
-                break;
             }
+            if (found) break;
         }
         return { hour: firstH, minute: firstM };
     };
 
     const openPicker = () => {
         if (deadline) {
-            const [dp, tp] = deadline.split('T');
-            setTempDate(dp);
-            const [h, m] = (tp || '10:00').split(':');
-            setTempHour(h); setTempMinute(m);
-            const [y, mo] = dp.split('-');
-            setCalendarYear(parseInt(y)); setCalendarMonth(parseInt(mo) - 1);
+            const dateObj = new Date(deadline);
+            if (!isNaN(dateObj.getTime())) {
+                const dp = getLocalDateString(dateObj);
+                const h = String(dateObj.getHours()).padStart(2, '0');
+                const m = String(dateObj.getMinutes()).padStart(2, '0');
+                setTempDate(dp);
+                setTempHour(h);
+                setTempMinute(m);
+                setCalendarYear(dateObj.getFullYear());
+                setCalendarMonth(dateObj.getMonth());
+            } else {
+                setTempDate('');
+                const now = new Date();
+                setCalendarMonth(now.getMonth());
+                setCalendarYear(now.getFullYear());
+            }
         } else {
-            setTempDate(''); 
+            setTempDate('');
             const now = new Date();
             const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-            const todayPast = isDateTimePast(todayStr, '20', '45');
+            const todayPast = isDeliveryTimeDisabled(todayStr, String(endH).padStart(2, '0'), String(endM).padStart(2, '0'));
             const defaultDate = todayPast ? (() => {
                 const nextDay = new Date();
                 nextDay.setDate(nextDay.getDate() + 1);
@@ -221,24 +424,43 @@ export default function POSPage() {
     const selectDay = (day: number) => {
         const d = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
         setTempDate(d);
-        const { hour, minute } = findFirstAvailableSlot(d);
-        setTempHour(hour);
-        setTempMinute(minute);
+        
+        // Keep existing hour and minute if valid and not in the past or disabled
+        if (tempHour && tempMinute && !isDeliveryTimeDisabled(d, tempHour, tempMinute)) {
+            // Keep existing
+        } else {
+            const configStartH = String(startH).padStart(2, '0');
+            const configStartM = String(startM).padStart(2, '0');
+            
+            if (!isDeliveryTimeDisabled(d, configStartH, configStartM)) {
+                setTempHour(configStartH);
+                setTempMinute(configStartM);
+            } else {
+                const { hour, minute } = findFirstAvailableSlot(d);
+                setTempHour(hour);
+                setTempMinute(minute);
+            }
+        }
         setPickerStep('time');
     };
 
     const confirmTime = () => {
-        setDeadline(`${tempDate}T${tempHour}:${tempMinute}`);
+        const dateObj = new Date(`${tempDate}T${tempHour}:${tempMinute}`);
+        if (!isNaN(dateObj.getTime())) {
+            setDeadline(dateObj.toISOString());
+        } else {
+            setDeadline(`${tempDate}T${tempHour}:${tempMinute}`);
+        }
         setShowDatePicker(false);
     };
 
     const formatDeadlineDisplay = () => {
         if (!deadline) return null;
-        const [dp, tp] = deadline.split('T');
-        const d = new Date(dp + 'T12:00');
+        const dateObj = new Date(deadline);
+        if (isNaN(dateObj.getTime())) return null;
         return {
-            day: d.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
-            time: tp
+            day: dateObj.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+            time: getLocalTimeString(dateObj)
         };
     };
  
@@ -247,14 +469,18 @@ export default function POSPage() {
         Promise.all([
             getCostSettings(),
             getCatalog(),
-            getCustomers().catch(() => []) // Fallback in case CRM is not fully seeded yet
-        ]).then(([costData, catalogData, customersData]) => {
+            getCustomers().catch(() => []), // Fallback in case CRM is not fully seeded yet
+            getOperatorsAction().catch(() => []), // Cargar costureras
+            getAtelierConfigAction().catch(() => null) // Cargar configuración
+        ]).then(([costData, catalogData, customersData, operatorsData, configData]) => {
             setGlobalSettings(costData);
             setHourlyRate(costData.labor_hourly_rate);
             setFixedCost(costData.operational_fixed_cost);
             setMarginPercentage(costData.default_margin_percentage);
             setProducts(catalogData);
             setAllCustomers(customersData || []);
+            setOperators(operatorsData || []);
+            setAtelierConfig(configData);
             setLoading(false);
         });
     }, []);
@@ -282,6 +508,7 @@ export default function POSPage() {
             isCustom: true,
             notes: orderNotes,
             images: orderImages,
+            assignedOperatorId: assignedOperatorId,
             details: {
                 hours: hoursEstimated,
                 materials: materialsCost,
@@ -305,6 +532,7 @@ export default function POSPage() {
         setOrderImages([]);
         setActiveImageIndex(0);
         setCustomPrice('');
+        setAssignedOperatorId('unassigned');
     };
 
     const handleQuickRegister = async () => {
@@ -341,9 +569,13 @@ export default function POSPage() {
                     category: item.category,
                     notes: item.notes || '',
                     isCustom: !!item.isCustom,
-                    hours: item.isCustom ? (item.hours || 0) : getDefaultProductionHours(item.name, item.category)
+                    hours: item.isCustom ? (item.details?.hours || 0) : getDefaultProductionHours(item.name, item.category),
+                    assignedOperatorId: item.assignedOperatorId || 'unassigned'
                 })),
-                deadline: deadline || null
+                deadline: deadline || null,
+                productionStartDate: adjustedDates?.productionStartDate || null,
+                productionEndDate: adjustedDates?.productionEndDate || null,
+                finalDeliveryDate: deadline || adjustedDates?.finalDeliveryDate || null
             });
 
             if (!res.success) {
@@ -381,7 +613,9 @@ export default function POSPage() {
                     total: total,
                     paymentMethod: paymentMethod,
                     date: dateStr,
-                    deliveryDate: deadline
+                    deliveryDate: deadline || adjustedDates?.finalDeliveryDate || '',
+                    deliveryWindowStart: adjustedDates?.config?.windowStart?.slice(0, 5) || '15:00',
+                    deliveryWindowEnd: adjustedDates?.config?.windowEnd?.slice(0, 5) || '18:00'
                 }).catch(err => {
                     console.error('Error al enviar correo automático de confirmación:', err);
                 });
@@ -651,6 +885,25 @@ export default function POSPage() {
                         <Tag className="w-4 h-4" /> 2. Detalle del Trabajo
                     </h3>
                     
+                    <div className="bg-brand-sand/10 border border-brand-sand/30 p-4 rounded-sm mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <p className="text-xs font-bold text-brand-charcoal uppercase tracking-wider flex items-center gap-1.5">👤 Asignar Costurera / Operaria responsable</p>
+                            <p className="text-[10px] text-gray-500 leading-normal mt-0.5">Elige la costurera que realizará este trabajo para estimar la fecha de entrega según su backlog y agenda.</p>
+                        </div>
+                        <select
+                            value={assignedOperatorId}
+                            onChange={(e) => setAssignedOperatorId(e.target.value)}
+                            className="text-xs uppercase font-bold text-brand-charcoal bg-white border border-gray-200 outline-none p-2.5 rounded-sm focus:border-brand-sand cursor-pointer min-w-[210px] transition-all"
+                        >
+                            <option value="unassigned">Sin asignar (Taller General)</option>
+                            {operators.map((op: any) => (
+                                <option key={op.id} value={op.id}>
+                                    {op.name} ({op.daily_hours_capacity}h/d)
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    
                     <div className="grid grid-cols-2 gap-4">
                         <div className="col-span-2 md:col-span-1">
                             <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Categoría Principal</label>
@@ -839,13 +1092,15 @@ export default function POSPage() {
                                                 addToCart({
                                                     ...selectedCatalogProduct,
                                                     notes: orderNotes,
-                                                    images: orderImages
+                                                    images: orderImages,
+                                                    assignedOperatorId: assignedOperatorId
                                                 });
                                                 setSelectedCatalogProduct(null);
                                                 setSelectedCatalogCategory('');
                                                 setOrderNotes('');
                                                 setOrderImages([]);
                                                 setActiveImageIndex(0);
+                                                setAssignedOperatorId('unassigned');
                                             }}
                                             className="w-full sm:w-auto bg-brand-terracotta text-white px-10 py-4 text-[10px] uppercase tracking-widest font-bold rounded-sm hover:bg-white hover:text-brand-terracotta transition-all shadow-md active:scale-95 text-center"
                                         >
@@ -1070,6 +1325,27 @@ export default function POSPage() {
                                         </p>
                                     )}
                                     
+                                    {/* Selector de Costurera Asignada */}
+                                    <div className="mt-3 flex items-center gap-2">
+                                        <span className="text-[9px] uppercase font-bold text-gray-400 tracking-wider">👤 Asignar:</span>
+                                        <select
+                                            value={item.assignedOperatorId || 'unassigned'}
+                                            onChange={(e) => {
+                                                const newCart = [...cart];
+                                                newCart[i] = { ...newCart[i], assignedOperatorId: e.target.value };
+                                                setCart(newCart);
+                                            }}
+                                            className="text-[9px] uppercase font-semibold text-brand-charcoal bg-white border border-gray-200 outline-none p-1 rounded-sm focus:border-brand-sand cursor-pointer max-w-[170px]"
+                                        >
+                                            <option value="unassigned">Sin asignar (Taller)</option>
+                                            {operators.map((op: any) => (
+                                                <option key={op.id} value={op.id}>
+                                                    {op.name} ({op.daily_hours_capacity}h/d)
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    
                                     {/* Display individual image notes in cart */}
                                     {item.images && item.images.map((img: any, idx: number) => img.notes && (
                                         <p key={idx} className="text-[10px] text-brand-terracotta mt-1 leading-normal flex items-start gap-1">
@@ -1114,17 +1390,39 @@ export default function POSPage() {
                     <div className="border-t border-gray-100 pt-6 mt-6 space-y-4">
                         <div className="flex items-center justify-between">
                             <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Fecha de Entrega</h4>
-                            {deadline
-                                ? <span className="text-[9px] text-green-600 font-bold uppercase tracking-wide">✓ Confirmada</span>
-                                : <span className="text-[9px] text-red-400 font-bold uppercase tracking-wide animate-pulse">● Obligatorio</span>
-                            }
+                            <div className="flex items-center gap-4">
+                                <label className="inline-flex items-center cursor-pointer text-[9px] font-bold uppercase tracking-wider text-gray-500 gap-1.5 select-none">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={adminOverride} 
+                                        onChange={(e) => {
+                                            setAdminOverride(e.target.checked);
+                                            if (!e.target.checked && estimatedDates) {
+                                                setDeadline(estimatedDates.finalDeliveryDate);
+                                            }
+                                        }}
+                                        className="rounded border-gray-300 text-brand-terracotta focus:ring-brand-terracotta w-3.5 h-3.5 cursor-pointer"
+                                    />
+                                    Anulación (Admin)
+                                </label>
+                                {deadline
+                                    ? <span className="text-[9px] text-green-600 font-bold uppercase tracking-wide">✓ Confirmada</span>
+                                    : <span className="text-[9px] text-red-400 font-bold uppercase tracking-wide animate-pulse">● Obligatorio</span>
+                                }
+                            </div>
                         </div>
-
+ 
                         {/* Trigger display card */}
                         <div ref={datePickerRef} className="relative">
                             <button
                                 type="button"
-                                onClick={openPicker}
+                                onClick={() => {
+                                    if (adminOverride) {
+                                        openPicker();
+                                    } else {
+                                        alert("La fecha de entrega se calcula automáticamente según el Backlog actual del taller. Para forzar una fecha manual diferente, activa la casilla de 'Anulación (Admin)'.");
+                                    }
+                                }}
                                 className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-200 hover:shadow-md ${
                                     deadline
                                         ? 'border-brand-terracotta bg-gradient-to-r from-brand-terracotta/5 to-transparent'
@@ -1183,7 +1481,7 @@ export default function POSPage() {
                                                 {Array.from({ length: getDaysInMonth(calendarMonth, calendarYear) }, (_, i) => i + 1).map(day => {
                                                     const dateStr = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
                                                     const dayDate = new Date(dateStr + 'T12:00'); dayDate.setHours(0,0,0,0);
-                                                    const isPast = isDateTimePast(dateStr, '20', '45');
+                                                    const isPast = isDateTimePast(dateStr, String(endH).padStart(2, '0'), String(endM).padStart(2, '0'));
                                                     const isSelected = tempDate === dateStr;
                                                     const isToday = dayDate.getTime() === today.getTime();
                                                     return (
@@ -1230,8 +1528,8 @@ export default function POSPage() {
                                             <div className="px-3 pt-3">
                                                 <p className="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Hora</p>
                                                 <div className="flex flex-wrap gap-1.5">
-                                                    {HOURS.map(h => {
-                                                        const isHourPast = isDateTimePast(tempDate, h, '45');
+                                                    {pickerHours.map(h => {
+                                                        const isHourPast = MINUTES.every(m => isDeliveryTimeDisabled(tempDate, h, m));
                                                         return (
                                                             <button 
                                                                 key={h} 
@@ -1239,9 +1537,9 @@ export default function POSPage() {
                                                                 disabled={isHourPast}
                                                                 onClick={() => {
                                                                     setTempHour(h);
-                                                                    if (isDateTimePast(tempDate, h, tempMinute)) {
+                                                                    if (isDeliveryTimeDisabled(tempDate, h, tempMinute)) {
                                                                         for (const m of MINUTES) {
-                                                                            if (!isDateTimePast(tempDate, h, m)) {
+                                                                            if (!isDeliveryTimeDisabled(tempDate, h, m)) {
                                                                                 setTempMinute(m);
                                                                                 break;
                                                                             }
@@ -1264,7 +1562,7 @@ export default function POSPage() {
                                                 <p className="text-[9px] uppercase tracking-widest font-bold text-gray-400 mb-2">Minutos</p>
                                                 <div className="grid grid-cols-4 gap-1.5">
                                                     {MINUTES.map(m => {
-                                                        const isMinutePast = isDateTimePast(tempDate, tempHour, m);
+                                                        const isMinutePast = isDeliveryTimeDisabled(tempDate, tempHour, m);
                                                         return (
                                                             <button 
                                                                 key={m} 
@@ -1306,56 +1604,134 @@ export default function POSPage() {
                             </p>
                         )}
 
-                        {deadline && (
-                            <div className="bg-brand-sand/10 border border-brand-sand/30 p-4 rounded-sm space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
-                                <div className="flex justify-between items-center text-[10px] uppercase tracking-wider font-bold">
-                                    <span className="text-gray-500">Carga del Taller (Día Seleccionado)</span>
-                                    {loadingWorkload ? (
-                                        <span className="text-brand-terracotta animate-pulse">Calculando...</span>
-                                    ) : (
-                                        <span className="text-brand-charcoal">
-                                            {dailyWorkload !== null ? `${dailyWorkload.totalHours} / 8 horas` : 'N/A'}
-                                        </span>
+                        {deadline && (() => {
+                            const capacity = adjustedDates?.dailyCapacity || (atelierConfig ? (atelierConfig.labor_capacity_per_operator_daily * atelierConfig.total_active_operators) : 8);
+                            const optimalThreshold = capacity * 0.6;
+                            const intermediateThreshold = capacity;
+                            
+                            const totalCartHours = cart.reduce((sum, item) => {
+                                const hours = item.isCustom 
+                                    ? Number(item.details?.hours || 0) 
+                                    : getDefaultProductionHours(item.name, item.category);
+                                return sum + hours;
+                            }, 0);
+                            
+                            const combinedWorkloadHours = (dailyWorkload?.totalHours || 0) + totalCartHours;
+                            
+                            const workloadDate = adjustedDates?.productionEndDate || deadline;
+                            const formattedWorkloadDate = workloadDate ? (() => {
+                                const d = new Date(workloadDate);
+                                return d.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' });
+                            })() : '';
+                            
+                            return (
+                                <div className="bg-brand-sand/10 border border-brand-sand/30 p-4 rounded-sm space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
+                                    <div className="flex justify-between items-center text-[10px] uppercase tracking-wider font-bold">
+                                        <span className="text-gray-500">Carga del Taller (Confección: {formattedWorkloadDate})</span>
+                                        {loadingWorkload ? (
+                                            <span className="text-brand-terracotta animate-pulse">Calculando...</span>
+                                        ) : (
+                                            <span className="text-brand-charcoal">
+                                                {dailyWorkload !== null ? `${combinedWorkloadHours} / ${capacity} horas` : 'N/A'}
+                                            </span>
+                                        )}
+                                    </div>
+                                    
+                                    {dailyWorkload !== null && !loadingWorkload && (
+                                        <>
+                                            <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                                                <div 
+                                                    className={`h-full transition-all duration-500 ${
+                                                        combinedWorkloadHours <= optimalThreshold ? 'bg-green-600' :
+                                                        combinedWorkloadHours <= intermediateThreshold ? 'bg-amber-500' : 'bg-rose-600'
+                                                    }`}
+                                                    style={{ width: `${Math.min((combinedWorkloadHours / capacity) * 100, 100)}%` }}
+                                                />
+                                            </div>
+                                            <p className={`text-[10px] italic font-medium ${
+                                                combinedWorkloadHours <= optimalThreshold ? 'text-green-700' :
+                                                combinedWorkloadHours <= intermediateThreshold ? 'text-amber-700' : 'text-rose-700'
+                                            }`}>
+                                                {combinedWorkloadHours <= optimalThreshold ? '🟢 Capacidad Óptima: Espacio disponible en la jornada.' :
+                                                 combinedWorkloadHours <= intermediateThreshold ? '🟡 Capacidad Intermedia: Jornada con carga moderada.' :
+                                                 '🔴 Capacidad Completa: Jornada sobre-asignada. Se sugiere re-agendar.'}
+                                            </p>
+                                        </>
                                     )}
                                 </div>
-                                
-                                {dailyWorkload !== null && !loadingWorkload && (
-                                    <>
-                                        <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                                            <div 
-                                                className={`h-full transition-all duration-500 ${
-                                                    dailyWorkload.totalHours <= 5 ? 'bg-green-600' :
-                                                    dailyWorkload.totalHours <= 8 ? 'bg-amber-500' : 'bg-rose-600'
-                                                }`}
-                                                style={{ width: `${Math.min((dailyWorkload.totalHours / 8) * 100, 100)}%` }}
-                                            />
-                                        </div>
-                                        <p className={`text-[10px] italic font-medium ${
-                                            dailyWorkload.totalHours <= 5 ? 'text-green-700' :
-                                            dailyWorkload.totalHours <= 8 ? 'text-amber-700' : 'text-rose-700'
-                                        }`}>
-                                            {dailyWorkload.totalHours <= 5 ? '🟢 Capacidad Óptima: Espacio disponible en la jornada.' :
-                                             dailyWorkload.totalHours <= 8 ? '🟡 Capacidad Intermedia: Jornada con carga moderada.' :
-                                             '🔴 Capacidad Completa: Jornada sobre-asignada. Se sugiere re-agendar.'}
-                                        </p>
-                                    </>
-                                )}
+                            );
+                        })()}
+
+                        {adjustedDates && (
+                            <div className="bg-gray-50 border border-gray-200/80 p-5 rounded-sm space-y-4 shadow-sm mt-4 animate-in fade-in duration-300">
+                                <h5 className="text-[10px] font-bold uppercase tracking-widest text-brand-terracotta flex items-center gap-1.5 border-b border-gray-200 pb-2">
+                                    ⚙️ Desglose de Gobernanza de Tiempos
+                                </h5>
+                                <div className="space-y-3 text-xs">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-500 font-medium">🛠️ Inicio Estimado Confección:</span>
+                                        <strong className="text-brand-charcoal">
+                                            {new Date(adjustedDates.productionStartDate).toLocaleDateString('es-CL', {
+                                                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                                            })}
+                                        </strong>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-gray-500 font-medium">🏁 Término Confección:</span>
+                                        <strong className="text-brand-charcoal">
+                                            {new Date(adjustedDates.productionEndDate).toLocaleDateString('es-CL', {
+                                                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                                            })}
+                                        </strong>
+                                    </div>
+                                    <div className="flex justify-between items-center bg-brand-sand/20 p-2.5 rounded-sm border border-brand-sand/40">
+                                        <span className="text-brand-charcoal font-semibold">🛍️ Retiro Cliente Prometido:</span>
+                                        <strong className="text-brand-terracotta font-serif text-sm">
+                                            {new Date(adjustedDates.finalDeliveryDate).toLocaleDateString('es-CL', {
+                                                weekday: 'short', day: 'numeric', month: 'short'
+                                            })} a las {adjustedDates.config.windowStart.slice(0, 5)} hrs
+                                        </strong>
+                                    </div>
+                                </div>
+                                <div className="text-[8px] text-gray-400 leading-relaxed font-medium bg-white p-2.5 border border-gray-100 rounded-sm">
+                                    💡 Capacidad del taller: {adjustedDates.dailyCapacity}h diarias ({adjustedDates.config.activeOperators} costureras × {adjustedDates.config.laborCapacity}h). Backlog actual en cola: {adjustedDates.backlogHours.toFixed(1)}h. Buffer logístico post-producción: +{adjustedDates.config.bufferDays} días hábiles.
+                                </div>
                             </div>
                         )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mt-8">
+                    {hasUnassignedItems && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-3.5 rounded-sm flex items-start gap-2 mt-6">
+                            <span className="text-sm shrink-0 leading-none">⚠</span>
+                            <div>
+                                <strong className="font-bold block mb-0.5">Asignación Requerida</strong>
+                                Debes asignar una costurera a cada una de las prendas en el carrito para poder habilitar el pago y emisión de boleta.
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4 mt-6">
                         <button 
                             type="button"
+                            disabled={hasUnassignedItems}
                             onClick={() => setPaymentMethod('card')}
-                            className="flex items-center justify-center gap-2 border border-brand-charcoal py-4 text-[10px] uppercase tracking-widest hover:bg-gray-50 transition-all">
+                            className={`flex items-center justify-center gap-2 py-4 text-[10px] uppercase tracking-widest transition-all ${
+                                hasUnassignedItems
+                                    ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-50'
+                                    : 'border border-brand-charcoal hover:bg-gray-50 cursor-pointer'
+                            }`}>
                             <CreditCard className="w-4 h-4" />
                             Mercado Pago
                         </button>
                         <button 
                             type="button"
+                            disabled={hasUnassignedItems}
                             onClick={() => setPaymentMethod('cash')}
-                            className="flex items-center justify-center gap-2 bg-brand-charcoal text-white py-4 text-[10px] uppercase tracking-widest hover:bg-brand-terracotta transition-all">
+                            className={`flex items-center justify-center gap-2 py-4 text-[10px] uppercase tracking-widest transition-all ${
+                                hasUnassignedItems
+                                    ? 'bg-gray-100 text-gray-450 border border-gray-200 cursor-not-allowed opacity-50'
+                                    : 'bg-brand-charcoal text-white hover:bg-brand-terracotta cursor-pointer'
+                            }`}>
                             Efectivo / Transf
                         </button>
                     </div>
@@ -1371,19 +1747,21 @@ export default function POSPage() {
                         <button 
                             type="button"
                             onClick={handleCheckout}
-                            disabled={cart.length === 0 || !paymentMethod || !selectedCustomer || !deadline || isProcessing}
+                            disabled={cart.length === 0 || !paymentMethod || !selectedCustomer || !deadline || isProcessing || hasUnassignedItems}
                             className={`w-full py-4 text-[10px] uppercase tracking-widest font-bold transition-all ${
-                                cart.length === 0 || !paymentMethod || !selectedCustomer || !deadline || isProcessing
+                                cart.length === 0 || !paymentMethod || !selectedCustomer || !deadline || isProcessing || hasUnassignedItems
                                     ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                                     : 'bg-green-600 text-white hover:bg-green-700 shadow-md'
                             }`}>
                             {isProcessing
                                 ? 'Procesando...'
-                                : !selectedCustomer
-                                    ? 'Falta Identificar Cliente'
-                                    : !deadline
-                                        ? '⚠ Falta Fecha y Hora de Entrega'
-                                        : 'Cobrar y Emitir Boleta'
+                                : hasUnassignedItems
+                                    ? '⚠ Falta Asignar Costurera'
+                                    : !selectedCustomer
+                                        ? 'Falta Identificar Cliente'
+                                        : !deadline
+                                            ? '⚠ Falta Fecha y Hora de Entrega'
+                                            : 'Cobrar y Emitir Boleta'
                             }
                         </button>
                     </div>

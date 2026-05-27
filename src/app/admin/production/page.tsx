@@ -8,6 +8,7 @@ import {
     History, BarChart2, CheckCircle, Flame
 } from 'lucide-react';
 import { getProductionOrders, updateOrderStatus } from './actions';
+import { supabase } from '@/lib/supabase';
 
 export default function ProductionPage() {
     const [orders, setOrders] = useState<any[]>([]);
@@ -36,7 +37,23 @@ export default function ProductionPage() {
         setIsDesktop(window.innerWidth >= 768);
         const handleResize = () => setIsDesktop(window.innerWidth >= 768);
         window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        
+        // Suscripción Realtime a cambios en las órdenes de producción
+        const channel = supabase
+            .channel('production_orders_live')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'production_orders' },
+                () => {
+                    fetchOrders();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     async function fetchOrders() {
@@ -49,6 +66,9 @@ export default function ProductionPage() {
     async function handleStatusChange(id: string, newStatus: string) {
         const result = await updateOrderStatus(id, newStatus);
         if (result.success) {
+            fetchOrders();
+        } else {
+            alert(result.error || "Ocurrió un error al cambiar el estado");
             fetchOrders();
         }
     }
@@ -171,6 +191,40 @@ export default function ProductionPage() {
 
     const weekDaysShort = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
+    // --- LIVE BOARD FILTER HELPERS ---
+    const isProductionActive = (order: any) => {
+        if (order.status === 'delivered') return false;
+        if (order.status === 'sewing') return true;
+        if (!order.production_start_date || !order.production_end_date) return false;
+        const now = new Date();
+        const start = new Date(order.production_start_date);
+        const end = new Date(order.production_end_date);
+        return start <= now && end > now;
+    };
+
+    const isDelayed = (order: any) => {
+        if (order.status === 'ready' || order.status === 'delivered') return false;
+        if (!order.production_end_date) return false;
+        return new Date() > new Date(order.production_end_date);
+    };
+
+    const isJobOk = (order: any) => {
+        if (order.status === 'delivered') return false;
+        const hasEnded = order.production_end_date ? new Date() >= new Date(order.production_end_date) : false;
+        const isBeforeDelivery = order.final_delivery_date ? new Date() < new Date(order.final_delivery_date) : true;
+        return (order.status === 'ready' || order.status === 'finishing' || hasEnded) && isBeforeDelivery;
+    };
+
+    const isReadyForDelivery = (order: any) => {
+        if (order.status === 'delivered') return false;
+        if (!order.final_delivery_date) return false;
+        const finalDate = new Date(order.final_delivery_date);
+        const today = new Date();
+        return finalDate.getFullYear() === today.getFullYear() &&
+               finalDate.getMonth() === today.getMonth() &&
+               finalDate.getDate() === today.getDate();
+    };
+
     return (
         <div className="min-h-screen bg-brand-sand/10 p-4 md:p-8 pt-20 font-sans text-brand-charcoal">
             <div className="max-w-screen-2xl mx-auto space-y-8">
@@ -263,9 +317,21 @@ export default function ProductionPage() {
                                                             </select>
                                                         </div>
                                                         <h4 className="font-serif text-sm mb-1">{order.description}</h4>
-                                                        <p className="text-xs text-text-secondary mb-3 flex items-center gap-1">
-                                                            <User className="w-3 h-3" /> {order.customers?.full_name || 'Sin cliente'}
+                                                        <p className="text-xs text-text-secondary mb-2 flex items-center gap-1">
+                                                            <User className="w-3.5 h-3.5 text-gray-400" /> {order.customers?.full_name || 'Sin cliente'}
                                                         </p>
+
+                                                        <div className="mb-3 text-[10px] flex items-center gap-1">
+                                                            {order.atelier_operators ? (
+                                                                <span className="bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-sm font-semibold inline-flex items-center gap-1">
+                                                                    👤 {order.atelier_operators.name}
+                                                                </span>
+                                                            ) : (
+                                                                <span className="bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded-sm font-semibold inline-flex items-center gap-1 animate-pulse">
+                                                                    ⚠ Sin Costurera
+                                                                </span>
+                                                            )}
+                                                        </div>
 
                                                         {/* Hour / Workload Indicator in Card */}
                                                         {order.estimated_hours > 0 && (
@@ -618,8 +684,22 @@ export default function ProductionPage() {
                                                                         {order.customers?.full_name || 'Sin cliente'}
                                                                     </span>
                                                                 </div>
+                                                                <div>
+                                                                    <span className="text-[8px] font-bold uppercase tracking-widest text-gray-400 block">Costurera</span>
+                                                                    <span className="font-medium text-brand-charcoal inline-flex items-center gap-1 mt-1">
+                                                                        {order.atelier_operators ? (
+                                                                            <span className="text-green-700 font-semibold">
+                                                                                👤 {order.atelier_operators.name}
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className="text-red-600 font-semibold animate-pulse">
+                                                                                ⚠ Sin asignar
+                                                                            </span>
+                                                                        )}
+                                                                    </span>
+                                                                </div>
                                                                 {order.notes && (
-                                                                    <div className="col-span-2">
+                                                                    <div className="col-span-1">
                                                                         <span className="text-[8px] font-bold uppercase tracking-widest text-gray-400 block">Notas de Confección</span>
                                                                         <span className="mt-1 block italic">{order.notes}</span>
                                                                     </div>

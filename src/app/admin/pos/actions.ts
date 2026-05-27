@@ -2,6 +2,7 @@
 
 import nodemailer from 'nodemailer';
 import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
 import fs from 'fs';
 import path from 'path';
 const backgroundImgBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGUlEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAA8F8bGgABxZqVdgAAAABJRU5ErkJggg==';
@@ -174,9 +175,11 @@ export async function sendOrderConfirmationEmailAction(payload: {
     paymentMethod: string;
     date: string;
     deliveryDate: string;
+    deliveryWindowStart?: string;
+    deliveryWindowEnd?: string;
 }) {
     try {
-        const { customerEmail, customerName, orderId, items, total, paymentMethod, date, deliveryDate } = payload;
+        const { customerEmail, customerName, orderId, items, total, paymentMethod, date, deliveryDate, deliveryWindowStart, deliveryWindowEnd } = payload;
 
         // Format delivery date for display
         const deliveryDateObj = new Date(deliveryDate);
@@ -389,9 +392,16 @@ export async function sendOrderConfirmationEmailAction(payload: {
       <div style="margin-bottom: 30px;">
         ${garmentsSectionHtml}
         
-        <div style="border: 1px solid rgba(245, 242, 235, 0.1); border-radius: 2px; display: inline-block; padding: 12px 24px; background-color: rgba(255, 255, 255, 0.02); margin-bottom: 20px;">
-          <p style="font-size: 7.5px; font-weight: 600; color: #8A857D; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 4px 0; font-family: 'Inter', sans-serif;">Prueba / Retiro</p>
-          <p style="font-size: 11px; font-weight: 400; color: #F5F5F0; letter-spacing: 1px; font-family: 'Inter', sans-serif;">${deliveryDateFormatted.split(',')[1] || deliveryDateFormatted} — ${deliveryTimeFormatted} hrs</p>
+        <div style="border: 1px solid rgba(245, 242, 235, 0.15); border-radius: 4px; display: inline-block; padding: 16px 24px; background-color: rgba(255, 255, 255, 0.03); margin-bottom: 20px; text-align: center; width: 85%;">
+          <p style="font-size: 8px; font-weight: 600; color: #C17F5F; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 6px 0; font-family: 'Inter', sans-serif;">LUXURY PASS & NOTA DE ENTREGA</p>
+          <hr style="border: 0; border-top: 1px solid rgba(245, 242, 235, 0.1); margin: 8px 0 12px 0;">
+          <span style="font-size: 8px; text-transform: uppercase; color: #8A857D; letter-spacing: 1px;">Fecha Programada de Retiro</span><br>
+          <strong style="font-size: 14px; color: #FFFFFF; font-family: 'Playfair Display', Georgia, serif; display: inline-block; margin-top: 4px; margin-bottom: 12px;">${deliveryDateFormatted}</strong><br>
+          <span style="font-size: 8px; text-transform: uppercase; color: #8A857D; letter-spacing: 1px;">Horario Exclusivo de Entrega</span><br>
+          <strong style="font-size: 12px; color: #C17F5F; font-family: 'Inter', sans-serif; display: inline-block; margin-top: 4px;">${deliveryWindowStart || '15:00'} a ${deliveryWindowEnd || '18:00'} hrs</strong>
+          <p style="font-size: 8px; color: #8A857D; font-style: italic; margin-top: 12px; line-height: 1.4; margin-bottom: 0;">
+            *Por motivos de control de calidad y aforo en el taller, su prenda estará lista para retiro estrictamente en la fecha y bloque horario señalados.
+          </p>
         </div>
 
         <!-- Botón de Pago Mercado Pago -->
@@ -450,10 +460,15 @@ export async function createPOSOrdersAction(payload: {
         category: string;
         notes?: string;
         isCustom?: boolean;
+        hours?: number;
+        assignedOperatorId?: string;
     }[];
     deadline?: string | null;
+    productionStartDate?: string | null;
+    productionEndDate?: string | null;
+    finalDeliveryDate?: string | null;
 }) {
-    const { customerId, items, deadline } = payload;
+    const { customerId, items, deadline, productionStartDate, productionEndDate, finalDeliveryDate } = payload;
     const supabase = await createClient();
 
     const insertPromises = items.map(item => {
@@ -466,7 +481,12 @@ export async function createPOSOrdersAction(payload: {
                 order_type: orderType,
                 status: 'draft',
                 notes: item.notes || '',
-                deadline: deadline || null
+                deadline: finalDeliveryDate || deadline || null,
+                estimated_hours: item.hours || 0,
+                production_start_date: productionStartDate || null,
+                production_end_date: productionEndDate || null,
+                final_delivery_date: finalDeliveryDate || null,
+                assigned_operator_id: item.assignedOperatorId && item.assignedOperatorId !== 'unassigned' ? item.assignedOperatorId : null
             }]);
     });
 
@@ -484,30 +504,369 @@ export async function createPOSOrdersAction(payload: {
 export async function getDailyWorkloadAction(dateStr: string) {
     const supabase = await createClient();
     
-    const selectedDate = new Date(dateStr);
-    if (isNaN(selectedDate.getTime())) {
+    // dateStr is like "2026-05-27T08:00" or an ISO string.
+    const datePart = dateStr.split('T')[0];
+    if (!datePart) {
         return { count: 0, totalHours: 0 };
     }
     
-    const startOfDay = new Date(selectedDate);
-    startOfDay.setHours(0, 0, 0, 0);
-    
-    const endOfDay = new Date(selectedDate);
-    endOfDay.setHours(23, 59, 59, 999);
-    
+    // Fetch all active production orders
     const { data, error } = await supabase
         .from('production_orders')
-        .select('estimated_hours')
-        .gte('deadline', startOfDay.toISOString())
-        .lte('deadline', endOfDay.toISOString());
+        .select('estimated_hours, deadline, production_end_date')
+        .neq('status', 'delivered');
         
     if (error) {
         console.error('Error fetching daily workload:', error);
         return { count: 0, totalHours: 0, error: error.message };
     }
     
-    const count = data?.length || 0;
-    const totalHours = data?.reduce((sum, order) => sum + Number(order.estimated_hours || 0), 0) || 0;
+    // Snapped to Chilean timezone calendar date matching
+    const targetDate = new Date(datePart + 'T12:00:00');
+    const targetDayStr = targetDate.toLocaleDateString('en-US'); // "M/D/YYYY" format
+    
+    const matchedOrders = (data || []).filter(order => {
+        const dateToUse = order.production_end_date || order.deadline;
+        if (!dateToUse) return false;
+        
+        // Parse dateToUse in Chilean timezone to ensure matching calendar day
+        const localDate = new Date(new Date(dateToUse).toLocaleString("en-US", { timeZone: "America/Santiago" }));
+        return localDate.toLocaleDateString('en-US') === targetDayStr;
+    });
+    
+    const count = matchedOrders.length;
+    const totalHours = matchedOrders.reduce((sum, order) => sum + Number(order.estimated_hours || 0), 0);
     
     return { count, totalHours };
+}
+
+export async function getAtelierConfigAction() {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('atelier_config')
+        .select('*')
+        .limit(1);
+        
+    if (error) {
+        console.error('Error fetching atelier config:', error);
+        return null;
+    }
+    return data && data.length > 0 ? data[0] : null;
+}
+
+
+export async function getEstimatedDatesAction(newHours: number, assignedOperatorId?: string) {
+    const supabase = await createClient();
+    
+    // 1. Fetch config with RLS disabled
+    const { data: configData, error: configError } = await supabase
+        .from('atelier_config')
+        .select('*')
+        .limit(1);
+        
+    let laborCapacity = 7;
+    let activeOperators = 3;
+    let bufferDays = 2;
+    let windowStart = '15:00:00';
+    let windowEnd = '18:00:00';
+    let allowedDays = [2, 4]; // Martes (2), Jueves (4)
+    let workshopWorkingDays = [1, 2, 3, 4, 5, 6]; // Lunes a Sábado por defecto (1-6)
+    let workshopHourStart = '09:00:00';
+    let workshopHourEnd = '18:00:00';
+    
+    if (!configError && configData && configData.length > 0) {
+        const c = configData[0];
+        laborCapacity = Number(c.labor_capacity_per_operator_daily ?? 7);
+        activeOperators = Number(c.total_active_operators ?? 3);
+        bufferDays = Number(c.logistic_buffer_days ?? 2);
+        windowStart = c.delivery_window_start ?? '15:00:00';
+        windowEnd = c.delivery_window_end ?? '18:00:00';
+        allowedDays = c.delivery_allowed_days ?? [2, 4];
+        workshopWorkingDays = c.workshop_working_days ?? [1, 2, 3, 4, 5, 6];
+        workshopHourStart = c.workshop_working_hour_start ?? '09:00:00';
+        workshopHourEnd = c.workshop_working_hour_end ?? '18:00:00';
+    }
+
+    let usingOperator = false;
+    let operatorName = '';
+    if (assignedOperatorId && assignedOperatorId !== 'unassigned') {
+        const { data: opData } = await supabase
+            .from('atelier_operators')
+            .select('*')
+            .eq('id', assignedOperatorId)
+            .single();
+
+        if (opData) {
+            laborCapacity = Number(opData.daily_hours_capacity ?? 7);
+            workshopWorkingDays = opData.working_days ?? [1, 2, 3, 4, 5, 6];
+            activeOperators = 1; // Queue calculation for this operator
+            operatorName = opData.name;
+            usingOperator = true;
+        }
+    }
+    
+    const CD = laborCapacity * activeOperators; // Total daily capacity in hours
+    
+    // 2. Fetch active backlog (orders currently in-progress or in queue)
+    let backlogQuery = supabase
+        .from('production_orders')
+        .select('estimated_hours')
+        .in('status', ['draft', 'cutting', 'sewing', 'finishing']);
+
+    if (usingOperator) {
+        backlogQuery = backlogQuery.eq('assigned_operator_id', assignedOperatorId);
+    }
+        
+    const { data: activeOrders } = await backlogQuery;
+        
+    const backlogHours = activeOrders?.reduce((sum, o) => sum + Number(o.estimated_hours || 0), 0) || 0;
+    
+    // 3. Timezone helper to get Chile Offset dynamically
+    const now = new Date();
+    const getChileOffsetString = (date: Date) => {
+        const formatter = new Intl.DateTimeFormat("en-US", {
+            timeZone: "America/Santiago",
+            year: "numeric", month: "numeric", day: "numeric",
+            hour: "numeric", minute: "numeric", second: "numeric",
+            hour12: false
+        });
+        const parts = formatter.formatToParts(date);
+        const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
+        const chileUTC = Date.UTC(
+            Number(map.year),
+            Number(map.month) - 1,
+            Number(map.day),
+            Number(map.hour),
+            Number(map.minute),
+            Number(map.second)
+        );
+        const diffMs = chileUTC - date.getTime();
+        const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+        const sign = diffHours >= 0 ? "+" : "-";
+        const absHours = String(Math.abs(diffHours)).padStart(2, "0");
+        return `${sign}${absHours}:00`;
+    };
+
+    const chileOffset = getChileOffsetString(now);
+
+    const formatChileLocalToISO = (chileDate: Date): string => {
+        const y = chileDate.getFullYear();
+        const mo = String(chileDate.getMonth() + 1).padStart(2, '0');
+        const d = String(chileDate.getDate()).padStart(2, '0');
+        const h = String(chileDate.getHours()).padStart(2, '0');
+        const mi = String(chileDate.getMinutes()).padStart(2, '0');
+        return `${y}-${mo}-${d}T${h}:${mi}:00${chileOffset}`;
+    };
+
+    // Get current Chilean local time as a standard Date object
+    const nowInChile = new Date(now.toLocaleString("en-US", { timeZone: "America/Santiago" }));
+
+    // 4. Align start date to workshop working hours (09:00 - 18:00 or customized)
+    function alignToWorkingHours(date: Date): Date {
+        let res = new Date(date.getTime());
+        const [startH, startM] = workshopHourStart.split(':').map(Number);
+        const [endH, endM] = workshopHourEnd.split(':').map(Number);
+        
+        let safeguard = 0;
+        while (safeguard < 30) {
+            safeguard++;
+            
+            if (!workshopWorkingDays.includes(res.getDay())) {
+                res.setDate(res.getDate() + 1);
+                res.setHours(startH || 9, startM || 0, 0, 0);
+                continue;
+            }
+            
+            const currentH = res.getHours();
+            const currentM = res.getMinutes();
+            
+            if (currentH < (startH || 9) || (currentH === (startH || 9) && currentM < (startM || 0))) {
+                res.setHours(startH || 9, startM || 0, 0, 0);
+                break;
+            }
+            
+            if (currentH > (endH || 18) || (currentH === (endH || 18) && currentM > (endM || 0))) {
+                res.setDate(res.getDate() + 1);
+                res.setHours(startH || 9, startM || 0, 0, 0);
+                continue;
+            }
+            
+            break;
+        }
+        return res;
+    }
+
+    // 5. Calculate scheduling based on workload rate
+    function addWorkHours(start: Date, hours: number, dailyCapacity: number): Date {
+        let result = new Date(start.getTime());
+        
+        result = alignToWorkingHours(result);
+        if (hours <= 0) return result;
+        
+        let remaining = hours;
+        const [startH, startM] = workshopHourStart.split(':').map(Number);
+        const [endH, endM] = workshopHourEnd.split(':').map(Number);
+        
+        const workingDayClockHours = (endH || 18) - (startH || 9) + ((endM || 0) - (startM || 0)) / 60;
+        const W = workingDayClockHours > 0 ? workingDayClockHours : 9;
+        
+        const rate = dailyCapacity / W;
+        
+        let safeguard = 0;
+        while (remaining > 0 && safeguard < 100) {
+            safeguard++;
+            
+            result = alignToWorkingHours(result);
+            
+            const currentWorkDayEnd = new Date(result.getTime());
+            currentWorkDayEnd.setHours(endH || 18, endM || 0, 0, 0);
+            
+            const clockHoursLeftToday = (currentWorkDayEnd.getTime() - result.getTime()) / (1000 * 60 * 60);
+            const personHoursLeftToday = clockHoursLeftToday * rate;
+            
+            if (remaining <= personHoursLeftToday) {
+                const clockHoursRequired = remaining / rate;
+                result.setTime(result.getTime() + clockHoursRequired * 60 * 60 * 1000);
+                remaining = 0;
+            } else {
+                result.setDate(result.getDate() + 1);
+                result.setHours(startH || 9, startM || 0, 0, 0);
+                remaining -= personHoursLeftToday;
+            }
+        }
+        
+        return alignToWorkingHours(result);
+    }
+    
+    // 6. Logistic Buffer calculation
+    function addBufferDays(date: Date, days: number): Date {
+        let result = new Date(date.getTime());
+        let remainingDays = days;
+        while (remainingDays > 0) {
+            result.setDate(result.getDate() + 1);
+            if (workshopWorkingDays.includes(result.getDay())) {
+                remainingDays--;
+            }
+        }
+        return result;
+    }
+    
+    // Perform scheduling calculations using Chilean local time
+    const productionStartDate = addWorkHours(nowInChile, backlogHours, CD);
+    const productionEndDate = addWorkHours(productionStartDate, newHours, CD);
+    
+    let finalDeliveryDate = addBufferDays(productionEndDate, bufferDays);
+    
+    let safeguard = 0;
+    while (!allowedDays.includes(finalDeliveryDate.getDay()) && safeguard < 30) {
+        finalDeliveryDate.setDate(finalDeliveryDate.getDate() + 1);
+        safeguard++;
+    }
+    
+    const [startH, startM] = windowStart.split(':').map(Number);
+    finalDeliveryDate.setHours(startH || 15, startM || 0, 0, 0);
+    
+    return {
+        productionStartDate: formatChileLocalToISO(productionStartDate),
+        productionEndDate: formatChileLocalToISO(productionEndDate),
+        finalDeliveryDate: formatChileLocalToISO(finalDeliveryDate),
+        backlogHours,
+        dailyCapacity: CD,
+        config: {
+            laborCapacity,
+            activeOperators,
+            bufferDays,
+            windowStart,
+            windowEnd,
+            allowedDays,
+            workshopWorkingDays,
+            workshopHourStart,
+            workshopHourEnd
+        }
+    };
+}
+
+export async function updateAtelierConfigAction(config: {
+    laborCapacity: number;
+    activeOperators: number;
+    bufferDays: number;
+    windowStart: string;
+    windowEnd: string;
+    allowedDays: number[];
+    workingDays: number[];
+    workshopHourStart?: string;
+    workshopHourEnd?: string;
+}) {
+    const supabase = await createClient();
+    
+    const { error } = await supabase
+        .from('atelier_config')
+        .upsert([{
+            id: 'c0ffee88-8888-8888-8888-888888888888',
+            labor_capacity_per_operator_daily: config.laborCapacity,
+            total_active_operators: config.activeOperators,
+            logistic_buffer_days: config.bufferDays,
+            delivery_window_start: config.windowStart,
+            delivery_window_end: config.windowEnd,
+            delivery_allowed_days: config.allowedDays,
+            workshop_working_days: config.workingDays,
+            workshop_working_hour_start: config.workshopHourStart || '09:00:00',
+            workshop_working_hour_end: config.workshopHourEnd || '18:00:00',
+            updated_at: new Date().toISOString()
+        }]);
+        
+    if (error) {
+        console.error('Error updating atelier config:', error);
+        return { success: false, error: error.message };
+    }
+    
+    return { success: true };
+}
+
+export async function getOperatorsAction() {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('atelier_operators')
+        .select('*')
+        .order('name', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching operators:', error);
+        return [];
+    }
+    return data || [];
+}
+
+export async function updateOperatorAction(op: {
+    id?: string;
+    name: string;
+    dailyCapacity: number;
+    workingDays: number[];
+    status: string;
+}) {
+    const supabase = await createClient();
+    
+    const payload: any = {
+        name: op.name,
+        daily_hours_capacity: op.dailyCapacity,
+        working_days: op.workingDays,
+        status: op.status
+    };
+
+    if (op.id) {
+        payload.id = op.id;
+    }
+
+    const { data, error } = await supabase
+        .from('atelier_operators')
+        .upsert([payload])
+        .select();
+
+    if (error) {
+        console.error('Error upserting operator:', error);
+        return { success: false, error: error.message };
+    }
+
+    revalidatePath('/admin/production-board');
+    return { success: true, data };
 }
