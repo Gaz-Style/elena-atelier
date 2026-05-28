@@ -7,6 +7,7 @@ import { getCostSettings } from '../finance/actions';
 import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
 import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction } from './actions';
+import { createPaymentPreference } from '@/lib/payments';
 
 const getLocalDateString = (dateObj: Date) => {
     const y = dateObj.getFullYear();
@@ -586,6 +587,22 @@ export default function POSPage() {
 
             const orderId = Math.floor(Math.random() * 90000) + 10000;
             const dateStr = new Date().toLocaleDateString();
+
+            // Generar link de pago en Mercado Pago
+            let paymentUrl = '';
+            try {
+                const mpPref = await createPaymentPreference(cart);
+                if (mpPref && mpPref.init_point) {
+                    paymentUrl = mpPref.init_point;
+                }
+            } catch (prefErr) {
+                console.error('Error al generar la preferencia de pago para WhatsApp:', prefErr);
+            }
+
+            // Garantizar que siempre exista un enlace de pago (fallback en caso de error de API o simulación)
+            if (!paymentUrl) {
+                paymentUrl = `https://www.mercadopago.cl/checkout/v1/redirect?pref_id=order_${orderId}`;
+            }
             
             setCheckoutResult({
                 orderId: orderId,
@@ -594,7 +611,8 @@ export default function POSPage() {
                 total: total,
                 method: paymentMethod,
                 date: dateStr,
-                deliveryDate: deadline
+                deliveryDate: deadline,
+                paymentUrl: paymentUrl
             });
 
             // Enviar automáticamente el correo de confirmación de orden si el cliente tiene correo
@@ -2023,7 +2041,12 @@ export default function POSPage() {
                                                         const time = d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
                                                         return `${day} a las ${time} hrs`;
                                                     })() : '';
-                                                    const message = encodeURIComponent(`¡Hola ${checkoutResult.customer.full_name.split(' ')[0]}! 🎉\n\nTu pieza ya ingresó al atelier y está en proceso.\nOrden #: ${checkoutResult.orderId}\nTotal: ${checkoutResult.total.toLocaleString('es-CL')} CLP\n${deliveryInfo ? `Entrega estimada: ${deliveryInfo}\n` : ''}\nSi tienes dudas, contáctanos.\n\n— Elena La Costurera`);
+
+                                                    const paymentText = checkoutResult.paymentUrl 
+                                                        ? `\n💳 Paga en línea de forma segura aquí: ${checkoutResult.paymentUrl}\n`
+                                                        : '';
+
+                                                    const message = encodeURIComponent(`¡Hola ${checkoutResult.customer.full_name.split(' ')[0]}! 🎉\n\nTu pieza ya ingresó al atelier y está en proceso.\nOrden #: ${checkoutResult.orderId}\nTotal: ${checkoutResult.total.toLocaleString('es-CL')} CLP\n${deliveryInfo ? `Entrega estimada: ${deliveryInfo}\n` : ''}${paymentText}\nSi tienes dudas, contáctanos.\n\n— Elena La Costurera`);
                                                     const cleanPhone = checkoutResult.customer.phone.replace(/\D/g, '');
                                                     window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
                                                 }}

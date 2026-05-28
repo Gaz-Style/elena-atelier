@@ -1,6 +1,6 @@
 'use server';
 
-export const MERCADO_PAGO_CONFIG = {
+const MERCADO_PAGO_CONFIG = {
     publicKey: process.env.NEXT_PUBLIC_MP_PUBLIC_KEY,
     accessToken: process.env.MP_ACCESS_TOKEN,
 };
