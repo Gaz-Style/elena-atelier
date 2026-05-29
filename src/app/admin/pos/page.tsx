@@ -8,6 +8,7 @@ import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
 import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction } from './actions';
 import { createPaymentPreference } from '@/lib/payments';
+import { createWebpayTransaction } from '@/lib/transbank';
 
 const getLocalDateString = (dateObj: Date) => {
     const y = dateObj.getFullYear();
@@ -85,7 +86,7 @@ export default function POSPage() {
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash' | null>(null);
+    const [paymentMethod, setPaymentMethod] = useState<'mercadopago_point' | 'transbank' | 'cash' | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     
     // Gobernanza de Capacidad y Algoritmo de Fechas
@@ -562,8 +563,14 @@ export default function POSPage() {
         setIsProcessing(true);
         
         try {
+            const orderId = Math.floor(Math.random() * 90000) + 10000;
+            const dateStr = new Date().toLocaleDateString();
+
             const res = await createPOSOrdersAction({
                 customerId: selectedCustomer.id,
+                posOrderId: `order_${orderId}`,
+                paymentMethod: paymentMethod,
+                paymentStatus: 'pending',
                 items: cart.map(item => ({
                     name: item.name,
                     price: item.price,
@@ -585,23 +592,28 @@ export default function POSPage() {
                 return;
             }
 
-            const orderId = Math.floor(Math.random() * 90000) + 10000;
-            const dateStr = new Date().toLocaleDateString();
-
-            // Generar link de pago en Mercado Pago
+            // Generar link de pago solo si es Transbank (Online)
             let paymentUrl = '';
-            try {
-                const mpPref = await createPaymentPreference(cart);
-                if (mpPref && mpPref.init_point) {
-                    paymentUrl = mpPref.init_point;
+            if (paymentMethod === 'transbank') {
+                try {
+                    const buyOrder = `order_${orderId}`;
+                    const sessionId = `session_${selectedCustomer.id}_${Date.now()}`;
+                    const callbackUrl = `${window.location.origin}/admin/pos/webpay-callback`;
+                    
+                    console.log('Iniciando pago Transbank:', { buyOrder, sessionId, total, callbackUrl });
+                    const tbkRes = await createWebpayTransaction(buyOrder, sessionId, total, callbackUrl);
+                    if (tbkRes.success && tbkRes.url && tbkRes.token) {
+                        paymentUrl = `${tbkRes.url}?token_ws=${tbkRes.token}`;
+                    } else {
+                        console.error('Error al generar la transacción de Transbank:', tbkRes.error);
+                    }
+                } catch (tbkErr) {
+                    console.error('Excepción al generar la transacción de Transbank:', tbkErr);
                 }
-            } catch (prefErr) {
-                console.error('Error al generar la preferencia de pago para WhatsApp:', prefErr);
-            }
-
-            // Garantizar que siempre exista un enlace de pago (fallback en caso de error de API o simulación)
-            if (!paymentUrl) {
-                paymentUrl = `https://www.mercadopago.cl/checkout/v1/redirect?pref_id=order_${orderId}`;
+                
+                if (!paymentUrl) {
+                    paymentUrl = `https://webpay3gint.transbank.cl/webpayserver/initTransaction`;
+                }
             }
             
             setCheckoutResult({
@@ -633,7 +645,8 @@ export default function POSPage() {
                     date: dateStr,
                     deliveryDate: deadline || adjustedDates?.finalDeliveryDate || '',
                     deliveryWindowStart: adjustedDates?.config?.windowStart?.slice(0, 5) || '15:00',
-                    deliveryWindowEnd: adjustedDates?.config?.windowEnd?.slice(0, 5) || '18:00'
+                    deliveryWindowEnd: adjustedDates?.config?.windowEnd?.slice(0, 5) || '18:00',
+                    paymentUrl: paymentUrl
                 }).catch(err => {
                     console.error('Error al enviar correo automático de confirmación:', err);
                 });
@@ -1728,28 +1741,47 @@ export default function POSPage() {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-4 mt-6">
+                    <div className="grid grid-cols-3 gap-3 mt-6">
                         <button 
                             type="button"
                             disabled={hasUnassignedItems}
-                            onClick={() => setPaymentMethod('card')}
-                            className={`flex items-center justify-center gap-2 py-4 text-[10px] uppercase tracking-widest transition-all ${
+                            onClick={() => setPaymentMethod('mercadopago_point')}
+                            className={`flex flex-col items-center justify-center gap-2 py-3.5 text-[9px] uppercase tracking-widest transition-all rounded-sm border ${
                                 hasUnassignedItems
-                                    ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed opacity-50'
-                                    : 'border border-brand-charcoal hover:bg-gray-50 cursor-pointer'
+                                    ? 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed opacity-50'
+                                    : paymentMethod === 'mercadopago_point'
+                                        ? 'bg-brand-charcoal text-white border-brand-charcoal shadow-sm font-bold'
+                                        : 'border-gray-200 hover:border-brand-charcoal text-brand-charcoal bg-white cursor-pointer font-bold'
                             }`}>
-                            <CreditCard className="w-4 h-4" />
-                            Mercado Pago
+                            <CreditCard className="w-4 h-4 text-brand-terracotta" />
+                            Mercado Pago Point
+                        </button>
+                        <button 
+                            type="button"
+                            disabled={hasUnassignedItems}
+                            onClick={() => setPaymentMethod('transbank')}
+                            className={`flex flex-col items-center justify-center gap-2 py-3.5 text-[9px] uppercase tracking-widest transition-all rounded-sm border ${
+                                hasUnassignedItems
+                                    ? 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed opacity-50'
+                                    : paymentMethod === 'transbank'
+                                        ? 'bg-brand-charcoal text-white border-brand-charcoal shadow-sm font-bold'
+                                        : 'border-gray-200 hover:border-brand-charcoal text-brand-charcoal bg-white cursor-pointer font-bold'
+                            }`}>
+                            <CreditCard className="w-4 h-4 text-red-500" />
+                            Webpay Plus
                         </button>
                         <button 
                             type="button"
                             disabled={hasUnassignedItems}
                             onClick={() => setPaymentMethod('cash')}
-                            className={`flex items-center justify-center gap-2 py-4 text-[10px] uppercase tracking-widest transition-all ${
+                            className={`flex flex-col items-center justify-center gap-2 py-3.5 text-[9px] uppercase tracking-widest transition-all rounded-sm border ${
                                 hasUnassignedItems
-                                    ? 'bg-gray-100 text-gray-450 border border-gray-200 cursor-not-allowed opacity-50'
-                                    : 'bg-brand-charcoal text-white hover:bg-brand-terracotta cursor-pointer'
+                                    ? 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed opacity-50'
+                                    : paymentMethod === 'cash'
+                                        ? 'bg-brand-charcoal text-white border-brand-charcoal shadow-sm font-bold'
+                                        : 'border-gray-200 hover:border-brand-charcoal text-brand-charcoal bg-white cursor-pointer font-bold'
                             }`}>
+                            <span className="text-sm leading-none">💵</span>
                             Efectivo / Transf
                         </button>
                     </div>
@@ -1911,7 +1943,7 @@ export default function POSPage() {
                                 <div className="text-right">
                                     <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Fecha de Ingreso</p>
                                     <p className="text-sm font-bold">{checkoutResult.date}</p>
-                                    <p className="text-[10px] text-brand-terracotta font-bold uppercase mt-1">Metodo: {checkoutResult.method === 'card' ? 'Mercado Pago' : 'Efectivo'}</p>
+                                    <p className="text-[10px] text-brand-terracotta font-bold uppercase mt-1">Metodo: {checkoutResult.method === 'mercadopago_point' ? 'Mercado Pago Point' : checkoutResult.method === 'transbank' ? 'Webpay Plus' : 'Efectivo'}</p>
                                 </div>
                             </div>
 
@@ -2060,7 +2092,17 @@ export default function POSPage() {
                             </div>
                         </div>
 
-                        <div className="p-6 bg-gray-50 border-t border-gray-100 flex gap-4">
+                        <div className="p-6 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row gap-4">
+                            {checkoutResult.paymentUrl && checkoutResult.method === 'transbank' && (
+                                <a 
+                                    href={checkoutResult.paymentUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex-1 py-3 bg-brand-terracotta hover:bg-brand-charcoal text-white text-[10px] uppercase tracking-widest font-bold transition-all rounded-sm text-center flex items-center justify-center gap-2 shadow-md"
+                                >
+                                    <span>💳</span> {checkoutResult.method === 'transbank' ? 'Pagar con Webpay' : 'Pagar con Mercado Pago'}
+                                </a>
+                            )}
                             <button onClick={() => window.print()} className="flex-1 py-3 border border-brand-charcoal text-brand-charcoal text-[10px] uppercase tracking-widest font-bold hover:bg-white transition-all rounded-sm">
                                 Imprimir Orden (Taller)
                             </button>

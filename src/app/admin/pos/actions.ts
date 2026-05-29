@@ -177,9 +177,10 @@ export async function sendOrderConfirmationEmailAction(payload: {
     deliveryDate: string;
     deliveryWindowStart?: string;
     deliveryWindowEnd?: string;
+    paymentUrl?: string;
 }) {
     try {
-        const { customerEmail, customerName, orderId, items, total, paymentMethod, date, deliveryDate, deliveryWindowStart, deliveryWindowEnd } = payload;
+        const { customerEmail, customerName, orderId, items, total, paymentMethod, date, deliveryDate, deliveryWindowStart, deliveryWindowEnd, paymentUrl: providedPaymentUrl } = payload;
 
         // Format delivery date for display
         const deliveryDateObj = new Date(deliveryDate);
@@ -215,10 +216,10 @@ export async function sendOrderConfirmationEmailAction(payload: {
         const firstName = customerName.split(' ')[0];
         const paymentLabel = paymentMethod === 'card' ? 'Mercado Pago' : 'Efectivo / Transferencia';
 
-        // Crear preferencia de pago en Mercado Pago para la confirmación de la orden
-        let paymentUrl = '';
+        // Generar o usar link de pago
+        let paymentUrl = providedPaymentUrl || '';
         const mpAccessToken = process.env.MP_ACCESS_TOKEN || '';
-        if (mpAccessToken) {
+        if (!paymentUrl && mpAccessToken) {
             try {
                 const mpItems = items.map(item => ({
                     title: item.name,
@@ -404,12 +405,12 @@ export async function sendOrderConfirmationEmailAction(payload: {
           </p>
         </div>
 
-        <!-- Botón de Pago Mercado Pago -->
+        <!-- Botón de Pago -->
         <div style="margin: 12px 0 20px 0; text-align: center;">
           <a href="${paymentUrl}" target="_blank" style="display: block; background-color: #C17F5F; color: #FFFFFF !important; text-decoration: none; padding: 15px 24px; font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 2.5px; border-radius: 2px; border: 1px solid #C17F5F; font-family: 'Inter', sans-serif; box-shadow: 0 4px 12px rgba(193, 127, 95, 0.25);">
             PAGAR EN LÍNEA: ${formatCurrency(total)}
           </a>
-          <p style="font-size: 8px; color: #8A857D; margin-top: 8px; text-transform: uppercase; letter-spacing: 1px; font-family: 'Inter', sans-serif; margin-bottom: 0;">Pagar de forma segura con Mercado Pago</p>
+          <p style="font-size: 8px; color: #8A857D; margin-top: 8px; text-transform: uppercase; letter-spacing: 1px; font-family: 'Inter', sans-serif; margin-bottom: 0;">Pagar de forma segura con ${paymentMethod === 'transbank' ? 'Webpay Plus' : 'Mercado Pago'}</p>
         </div>
       </div>
       
@@ -454,6 +455,9 @@ export async function sendOrderConfirmationEmailAction(payload: {
 
 export async function createPOSOrdersAction(payload: {
     customerId: string;
+    posOrderId?: string;
+    paymentMethod?: string;
+    paymentStatus?: string;
     items: {
         name: string;
         price: number;
@@ -468,7 +472,7 @@ export async function createPOSOrdersAction(payload: {
     productionEndDate?: string | null;
     finalDeliveryDate?: string | null;
 }) {
-    const { customerId, items, deadline, productionStartDate, productionEndDate, finalDeliveryDate } = payload;
+    const { customerId, posOrderId, paymentMethod, paymentStatus, items, deadline, productionStartDate, productionEndDate, finalDeliveryDate } = payload;
     const supabase = await createClient();
 
     const insertPromises = items.map(item => {
@@ -486,7 +490,10 @@ export async function createPOSOrdersAction(payload: {
                 production_start_date: productionStartDate || null,
                 production_end_date: productionEndDate || null,
                 final_delivery_date: finalDeliveryDate || null,
-                assigned_operator_id: item.assignedOperatorId && item.assignedOperatorId !== 'unassigned' ? item.assignedOperatorId : null
+                assigned_operator_id: item.assignedOperatorId && item.assignedOperatorId !== 'unassigned' ? item.assignedOperatorId : null,
+                pos_order_id: posOrderId || null,
+                payment_method: paymentMethod || null,
+                payment_status: paymentStatus || 'pending'
             }]);
     });
 
