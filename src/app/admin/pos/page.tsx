@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, 
 import { getCostSettings } from '../finance/actions';
 import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
-import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction } from './actions';
+import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction } from './actions';
 import { createPaymentPreference } from '@/lib/payments';
 import { createWebpayTransaction } from '@/lib/transbank';
 
@@ -88,6 +88,7 @@ export default function POSPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [paymentMethod, setPaymentMethod] = useState<'mercadopago_point' | 'transbank' | 'cash' | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [paymentConfirmed, setPaymentConfirmed] = useState(false);
     
     // Gobernanza de Capacidad y Algoritmo de Fechas
     const [estimatedDates, setEstimatedDates] = useState<{
@@ -626,6 +627,9 @@ export default function POSPage() {
                 deliveryDate: deadline,
                 paymentUrl: paymentUrl
             });
+            
+            // Reset payment confirmed state for physical terminal polling
+            setPaymentConfirmed(false);
 
             // Enviar automáticamente el correo de confirmación de orden si el cliente tiene correo
             if (selectedCustomer.email) {
@@ -1921,6 +1925,12 @@ export default function POSPage() {
             {checkoutResult && (
                 <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
                     <div className="bg-white rounded-sm shadow-2xl w-full max-w-2xl flex flex-col overflow-hidden animate-in zoom-in duration-300">
+                        {/* Polling hook logic */}
+                        <PollingComponent 
+                            checkoutResult={checkoutResult} 
+                            paymentConfirmed={paymentConfirmed} 
+                            setPaymentConfirmed={setPaymentConfirmed} 
+                        />
                         <div className="bg-brand-charcoal text-white p-6 flex justify-between items-center">
                             <div className="flex items-center gap-3">
                                 <ClipboardList className="w-6 h-6 text-brand-sand" />
@@ -2103,9 +2113,18 @@ export default function POSPage() {
                                     <span>💳</span> {checkoutResult.method === 'transbank' ? 'Pagar con Webpay' : 'Pagar con Mercado Pago'}
                                 </a>
                             )}
-                            <button onClick={() => window.print()} className="flex-1 py-3 border border-brand-charcoal text-brand-charcoal text-[10px] uppercase tracking-widest font-bold hover:bg-white transition-all rounded-sm">
-                                Imprimir Orden (Taller)
-                            </button>
+                            
+                            {(checkoutResult.method === 'mercadopago_point' && !paymentConfirmed) ? (
+                                <div className="flex-1 py-3 bg-gray-100 text-brand-charcoal text-[10px] uppercase tracking-widest font-bold transition-all rounded-sm text-center flex flex-col items-center justify-center gap-1 opacity-70">
+                                    <div className="flex items-center gap-2"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Esperando Terminal...</div>
+                                    <span className="text-[8px] font-normal lowercase tracking-normal">La máquina está procesando el cobro</span>
+                                </div>
+                            ) : (
+                                <button onClick={() => window.print()} className="flex-1 py-3 border border-brand-charcoal text-brand-charcoal text-[10px] uppercase tracking-widest font-bold hover:bg-white transition-all rounded-sm">
+                                    {checkoutResult.method === 'mercadopago_point' ? '✅ Imprimir (Aprobado)' : 'Imprimir Orden (Taller)'}
+                                </button>
+                            )}
+                            
                             <button onClick={handleCloseCheckout} className="flex-1 py-3 bg-brand-charcoal text-white text-[10px] uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all rounded-sm">
                                 Finalizar y Nueva Orden
                             </button>
@@ -2116,4 +2135,35 @@ export default function POSPage() {
         </div>
         </>
     );
+}
+
+// Helper component for polling so we can use useEffect cleanly inside the conditionally rendered block
+function PollingComponent({ checkoutResult, paymentConfirmed, setPaymentConfirmed }: any) {
+    useEffect(() => {
+        if (checkoutResult?.method !== 'mercadopago_point' || paymentConfirmed) return;
+        
+        let interval: NodeJS.Timeout;
+        
+        const checkStatus = async () => {
+            try {
+                const orderRef = `order_${checkoutResult.orderId}`;
+                const res = await checkOrderStatusAction(orderRef);
+                if (res.success && res.status === 'PAGADO') {
+                    setPaymentConfirmed(true);
+                }
+            } catch (err) {
+                console.error("Error polling order status:", err);
+            }
+        };
+
+        // Check immediately
+        checkStatus();
+        
+        // Then every 3 seconds
+        interval = setInterval(checkStatus, 3000);
+        
+        return () => clearInterval(interval);
+    }, [checkoutResult, paymentConfirmed, setPaymentConfirmed]);
+
+    return null;
 }
