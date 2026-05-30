@@ -1815,7 +1815,11 @@ export default function POSPage() {
                                         ? 'Falta Identificar Cliente'
                                         : !deadline
                                             ? '⚠ Falta Fecha y Hora de Entrega'
-                                            : 'Cobrar y Emitir Boleta'
+                                            : paymentMethod === 'mercadopago_point'
+                                                ? 'Enviar a Terminal Físico'
+                                                : paymentMethod === 'transbank'
+                                                    ? 'Generar Link de Pago'
+                                                    : 'Cobrar y Emitir Boleta'
                             }
                         </button>
                     </div>
