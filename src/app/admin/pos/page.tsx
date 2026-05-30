@@ -2026,6 +2026,7 @@ export default function POSPage() {
                                 <p className="text-3xl font-serif text-brand-terracotta">{formatCurrency(checkoutResult.total)}</p>
                             </div>
 
+                            {!(checkoutResult.method === 'mercadopago_point' && !paymentConfirmed) && (
                             <div className="border-t border-gray-100 pt-6 space-y-4 print:hidden">
                                 <div className="bg-gray-50 p-4 rounded-sm border border-gray-200/60 flex flex-col md:flex-row gap-4 items-center justify-between">
                                     <div className="text-left">
@@ -2100,6 +2101,7 @@ export default function POSPage() {
                                     </div>
                                 </div>
                             </div>
+                            )}
                         </div>
 
                         <div className="p-6 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row gap-4">
