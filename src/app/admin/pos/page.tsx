@@ -2121,9 +2121,16 @@ export default function POSPage() {
                             )}
                             
                             {(checkoutResult.method === 'mercadopago_point' && !paymentConfirmed) ? (
-                                <div className="flex-1 py-3 bg-gray-100 text-brand-charcoal text-[10px] uppercase tracking-widest font-bold transition-all rounded-sm text-center flex flex-col items-center justify-center gap-1 opacity-70">
-                                    <div className="flex items-center gap-2"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Esperando Terminal...</div>
-                                    <span className="text-[8px] font-normal lowercase tracking-normal">La máquina está procesando el cobro</span>
+                                <div className="flex-1 flex flex-col sm:flex-row gap-2">
+                                    <div className="flex-1 py-3 bg-gray-100 text-brand-charcoal text-[10px] uppercase tracking-widest font-bold transition-all rounded-sm text-center flex flex-col items-center justify-center gap-1 opacity-70">
+                                        <div className="flex items-center gap-2"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Esperando Webhook...</div>
+                                    </div>
+                                    <button 
+                                        onClick={() => setPaymentConfirmed(true)} 
+                                        className="flex-1 py-3 bg-brand-terracotta text-white text-[10px] uppercase tracking-widest font-bold hover:bg-brand-charcoal transition-all rounded-sm shadow-md"
+                                    >
+                                        Validar Manualmente
+                                    </button>
                                 </div>
                             ) : (
                                 <button onClick={() => window.print()} className="flex-1 py-3 border border-brand-charcoal text-brand-charcoal text-[10px] uppercase tracking-widest font-bold hover:bg-white transition-all rounded-sm">
