@@ -80,14 +80,18 @@ export default async function ClientPortalPage() {
                 ) : (
                     <div className="space-y-12">
                         {orders.map(order => {
-                            // Map DB order to the format Passport expects
+                            const validStatuses = ['cutting', 'sewing', 'finishing', 'ready'] as const;
+                            type ValidStatus = typeof validStatuses[number];
+                            const rawStatus = order.status === 'completed' ? 'ready' : 'sewing';
+                            const mappedStatus: ValidStatus = validStatuses.includes(rawStatus as ValidStatus) ? rawStatus as ValidStatus : 'sewing';
+
                             const passportData = {
                                 id: order.id.split('-')[0],
                                 garmentName: order.catalog?.name || 'Prenda a Medida',
                                 artisan: order.assigned_operator || 'Pendiente de asignación',
-                                fabricOrigin: order.notes?.includes('Telas') ? order.notes : 'Seda Italiana Premium (Placeholder)',
+                                fabricOrigin: order.notes?.includes('Telas') ? order.notes : 'Seda Italiana Premium',
                                 confectionDate: new Date(order.estimated_completion).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' }),
-                                status: order.status === 'completed' ? 'ready' : 'sewing'
+                                status: mappedStatus
                             };
 
                             return (
