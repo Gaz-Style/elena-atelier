@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
     ArrowLeft, Target, BarChart3, MessageSquare, Search, Award, TrendingUp, 
