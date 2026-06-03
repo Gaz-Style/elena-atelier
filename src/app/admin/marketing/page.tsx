@@ -200,7 +200,7 @@ export default function MarketingDashboard() {
                     </button>
                 </div>
 
-                {activeTab === 'dashboard' ? (
+                {activeTab === 'dashboard' && (
                     <div className="space-y-12 animate-fadeIn">
                         {/* Marketing Summary Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -279,7 +279,9 @@ export default function MarketingDashboard() {
                             </div>
                         </div>
                     </div>
-                ) : (
+                )}
+                
+                {activeTab === 'plan' && (
                     <div className="space-y-12 animate-fadeIn">
                         {/* Progress and Strategy Summary Banner */}
                         <div className="bg-white p-8 rounded-sm shadow-sm border border-gray-200/80 flex flex-col md:flex-row justify-between items-start gap-8">
