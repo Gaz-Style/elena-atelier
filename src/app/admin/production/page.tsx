@@ -8,10 +8,12 @@ import {
     History, BarChart2, CheckCircle, Flame
 } from 'lucide-react';
 import { getProductionOrders, updateOrderStatus } from './actions';
+import { getOperatorsAction } from '../pos/actions';
 import { supabase } from '@/lib/supabase';
 
 export default function ProductionPage() {
     const [orders, setOrders] = useState<any[]>([]);
+    const [operators, setOperators] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isAdding, setIsAdding] = useState(false);
@@ -34,6 +36,7 @@ export default function ProductionPage() {
 
     useEffect(() => {
         fetchOrders();
+        fetchOperators();
         setIsDesktop(window.innerWidth >= 768);
         const handleResize = () => setIsDesktop(window.innerWidth >= 768);
         window.addEventListener('resize', handleResize);
@@ -62,6 +65,22 @@ export default function ProductionPage() {
         setOrders(data || []);
         setLoading(false);
     }
+
+    async function fetchOperators() {
+        const data = await getOperatorsAction();
+        setOperators(data || []);
+    }
+
+    const getDailyCapacity = (date: Date) => {
+        const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay(); // 1=Mon, 7=Sun
+        let total = 0;
+        operators.forEach(op => {
+            if (op.status === 'active' && op.working_days && op.working_days.includes(dayOfWeek)) {
+                total += Number(op.daily_hours_capacity || 0);
+            }
+        });
+        return total > 0 ? total : 8; // fallback to 8 if no operators configured for that day
+    };
 
     async function handleStatusChange(id: string, newStatus: string) {
         const result = await updateOrderStatus(id, newStatus);
@@ -271,7 +290,7 @@ export default function ProductionPage() {
                         className={`pb-4 text-xs uppercase tracking-widest font-bold border-b-2 transition-all flex items-center gap-2 ${activeTab === 'calendar' ? 'border-brand-terracotta text-brand-charcoal' : 'border-transparent text-gray-400 hover:text-brand-charcoal'}`}
                     >
                         <Calendar className="w-4 h-4" />
-                        Calendario de Bloques (8h)
+                        Calendario de Producción
                     </button>
                     <button 
                         onClick={() => { setActiveTab('history'); setSearchTerm(''); }}
@@ -442,6 +461,7 @@ export default function ProductionPage() {
                                             {getDaysInMonth(calendarDate).map(({ date, isCurrentMonth }, idx) => {
                                                 const dateOrders = getOrdersForDate(date);
                                                 const totalHours = getHoursForDate(date);
+                                                const dailyCapacity = getDailyCapacity(date);
                                                 const isToday = new Date().toDateString() === date.toDateString();
                                                 
                                                 return (
@@ -463,11 +483,11 @@ export default function ProductionPage() {
                                                             {/* Hour/Limit indicator */}
                                                             {totalHours > 0 && (
                                                                 <span className={`text-[8px] px-1.5 py-0.5 font-bold rounded-sm ${
-                                                                    totalHours <= 5 ? 'bg-green-50 text-green-700 border border-green-150' :
-                                                                    totalHours <= 8 ? 'bg-amber-50 text-amber-700 border border-amber-150' :
+                                                                    totalHours <= dailyCapacity * 0.6 ? 'bg-green-50 text-green-700 border border-green-150' :
+                                                                    totalHours <= dailyCapacity ? 'bg-amber-50 text-amber-700 border border-amber-150' :
                                                                     'bg-rose-50 text-rose-700 border border-rose-150 animate-pulse'
                                                                 }`}>
-                                                                    {totalHours}h/8h
+                                                                    {totalHours}h/{dailyCapacity}h
                                                                 </span>
                                                             )}
                                                         </div>
@@ -504,6 +524,7 @@ export default function ProductionPage() {
                                         {getDaysInWeek(calendarDate).map((date, idx) => {
                                             const dateOrders = getOrdersForDate(date);
                                             const totalHours = getHoursForDate(date);
+                                            const dailyCapacity = getDailyCapacity(date);
                                             const isToday = new Date().toDateString() === date.toDateString();
                                             
                                             return (
@@ -522,17 +543,17 @@ export default function ProductionPage() {
                                                     <div className="space-y-1">
                                                         <div className="flex justify-between text-[8px] font-bold uppercase tracking-wider">
                                                             <span className="text-gray-400">Carga del Día</span>
-                                                            <span className={totalHours > 8 ? 'text-rose-600' : 'text-brand-charcoal'}>
-                                                                {totalHours} / 8 horas
+                                                            <span className={totalHours > dailyCapacity ? 'text-rose-600' : 'text-brand-charcoal'}>
+                                                                {totalHours} / {dailyCapacity} horas
                                                             </span>
                                                         </div>
                                                         <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
                                                             <div 
                                                                 className={`h-full transition-all duration-300 ${
-                                                                    totalHours <= 5 ? 'bg-green-600' :
-                                                                    totalHours <= 8 ? 'bg-amber-500' : 'bg-rose-600'
+                                                                    totalHours <= dailyCapacity * 0.6 ? 'bg-green-600' :
+                                                                    totalHours <= dailyCapacity ? 'bg-amber-500' : 'bg-rose-600'
                                                                 }`}
-                                                                style={{ width: `${Math.min((totalHours / 8) * 100, 100)}%` }}
+                                                                style={{ width: `${Math.min((totalHours / dailyCapacity) * 100, 100)}%` }}
                                                             />
                                                         </div>
                                                     </div>
@@ -576,37 +597,38 @@ export default function ProductionPage() {
                                             <div className="space-y-4">
                                                 <h3 className="text-xs uppercase tracking-widest font-bold text-gray-400">Resumen del Día</h3>
                                                 <p className="text-sm text-text-secondary leading-relaxed">
-                                                    Elena Atelier tiene asignada una jornada estándar de <strong>8 horas laborales de costura diarias</strong> por puesto.
+                                                    Elena Atelier calcula la capacidad laboral diaria basándose en el <strong>perfil de cada costurera asignada</strong> para hoy.
                                                 </p>
                                             </div>
 
                                             {/* Large Progress Bar & Status */}
                                             {(() => {
                                                 const totalHours = getHoursForDate(calendarDate);
+                                                const dailyCapacity = getDailyCapacity(calendarDate);
                                                 return (
                                                     <div className="space-y-6 py-6 border-y border-brand-sand/20">
                                                         <div className="space-y-2">
                                                             <div className="flex justify-between items-end">
                                                                 <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Carga Asignada</span>
-                                                                <span className="text-3xl font-serif">{totalHours} <span className="text-xs font-sans uppercase text-gray-400">/ 8 hrs</span></span>
+                                                                <span className="text-3xl font-serif">{totalHours} <span className="text-xs font-sans uppercase text-gray-400">/ {dailyCapacity} hrs</span></span>
                                                             </div>
                                                             <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
                                                                 <div 
                                                                     className={`h-full transition-all duration-500 ${
-                                                                        totalHours <= 5 ? 'bg-green-600' :
-                                                                        totalHours <= 8 ? 'bg-amber-500' : 'bg-rose-600'
+                                                                        totalHours <= dailyCapacity * 0.6 ? 'bg-green-600' :
+                                                                        totalHours <= dailyCapacity ? 'bg-amber-500' : 'bg-rose-600'
                                                                     }`}
-                                                                    style={{ width: `${Math.min((totalHours / 8) * 100, 100)}%` }}
+                                                                    style={{ width: `${Math.min((totalHours / dailyCapacity) * 100, 100)}%` }}
                                                                 />
                                                             </div>
                                                         </div>
 
                                                         <div className="flex gap-3 items-start">
-                                                            {totalHours <= 5 ? (
+                                                            {totalHours <= dailyCapacity * 0.6 ? (
                                                                 <div className="p-2 bg-green-50 rounded-full text-green-700 border border-green-150">
                                                                     <CheckCircle2 className="w-5 h-5" />
                                                                 </div>
-                                                            ) : totalHours <= 8 ? (
+                                                            ) : totalHours <= dailyCapacity ? (
                                                                 <div className="p-2 bg-amber-50 rounded-full text-amber-700 border border-amber-150">
                                                                     <Clock className="w-5 h-5" />
                                                                 </div>
@@ -618,14 +640,14 @@ export default function ProductionPage() {
 
                                                             <div>
                                                                 <h4 className="text-[10px] font-bold uppercase tracking-widest">
-                                                                    {totalHours <= 5 ? 'Capacidad Óptima' :
-                                                                     totalHours <= 8 ? 'Capacidad Intermedia' :
+                                                                    {totalHours <= dailyCapacity * 0.6 ? 'Capacidad Óptima' :
+                                                                     totalHours <= dailyCapacity ? 'Capacidad Intermedia' :
                                                                      'Capacidad Sobrecargada'}
                                                                 </h4>
                                                                 <p className="text-xs text-text-secondary mt-1">
-                                                                    {totalHours <= 5 ? 'El taller cuenta con suficiente tiempo libre para recibir más bastas o costuras en esta fecha.' :
-                                                                     totalHours <= 8 ? 'La jornada laboral de hoy está balanceada. Carga laboral óptima.' :
-                                                                     '¡Cuidado! Se ha excedido la jornada laboral de 8 horas de costura. Considera re-agendar algunas órdenes.'}
+                                                                    {totalHours <= dailyCapacity * 0.6 ? 'El taller cuenta con suficiente tiempo libre para recibir más bastas o costuras en esta fecha.' :
+                                                                     totalHours <= dailyCapacity ? 'La jornada laboral de hoy está balanceada. Carga laboral óptima.' :
+                                                                     `¡Cuidado! Se ha excedido la capacidad operativa de ${dailyCapacity} horas. Considera re-agendar algunas órdenes.`}
                                                                 </p>
                                                             </div>
                                                         </div>
