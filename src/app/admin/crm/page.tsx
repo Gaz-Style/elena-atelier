@@ -18,8 +18,7 @@ export default async function CRMPage() {
   const customers = customersData?.map(c => {
       const sales = Array.isArray(c.sales_ledger) ? c.sales_ledger : [];
       const totalSpent = sales.reduce((acc: number, sale: any) => {
-          if (sale.status === 'completed') return acc + (sale.total_amount || 0);
-          return acc;
+          return acc + (sale.total_amount || 0);
       }, 0);
       return { ...c, totalSpent };
   }) || [];

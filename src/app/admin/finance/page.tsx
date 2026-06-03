@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { TrendingUp, Receipt, DollarSign, Settings, Save, Loader2, CheckCircle2, Building2, Plus, Calendar, Hash, Tag, FileText, History, User, Trash2, Calculator, Info } from 'lucide-react';
-import { getCostSettings, saveCostSettings, getExpenses, getFixedCosts, registerPurchaseDocument, getRecentDocuments, deletePurchaseDocument, calculateSuggestedRate } from './actions';
+import { getCostSettings, saveCostSettings, getExpenses, getFixedCosts, registerPurchaseDocument, getRecentDocuments, deletePurchaseDocument, calculateSuggestedRate, getSalesMetrics } from './actions';
 import { getInventoryItems } from '../inventory/actions';
 
 export default function FinanceDashboard() {
@@ -18,6 +18,7 @@ export default function FinanceDashboard() {
     const [isCalculating, setIsCalculating] = useState(false);
     const [suggestedData, setSuggestedData] = useState<{rate: number, total: number} | null>(null);
     const [currentHourlyRate, setCurrentHourlyRate] = useState<number>(0);
+    const [salesMetrics, setSalesMetrics] = useState<any>({ netSales: 0, ivaDebito: 0, ivaCredito: 0, f29: 0, totalGrossSales: 0 });
 
     // Generalised Inventory States
     const [inventoryItems, setInventoryItems] = useState<any[]>([]);
@@ -40,10 +41,11 @@ export default function FinanceDashboard() {
         const m = now.getMonth() + 1;
         const y = now.getFullYear();
 
-        const [expData, fixedData, docsData] = await Promise.all([
+        const [expData, fixedData, docsData, salesData] = await Promise.all([
             getExpenses(m, y),
             getFixedCosts(m, y),
-            getRecentDocuments()
+            getRecentDocuments(),
+            getSalesMetrics(m, y)
         ]);
 
         const totalExp = expData.reduce((sum: number, exp: any) => sum + Number(exp.amount), 0);
@@ -52,6 +54,7 @@ export default function FinanceDashboard() {
         setTotalExpenses(totalExp);
         setTotalFixedCosts(totalFixed);
         setRecentDocs(docsData);
+        setSalesMetrics(salesData);
     }
 
     const handleSaveSettings = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -133,11 +136,13 @@ export default function FinanceDashboard() {
         );
     }
 
+    const formatCurrency = (val: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val);
+
     const metrics = [
-        { title: 'Ventas Netas', value: '$4.250.000', icon: DollarSign, trend: '+12%', color: 'text-green-600', link: null },
-        { title: 'Gastos Variables (Mes)', value: new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(totalExpenses), icon: TrendingUp, trend: 'Dinámico', color: 'text-red-500', link: '/admin/finance/expenses' },
-        { title: 'Costos Fijos (Planilla)', value: new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(totalFixedCosts), icon: Building2, trend: 'Configurado', color: 'text-brand-charcoal', link: '/admin/finance/fixed-costs' },
-        { title: 'IVA por Pagar (19%)', value: '$807.500', icon: Receipt, trend: 'Calculado', color: 'text-brand-terracotta', link: null },
+        { title: 'Ventas Netas', value: formatCurrency(salesMetrics.netSales), icon: DollarSign, trend: '+12%', color: 'text-green-600', link: null },
+        { title: 'Gastos Variables (Mes)', value: formatCurrency(totalExpenses), icon: TrendingUp, trend: 'Dinámico', color: 'text-red-500', link: '/admin/finance/expenses' },
+        { title: 'Costos Fijos (Planilla)', value: formatCurrency(totalFixedCosts), icon: Building2, trend: 'Configurado', color: 'text-brand-charcoal', link: '/admin/finance/fixed-costs' },
+        { title: 'IVA por Pagar (19%)', value: formatCurrency(salesMetrics.f29), icon: Receipt, trend: 'Calculado', color: 'text-brand-terracotta', link: null },
     ];
 
     return (
@@ -523,18 +528,18 @@ export default function FinanceDashboard() {
                             <div className="space-y-8 relative z-10">
                                 <div className="flex justify-between border-b border-white/5 pb-4">
                                     <span className="text-white/40 text-[10px] uppercase tracking-widest">IVA Débito</span>
-                                    <span className="font-bold text-sm">$1.200.000</span>
+                                    <span className="font-bold text-sm">{formatCurrency(salesMetrics.ivaDebito)}</span>
                                 </div>
                                 <div className="flex justify-between border-b border-white/5 pb-4">
                                     <span className="text-white/40 text-[10px] uppercase tracking-widest">IVA Crédito</span>
-                                    <span className="font-bold text-sm text-green-400">$392.500</span>
+                                    <span className="font-bold text-sm text-green-400">{formatCurrency(salesMetrics.ivaCredito)}</span>
                                 </div>
                                 <div className="flex justify-between pt-6">
                                     <div className="space-y-1">
                                         <span className="font-bold text-brand-terracotta uppercase text-[10px] tracking-widest block">Impuesto F29</span>
                                         <p className="text-[9px] text-white/30 italic">Cálculo basado en Libro V2</p>
                                     </div>
-                                    <span className="text-3xl font-serif">$807.500</span>
+                                    <span className="text-3xl font-serif">{formatCurrency(salesMetrics.f29)}</span>
                                 </div>
                             </div>
                         </div>

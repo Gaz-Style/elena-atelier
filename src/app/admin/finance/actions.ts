@@ -419,3 +419,33 @@ export async function calculateSuggestedRate(hoursPerMonth: number = 160) {
   const suggestedRate = Math.round(totalFixed / hoursPerMonth);
   return { suggestedRate, totalFixed };
 }
+
+export async function getSalesMetrics(month: number, year: number) {
+  const supabase = await createClient();
+  const startDate = new Date(year, month - 1, 1).toISOString();
+  const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
+
+  // 1. Get Net Sales
+  const { data: sales } = await supabase.from('sales_ledger')
+    .select('total_amount, status')
+    .gte('created_at', startDate)
+    .lte('created_at', endDate);
+    
+  const totalGrossSales = sales?.reduce((sum, s) => sum + (Number(s.total_amount) || 0), 0) || 0;
+  // Net Sales = Gross / 1.19
+  const netSales = Math.round(totalGrossSales / 1.19);
+  const ivaDebito = totalGrossSales - netSales;
+
+  // 2. Get IVA Crédito from Purchase Ledger
+  const { data: purchases } = await supabase.from('purchase_ledger')
+    .select('vat_amount')
+    .gte('date', startDate.split('T')[0])
+    .lte('date', endDate.split('T')[0]);
+
+  const ivaCredito = purchases?.reduce((sum, p) => sum + (Number(p.vat_amount) || 0), 0) || 0;
+
+  // 3. Calculate F29 (Impuesto F29 = Debito - Credito)
+  const f29 = Math.max(0, ivaDebito - ivaCredito);
+
+  return { totalGrossSales, netSales, ivaDebito, ivaCredito, f29 };
+}

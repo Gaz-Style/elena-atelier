@@ -45,8 +45,8 @@ export default async function SalesLedgerPage() {
     const today = new Date().toISOString().split('T')[0];
     const todaysSales = safeSales.filter(s => s.created_at.startsWith(today));
     
-    const totalRevenue = safeSales.filter(s => s.status === 'completed').reduce((sum, s) => sum + s.total_amount, 0);
-    const todayRevenue = todaysSales.filter(s => s.status === 'completed').reduce((sum, s) => sum + s.total_amount, 0);
+    const totalRevenue = safeSales.reduce((sum, s) => sum + s.total_amount, 0);
+    const todayRevenue = todaysSales.reduce((sum, s) => sum + s.total_amount, 0);
     const pendingSales = safeSales.filter(s => s.status === 'pending').length;
 
     return (
