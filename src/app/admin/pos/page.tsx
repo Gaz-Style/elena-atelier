@@ -103,7 +103,7 @@ export default function POSPage() {
     const [adminOverride, setAdminOverride] = useState(false);
     const [operators, setOperators] = useState<any[]>([]);
     const [atelierConfig, setAtelierConfig] = useState<any>(null);
-    const [assignedOperatorId, setAssignedOperatorId] = useState<string>('unassigned');
+    const [assignedOperatorId, setAssignedOperatorId] = useState<string>('');
 
     const addToCart = (p: any) => setCart([...cart, p]);
     const removeFromCart = (index: number) => {
@@ -547,7 +547,7 @@ export default function POSPage() {
         setOrderImages([]);
         setActiveImageIndex(0);
         setCustomPrice('');
-        setAssignedOperatorId('unassigned');
+        setAssignedOperatorId('');
     };
 
     const handleQuickRegister = async () => {
@@ -952,13 +952,13 @@ export default function POSPage() {
                     )}
                 </div>
 
-                {/* Section 2: Service Details */}
+                {/* Section 2: Asignar Costurera */}
                 <div className={`bg-white p-6 md:p-8 rounded-sm border border-gray-100 shadow-sm space-y-6 transition-all ${!selectedCustomer ? 'opacity-50 pointer-events-none' : ''}`}>
                     <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta border-b border-gray-100 pb-2 flex items-center gap-2 mb-6">
-                        <Tag className="w-4 h-4" /> 2. Detalle del Trabajo
+                        <Tag className="w-4 h-4" /> 2. Asignar Costurera
                     </h3>
                     
-                    <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="col-span-2">
                             <label className="block text-[10px] uppercase tracking-widest text-brand-charcoal font-bold mb-1 flex items-center gap-1.5">
                                 👤 Costurera / Operaria Asignada
@@ -969,6 +969,7 @@ export default function POSPage() {
                                 onChange={(e) => setAssignedOperatorId(e.target.value)}
                                 className="w-full p-3 text-sm font-medium bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta transition-colors"
                             >
+                                <option value="" disabled>-- Selecciona Costurera o Taller General --</option>
                                 <option value="unassigned">Sin asignar (Enviar al Taller General)</option>
                                 {operators.map((op: any) => (
                                     <option key={op.id} value={op.id}>
@@ -978,6 +979,13 @@ export default function POSPage() {
                             </select>
                         </div>
                     </div>
+                </div>
+
+                {/* Section 3: Detalle del Trabajo */}
+                <div className={`bg-white p-6 md:p-8 rounded-sm border border-gray-100 shadow-sm space-y-6 transition-all ${(!selectedCustomer || assignedOperatorId === '') ? 'opacity-50 pointer-events-none' : ''}`}>
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta border-b border-gray-100 pb-2 flex items-center gap-2 mb-6">
+                        <Tag className="w-4 h-4" /> 3. Detalle del Trabajo
+                    </h3>
                     
                     <div className="grid grid-cols-2 gap-4">
                         <div className="col-span-2 md:col-span-1">
@@ -1154,9 +1162,13 @@ export default function POSPage() {
                                         </div>
                                     </div>
 
-                                    {/* Action footer containing product total beside action button */}
-                                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-brand-charcoal text-white p-6 rounded-sm shadow-lg">
-                                        <div className="text-center sm:text-left">
+                                    {/* Section 4: Detalle Precio Orden (Catálogo) */}
+                                    <div className={`transition-all mt-6 ${(!selectedCustomer || assignedOperatorId === '' || !selectedCatalogProduct) ? 'opacity-50 pointer-events-none' : ''}`}>
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta pb-2 flex items-center gap-2 mb-2 ml-1">
+                                            <Tag className="w-4 h-4" /> 4. Detalle de Precio Orden
+                                        </h3>
+                                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-brand-charcoal text-white p-6 rounded-sm shadow-lg">
+                                            <div className="text-center sm:text-left">
                                             <span className="bg-brand-terracotta text-white px-2 py-0.5 rounded-[2px] text-[8px] uppercase tracking-widest font-bold mb-1.5 inline-block">
                                                 {selectedCatalogProduct.category}
                                             </span>
@@ -1176,12 +1188,14 @@ export default function POSPage() {
                                                 setOrderNotes('');
                                                 setOrderImages([]);
                                                 setActiveImageIndex(0);
-                                                setAssignedOperatorId('unassigned');
+                                                setAssignedOperatorId('');
                                             }}
                                             className="w-full sm:w-auto bg-brand-terracotta text-white px-10 py-4 text-[10px] uppercase tracking-widest font-bold rounded-sm hover:bg-white hover:text-brand-terracotta transition-all shadow-md active:scale-95 text-center"
                                         >
                                             Añadir a la Orden
                                         </button>
+                                    </div>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -1306,13 +1320,18 @@ export default function POSPage() {
                                     )}
                                 </div>
                             </div>
+                </div>
 
-                            <div className="flex flex-col md:flex-row justify-between items-center bg-brand-charcoal text-white p-6 rounded-sm mt-4 shadow-lg gap-6">
+                {/* Section 4: Detalle Precio Orden (A Medida) */}
+                <div className={`transition-all mt-6 ${(!selectedCustomer || assignedOperatorId === '' || !customOrderName.trim()) ? 'opacity-50 pointer-events-none' : ''}`}>
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta pb-2 flex items-center gap-2 mb-2 ml-1">
+                        <Tag className="w-4 h-4" /> 4. Detalle de Precio Orden
+                    </h3>
+                    <div className="flex flex-col md:flex-row justify-between items-center bg-brand-charcoal text-white p-6 rounded-sm shadow-lg gap-6">
                                 <div className="text-center md:text-left">
                                     <p className="text-[10px] uppercase tracking-widest text-brand-sand font-bold mb-1">Precio Sugerido (Con Margen {marginPercentage}%)</p>
                                     <p className="text-3xl font-serif text-white">{formatCurrency(calculatedPrice)}</p>
                                 </div>
-                                
                                 <div className="flex flex-col items-center md:items-start gap-2">
                                     <label className="text-[10px] uppercase tracking-widest text-brand-sand font-bold">Precio Cobrado Real (CLP)</label>
                                     <div className="flex items-center gap-2">
