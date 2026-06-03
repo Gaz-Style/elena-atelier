@@ -1040,7 +1040,7 @@ export default function POSPage() {
                             <p className="text-[10px] text-gray-500 leading-normal mb-2">Selecciona la costurera para calcular la agenda y tiempos de entrega automáticamente.</p>
                             <select
                                 value={assignedOperatorId}
-                                onChange={(e) => handleOperatorSelection(e.target.value, null, selectedCatalogProduct ? Number(selectedCatalogProduct.estimated_hours || 2) : (Number(customEstimatedHours) || 2))}
+                                onChange={(e) => handleOperatorSelection(e.target.value, null, selectedCatalogProduct ? Number(selectedCatalogProduct.estimated_hours || 2) : (Number(hoursEstimated) || 2))}
                                 className="w-full p-3 text-sm font-medium bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta transition-colors"
                             >
                                 <option value="" disabled>-- Selecciona Costurera o Taller General --</option>

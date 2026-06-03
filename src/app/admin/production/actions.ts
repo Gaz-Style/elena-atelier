@@ -35,10 +35,10 @@ export async function updateOrderStatus(id: string, newStatus: string) {
     .eq('id', id)
     .single();
 
-  if (fetchError) return { error: `No se encontró la orden: ${fetchError.message}` };
+  if (fetchError) return { error: `No se encontrÃ³ la orden: ${fetchError.message}` };
 
   if (!order.assigned_operator_id && newStatus !== 'draft') {
-    return { error: 'No se puede avanzar el estado de producción sin asignar una costurera.' };
+    return { error: 'No se puede avanzar el estado de producciÃ³n sin asignar una costurera.' };
   }
 
   // Update the status
@@ -136,14 +136,14 @@ export async function getWorkloadForecastAction() {
         if (hoursNext7 > (weeklyCapacity * 0.9)) {
             status = 'deficit';
             requiredHeadcount = Math.ceil(hoursNext7 / (dailyCapacity * workingDays));
-            recommendation = \D�ficit cr�tico. Para cubrir \ hrs en 7 d�as, se sugieren \ operarias (tienes \).\;
+            recommendation = `Déficit crítico. Para cubrir ${hoursNext7} hrs en 7 días, se sugieren ${requiredHeadcount} operarias (tienes ${activeOpCount}).`;
         } else if (hoursNext7 < (weeklyCapacity * 0.4) && activeOpCount > 1) {
             status = 'surplus';
             requiredHeadcount = Math.max(1, Math.ceil(hoursNext7 / (dailyCapacity * workingDays)));
-            recommendation = \Capacidad ociosa. Carga de \ hrs en 7 d�as. Podr�as reducir a \ operaria(s).\;
+            recommendation = `Capacidad ociosa. Carga de ${hoursNext7} hrs en 7 días. Podrías reducir a ${requiredHeadcount} operaria(s).`;
         } else {
             status = 'optimal';
-            recommendation = \Fuerza laboral balanceada. Carga: \ hrs / Capacidad: \ hrs.\;
+            recommendation = `Fuerza laboral balanceada. Carga: ${hoursNext7} hrs / Capacidad: ${weeklyCapacity} hrs.`;
         }
     }
     
@@ -161,4 +161,3 @@ export async function getWorkloadForecastAction() {
         }
     };
 }
-
