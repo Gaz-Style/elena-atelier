@@ -21,7 +21,7 @@ interface Task {
 import { getMarketingTasks, updateMarketingTaskStatus, getMarketingMetrics } from './actions';
 
 export default function MarketingDashboard() {
-    const [activeTab, setActiveTab] = useState<'dashboard' | 'plan'>('dashboard');
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'plan' | 'ai-content' | 'newsletter'>('dashboard');
     const [copiedLink, setCopiedLink] = useState(false);
     
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -187,6 +187,26 @@ export default function MarketingDashboard() {
                         }`}
                     >
                         <ListTodo className="w-4 h-4" /> Plan de Marketing & Checklist
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('ai-content')}
+                        className={`py-4 px-6 font-medium text-xs uppercase tracking-widest border-b-2 transition-all duration-300 flex items-center gap-2 ${
+                            activeTab === 'ai-content'
+                                ? 'border-brand-terracotta text-brand-charcoal font-bold'
+                                : 'border-transparent text-gray-400 hover:text-brand-charcoal hover:border-gray-300'
+                        }`}
+                    >
+                        <Sparkles className="w-4 h-4" /> Asistente IA
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('newsletter')}
+                        className={`py-4 px-6 font-medium text-xs uppercase tracking-widest border-b-2 transition-all duration-300 flex items-center gap-2 ${
+                            activeTab === 'newsletter'
+                                ? 'border-brand-terracotta text-brand-charcoal font-bold'
+                                : 'border-transparent text-gray-400 hover:text-brand-charcoal hover:border-gray-300'
+                        }`}
+                    >
+                        <MessageSquare className="w-4 h-4" /> Newsletter
                     </button>
                 </div>
 
@@ -493,6 +513,83 @@ export default function MarketingDashboard() {
                                         </button>
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'ai-content' && (
+                    <div className="space-y-8 animate-fadeIn">
+                        <div className="bg-white p-8 rounded-sm shadow-sm border border-gray-200/80">
+                            <div className="flex items-center gap-3 mb-6 pb-6 border-b border-gray-100">
+                                <Sparkles className="w-6 h-6 text-brand-terracotta" />
+                                <div>
+                                    <h2 className="text-2xl font-serif">Asistente de Contenido IA</h2>
+                                    <p className="text-sm text-text-secondary">Genera copys persuasivos para Instagram y TikTok usando inteligencia artificial.</p>
+                                </div>
+                            </div>
+                            
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <label className="text-xs uppercase tracking-widest font-bold text-gray-500">¿Qué confeccionaste hoy?</label>
+                                    <textarea 
+                                        className="w-full h-32 p-4 bg-gray-50 border border-gray-200 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none resize-none text-sm"
+                                        placeholder="Ej: Terminé un vestido de novia de raso de seda con escote en V y bordado a mano en la espalda. Clienta de Vitacura."
+                                    ></textarea>
+                                    <button className="bg-brand-charcoal hover:bg-brand-terracotta text-white px-6 py-3 rounded-sm uppercase tracking-widest text-[10px] font-bold transition-all w-full flex items-center justify-center gap-2">
+                                        <Sparkles className="w-3 h-3" /> Generar Guion y Copy
+                                    </button>
+                                </div>
+                                <div className="bg-brand-sand/10 border border-gray-100 p-6 rounded-sm min-h-[200px] flex flex-col items-center justify-center text-center">
+                                    <Sparkles className="w-8 h-8 text-gray-300 mb-4" />
+                                    <p className="text-sm text-gray-400 italic font-serif">El asistente analizará tu texto y generará un storytelling de lujo listo para copiar y pegar en tus redes sociales.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'newsletter' && (
+                    <div className="space-y-8 animate-fadeIn">
+                        <div className="bg-white p-8 rounded-sm shadow-sm border border-gray-200/80">
+                            <div className="flex items-center gap-3 mb-6 pb-6 border-b border-gray-100">
+                                <MessageSquare className="w-6 h-6 text-brand-terracotta" />
+                                <div>
+                                    <h2 className="text-2xl font-serif">Newsletter "Tendencias & Alta Costura"</h2>
+                                    <p className="text-sm text-text-secondary">Envía tu boletín editorial mensual a las clientas VIP fidelizadas.</p>
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Asunto del Boletín</label>
+                                        <input type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none text-sm" placeholder="Ej: Tendencias de Invierno en Alta Sastrería" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Audiencia (Segmento CRM)</label>
+                                        <select className="w-full p-3 bg-gray-50 border border-gray-200 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none text-sm text-gray-600">
+                                            <option>Clientas VIP Activas (Últimos 6 meses)</option>
+                                            <option>Todas las clientas históricas</option>
+                                            <option>Novias (Próximo Semestre)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Contenido Editorial</label>
+                                    <textarea 
+                                        className="w-full h-64 p-4 bg-gray-50 border border-gray-200 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none resize-none text-sm"
+                                        placeholder="Escribe el contenido de tu boletín aquí. (Próximamente editor de texto enriquecido integrado)."
+                                    ></textarea>
+                                </div>
+                                <div className="flex justify-end gap-4">
+                                    <button className="px-6 py-3 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-sm uppercase tracking-widest text-[10px] font-bold transition-all">
+                                        Guardar Borrador
+                                    </button>
+                                    <button className="bg-brand-charcoal hover:bg-brand-terracotta text-white px-8 py-3 rounded-sm uppercase tracking-widest text-[10px] font-bold transition-all flex items-center justify-center gap-2">
+                                        Enviar Boletín a 24 Clientas
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
