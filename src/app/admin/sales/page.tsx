@@ -31,7 +31,7 @@ export default async function SalesLedgerPage() {
             total_amount,
             status,
             payment_method,
-            customers ( name )
+            customer_id
         `)
         .order('created_at', { ascending: false });
 
@@ -147,7 +147,7 @@ export default async function SalesLedgerPage() {
                                                 {formatDate(sale.created_at)}
                                             </td>
                                             <td className="p-4 font-serif text-brand-charcoal">
-                                                {sale.customers ? sale.customers.name : 'Cliente General'}
+                                                {sale.customer_id ? `Cliente (${sale.customer_id.substring(0,6)})` : 'Cliente General'}
                                             </td>
                                             <td className="p-4 font-bold text-brand-terracotta">
                                                 {formatCurrency(sale.total_amount)}

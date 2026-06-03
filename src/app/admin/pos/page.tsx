@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, 
 import { getCostSettings } from '../finance/actions';
 import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
-import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction, saveBudgetAction } from './actions';
+import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction, saveBudgetAction, wakeUpMercadoPagoTerminalAction } from './actions';
 import { createPaymentPreference } from '@/lib/payments';
 import { createWebpayTransaction } from '@/lib/transbank';
 
@@ -614,6 +614,20 @@ export default function POSPage() {
                 
                 if (!paymentUrl) {
                     paymentUrl = `https://webpay3gint.transbank.cl/webpayserver/initTransaction`;
+                }
+            } else if (paymentMethod === 'mercadopago_point') {
+                // Wake up the physical terminal
+                try {
+                    const mpDesc = `Orden de Trabajo #${orderId}`;
+                    const mpRes = await wakeUpMercadoPagoTerminalAction(total, mpDesc, `order_${orderId}`);
+                    if (!mpRes.success) {
+                        console.error('Error despertando terminal Mercado Pago:', mpRes.error);
+                        alert(`Error al enviar el cobro a la maquinita física: ${mpRes.error}`);
+                    } else {
+                        console.log('Terminal despertada exitosamente', mpRes.data);
+                    }
+                } catch (mpErr) {
+                    console.error('Excepción al despertar terminal MP:', mpErr);
                 }
             }
             

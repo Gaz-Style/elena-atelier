@@ -949,3 +949,50 @@ export async function updateOrderStatusToPaidAction(posOrderId: string) {
     revalidatePath('/admin/production-board');
     return { success: true };
 }
+
+export async function wakeUpMercadoPagoTerminalAction(amount: number, description: string, posOrderId: string) {
+    const mpToken = process.env.MP_ACCESS_TOKEN;
+    if (!mpToken) {
+        return { success: false, error: 'Token de MP no configurado' };
+    }
+
+    // Using the SN provided by the user as Device ID
+    const deviceId = 'NCC804183989'; 
+
+    const payload = {
+        amount: amount,
+        description: description,
+        payment: {
+            installments: 1,
+            type: "credit_card",
+            installments_cost: "merchant"
+        },
+        additional_info: {
+            external_reference: posOrderId,
+            print_on_terminal: true
+        }
+    };
+
+    try {
+        const response = await fetch(`https://api.mercadopago.com/point/integration-api/devices/${deviceId}/payment-intents`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${mpToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errData = await response.text();
+            console.error('Error despertando terminal MP:', errData);
+            return { success: false, error: `Error MP: ${response.status} - ${errData}` };
+        }
+
+        const data = await response.json();
+        return { success: true, data };
+    } catch (err: unknown) {
+        console.error('Error llamando a MP Point API:', err);
+        return { success: false, error: err instanceof Error ? err.message : String(err) };
+    }
+}
