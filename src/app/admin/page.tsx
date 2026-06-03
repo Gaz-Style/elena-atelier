@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
     DollarSign,
@@ -13,11 +13,33 @@ import {
     ShieldCheck,
     Package,
     Receipt,
-    Activity
+    Activity,
+    Award,
+    TrendingDown,
+    PieChart,
+    BarChart
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import { getDashboardData } from './actions';
 
 export default function AdminDashboard() {
+    const [dashboardData, setDashboardData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function loadData() {
+            try {
+                const data = await getDashboardData();
+                setDashboardData(data);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        loadData();
+    }, []);
+
     const modules = [
         {
             title: 'Punto de Venta (POS)',
@@ -125,6 +147,107 @@ export default function AdminDashboard() {
                     </div>
                 </header>
 
+                {loading ? (
+                    <div className="h-64 flex items-center justify-center">
+                        <Activity className="w-6 h-6 text-brand-terracotta animate-pulse" />
+                    </div>
+                ) : dashboardData && (
+                    <div className="space-y-8">
+                        {/* Global Overview Section (Real KPIs) */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+                            <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-between">
+                                <p className="text-[10px] uppercase text-gray-400 tracking-widest mb-2 font-bold">Ventas del Mes</p>
+                                <div className="flex items-baseline gap-2">
+                                    <p className="text-3xl font-serif text-brand-charcoal">
+                                        ${dashboardData.kpis.salesThisMonth.toLocaleString('es-CL')}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-between">
+                                <p className="text-[10px] uppercase text-gray-400 tracking-widest mb-2 font-bold">Órdenes Activas</p>
+                                <div className="flex items-baseline gap-2">
+                                    <p className="text-3xl font-serif text-brand-charcoal">
+                                        {dashboardData.kpis.activeOrdersCount}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-between">
+                                <p className="text-[10px] uppercase text-gray-400 tracking-widest mb-2 font-bold">Ticket Promedio</p>
+                                <div className="flex items-baseline gap-2">
+                                    <p className="text-3xl font-serif text-brand-charcoal">
+                                        ${dashboardData.kpis.avgTicket.toLocaleString('es-CL')}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-between">
+                                <p className="text-[10px] uppercase text-gray-400 tracking-widest mb-2 font-bold">Salud del Taller</p>
+                                <div className="flex items-baseline gap-2">
+                                    <p className="text-3xl font-serif text-brand-charcoal">
+                                        Óptimo
+                                    </p>
+                                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                        <ShieldCheck className="w-3 h-3" /> OK
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Rankings Section */}
+                        <div className="grid md:grid-cols-2 gap-8">
+                            {/* Top Productos Más Vendidos */}
+                            <div className="bg-white border border-gray-100 rounded-sm p-6 shadow-sm">
+                                <div className="flex items-center gap-2 mb-6">
+                                    <Award className="w-5 h-5 text-brand-terracotta" />
+                                    <h3 className="font-serif text-xl text-brand-charcoal">Top 5 Más Vendidos</h3>
+                                </div>
+                                <div className="space-y-4">
+                                    {dashboardData.topProducts.map((p: any, i: number) => (
+                                        <div key={i} className="flex justify-between items-center border-b border-gray-50 pb-3 last:border-0 last:pb-0">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-xs font-bold text-gray-400">#{i + 1}</span>
+                                                <span className="text-sm font-medium text-brand-charcoal">{p.name}</span>
+                                            </div>
+                                            <span className="text-xs font-bold text-brand-terracotta bg-brand-sand/20 px-2 py-1 rounded-sm">
+                                                {p.count} ventas
+                                            </span>
+                                        </div>
+                                    ))}
+                                    {dashboardData.topProducts.length === 0 && (
+                                        <p className="text-sm text-gray-500 italic">No hay suficientes datos de ventas aún.</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Top Productos con Mejor Margen */}
+                            <div className="bg-white border border-gray-100 rounded-sm p-6 shadow-sm">
+                                <div className="flex items-center gap-2 mb-6">
+                                    <PieChart className="w-5 h-5 text-emerald-600" />
+                                    <h3 className="font-serif text-xl text-brand-charcoal">Top 5 Mejor Margen</h3>
+                                </div>
+                                <div className="space-y-4">
+                                    {dashboardData.bestMarginProducts.map((p: any, i: number) => (
+                                        <div key={i} className="flex justify-between items-center border-b border-gray-50 pb-3 last:border-0 last:pb-0">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-xs font-bold text-gray-400">#{i + 1}</span>
+                                                <span className="text-sm font-medium text-brand-charcoal">{p.name}</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-sm">
+                                                    {p.marginPct}% Margen
+                                                </span>
+                                                <p className="text-[10px] text-gray-400 mt-1">+${p.marginValue.toLocaleString('es-CL')} netos</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {dashboardData.bestMarginProducts.length === 0 && (
+                                        <p className="text-sm text-gray-500 italic">No hay suficientes productos en catálogo aún.</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Module Grid */}
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {modules.map((m) => (
@@ -158,24 +281,6 @@ export default function AdminDashboard() {
                         <p className="text-[10px] mt-2 text-white/60">Monitoreo en vivo de pasarelas de pago y eventos</p>
                     </Link>
                 </div>
-
-                {/* Global Overview Section */}
-                <footer className="grid md:grid-cols-4 gap-8 pt-12">
-                    {[
-                        { label: 'Ventas Hoy', value: '$450.000', trend: '+5%' },
-                        { label: 'Órdenes Activas', value: '18', trend: 'Capacidad 80%' },
-                        { label: 'Visitantes VIP', value: '4', trend: 'Hoy' },
-                        { label: 'Tickets Soporte', value: '0', trend: 'Limpio' },
-                    ].map(stat => (
-                        <div key={stat.label} className="p-6 border-l border-gray-200">
-                            <p className="text-[10px] uppercase text-gray-400 tracking-widest mb-1">{stat.label}</p>
-                            <div className="flex items-baseline gap-2">
-                                <p className="text-xl font-serif">{stat.value}</p>
-                                <span className="text-[8px] font-bold text-green-600">{stat.trend}</span>
-                            </div>
-                        </div>
-                    ))}
-                </footer>
             </main>
         </div>
     );
