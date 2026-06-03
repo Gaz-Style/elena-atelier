@@ -1360,7 +1360,7 @@ export default function POSPage() {
 
                                 <button 
                                     onClick={(e) => handleAddCustomOrder(e)}
-                                    disabled={!customOrderName || !hoursEstimated}
+                                    disabled={!customOrderName || !hoursEstimated || !customPrice}
                                     className="w-full md:w-auto bg-brand-terracotta text-white px-10 py-4 text-[10px] uppercase tracking-widest font-bold rounded-sm hover:bg-white hover:text-brand-terracotta transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md">
                                     Añadir a la Orden
                                 </button>
