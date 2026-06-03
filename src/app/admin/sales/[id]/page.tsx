@@ -119,7 +119,7 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
                             </h2>
                             {customer ? (
                                 <div className="space-y-2 text-sm text-gray-600">
-                                    <p><strong className="text-brand-charcoal font-medium w-24 inline-block">Nombre:</strong> {customer.name || 'Sin nombre'}</p>
+                                    <p><strong className="text-brand-charcoal font-medium w-24 inline-block">Nombre:</strong> {customer.full_name || 'Sin nombre'}</p>
                                     <p><strong className="text-brand-charcoal font-medium w-24 inline-block">Teléfono:</strong> {customer.phone || 'No registrado'}</p>
                                     <p><strong className="text-brand-charcoal font-medium w-24 inline-block">Email:</strong> {customer.email || 'No registrado'}</p>
                                     <p><strong className="text-brand-charcoal font-medium w-24 inline-block">RUT:</strong> {customer.rut || 'No registrado'}</p>
