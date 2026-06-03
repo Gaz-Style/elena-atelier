@@ -987,8 +987,8 @@ export default function POSPage() {
                         <Tag className="w-4 h-4" /> 3. Detalle del Trabajo
                     </h3>
                     
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="col-span-2 md:col-span-1">
+                    <div className={`grid grid-cols-1 ${customOrderCategory !== 'Catálogo de servicios' ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4`}>
+                        <div className="col-span-1">
                             <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Categoría Principal</label>
                             <select value={customOrderCategory} onChange={(e) => setCustomOrderCategory(e.target.value)} className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta">
                                 <option value="Diseño y confección">Diseño y confección</option>
@@ -996,14 +996,18 @@ export default function POSPage() {
                                 <option value="Catálogo de servicios">Catálogo de servicios</option>
                             </select>
                         </div>
-                        <div className="col-span-2 md:col-span-1">
-                            {customOrderCategory !== 'Catálogo de servicios' && (
-                                <>
+                        {customOrderCategory !== 'Catálogo de servicios' && (
+                            <>
+                                <div className="col-span-1">
                                     <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Prenda / Artículo *</label>
                                     <input spellCheck={true} autoCorrect="on" type="text" value={customOrderName} onChange={(e) => setCustomOrderName(e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1))} placeholder="Ej. Pantalón, vestido de novia, chaqueta, etc." className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
-                                </>
-                            )}
-                        </div>
+                                </div>
+                                <div className="col-span-1">
+                                    <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Horas Taller Estimadas</label>
+                                    <input type="number" min="0" value={hoursEstimated || ''} onChange={(e) => setHoursEstimated(Number(e.target.value))} className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta" placeholder="0" />
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     {customOrderCategory === 'Catálogo de servicios' ? (
@@ -1201,11 +1205,6 @@ export default function POSPage() {
                         </div>
                     ) : (
                         <div className="space-y-6 pt-4 border-t border-gray-50 animate-in fade-in duration-500">
-                            <div>
-                                <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-2">Horas Taller Estimadas</label>
-                                <input type="number" min="0" value={hoursEstimated || ''} onChange={(e) => setHoursEstimated(Number(e.target.value))} className="w-full md:w-[calc(50%-12px)] p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta" placeholder="0" />
-                            </div>
-                            
                             {/* Notes and Photo attachment for Custom Order */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-1">
