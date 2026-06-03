@@ -991,8 +991,8 @@ export default function POSPage() {
                         <div className="col-span-2 md:col-span-1">
                             {customOrderCategory !== 'Catálogo de servicios' && (
                                 <>
-                                    <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Descripción del Trabajo *</label>
-                                    <input type="text" value={customOrderName} onChange={(e) => setCustomOrderName(e.target.value)} placeholder="Ej. Ajuste de hombros vestido seda" className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                    <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Prenda / Artículo *</label>
+                                    <input type="text" value={customOrderName} onChange={(e) => setCustomOrderName(e.target.value)} placeholder="Ej. Pantalón, vestido de novia, chaqueta, etc." className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
                                 </>
                             )}
                         </div>
@@ -1054,11 +1054,11 @@ export default function POSPage() {
                                     {/* Item-specific Notes and Image inside Catalog view */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-1">
-                                            <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Notas Especiales / Especificaciones</label>
+                                            <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Descripción del Arreglo / Notas Especiales</label>
                                             <textarea 
                                                 value={orderNotes}
                                                 onChange={(e) => setOrderNotes(e.target.value)}
-                                                placeholder="Detalles específicos para esta prenda (ej: basta con hilo invisible)..."
+                                                placeholder="Ej. Ajuste de hombros vestido seda, arreglar dobladillo, etc."
                                                 className="w-full h-[120px] p-3 text-xs bg-white border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta resize-none transition-all"
                                             />
                                         </div>
@@ -1206,11 +1206,11 @@ export default function POSPage() {
                             {/* Notes and Photo attachment for Custom Order */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                                 <div className="space-y-1">
-                                    <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Notas Especiales / Especificaciones</label>
+                                    <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Descripción del Arreglo / Notas Especiales</label>
                                     <textarea 
                                         value={orderNotes}
                                         onChange={(e) => setOrderNotes(e.target.value)}
-                                        placeholder="Detalles específicos (medidas, tipo de tela, defectos a reparar, etc.)..."
+                                        placeholder="Ej. Ajuste de hombros vestido seda, arreglar dobladillo, etc."
                                         className="w-full h-[120px] p-3 text-xs bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta resize-none transition-all focus:bg-white"
                                     />
                                 </div>
