@@ -21,7 +21,7 @@ interface Task {
 import { getMarketingTasks, updateMarketingTaskStatus, getMarketingMetrics } from './actions';
 
 export default function MarketingDashboard() {
-    const [activeTab, setActiveTab] = useState<'dashboard' | 'plan' | 'ai-content' | 'newsletter'>('dashboard');
+    const [activeTab, setActiveTab] = useState<'plan' | 'ai-studio'>('plan');
     const [copiedLink, setCopiedLink] = useState(false);
     
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -168,16 +168,7 @@ export default function MarketingDashboard() {
 
                 {/* Custom Styled Premium Tabs */}
                 <div className="flex border-b border-gray-200">
-                    <button
-                        onClick={() => setActiveTab('dashboard')}
-                        className={`py-4 px-6 font-medium text-xs uppercase tracking-widest border-b-2 transition-all duration-300 flex items-center gap-2 ${
-                            activeTab === 'dashboard'
-                                ? 'border-brand-terracotta text-brand-charcoal font-bold'
-                                : 'border-transparent text-gray-400 hover:text-brand-charcoal hover:border-gray-300'
-                        }`}
-                    >
-                        <BarChart3 className="w-4 h-4" /> Métricas & Atribución
-                    </button>
+
                     <button
                         onClick={() => setActiveTab('plan')}
                         className={`py-4 px-6 font-medium text-xs uppercase tracking-widest border-b-2 transition-all duration-300 flex items-center gap-2 ${
@@ -200,86 +191,7 @@ export default function MarketingDashboard() {
                     </button>
                 </div>
 
-                {activeTab === 'dashboard' && (
-                    <div className="space-y-12 animate-fadeIn">
-                        {/* Marketing Summary Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                            {metrics.map((m) => (
-                                <div key={m.title} className="bg-white p-8 rounded-sm shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300">
-                                    <div className="flex justify-between items-center mb-6">
-                                        <m.icon className={`w-6 h-6 ${m.color}`} />
-                                        <BarChart3 className="w-4 h-4 text-gray-200" />
-                                    </div>
-                                    <p className="text-xs text-text-secondary uppercase tracking-widest mb-1">{m.title}</p>
-                                    <p className="text-3xl font-serif mb-2">{m.value}</p>
-                                    <p className="text-[10px] text-gray-400 font-medium uppercase tracking-tight">{m.detail}</p>
-                                </div>
-                            ))}
-                        </div>
 
-                        <div className="grid md:grid-cols-2 gap-12">
-                            {/* SEO/GEO Positioning */}
-                            <div className="bg-white p-10 border border-gray-100 flex flex-col justify-between hover:shadow-sm transition-shadow">
-                                <div>
-                                    <h2 className="font-serif text-2xl mb-6 flex items-center gap-3 text-brand-charcoal border-b border-gray-100 pb-4">
-                                        <Search className="w-5 h-5 text-brand-terracotta" />
-                                        Posicionamiento GEO (AI Agents)
-                                    </h2>
-                                    <div className="space-y-6">
-                                        <div className="flex justify-between items-center p-4 bg-brand-sand/10 border-l-4 border-brand-terracotta rounded-r-sm">
-                                            <span className="text-sm font-medium">ChatGPT / Perplexity Recommendation</span>
-                                            <span className="text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full text-xs uppercase tracking-wider">Alta</span>
-                                        </div>
-                                        <p className="text-sm text-text-secondary leading-relaxed">
-                                            elenalacosturera ha sido catalogada por modelos de inteligencia artificial y mapas de búsqueda local como **Autoridad de Confección & Alta Sastrería** en Vitacura. Nuestra metadata optimizada y esquema estructurado aseguran que sigamos apareciendo en las respuestas de búsqueda generativa.
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-gray-100">
-                                    <div className="p-4 bg-brand-sand/10 text-center rounded-sm">
-                                        <p className="text-xs text-gray-400 uppercase tracking-widest">Organic Reach</p>
-                                        <p className="text-2xl font-serif mt-1">12.5k</p>
-                                    </div>
-                                    <div className="p-4 bg-brand-sand/10 text-center rounded-sm">
-                                        <p className="text-xs text-gray-400 uppercase tracking-widest">SEO Authority</p>
-                                        <p className="text-2xl font-serif mt-1">78/100</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Influencer & Referral Attribution */}
-                            <div className="bg-brand-charcoal text-white p-10 flex flex-col justify-between rounded-sm">
-                                <div>
-                                    <h2 className="font-serif text-2xl mb-8 flex items-center gap-3 border-b border-white/10 pb-4 text-brand-sand">
-                                        <TrendingUp className="w-5 h-5 text-brand-terracotta" />
-                                        Atribución de Canales
-                                    </h2>
-                                    <div className="space-y-8">
-                                        {[
-                                            { source: 'Instagram (Ads/Organic)', pct: 65, color: 'bg-pink-500' },
-                                            { source: 'Referidos (Viral Loop)', pct: 20, color: 'bg-brand-terracotta' },
-                                            { source: 'Directo / Google Maps', pct: 15, color: 'bg-blue-400' },
-                                        ].map((item) => (
-                                            <div key={item.source} className="space-y-2">
-                                                <div className="flex justify-between text-xs uppercase tracking-widest text-white/60">
-                                                    <span>{item.source}</span>
-                                                    <span>{item.pct}%</span>
-                                                </div>
-                                                <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                                                    <div className={`${item.color} h-full transition-all`} style={{ width: `${item.pct}%` }}></div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="mt-8 p-6 border border-white/10 bg-white/5 rounded-sm">
-                                    <p className="text-[10px] uppercase tracking-widest text-brand-terracotta font-bold mb-2">Insight del Mes</p>
-                                    <p className="text-sm text-white/80 italic">"La optimización geográfica y el Schema estructurado han aumentado nuestro CTR orgánico un 22% desde dispositivos móviles en el sector de Tabancura."</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
                 
                 {activeTab === 'plan' && (
                     <div className="space-y-12 animate-fadeIn">
