@@ -13,7 +13,7 @@ Este documento consolida el estado actual de todo el ecosistema de software de *
 - **Predictor de Cargas de Trabajo:** Algoritmo que analiza la cantidad de pedidos vs capacidad instalada y recomienda si necesitas contratar más costureras o disminuir turnos.
 
 ### ⏳ Tareas Pendientes:
-- [ ] **Despliegue a Producción (Vercel):** Hay un error pendiente en los despliegues automáticos relacionado con la convención del archivo `middleware` de Next.js 16.1.1. Debe corregirse antes del próximo Deploy oficial.
+- [x] **Despliegue a Producción (Vercel):** Hay un error pendiente en los despliegues automáticos relacionado con la convención del archivo `middleware` de Next.js 16.1.1. Debe corregirse antes del próximo Deploy oficial.
 - [ ] Conectar el predictor de carga a datos en tiempo real de la base de datos (actualmente es una simulación visual basada en el frontend).
 
 ---
