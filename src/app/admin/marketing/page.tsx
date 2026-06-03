@@ -560,35 +560,70 @@ export default function MarketingDashboard() {
                                 </div>
                             </div>
                             
-                            <div className="space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Asunto del Boletín</label>
-                                        <input type="text" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none text-sm" placeholder="Ej: Tendencias de Invierno en Alta Sastrería" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Audiencia (Segmento CRM)</label>
-                                        <select className="w-full p-3 bg-gray-50 border border-gray-200 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none text-sm text-gray-600">
-                                            <option>Clientas VIP Activas (Últimos 6 meses)</option>
-                                            <option>Todas las clientas históricas</option>
-                                            <option>Novias (Próximo Semestre)</option>
-                                        </select>
+                            <div className="space-y-8">
+                                <div className="bg-brand-sand/10 border border-gray-200/60 p-6 rounded-sm">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                                        <div>
+                                            <h3 className="font-serif text-lg">Curatoría Autónoma de Tendencias</h3>
+                                            <p className="text-xs text-text-secondary mt-1">El sistema buscará noticias globales de Alta Costura y las adaptará según el segmento de edad y gustos de tu CRM.</p>
+                                        </div>
+                                        <button className="bg-brand-charcoal text-white px-6 py-3 rounded-sm uppercase tracking-widest text-[10px] font-bold transition-all flex items-center gap-2 hover:bg-brand-terracotta shrink-0">
+                                            <Sparkles className="w-4 h-4" /> Buscar y Redactar Borradores
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Contenido Editorial</label>
-                                    <textarea 
-                                        className="w-full h-64 p-4 bg-gray-50 border border-gray-200 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none resize-none text-sm"
-                                        placeholder="Escribe el contenido de tu boletín aquí. (Próximamente editor de texto enriquecido integrado)."
-                                    ></textarea>
-                                </div>
-                                <div className="flex justify-end gap-4">
-                                    <button className="px-6 py-3 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-sm uppercase tracking-widest text-[10px] font-bold transition-all">
-                                        Guardar Borrador
-                                    </button>
-                                    <button className="bg-brand-charcoal hover:bg-brand-terracotta text-white px-8 py-3 rounded-sm uppercase tracking-widest text-[10px] font-bold transition-all flex items-center justify-center gap-2">
-                                        Enviar Boletín a 24 Clientas
-                                    </button>
+
+                                <div className="space-y-6">
+                                    <h4 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 border-b border-gray-100 pb-2">Borradores por Segmento (Listos para Revisión)</h4>
+                                    
+                                    {/* Segmento 1 */}
+                                    <div className="border border-gray-200 rounded-sm overflow-hidden">
+                                        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                                            <div>
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 text-blue-700 text-[9px] uppercase tracking-widest rounded-full font-bold mb-1">
+                                                    Generación Z / Millennials (20-35 años)
+                                                </span>
+                                                <p className="text-xs text-gray-500">Intereses: Sustentabilidad, Upcycling, Tendencias TikTok</p>
+                                            </div>
+                                            <span className="text-xs font-mono bg-white px-2 py-1 border border-gray-200 rounded-sm text-gray-500">14 Clientas</span>
+                                        </div>
+                                        <div className="p-6 space-y-4">
+                                            <div>
+                                                <label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Asunto Propuesto</label>
+                                                <input type="text" className="w-full mt-1 p-2 bg-white border border-gray-200 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none text-sm font-medium text-brand-charcoal" defaultValue="El regreso del corsé y la seda sustentable ✨" />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Cuerpo del Correo</label>
+                                                <textarea 
+                                                    className="w-full mt-1 h-32 p-3 bg-white border border-gray-200 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none resize-none text-sm text-gray-600 leading-relaxed"
+                                                    defaultValue="Hola {nombre}, esta semana en las pasarelas de París vimos cómo el upcycling se tomó la alta costura. En Elena Atelier estamos implementando..."
+                                                ></textarea>
+                                            </div>
+                                            <div className="flex justify-end gap-3 pt-2">
+                                                <button className="px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-sm uppercase tracking-widest text-[9px] font-bold transition-all">Rechazar</button>
+                                                <button className="bg-brand-terracotta hover:bg-brand-terracotta/90 text-white px-4 py-2 rounded-sm uppercase tracking-widest text-[9px] font-bold transition-all flex items-center gap-1">
+                                                    <CheckCircle2 className="w-3 h-3" /> Aprobar y Enviar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Segmento 2 */}
+                                    <div className="border border-gray-200 rounded-sm overflow-hidden opacity-75">
+                                        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                                            <div>
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 text-purple-700 text-[9px] uppercase tracking-widest rounded-full font-bold mb-1">
+                                                    Generación X / Boomers (45+ años)
+                                                </span>
+                                                <p className="text-xs text-gray-500">Intereses: Sastrería Clásica, Calce Perfecto, Eventos de Gala</p>
+                                            </div>
+                                            <span className="text-xs font-mono bg-white px-2 py-1 border border-gray-200 rounded-sm text-gray-500">28 Clientas</span>
+                                        </div>
+                                        <div className="p-6 flex items-center justify-center text-center h-32 bg-gray-50/50">
+                                            <p className="text-xs text-gray-400 uppercase tracking-widest font-medium">Esperando ejecución de IA para redactar este segmento...</p>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
