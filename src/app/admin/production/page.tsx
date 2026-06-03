@@ -7,20 +7,21 @@ import {
     Loader2, Plus, X, User, Calendar, ChevronLeft, ChevronRight, 
     History, BarChart2, CheckCircle, Flame
 } from 'lucide-react';
-import { getProductionOrders, updateOrderStatus } from './actions';
+import { getProductionOrders, updateOrderStatus, getWorkloadForecastAction } from './actions';
 import { getOperatorsAction } from '../pos/actions';
 import { supabase } from '@/lib/supabase';
 
 export default function ProductionPage() {
     const [orders, setOrders] = useState<any[]>([]);
     const [operators, setOperators] = useState<any[]>([]);
+    const [forecastData, setForecastData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isAdding, setIsAdding] = useState(false);
     const [isDesktop, setIsDesktop] = useState(false);
     
-    // Navigation Tabs: kanban, calendar, history
-    const [activeTab, setActiveTab] = useState<'kanban' | 'calendar' | 'history'>('kanban');
+    // Navigation Tabs: kanban, calendar, history, forecast
+    const [activeTab, setActiveTab] = useState<'kanban' | 'calendar' | 'history' | 'forecast'>('kanban');
     
     // Calendar Navigation States
     const [calendarDate, setCalendarDate] = useState<Date>(new Date());
@@ -46,9 +47,15 @@ export default function ProductionPage() {
         setOperators(data || []);
     }
 
+    async function fetchForecast() {
+        const data = await getWorkloadForecastAction();
+        setForecastData(data);
+    }
+
     useEffect(() => {
         fetchOrders();
         fetchOperators();
+        fetchForecast();
         setIsDesktop(window.innerWidth >= 768);
         const handleResize = () => setIsDesktop(window.innerWidth >= 768);
         window.addEventListener('resize', handleResize);
@@ -249,6 +256,16 @@ export default function ProductionPage() {
         <div className="min-h-screen bg-brand-sand/10 p-4 md:p-8 pt-20 font-sans text-brand-charcoal">
             <div className="max-w-screen-2xl mx-auto space-y-8">
                 
+                {forecastData && forecastData.status === 'deficit' && (
+                    <div className="bg-red-50 border border-red-200 p-4 rounded-sm flex items-start gap-3 shadow-sm animate-in fade-in slide-in-from-top-2">
+                        <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                        <div>
+                            <h3 className="text-sm font-bold text-red-800">Alerta Predictiva de Sobrecarga</h3>
+                            <p className="text-sm text-red-700 mt-1">{forecastData.recommendation}</p>
+                        </div>
+                    </div>
+                )}
+
                 {/* Header Section */}
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-gray-200 pb-6">
                     <div>
@@ -299,6 +316,13 @@ export default function ProductionPage() {
                     >
                         <History className="w-4 h-4" />
                         Historial de Confecciones
+                    </button>
+                    <button 
+                        onClick={() => { setActiveTab('forecast'); setSearchTerm(''); }}
+                        className={`pb-4 text-xs uppercase tracking-widest font-bold border-b-2 transition-all flex items-center gap-2 ${activeTab === 'forecast' ? 'border-brand-terracotta text-brand-charcoal' : 'border-transparent text-gray-400 hover:text-brand-charcoal'}`}
+                    >
+                        <BarChart2 className="w-4 h-4" />
+                        Predicciones de Carga
                     </button>
                 </div>
 
@@ -384,6 +408,102 @@ export default function ProductionPage() {
                                         </div>
                                     );
                                 })}
+                            </div>
+                        )}
+
+                        {/* TAB 4: PREDICCIONES DE CARGA */}
+                        {activeTab === 'forecast' && forecastData && (
+                            <div className="bg-white border border-gray-100 p-6 md:p-8 rounded-sm space-y-8 animate-in fade-in">
+                                <div className="border-b border-gray-100 pb-4">
+                                    <h2 className="font-serif text-2xl">Inteligencia Predictiva de Fuerza Laboral</h2>
+                                    <p className="text-gray-500 text-sm mt-1">Análisis de la demanda y capacidad operativa para los próximos 30 días.</p>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-6">
+                                        <h3 className="text-xs uppercase tracking-widest font-bold text-gray-400 border-b border-gray-100 pb-2">Estado Actual (Próximos 7 Días)</h3>
+                                        
+                                        <div className={`p-6 rounded-sm border ${
+                                            forecastData.status === 'deficit' ? 'bg-red-50 border-red-200' :
+                                            forecastData.status === 'surplus' ? 'bg-emerald-50 border-emerald-200' :
+                                            'bg-brand-sand/10 border-brand-sand/30'
+                                        }`}>
+                                            <div className="flex items-center gap-4 mb-4">
+                                                {forecastData.status === 'deficit' ? <AlertCircle className="w-8 h-8 text-red-500" /> :
+                                                 forecastData.status === 'surplus' ? <Scissors className="w-8 h-8 text-emerald-500" /> :
+                                                 <CheckCircle className="w-8 h-8 text-brand-terracotta" />}
+                                                <div>
+                                                    <h4 className={`text-lg font-bold ${
+                                                        forecastData.status === 'deficit' ? 'text-red-800' :
+                                                        forecastData.status === 'surplus' ? 'text-emerald-800' :
+                                                        'text-brand-charcoal'
+                                                    }`}>
+                                                        {forecastData.status === 'deficit' ? 'Déficit Crítico de Personal' :
+                                                         forecastData.status === 'surplus' ? 'Capacidad Ociosa Detectada' :
+                                                         'Fuerza Laboral Óptima'}
+                                                    </h4>
+                                                </div>
+                                            </div>
+                                            <p className={`text-sm ${
+                                                forecastData.status === 'deficit' ? 'text-red-700' :
+                                                forecastData.status === 'surplus' ? 'text-emerald-700' :
+                                                'text-gray-700'
+                                            }`}>
+                                                {forecastData.recommendation}
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-gray-50 p-4 border border-gray-100 rounded-sm">
+                                            <h4 className="text-xs font-bold uppercase tracking-widest text-brand-charcoal mb-4">Métricas Base</h4>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <span className="text-gray-500">Operarias Activas</span>
+                                                    <span className="font-bold text-brand-charcoal">{forecastData.metrics.activeOpCount}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <span className="text-gray-500">Capacidad Total Semanal</span>
+                                                    <span className="font-bold text-brand-charcoal">{forecastData.metrics.weeklyCapacity} hrs</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <span className="text-gray-500">Carga Requerida Semanal</span>
+                                                    <span className="font-bold text-brand-charcoal">{forecastData.metrics.hoursNext7} hrs</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="space-y-6">
+                                        <h3 className="text-xs uppercase tracking-widest font-bold text-gray-400 border-b border-gray-100 pb-2">Proyección Mensual (30 Días)</h3>
+                                        
+                                        <div className="bg-white border border-gray-100 p-6 rounded-sm space-y-6">
+                                            <div>
+                                                <div className="flex justify-between items-end mb-2">
+                                                    <span className="text-sm font-bold text-gray-500">Demanda (Carga Asignada)</span>
+                                                    <span className="text-xl font-bold text-brand-terracotta">{forecastData.metrics.hoursNext30} hrs</span>
+                                                </div>
+                                                <div className="w-full bg-gray-100 rounded-full h-2">
+                                                    <div className="bg-brand-terracotta h-2 rounded-full" style={{ width: `${Math.min(100, (forecastData.metrics.hoursNext30 / Math.max(1, forecastData.metrics.monthlyCapacity)) * 100)}%` }}></div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <div className="flex justify-between items-end mb-2">
+                                                    <span className="text-sm font-bold text-gray-500">Oferta (Capacidad Instalada)</span>
+                                                    <span className="text-xl font-bold text-brand-sand">{forecastData.metrics.monthlyCapacity} hrs</span>
+                                                </div>
+                                                <div className="w-full bg-gray-100 rounded-full h-2">
+                                                    <div className="bg-brand-sand h-2 rounded-full" style={{ width: '100%' }}></div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="pt-4 border-t border-gray-100">
+                                                <p className="text-xs text-gray-500 italic">
+                                                    El modelo asume que las operarias actuales mantendrán su capacidad diaria durante todo el mes. Si la demanda (roja) supera la oferta (dorada), empezarás a tener retrasos en las entregas.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
 

@@ -86,3 +86,79 @@ export async function createProductionOrder(formData: FormData) {
     revalidatePath('/admin/production');
     return { success: true };
 }
+
+export async function getWorkloadForecastAction() {
+    const supabase = await createClient();
+    
+    const { data: operators } = await supabase.from('atelier_operators').select('*').eq('status', 'active');
+    const { data: config } = await supabase.from('atelier_config').select('*').single();
+    const { data: activeOrders } = await supabase.from('production_orders').select('estimated_hours, deadline, production_start_date').in('status', ['draft', 'cutting', 'sewing', 'finishing']);
+        
+    const activeOpCount = operators ? operators.length : 0;
+    const dailyCapacity = config ? config.labor_capacity_per_operator_daily : 8;
+    const workingDays = 5;
+    
+    const weeklyCapacity = activeOpCount * dailyCapacity * workingDays;
+    const monthlyCapacity = weeklyCapacity * 4;
+    
+    const now = new Date();
+    const next7Days = new Date(now);
+    next7Days.setDate(now.getDate() + 7);
+    const next30Days = new Date(now);
+    next30Days.setDate(now.getDate() + 30);
+    
+    let hoursNext7 = 0;
+    let hoursNext30 = 0;
+    
+    if (activeOrders) {
+        activeOrders.forEach(o => {
+            const targetDateStr = o.production_start_date || o.deadline;
+            if (targetDateStr) {
+                const d = new Date(targetDateStr);
+                if (d <= next7Days && d >= now) {
+                    hoursNext7 += Number(o.estimated_hours || 0);
+                }
+                if (d <= next30Days && d >= now) {
+                    hoursNext30 += Number(o.estimated_hours || 0);
+                }
+            } else {
+                hoursNext7 += Number(o.estimated_hours || 0);
+                hoursNext30 += Number(o.estimated_hours || 0);
+            }
+        });
+    }
+    
+    let status = 'optimal';
+    let recommendation = '';
+    let requiredHeadcount = activeOpCount;
+    
+    if (weeklyCapacity > 0) {
+        if (hoursNext7 > (weeklyCapacity * 0.9)) {
+            status = 'deficit';
+            requiredHeadcount = Math.ceil(hoursNext7 / (dailyCapacity * workingDays));
+            recommendation = \Déficit crítico. Para cubrir \ hrs en 7 días, se sugieren \ operarias (tienes \).\;
+        } else if (hoursNext7 < (weeklyCapacity * 0.4) && activeOpCount > 1) {
+            status = 'surplus';
+            requiredHeadcount = Math.max(1, Math.ceil(hoursNext7 / (dailyCapacity * workingDays)));
+            recommendation = \Capacidad ociosa. Carga de \ hrs en 7 días. Podrías reducir a \ operaria(s).\;
+        } else {
+            status = 'optimal';
+            recommendation = \Fuerza laboral balanceada. Carga: \ hrs / Capacidad: \ hrs.\;
+        }
+    }
+    
+    return {
+        status,
+        recommendation,
+        metrics: {
+            activeOpCount,
+            dailyCapacity,
+            weeklyCapacity,
+            monthlyCapacity,
+            hoursNext7,
+            hoursNext30,
+            requiredHeadcount
+        }
+    };
+}
+
