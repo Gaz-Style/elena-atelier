@@ -919,7 +919,14 @@ export async function saveBudgetAction(payload: any) {
     
     const { error } = await supabase
         .from('budgets')
-        .insert([{ id: shortId, payload }]);
+        .insert([{ 
+            id: shortId, 
+            payload,
+            status: 'pending',
+            customer_name: payload.customerName || null,
+            customer_email: payload.customerEmail || null,
+            total_amount: payload.total || 0,
+        }]);
         
     if (error) {
         console.error('Error saving budget:', error);
@@ -927,6 +934,27 @@ export async function saveBudgetAction(payload: any) {
     }
     
     return { success: true, id: shortId };
+}
+
+export async function updateBudgetStatusAction(id: string, status: 'pending' | 'accepted' | 'expired') {
+    const supabase = await createClient();
+    const { error } = await supabase
+        .from('budgets')
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq('id', id);
+    if (error) return { success: false, error: error.message };
+    revalidatePath('/admin/quotes');
+    return { success: true };
+}
+
+export async function getAllBudgetsAction() {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('budgets')
+        .select('id, status, customer_name, customer_email, total_amount, created_at, updated_at, payload')
+        .order('created_at', { ascending: false });
+    if (error) return [];
+    return data || [];
 }
 
 export async function getBudgetAction(id: string) {

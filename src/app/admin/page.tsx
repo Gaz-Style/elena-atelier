@@ -13,7 +13,8 @@ import {
     ShieldCheck,
     Package,
     Receipt,
-    Activity
+    Activity,
+    FileText
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 
@@ -32,6 +33,13 @@ export default function AdminDashboard() {
             href: '/admin/sales',
             icon: DollarSign,
             color: 'bg-green-100 text-green-700'
+        },
+        {
+            title: 'Presupuestos',
+            desc: 'Seguimiento de cotizaciones enviadas: pendientes, aceptadas y expiradas.',
+            href: '/admin/quotes',
+            icon: FileText,
+            color: 'bg-amber-100 text-amber-700'
         },
         {
             title: 'Gobernanza de Producción',

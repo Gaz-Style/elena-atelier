@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { CheckCircle, CreditCard, Store, Calendar, MapPin, Check } from 'lucide-react';
 import Link from 'next/link';
 import { createWebpayTransaction } from '@/lib/transbank';
-import { getBudgetAction, createPOSOrdersAction } from '../admin/pos/actions';
+import { getBudgetAction, createPOSOrdersAction, updateBudgetStatusAction } from '../admin/pos/actions';
 
 function BudgetContent() {
     const searchParams = useSearchParams();
@@ -307,9 +307,14 @@ function BudgetContent() {
                                     </div>
                                 </button>
                                 <button 
-                                    onClick={() => {
+                                    onClick={async () => {
                                         setPaymentMethod('presencial');
                                         setStatus('paying');
+                                        // Mark budget as accepted in DB
+                                        const budgetId = searchParams.get('id');
+                                        if (budgetId) {
+                                            await updateBudgetStatusAction(budgetId, 'accepted');
+                                        }
                                     }}
                                     className="flex flex-col items-center gap-4 p-8 border border-white/10 bg-white/5 hover:border-brand-sand rounded-sm text-white transition-all group cursor-pointer"
                                 >
