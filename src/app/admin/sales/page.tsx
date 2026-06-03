@@ -174,9 +174,9 @@ export default async function SalesLedgerPage() {
                                                 )}
                                             </td>
                                             <td className="p-4 text-right">
-                                                <button className="text-[10px] uppercase font-bold text-gray-400 hover:text-brand-terracotta transition-colors">
+                                                <Link href={`/admin/sales/${sale.id}`} className="text-[10px] uppercase font-bold text-gray-400 hover:text-brand-terracotta transition-colors">
                                                     Ver Detalle
-                                                </button>
+                                                </Link>
                                             </td>
                                         </tr>
                                     ))
