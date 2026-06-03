@@ -7,7 +7,7 @@ import {
     Loader2, Plus, X, User, Calendar, ChevronLeft, ChevronRight, 
     History, BarChart2, CheckCircle, Flame
 } from 'lucide-react';
-import { getProductionOrders, updateOrderStatus, getWorkloadForecastAction } from './actions';
+import { getProductionOrders, updateOrderStatus, getWorkloadForecastAction, getOperatorPerformanceAction } from './actions';
 import { getOperatorsAction } from '../pos/actions';
 import { supabase } from '@/lib/supabase';
 
@@ -15,6 +15,7 @@ export default function ProductionPage() {
     const [orders, setOrders] = useState<any[]>([]);
     const [operators, setOperators] = useState<any[]>([]);
     const [forecastData, setForecastData] = useState<any>(null);
+    const [performanceData, setPerformanceData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isAdding, setIsAdding] = useState(false);
@@ -52,10 +53,16 @@ export default function ProductionPage() {
         setForecastData(data);
     }
 
+    async function fetchPerformance() {
+        const data = await getOperatorPerformanceAction();
+        setPerformanceData(data);
+    }
+
     useEffect(() => {
         fetchOrders();
         fetchOperators();
         fetchForecast();
+        fetchPerformance();
         setIsDesktop(window.innerWidth >= 768);
         const handleResize = () => setIsDesktop(window.innerWidth >= 768);
         window.addEventListener('resize', handleResize);
@@ -322,7 +329,7 @@ export default function ProductionPage() {
                         className={`pb-4 text-xs uppercase tracking-widest font-bold border-b-2 transition-all flex items-center gap-2 ${activeTab === 'forecast' ? 'border-brand-terracotta text-brand-charcoal' : 'border-transparent text-gray-400 hover:text-brand-charcoal'}`}
                     >
                         <BarChart2 className="w-4 h-4" />
-                        Predicciones de Carga
+                        Analíticas y Rendimiento
                     </button>
                 </div>
 
@@ -504,6 +511,70 @@ export default function ProductionPage() {
                                         </div>
                                     </div>
                                 </div>
+                                
+                                {/* NUEVO: Rendimiento Histórico */}
+                                {performanceData && (
+                                    <div className="pt-8 border-t border-gray-100">
+                                        <div className="flex justify-between items-end mb-6">
+                                            <div>
+                                                <h3 className="text-xl font-serif text-brand-charcoal">Rendimiento Histórico del Equipo</h3>
+                                                <p className="text-sm text-gray-500 mt-1">Análisis de tareas completadas y horas aportadas versus la media del taller.</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-[10px] uppercase font-bold text-gray-400">Media del Taller</p>
+                                                <p className="text-lg font-bold text-brand-charcoal">{performanceData.avgHours} hrs / {performanceData.avgTasks} tareas</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            {performanceData.list.map((op: any) => (
+                                                <div key={op.id} className="bg-white border border-gray-100 p-6 rounded-sm hover:shadow-md transition-shadow relative overflow-hidden">
+                                                    <div className={`absolute top-0 left-0 w-1 h-full ${
+                                                        op.performance_index >= 15 ? 'bg-emerald-500' :
+                                                        op.performance_index <= -15 ? 'bg-red-500' :
+                                                        'bg-brand-sand'
+                                                    }`} />
+                                                    
+                                                    <div className="flex justify-between items-start mb-4">
+                                                        <h4 className="font-bold text-brand-charcoal">{op.name}</h4>
+                                                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                                                            op.performance_index > 0 ? 'bg-emerald-50 text-emerald-700' :
+                                                            op.performance_index < 0 ? 'bg-red-50 text-red-700' :
+                                                            'bg-gray-100 text-gray-600'
+                                                        }`}>
+                                                            {op.performance_index > 0 ? '+' : ''}{op.performance_index}%
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    <div className="space-y-4">
+                                                        <div>
+                                                            <div className="flex justify-between text-sm mb-1">
+                                                                <span className="text-gray-500">Horas Producidas</span>
+                                                                <span className="font-bold">{op.total_hours} hrs</span>
+                                                            </div>
+                                                            <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                                                                <div className={`h-full rounded-full ${
+                                                                    op.performance_index >= 15 ? 'bg-emerald-500' :
+                                                                    op.performance_index <= -15 ? 'bg-red-500' :
+                                                                    'bg-brand-sand'
+                                                                }`} style={{ width: `${Math.min(100, (op.total_hours / Math.max(1, performanceData.avgHours)) * 50)}%` }} />
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="flex justify-between text-sm border-t border-gray-50 pt-2">
+                                                            <span className="text-gray-500">Tareas Terminadas</span>
+                                                            <span className="font-bold">{op.total_tasks}</span>
+                                                        </div>
+                                                        
+                                                        <p className="text-xs text-gray-500 bg-gray-50 p-2 rounded italic">
+                                                            {op.insight}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 

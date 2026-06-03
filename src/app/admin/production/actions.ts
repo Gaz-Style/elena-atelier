@@ -161,3 +161,62 @@ export async function getWorkloadForecastAction() {
         }
     };
 }
+
+export async function getOperatorPerformanceAction() {
+    const supabase = await createClient();
+    
+    const { data: operators } = await supabase.from('atelier_operators').select('id, name');
+    const { data: orders } = await supabase.from('production_orders').select('assigned_operator_id, estimated_hours').in('status', ['ready', 'delivered']).not('assigned_operator_id', 'is', null);
+        
+    const stats: Record<string, { id: string, total_tasks: number, total_hours: number, name: string }> = {};
+    
+    if (operators) {
+        operators.forEach(op => {
+            stats[op.id] = { id: op.id, total_tasks: 0, total_hours: 0, name: op.name };
+        });
+    }
+    
+    let globalTotalTasks = 0;
+    let globalTotalHours = 0;
+    
+    if (orders) {
+        orders.forEach(o => {
+            if (o.assigned_operator_id && stats[o.assigned_operator_id]) {
+                stats[o.assigned_operator_id].total_tasks += 1;
+                stats[o.assigned_operator_id].total_hours += Number(o.estimated_hours || 0);
+                globalTotalTasks += 1;
+                globalTotalHours += Number(o.estimated_hours || 0);
+            }
+        });
+    }
+    
+    const activeOpCount = operators ? operators.length : 1;
+    const avgTasks = globalTotalTasks / Math.max(1, activeOpCount);
+    const avgHours = globalTotalHours / Math.max(1, activeOpCount);
+    
+    const performanceList = Object.values(stats).map(s => {
+        let performance_index = 0;
+        if (avgHours > 0) {
+            performance_index = ((s.total_hours - avgHours) / avgHours) * 100;
+        }
+        
+        let insight = "Rendimiento dentro del promedio del taller.";
+        if (performance_index >= 15) {
+            insight = `Alto rendimiento (${Math.round(performance_index)}% sobre la media). Ideal para tareas complejas.`;
+        } else if (performance_index <= -15) {
+            insight = `Rendimiento bajo (${Math.round(Math.abs(performance_index))}% bajo la media). Sugerimos revision o apoyo.`;
+        }
+        
+        return {
+            ...s,
+            performance_index: Math.round(performance_index),
+            insight
+        };
+    }).sort((a, b) => b.total_hours - a.total_hours);
+    
+    return {
+        list: performanceList,
+        avgTasks: Math.round(avgTasks * 10) / 10,
+        avgHours: Math.round(avgHours * 10) / 10
+    };
+}
