@@ -4,7 +4,8 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle, CreditCard, Store, Calendar, MapPin, Check } from 'lucide-react';
 import Link from 'next/link';
-import { createPaymentPreference } from '@/lib/payments';
+import { createWebpayTransaction } from '@/lib/transbank';
+import { getBudgetAction, createPOSOrdersAction } from '../admin/pos/actions';
 
 function BudgetContent() {
     const searchParams = useSearchParams();
@@ -13,15 +14,31 @@ function BudgetContent() {
     const [paymentMethod, setPaymentMethod] = useState<'web' | 'presencial' | null>(null);
 
     useEffect(() => {
-        const encodedData = searchParams.get('d');
-        if (encodedData) {
-            try {
-                const decoded = JSON.parse(decodeURIComponent(escape(atob(encodedData))));
-                setData(decoded);
-            } catch (e) {
-                console.error("Error decoding budget data", e);
+        const loadBudget = async () => {
+            const shortId = searchParams.get('id');
+            const encodedData = searchParams.get('d');
+            
+            if (shortId) {
+                try {
+                    const result = await getBudgetAction(shortId);
+                    if (result.success && result.data) {
+                        setData(result.data);
+                    }
+                } catch (e) {
+                    console.error("Error fetching budget from DB", e);
+                }
+            } else if (encodedData) {
+                // Backward compatibility for old base64 links
+                try {
+                    const decoded = JSON.parse(decodeURIComponent(escape(atob(encodedData))));
+                    setData(decoded);
+                } catch (e) {
+                    console.error("Error decoding old budget data", e);
+                }
             }
-        }
+        };
+        
+        loadBudget();
     }, [searchParams]);
 
     const formatCurrency = (value: number) => {
@@ -61,14 +78,14 @@ function BudgetContent() {
                             <p className="text-white/80">Horario: Lun - Vie de 10:00 a 19:00</p>
                         </div>
                     </div>
-                    <button 
-                        onClick={() => window.close()} 
+                    <Link 
+                        href="/" 
                         className="w-full glass-btn group relative inline-flex items-center justify-center gap-3 px-6 py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] cursor-pointer"
                     >
                         <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-white group-hover:text-[#121212] transition-colors duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
-                            Cerrar Ventana
+                            Volver al Inicio
                         </span>
-                    </button>
+                    </Link>
                 </div>
             </div>
         );
@@ -76,16 +93,37 @@ function BudgetContent() {
 
     return (
         <div className="min-h-screen bg-brand-charcoal text-white pb-32 font-sans overflow-x-hidden">
-            {/* Header / Brand */}
-            <header className="bg-white/[0.02] border-b border-white/10 p-8 md:p-12">
-                <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-                    <div className="text-center md:text-left">
-                        <h1 className="font-serif text-4xl md:text-5xl tracking-tighter text-white">ELENA ATELIER</h1>
-                        <p className="text-[10px] uppercase tracking-[0.3em] text-brand-sand mt-2 font-semibold">Alta Costura & Sastrería a Medida</p>
+            {/* Header / Brand with Luxury Image */}
+            <header className="relative p-8 md:p-16 border-b border-white/10 overflow-hidden">
+                <div className="absolute inset-0 z-0">
+                    <img 
+                        src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=1200&auto=format&fit=crop" 
+                        alt="Luxury Atelier" 
+                        className="w-full h-full object-cover opacity-50"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-brand-charcoal via-brand-charcoal/30 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-brand-charcoal/90 via-brand-charcoal/20 to-transparent"></div>
+                </div>
+                
+                <div className="relative z-10 max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center md:items-end gap-8 mt-12">
+                    <div className="text-center md:text-left flex flex-col items-center md:items-start">
+                        <p className="text-[10px] uppercase tracking-[0.4em] text-brand-sand mb-6 font-bold">Propuesta Comercial</p>
+                        <div className="flex flex-col items-stretch justify-center w-max mx-auto md:mx-0 scale-125 md:scale-150 origin-center md:origin-left my-4">
+                            <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-white leading-none drop-shadow-sm">
+                                <span>E</span><span>L</span><span>E</span><span>N</span><span>A</span>
+                            </div>
+                            <div 
+                                className="font-sans text-[0.65rem] md:text-[0.75rem] font-bold uppercase text-white/70 mt-1 text-center"
+                                style={{ letterSpacing: '0.35em', marginRight: '-0.35em' }}
+                            >
+                                La Costurera
+                            </div>
+                        </div>
+                        <p className="text-[10px] uppercase tracking-[0.3em] text-brand-sand mt-6 font-semibold">Alta Costura & Sastrería a Medida</p>
                     </div>
-                    <div className="hidden md:block text-right text-[10px] uppercase tracking-widest text-white/40 font-semibold">
-                        <p>Santiago, Chile</p>
-                        <p className="mt-1">elenalacosturera.com</p>
+                    <div className="text-center md:text-right text-[10px] uppercase tracking-widest text-brand-sand/60 font-semibold space-y-1.5">
+                        <p>Vitacura, Santiago Chile</p>
+                        <p className="text-white/40">elenalacosturera.cl</p>
                     </div>
                 </div>
             </header>
@@ -211,11 +249,49 @@ function BudgetContent() {
                                         setPaymentMethod('web');
                                         setStatus('paying');
                                         try {
-                                            const res = await createPaymentPreference(data.cart);
-                                            window.location.href = res.init_point;
+                                            const orderId = Date.now().toString();
+                                            const buyOrder = `order_${orderId}`;
+                                            
+                                            // 1. Create order in DB
+                                            const orderPayload = {
+                                                customerId: data.customerId || 'unassigned',
+                                                posOrderId: buyOrder,
+                                                paymentMethod: 'transbank',
+                                                paymentStatus: 'pending',
+                                                items: data.cart.map((item: any) => ({
+                                                    name: item.name,
+                                                    price: item.price,
+                                                    category: item.category,
+                                                    notes: item.notes || '',
+                                                    isCustom: !!item.isCustom,
+                                                    hours: item.details?.hours || 0,
+                                                    assignedOperatorId: item.assignedOperatorId || 'unassigned'
+                                                })),
+                                                deadline: null,
+                                                productionStartDate: null,
+                                                productionEndDate: null,
+                                                finalDeliveryDate: null
+                                            };
+                                            
+                                            const orderRes = await createPOSOrdersAction(orderPayload);
+                                            if (!orderRes.success) {
+                                                throw new Error(orderRes.error || 'No se pudo crear la orden');
+                                            }
+                                            
+                                            // 2. Init Webpay
+                                            const sessionId = `session_web_${orderId}`;
+                                            const callbackUrl = `${window.location.origin}/presupuesto/pago-exitoso`;
+                                            
+                                            const tbkRes = await createWebpayTransaction(buyOrder, sessionId, data.total, callbackUrl);
+                                            
+                                            if (tbkRes.success && tbkRes.url && tbkRes.token) {
+                                                window.location.href = `${tbkRes.url}?token_ws=${tbkRes.token}`;
+                                            } else {
+                                                throw new Error(tbkRes.error || 'Error al inicializar Transbank');
+                                            }
                                         } catch (err) {
-                                            console.error('Error redirecting to MP:', err);
-                                            alert('Ocurrió un error al conectar con Mercado Pago. Por favor reintente.');
+                                            console.error('Error redirecting to Webpay:', err);
+                                            alert('Ocurrió un error al procesar el pago. Por favor reintente.');
                                             setStatus('accepted');
                                             setPaymentMethod(null);
                                         }

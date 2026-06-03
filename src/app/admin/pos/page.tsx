@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, 
 import { getCostSettings } from '../finance/actions';
 import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
-import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction } from './actions';
+import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction, saveBudgetAction } from './actions';
 import { createPaymentPreference } from '@/lib/payments';
 import { createWebpayTransaction } from '@/lib/transbank';
 
@@ -682,23 +682,34 @@ export default function POSPage() {
         return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(value);
     };
 
-    const generateBudgetLink = () => {
-        const budgetData = {
-            cart: cart,
-            total: total,
-            date: new Date().toISOString()
-        };
-        const jsonStr = JSON.stringify(budgetData);
-        // UTF-8 friendly base64 encoding
-        const base64 = btoa(unescape(encodeURIComponent(jsonStr)));
-        const baseUrl = window.location.origin;
-        const link = `${baseUrl}/presupuesto?d=${base64}`;
-        setGeneratedLink(link);
-        if (selectedCustomer) {
-            setClientPhone(selectedCustomer.phone || '');
-            setClientEmail(selectedCustomer.email || '');
+    const generateBudgetLink = async () => {
+        setIsProcessing(true);
+        try {
+            const budgetData = {
+                cart: cart,
+                total: total,
+                date: new Date().toISOString()
+            };
+            const result = await saveBudgetAction(budgetData);
+            
+            if (result.success && result.id) {
+                const baseUrl = window.location.origin;
+                const link = `${baseUrl}/presupuesto?id=${result.id}`;
+                setGeneratedLink(link);
+                if (selectedCustomer) {
+                    setClientPhone(selectedCustomer.phone || '');
+                    setClientEmail(selectedCustomer.email || '');
+                }
+                setIsBudgetModalOpen(true);
+            } else {
+                alert('Error al generar el link: ' + (result.error || 'Desconocido'));
+            }
+        } catch (error) {
+            console.error('Error in generateBudgetLink:', error);
+            alert('Error al conectar con el servidor.');
+        } finally {
+            setIsProcessing(false);
         }
-        setIsBudgetModalOpen(true);
     };
 
     const copyToClipboard = () => {

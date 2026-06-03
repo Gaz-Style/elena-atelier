@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { CheckCircle2, XCircle, Loader2, ArrowLeft, Printer, ShoppingBag, CreditCard } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, ArrowLeft, Printer, CreditCard } from 'lucide-react';
 import { commitWebpayTransaction } from '@/lib/transbank';
-import { updateOrderStatusToPaidAction } from '../actions';
+import { updateOrderStatusToPaidAction } from '../../admin/pos/actions';
+import Link from 'next/link';
 
 function CallbackContent() {
     const searchParams = useSearchParams();
@@ -19,7 +19,7 @@ function CallbackContent() {
 
     useEffect(() => {
         if (tbk_token) {
-            setError('La compra fue anulada por el usuario en el portal de Webpay (no se realizó ningún cargo).');
+            setError('La compra fue anulada en el portal de Webpay (no se realizó ningún cargo).');
             setLoading(false);
             return;
         }
@@ -87,18 +87,15 @@ function CallbackContent() {
                         Código de respuesta: {paymentData?.response_code ?? 'Error de sistema'}
                     </p>
                     <p className="text-sm text-gray-400 leading-relaxed pt-2">
-                        {error || 'La transacción bancaria fue rechazada por el emisor de la tarjeta o cancelada por el usuario.'}
+                        {error || 'La transacción bancaria fue rechazada por el emisor de la tarjeta o cancelada.'}
                     </p>
                 </div>
 
                 <div className="pt-4 border-t border-gray-800 space-y-3">
-                    <button 
-                        onClick={() => router.push('/admin/pos')}
-                        className="w-full bg-[#1A1C28] hover:bg-white/5 border border-gray-800 text-gray-300 py-3 rounded-sm text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer"
-                    >
+                    <Link href="/" className="w-full bg-[#1A1C28] hover:bg-white/5 border border-gray-800 text-gray-300 py-3 rounded-sm text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer">
                         <ArrowLeft className="w-4 h-4 text-[#C5A880]" />
-                        Volver al Punto de Venta
-                    </button>
+                        Volver al Sitio Web
+                    </Link>
                 </div>
             </div>
         );
@@ -127,7 +124,7 @@ function CallbackContent() {
                     <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-[0.25em]">Transacción Autorizada</span>
                     <h2 className="font-serif text-3xl font-light text-white tracking-wide">¡Pago Recibido con Éxito!</h2>
                     <p className="text-xs text-gray-400 font-light">
-                        Elena Atelier agradece tu preferencia en servicios de alta costura
+                        Tu proyecto ya se encuentra en nuestra cola de producción.
                     </p>
                 </div>
             </div>
@@ -185,20 +182,17 @@ function CallbackContent() {
                         <Printer className="w-4 h-4 text-[#C5A880]" />
                         Imprimir Recibo
                     </button>
-                    <button 
-                        onClick={() => router.push('/admin/pos')}
-                        className="flex-1 bg-[#C5A880] hover:bg-[#B3966D] text-brand-charcoal py-3.5 rounded-sm text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#C5A880]/15"
-                    >
-                        <ShoppingBag className="w-4 h-4" />
-                        Nueva Orden POS
-                    </button>
+                    <Link href="/" className="flex-1 bg-[#C5A880] hover:bg-[#B3966D] text-brand-charcoal py-3.5 rounded-sm text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#C5A880]/15">
+                        <ArrowLeft className="w-4 h-4" />
+                        Volver al Sitio
+                    </Link>
                 </div>
             </div>
         </div>
     );
 }
 
-export default function WebpayCallbackPage() {
+export default function BudgetWebpayCallbackPage() {
     return (
         <div className="min-h-screen bg-[#0B0C10] text-[#EAEAEA] font-sans antialiased selection:bg-brand-sand selection:text-brand-charcoal relative overflow-hidden py-24 px-4 flex items-center justify-center">
             {/* Background elements for premium aesthetic */}

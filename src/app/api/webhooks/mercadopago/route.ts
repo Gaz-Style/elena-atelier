@@ -79,6 +79,16 @@ export async function POST(req: Request) {
                                 console.error('Error actualizando estado en BD:', error);
                             } else {
                                 console.log('Ordenes actualizadas correctamente a PAGADO');
+                                
+                                // Update sales ledger
+                                await supabase
+                                    .from('sales_ledger')
+                                    .update({ 
+                                        status: 'completed',
+                                        external_transaction_id: paymentId,
+                                        payment_method: 'Mercado_Pago_Presencial'
+                                    })
+                                    .eq('internal_id', externalRef);
                             }
                         } else {
                             console.warn('El pago aprobado no tiene external_reference. Imposible asociar a la base de datos automáticamente.');

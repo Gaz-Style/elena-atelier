@@ -435,12 +435,43 @@ export async function createPOSOrdersAction(payload: {
     const { customerId, posOrderId, paymentMethod, paymentStatus, items, deadline, productionStartDate, productionEndDate, finalDeliveryDate } = payload;
     const supabase = await createClient();
 
+    const totalAmount = items.reduce((sum, item) => sum + item.price, 0);
+    const subtotal = Math.round(totalAmount / 1.19);
+    const taxAmount = totalAmount - subtotal;
+    const internalId = posOrderId || `ERP-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
+    const finalCustomerId = customerId === 'unassigned' ? null : customerId;
+
+    // 1. Insert Sales Ledger record
+    const { data: saleData, error: saleError } = await supabase
+        .from('sales_ledger')
+        .insert([{
+            internal_id: internalId,
+            customer_id: finalCustomerId,
+            net_amount: subtotal,
+            tax_amount: taxAmount,
+            total_amount: totalAmount,
+            status: paymentStatus === 'paid' || paymentStatus === 'completed' ? 'completed' : 'pending',
+            payment_method: paymentMethod || null,
+            external_transaction_id: null
+        }])
+        .select('id')
+        .single();
+
+    if (saleError) {
+        console.error('Error creating sales ledger entry:', saleError);
+        return { success: false, error: saleError.message };
+    }
+
+    const saleId = saleData.id;
+
+    // 2. Insert Production Orders linked to Sales Ledger
     const insertPromises = items.map(item => {
         const orderType = item.isCustom ? 'bespoke' : 'b2b_batch';
         return supabase
             .from('production_orders')
             .insert([{
-                customer_id: customerId,
+                sale_id: saleId,
+                customer_id: finalCustomerId,
                 description: item.name,
                 order_type: orderType,
                 status: 'draft',
@@ -852,4 +883,69 @@ export async function updateOperatorAction(op: {
 
     revalidatePath('/admin/production-board');
     return { success: true, data };
+}
+
+export async function saveBudgetAction(payload: any) {
+    const supabase = await createClient();
+    
+    // Generate a random 6-character short ID
+    const shortId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    
+    const { error } = await supabase
+        .from('budgets')
+        .insert([{ id: shortId, payload }]);
+        
+    if (error) {
+        console.error('Error saving budget:', error);
+        return { success: false, error: error.message };
+    }
+    
+    return { success: true, id: shortId };
+}
+
+export async function getBudgetAction(id: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('budgets')
+        .select('payload')
+        .eq('id', id)
+        .single();
+        
+    if (error) {
+        console.error('Error fetching budget:', error);
+        return { success: false, error: error.message };
+    }
+    
+    return { success: true, data: data.payload };
+}
+
+export async function updateOrderStatusToPaidAction(posOrderId: string) {
+    const supabase = await createClient();
+    
+    // El buyOrder de Transbank viene con el formato "order_123"
+    // Pero en production_orders el pos_order_id es "order_123" completo, así que actualizamos usando eso.
+    const { error: prodError } = await supabase
+        .from('production_orders')
+        .update({ payment_status: 'paid', status: 'pending' }) // Pasamos status a pending ya que estaba en draft
+        .eq('pos_order_id', posOrderId);
+        
+    if (prodError) {
+        console.error('Error updating order to paid:', prodError);
+        return { success: false, error: prodError.message };
+    }
+    
+    // Actualizar Planilla de Ventas
+    const internalId = posOrderId; // O si guardamos un ID distinto
+    const { error: salesError } = await supabase
+        .from('sales_ledger')
+        .update({ status: 'completed' })
+        .eq('internal_id', internalId);
+        
+    if (salesError) {
+        console.error('Error updating sales ledger:', salesError);
+        // No retornamos error fatal si ya se actualizó la producción, pero queda logueado.
+    }
+    
+    revalidatePath('/admin/production-board');
+    return { success: true };
 }

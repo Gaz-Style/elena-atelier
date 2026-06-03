@@ -27,6 +27,13 @@ export default function AdminDashboard() {
             color: 'bg-orange-100 text-orange-700'
         },
         {
+            title: 'Planilla de Ventas',
+            desc: 'Libro Mayor de Ventas, ingresos y trazabilidad financiera.',
+            href: '/admin/sales',
+            icon: DollarSign,
+            color: 'bg-green-100 text-green-700'
+        },
+        {
             title: 'Gobernanza de Producción',
             desc: 'Control Kanban del taller y tiempos de entrega.',
             href: '/admin/production',
