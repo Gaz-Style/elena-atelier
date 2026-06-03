@@ -20,7 +20,7 @@ const COURSES = [
         promoPrice: 52500,
         duration: '2 sesiones · 4 horas',
         groupSize: 'Grupos reducidos',
-        image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=800&auto=format&fit=crop',
+        image: '/curso-iniciacion.png',
         badge: '25% OFF',
         description: 'Aprende a usar la máquina de coser desde cero y crea tus primeros proyectos, aunque nunca hayas cosido antes.',
         includes: [
@@ -43,7 +43,7 @@ const COURSES = [
         promoPrice: 75000,
         duration: '3 sesiones · 6 horas',
         groupSize: 'Grupos reducidos',
-        image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=800&auto=format&fit=crop',
+        image: '/curso-confeccion.png',
         badge: null,
         description: 'Domina las técnicas de confección para crear prendas con acabados impecables: mangas, cremalleras, bolsillos.',
         includes: [
@@ -66,7 +66,7 @@ const COURSES = [
         promoPrice: 65000,
         duration: '2 sesiones · 4 horas',
         groupSize: 'Grupos reducidos',
-        image: 'https://images.unsplash.com/photo-1601924994987-69e26d50dc26?q=80&w=800&auto=format&fit=crop',
+        image: '/curso-arreglos.png',
         badge: null,
         description: 'Aprende a realizar los arreglos más comunes: bastillas, entradas y salidas de ropa, ajustes de tiro y más.',
         includes: [
@@ -89,7 +89,7 @@ const COURSES = [
         promoPrice: null,
         duration: '4 sesiones · 8 horas',
         groupSize: 'Grupos muy reducidos',
-        image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop',
+        image: '/curso-patronaje.png',
         badge: 'Exclusivo',
         description: 'Aprende el lenguaje técnico de la costura de alta gama. Traza, escala y adapta patrones a cualquier medida.',
         includes: [
@@ -112,7 +112,7 @@ const COURSES = [
         promoPrice: 699999,
         duration: '12 meses de acceso continuo',
         groupSize: 'Todos los cursos incluidos',
-        image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=800&auto=format&fit=crop',
+        image: '/curso-pack.png',
         badge: 'Ahorra 40%',
         description: 'Accede a todos los cursos actuales y los que abriremos durante el año. La inversión más inteligente si quieres una formación completa.',
         includes: [
