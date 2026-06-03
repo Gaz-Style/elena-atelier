@@ -112,18 +112,51 @@ export async function POST(req: Request) {
                                 content: msg.content || ''
                             })) || [];
                             
+                            // 4.1. Fetch dynamic context from Supabase (RAG)
+                            const { data: catalogData } = await supabase
+                                .from('catalog')
+                                .select('name, price, category')
+                                .eq('active', true)
+                                .order('price', { ascending: true });
+
+                            let catalogText = 'Precios base de referencia del Catálogo Oficial:\n';
+                            if (catalogData && catalogData.length > 0) {
+                                const categories = Array.from(new Set(catalogData.map(c => c.category)));
+                                categories.forEach(cat => {
+                                    const items = catalogData.filter(c => c.category === cat).slice(0, 3); // Take top 3 cheapest
+                                    catalogText += `- ${cat}:\n`;
+                                    items.forEach(item => {
+                                        catalogText += `  * ${item.name}: desde $${item.price.toLocaleString('es-CL')} CLP.\n`;
+                                    });
+                                });
+                            } else {
+                                catalogText += `- Ajustes simples: desde $15.000 CLP.\n- Vestidos a medida: desde $350.000 CLP.\n`;
+                            }
+
+                            const { count: activeOrders } = await supabase
+                                .from('production_orders')
+                                .select('*', { count: 'exact', head: true })
+                                .in('status', ['pending', 'in_progress', 'fitting']);
+
+                            let timingText = 'Tiempos de costura estimados actuales en el Atelier:\n';
+                            if (activeOrders !== null && activeOrders > 20) {
+                                timingText += `- Alta demanda (Taller Ocupado). Vestidos a medida: 5 a 8 semanas.\n`;
+                            } else {
+                                timingText += `- Capacidad Normal. Vestidos a medida: 3 a 5 semanas.\n`;
+                            }
+                            timingText += `- Ajustes menores: 3 a 7 días.\n`;
+                            
                             const systemPrompt = {
                                 role: 'system',
                                 content: `Eres The Luxury Closer, el asesor virtual de Elena Atelier, una exclusiva casa de alta costura y sastrería a medida en Vitacura. 
 Tu tono es amable, sofisticado, exclusivo y resolutivo.
-Precios base de referencia:
-- Ajustes simples (bastillas): desde $15.000 CLP.
-- Vestidos de fiesta a medida: desde $350.000 CLP.
-- Vestidos de novia a medida: desde $850.000 CLP.
-Tiempos de costura:
-- Ajustes: 3 a 7 días.
-- Vestidos a medida: 3 a 5 semanas.
-Si el cliente muestra una intención clara de compra o agenda, o pide hablar con un humano, indícale amablemente que le transferirás con un asesor humano y despídete temporalmente.`
+
+CONTEXTO EN TIEMPO REAL DEL ATELIER:
+${catalogText}
+${timingText}
+
+REGLAS DE ATENCIÓN:
+Si el cliente muestra una intención clara de compra o agenda, o pide hablar con un humano o asesor, indícale amablemente que le transferirás con un especialista humano de inmediato, responde solo eso y despídete temporalmente.`
                             };
 
                             const completion = await openai.chat.completions.create({
