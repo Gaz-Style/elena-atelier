@@ -5,9 +5,10 @@ import Link from 'next/link';
 import { 
     ArrowLeft, Clock, CheckCircle2, AlertCircle, Scissors, Search, 
     Loader2, Plus, X, User, Calendar, ChevronLeft, ChevronRight, 
-    History, BarChart2, CheckCircle, Flame
+    History, BarChart2, CheckCircle, Flame, DollarSign, Award, PieChart, ShieldCheck
 } from 'lucide-react';
 import { getProductionOrders, updateOrderStatus, getWorkloadForecastAction, getOperatorPerformanceAction } from './actions';
+import { getDashboardData } from '../actions';
 import { getOperatorsAction } from '../pos/actions';
 import { supabase } from '@/lib/supabase';
 
@@ -16,13 +17,14 @@ export default function ProductionPage() {
     const [operators, setOperators] = useState<any[]>([]);
     const [forecastData, setForecastData] = useState<any>(null);
     const [performanceData, setPerformanceData] = useState<any>(null);
+    const [dashboardData, setDashboardData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isAdding, setIsAdding] = useState(false);
     const [isDesktop, setIsDesktop] = useState(false);
     
-    // Navigation Tabs: kanban, calendar, history, forecast
-    const [activeTab, setActiveTab] = useState<'kanban' | 'calendar' | 'history' | 'forecast'>('kanban');
+    // Navigation Tabs: kanban, calendar, history, forecast, kpis
+    const [activeTab, setActiveTab] = useState<'kanban' | 'calendar' | 'history' | 'forecast' | 'kpis'>('kanban');
     
     // Calendar Navigation States
     const [calendarDate, setCalendarDate] = useState<Date>(new Date());
@@ -58,11 +60,17 @@ export default function ProductionPage() {
         setPerformanceData(data);
     }
 
+    async function fetchDashboard() {
+        const data = await getDashboardData();
+        setDashboardData(data);
+    }
+
     useEffect(() => {
         fetchOrders();
         fetchOperators();
         fetchForecast();
         fetchPerformance();
+        fetchDashboard();
         setIsDesktop(window.innerWidth >= 768);
         const handleResize = () => setIsDesktop(window.innerWidth >= 768);
         window.addEventListener('resize', handleResize);
@@ -331,6 +339,13 @@ export default function ProductionPage() {
                         <BarChart2 className="w-4 h-4" />
                         Analíticas y Rendimiento
                     </button>
+                    <button 
+                        onClick={() => { setActiveTab('kpis'); setSearchTerm(''); }}
+                        className={`pb-4 text-xs uppercase tracking-widest font-bold border-b-2 transition-all flex items-center gap-2 ${activeTab === 'kpis' ? 'border-brand-terracotta text-brand-charcoal' : 'border-transparent text-gray-400 hover:text-brand-charcoal'}`}
+                    >
+                        <DollarSign className="w-4 h-4" />
+                        KPIs Financieros y Rankings
+                    </button>
                 </div>
 
                 {loading ? (
@@ -575,6 +590,104 @@ export default function ProductionPage() {
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {/* NUEVO TAB: KPIs FINANCIEROS Y RANKINGS */}
+                        {activeTab === 'kpis' && dashboardData && (
+                            <div className="space-y-8 animate-in fade-in">
+                                {/* Global Overview Section (Real KPIs) */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+                                    <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-between">
+                                        <p className="text-[10px] uppercase text-gray-400 tracking-widest mb-2 font-bold">Ventas del Mes</p>
+                                        <div className="flex items-baseline gap-2">
+                                            <p className="text-3xl font-serif text-brand-charcoal">
+                                                ${dashboardData.kpis.salesThisMonth.toLocaleString('es-CL')}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-between">
+                                        <p className="text-[10px] uppercase text-gray-400 tracking-widest mb-2 font-bold">Órdenes Activas</p>
+                                        <div className="flex items-baseline gap-2">
+                                            <p className="text-3xl font-serif text-brand-charcoal">
+                                                {dashboardData.kpis.activeOrdersCount}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-between">
+                                        <p className="text-[10px] uppercase text-gray-400 tracking-widest mb-2 font-bold">Ticket Promedio</p>
+                                        <div className="flex items-baseline gap-2">
+                                            <p className="text-3xl font-serif text-brand-charcoal">
+                                                ${dashboardData.kpis.avgTicket.toLocaleString('es-CL')}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-between">
+                                        <p className="text-[10px] uppercase text-gray-400 tracking-widest mb-2 font-bold">Salud del Taller</p>
+                                        <div className="flex items-baseline gap-2">
+                                            <p className="text-3xl font-serif text-brand-charcoal">
+                                                Óptimo
+                                            </p>
+                                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                <ShieldCheck className="w-3 h-3" /> OK
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Rankings Section */}
+                                <div className="grid md:grid-cols-2 gap-8">
+                                    {/* Top Productos Más Vendidos */}
+                                    <div className="bg-white border border-gray-100 rounded-sm p-6 shadow-sm">
+                                        <div className="flex items-center gap-2 mb-6">
+                                            <Award className="w-5 h-5 text-brand-terracotta" />
+                                            <h3 className="font-serif text-xl text-brand-charcoal">Top 5 Más Vendidos</h3>
+                                        </div>
+                                        <div className="space-y-4">
+                                            {dashboardData.topProducts.map((p: any, i: number) => (
+                                                <div key={i} className="flex justify-between items-center border-b border-gray-50 pb-3 last:border-0 last:pb-0">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-xs font-bold text-gray-400">#{i + 1}</span>
+                                                        <span className="text-sm font-medium text-brand-charcoal">{p.name}</span>
+                                                    </div>
+                                                    <span className="text-xs font-bold text-brand-terracotta bg-brand-sand/20 px-2 py-1 rounded-sm">
+                                                        {p.count} ventas
+                                                    </span>
+                                                </div>
+                                            ))}
+                                            {dashboardData.topProducts.length === 0 && (
+                                                <p className="text-sm text-gray-500 italic">No hay suficientes datos de ventas aún.</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Top Productos con Mejor Margen */}
+                                    <div className="bg-white border border-gray-100 rounded-sm p-6 shadow-sm">
+                                        <div className="flex items-center gap-2 mb-6">
+                                            <PieChart className="w-5 h-5 text-emerald-600" />
+                                            <h3 className="font-serif text-xl text-brand-charcoal">Top 5 Mejor Margen</h3>
+                                        </div>
+                                        <div className="space-y-4">
+                                            {dashboardData.bestMarginProducts.map((p: any, i: number) => (
+                                                <div key={i} className="flex justify-between items-center border-b border-gray-50 pb-3 last:border-0 last:pb-0">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-xs font-bold text-gray-400">#{i + 1}</span>
+                                                        <span className="text-sm font-medium text-brand-charcoal">{p.name}</span>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-sm">
+                                                            {p.marginPct}% Margen
+                                                        </span>
+                                                        <p className="text-[10px] text-gray-400 mt-1">+${p.marginValue.toLocaleString('es-CL')} netos</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            {dashboardData.bestMarginProducts.length === 0 && (
+                                                <p className="text-sm text-gray-500 italic">No hay suficientes productos en catálogo aún.</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
 
