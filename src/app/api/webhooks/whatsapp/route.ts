@@ -42,7 +42,7 @@ export async function POST(req: Request) {
                     // 1. Find or create the chat session
                     let { data: chatData, error: chatError } = await supabase
                         .from('crm_whatsapp_chats')
-                        .select('id')
+                        .select('id, session_status')
                         .eq('phone_number', phoneNumber)
                         .single();
 
@@ -50,8 +50,8 @@ export async function POST(req: Request) {
                         // Create a new chat session
                         const { data: newChat, error: newChatError } = await supabase
                             .from('crm_whatsapp_chats')
-                            .insert([{ phone_number: phoneNumber }])
-                            .select('id')
+                            .insert([{ phone_number: phoneNumber, session_status: 'bot' }])
+                            .select('id, session_status')
                             .single();
 
                         if (newChatError) {
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
                         mediaUrl = message.audio.id;
                     }
 
-                    // 3. Save message to database (This triggers the AI agent queue via Phase 3 SQL trigger)
+                    // 3. Save user message to database
                     const { error: msgError } = await supabase
                         .from('crm_whatsapp_messages')
                         .insert([{
@@ -90,6 +90,75 @@ export async function POST(req: Request) {
 
                     if (msgError) {
                         console.error('Error saving message:', msgError);
+                        continue;
+                    }
+
+                    // 4. Trigger AI if session is 'bot' and content is text
+                    if (chatData.session_status === 'bot' && content) {
+                        try {
+                            const { OpenAI } = await import('openai');
+                            const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+                            
+                            // Get recent conversation context
+                            const { data: recentMsgs } = await supabase
+                                .from('crm_whatsapp_messages')
+                                .select('*')
+                                .eq('chat_id', chatData.id)
+                                .order('created_at', { ascending: true })
+                                .limit(10);
+                                
+                            const conversation = recentMsgs?.map(msg => ({
+                                role: msg.sender_type === 'customer' ? 'user' : 'assistant',
+                                content: msg.content || ''
+                            })) || [];
+                            
+                            const systemPrompt = {
+                                role: 'system',
+                                content: `Eres The Luxury Closer, el asesor virtual de Elena Atelier, una exclusiva casa de alta costura y sastrería a medida en Vitacura. 
+Tu tono es amable, sofisticado, exclusivo y resolutivo.
+Precios base de referencia:
+- Ajustes simples (bastillas): desde $15.000 CLP.
+- Vestidos de fiesta a medida: desde $350.000 CLP.
+- Vestidos de novia a medida: desde $850.000 CLP.
+Tiempos de costura:
+- Ajustes: 3 a 7 días.
+- Vestidos a medida: 3 a 5 semanas.
+Si el cliente muestra una intención clara de compra o agenda, o pide hablar con un humano, indícale amablemente que le transferirás con un asesor humano y despídete temporalmente.`
+                            };
+
+                            const completion = await openai.chat.completions.create({
+                                model: 'gpt-4o-mini',
+                                messages: [systemPrompt, ...conversation] as any,
+                            });
+                            
+                            const botReply = completion.choices[0].message.content;
+                            
+                            if (botReply) {
+                                // Save bot reply to DB
+                                await supabase.from('crm_whatsapp_messages').insert([{
+                                    chat_id: chatData.id,
+                                    sender_type: 'bot',
+                                    message_type: 'text',
+                                    content: botReply
+                                }]);
+                                
+                                // Check if we need to hand off to human
+                                const isHandoff = botReply.toLowerCase().includes('asesor') || 
+                                                  botReply.toLowerCase().includes('humano') || 
+                                                  botReply.toLowerCase().includes('transferir');
+                                
+                                if (isHandoff) {
+                                    await supabase.from('crm_whatsapp_chats')
+                                        .update({ session_status: 'human_handoff' })
+                                        .eq('id', chatData.id);
+                                }
+                                
+                                // TODO: Call WhatsApp Cloud API to send botReply back to the user
+                                // ...
+                            }
+                        } catch (err) {
+                            console.error('Error generating AI reply:', err);
+                        }
                     }
                 }
             }
