@@ -517,14 +517,14 @@ export default function MarketingDashboard() {
                                 <div>
                                     <h2 className="text-3xl font-serif flex items-center gap-3">
                                         <Sparkles className="w-6 h-6 text-brand-terracotta" />
-                                        Studio de Contenido Autónomo
+                                        AI Content Pipeline
                                     </h2>
                                     <p className="text-sm text-gray-400 mt-2 max-w-2xl">
-                                        Motor de inteligencia artificial dual. Analiza tendencias globales para redactar tus newsletters por segmento y genera guiones virales para tus redes sociales con la voz de tu marca.
+                                        Sistema automatizado de marketing. Integra web scraping de tendencias globales para segmentación de mailing y llamadas a LLMs para la generación de copys estructurados en redes sociales.
                                     </p>
                                 </div>
                                 <button className="bg-brand-terracotta hover:bg-[#b05c4b] text-white px-8 py-4 rounded-sm uppercase tracking-widest text-[10px] font-bold transition-all shadow-lg shadow-brand-terracotta/20 flex items-center gap-2 shrink-0">
-                                    <Sparkles className="w-4 h-4" /> Ejecutar Curaduría Global
+                                    <Sparkles className="w-4 h-4" /> Ejecutar Motor de Scraping
                                 </button>
                             </div>
                         </div>
@@ -534,11 +534,11 @@ export default function MarketingDashboard() {
                             <div className="bg-white p-8 rounded-sm shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-md transition-shadow">
                                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
                                     <MessageSquare className="w-5 h-5 text-brand-terracotta" />
-                                    <h3 className="text-xl font-serif text-brand-charcoal">Redacción Editorial (Newsletters)</h3>
+                                    <h3 className="text-xl font-serif text-brand-charcoal">Emailing Automatizado por Segmentos</h3>
                                 </div>
                                 
                                 <div className="space-y-6 flex-grow">
-                                    <p className="text-xs text-text-secondary">Borradores generados por IA listos para tu revisión y envío segmentado.</p>
+                                    <p className="text-xs text-text-secondary">Outputs del modelo pre-procesados para revisión antes del envío masivo.</p>
                                     
                                     {/* Segmento 1 */}
                                     <div className="border border-brand-sand/50 bg-gradient-to-br from-white to-brand-sand/10 rounded-sm overflow-hidden hover:shadow-md transition-all">
@@ -547,26 +547,26 @@ export default function MarketingDashboard() {
                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-brand-charcoal text-white text-[9px] uppercase tracking-widest rounded-full font-bold mb-1">
                                                     Generación Z / Millennials
                                                 </span>
-                                                <p className="text-[10px] uppercase tracking-wider text-gray-500 mt-1">Enfoque: Upcycling & Sustentabilidad</p>
+                                                <p className="text-[10px] uppercase tracking-wider text-gray-500 mt-1">Targeting: Upcycling & Sustentabilidad</p>
                                             </div>
-                                            <span className="text-xs font-mono bg-brand-sand/30 px-3 py-1 rounded-sm text-brand-charcoal font-bold border border-brand-sand/50">14 VIPs</span>
+                                            <span className="text-xs font-mono bg-brand-sand/30 px-3 py-1 rounded-sm text-brand-charcoal font-bold border border-brand-sand/50">14 Usuarios</span>
                                         </div>
                                         <div className="p-6 space-y-4">
                                             <div>
-                                                <label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Asunto Propuesto</label>
+                                                <label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Asunto Generado</label>
                                                 <input type="text" className="w-full mt-1 p-3 bg-white border border-gray-200 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none text-sm font-medium text-brand-charcoal shadow-inner" defaultValue="El regreso del corsé y la seda sustentable ✨" />
                                             </div>
                                             <div>
-                                                <label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Cuerpo del Correo</label>
+                                                <label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Payload del Correo</label>
                                                 <textarea 
                                                     className="w-full mt-1 h-28 p-3 bg-white border border-gray-200 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none resize-none text-sm text-gray-600 leading-relaxed shadow-inner"
-                                                    defaultValue="Hola {nombre}, esta semana en París el upcycling se tomó la alta costura. En Elena Atelier estamos transformando sedas vintage en piezas únicas para ti..."
+                                                    defaultValue="Hola {nombre}, el análisis de tendencias indica un alza en upcycling. En Elena Atelier estamos optimizando recursos para..."
                                                 ></textarea>
                                             </div>
                                             <div className="flex justify-end gap-3 pt-2">
-                                                <button className="px-5 py-2 border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 rounded-sm uppercase tracking-widest text-[9px] font-bold transition-all">Editar / Rechazar</button>
+                                                <button className="px-5 py-2 border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 rounded-sm uppercase tracking-widest text-[9px] font-bold transition-all">Descartar Output</button>
                                                 <button className="bg-brand-charcoal hover:bg-brand-terracotta text-white px-5 py-2 rounded-sm uppercase tracking-widest text-[9px] font-bold transition-all flex items-center gap-2">
-                                                    <CheckCircle2 className="w-3 h-3" /> Aprobar y Enviar
+                                                    <CheckCircle2 className="w-3 h-3" /> Aprobar Batch
                                                 </button>
                                             </div>
                                         </div>
@@ -579,12 +579,12 @@ export default function MarketingDashboard() {
                                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-200 text-gray-600 text-[9px] uppercase tracking-widest rounded-full font-bold mb-1">
                                                     Generación X / Boomers
                                                 </span>
-                                                <p className="text-[10px] uppercase tracking-wider text-gray-400 mt-1">Enfoque: Sastrería Clásica & Gala</p>
+                                                <p className="text-[10px] uppercase tracking-wider text-gray-400 mt-1">Targeting: Sastrería Clásica & Gala</p>
                                             </div>
-                                            <span className="text-xs font-mono bg-white border border-gray-200 px-3 py-1 rounded-sm text-gray-500 font-bold">28 VIPs</span>
+                                            <span className="text-xs font-mono bg-white border border-gray-200 px-3 py-1 rounded-sm text-gray-500 font-bold">28 Usuarios</span>
                                         </div>
                                         <div className="p-6 flex items-center justify-center text-center h-24">
-                                            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">En cola para redacción IA...</p>
+                                            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">A la espera de respuesta del LLM...</p>
                                         </div>
                                     </div>
                                 </div>
@@ -598,45 +598,45 @@ export default function MarketingDashboard() {
                                 <div className="relative z-10 flex flex-col h-full">
                                     <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-700">
                                         <Sparkles className="w-5 h-5 text-brand-terracotta" />
-                                        <h3 className="text-xl font-serif text-white">Guiones para RRSS</h3>
+                                        <h3 className="text-xl font-serif text-white">Generador de Copys (RRSS)</h3>
                                     </div>
                                     
                                     <div className="space-y-6 flex-grow flex flex-col">
                                         <p className="text-xs text-gray-400 leading-relaxed">
-                                            Toma inspiración de las tendencias generadas en el Newsletter y conviértelas en un TikTok o Reel. ¿Qué confeccionaste hoy?
+                                            Pasa como input la métrica de tendencia generada en el modelo de Emailing y conviértela en un script estructurado.
                                         </p>
                                         
                                         <div className="flex-grow flex flex-col gap-4">
                                             <div className="space-y-2 flex-grow flex flex-col">
-                                                <label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Contexto / Inspiración (Copia ideas del newsletter aquí)</label>
+                                                <label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Prompt Context / Referencia Base</label>
                                                 <textarea 
                                                     className="w-full flex-grow min-h-[150px] p-4 bg-gray-900 border border-gray-700 text-gray-300 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none resize-none text-sm placeholder-gray-700 shadow-inner"
-                                                    placeholder="Ej: Basado en la tendencia del corset sustentable, hoy terminé un vestido de novia de raso de seda con escote en V..."
+                                                    placeholder="Input del usuario (ej: Basado en el output de upcycling, generé un vestido de novia de raso de seda con escote en V...)"
                                                 ></textarea>
                                             </div>
                                             
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-2">
-                                                    <label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Plataforma</label>
+                                                    <label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Target Platform</label>
                                                     <select className="w-full p-3 bg-gray-900 border border-gray-700 text-gray-300 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none text-xs">
                                                         <option>Instagram Reel</option>
-                                                        <option>TikTok (Estilo Storytime)</option>
+                                                        <option>TikTok Script</option>
                                                         <option>Post Carrusel</option>
                                                     </select>
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Tono de Voz</label>
+                                                    <label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">System Persona (Tono)</label>
                                                     <select className="w-full p-3 bg-gray-900 border border-gray-700 text-gray-300 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none text-xs">
-                                                        <option>Lujo y Exclusividad</option>
-                                                        <option>Cercano y Educativo</option>
-                                                        <option>Inspirador y Emocional</option>
+                                                        <option>Marca de Lujo</option>
+                                                        <option>Educativo Técnico</option>
+                                                        <option>Storytelling Comercial</option>
                                                     </select>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <button className="bg-brand-terracotta hover:bg-[#b05c4b] text-white px-6 py-4 rounded-sm uppercase tracking-widest text-[10px] font-bold transition-all w-full flex items-center justify-center gap-2 shadow-lg shadow-brand-terracotta/20 mt-4">
-                                            <Sparkles className="w-4 h-4" /> Generar Guion Viral
+                                            <Sparkles className="w-4 h-4" /> Ejecutar LLM Prompt
                                         </button>
                                     </div>
                                 </div>
