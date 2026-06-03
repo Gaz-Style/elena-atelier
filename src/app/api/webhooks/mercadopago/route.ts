@@ -82,8 +82,7 @@ export async function POST(req: Request) {
                             console.log(`Pago aprobado para external_reference: ${externalRef}`);
                             await logSystemEvent(supabase, 'INFO', `Pago aprobado MP`, { paymentId, externalRef, status: payment.status });
                             
-                            const supabase = await createClient();
-                            
+
                             // Actualizar todas las filas de la orden (puede tener multiples items)
                             const { data, error } = await supabase
                                 .from('production_orders')
