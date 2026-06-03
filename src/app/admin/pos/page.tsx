@@ -2092,51 +2092,37 @@ export default function POSPage() {
                                             </div>
                                             {item.isCustom && item.details && (
                                                 <div className="grid grid-cols-3 gap-4 mt-2 pt-2 border-t border-gray-200/50">
-                                                    <div>
+                                                    <div className="col-span-1">
                                                         <p className="text-[9px] uppercase text-gray-400">Horas Estimadas</p>
                                                         <p className="text-xs font-bold">{item.details.hours} hrs</p>
                                                     </div>
-                                                    <div>
-                                                        <p className="text-[9px] uppercase text-gray-400">Costo Mat.</p>
-                                                        <p className="text-xs font-bold">{formatCurrency(item.details.materials)}</p>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-[9px] uppercase text-gray-400">Extras</p>
-                                                        <p className="text-xs font-bold">{formatCurrency(item.details.extra)}</p>
-                                                    </div>
+                                                    {item.notes && (
+                                                        <div className="col-span-2">
+                                                            <p className="text-[9px] uppercase text-gray-400">Descripción del Arreglo / Notas</p>
+                                                            <p className="text-xs text-gray-700 whitespace-pre-line leading-relaxed italic">"{item.notes}"</p>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
 
-                                            {/* Item-specific Notes and Image inside the Success/Print Modal */}
-                                            {(item.notes || (item.images && item.images.length > 0)) && (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 print:break-inside-avoid">
-                                                    {item.notes && (
-                                                        <div className="space-y-1">
-                                                            <p className="text-[9px] uppercase tracking-widest font-bold text-brand-terracotta">Instrucciones Especiales</p>
-                                                            <p className="text-xs text-gray-700 whitespace-pre-line italic leading-relaxed">
-                                                                "{item.notes}"
-                                                            </p>
-                                                        </div>
-                                                    )}
-                                                    {item.images && item.images.length > 0 && (
-                                                        <div className="space-y-3">
-                                                            <p className="text-[9px] uppercase tracking-widest font-bold text-brand-terracotta">Registro Fotográfico ({item.images.length})</p>
-                                                            <div className="grid grid-cols-2 gap-3">
-                                                                {item.images.map((img: any, imgIdx: number) => (
-                                                                    <div key={imgIdx} className="space-y-1 bg-white p-2 border border-gray-100 rounded-sm shadow-sm">
-                                                                        <div className="border border-gray-100 rounded-[1px] overflow-hidden bg-gray-50 flex items-center justify-center h-[90px]">
-                                                                            <img src={img.url} alt={`Registro ${imgIdx + 1}`} className="h-full w-full object-contain" />
-                                                                        </div>
-                                                                        {img.notes && (
-                                                                            <p className="text-[9px] text-brand-charcoal italic leading-tight p-1 bg-brand-sand/5 border-t border-gray-100">
-                                                                                "{img.notes}"
-                                                                            </p>
-                                                                        )}
-                                                                    </div>
-                                                                ))}
+                                            {/* Item-specific Image inside the Success/Print Modal */}
+                                            {item.images && item.images.length > 0 && (
+                                                <div className="mt-4 print:break-inside-avoid space-y-3">
+                                                    <p className="text-[9px] uppercase tracking-widest font-bold text-brand-terracotta">Registro Fotográfico ({item.images.length})</p>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        {item.images.map((img: any, imgIdx: number) => (
+                                                            <div key={imgIdx} className="space-y-1 bg-white p-2 border border-gray-100 rounded-sm shadow-sm">
+                                                                <div className="border border-gray-100 rounded-[1px] overflow-hidden bg-gray-50 flex items-center justify-center h-[90px]">
+                                                                    <img src={img.url} alt={`Registro ${imgIdx + 1}`} className="h-full w-full object-contain" />
+                                                                </div>
+                                                                {img.notes && (
+                                                                    <p className="text-[9px] text-brand-charcoal italic leading-tight p-1 bg-brand-sand/5 border-t border-gray-100">
+                                                                        "{img.notes}"
+                                                                    </p>
+                                                                )}
                                                             </div>
-                                                        </div>
-                                                    )}
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
