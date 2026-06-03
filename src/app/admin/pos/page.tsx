@@ -683,7 +683,7 @@ export default function POSPage() {
                 total: total,
                 method: paymentMethod,
                 date: dateStr,
-                deliveryDate: deadline,
+                deliveryDate: deadline || (adjustedDates?.finalDeliveryDate ? new Date(adjustedDates.finalDeliveryDate).toLocaleDateString('es-CL') : 'A coordinar'),
                 paymentUrl: paymentUrl
             });
             
@@ -2076,7 +2076,13 @@ export default function POSPage() {
                                 <div className="text-right">
                                     <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Fecha de Ingreso</p>
                                     <p className="text-sm font-bold">{checkoutResult.date}</p>
-                                    <p className="text-[10px] text-brand-terracotta font-bold uppercase mt-1">Metodo: {checkoutResult.method === 'mercadopago_point' ? 'Mercado Pago Point' : checkoutResult.method === 'transbank' ? 'Webpay Plus' : 'Efectivo'}</p>
+                                    {checkoutResult.deliveryDate && (
+                                        <div className="mt-2">
+                                            <p className="text-[10px] uppercase tracking-widest text-brand-terracotta mb-1">Fecha Estimada Entrega</p>
+                                            <p className="text-sm font-bold">{checkoutResult.deliveryDate}</p>
+                                        </div>
+                                    )}
+                                    <p className="text-[10px] text-brand-terracotta font-bold uppercase mt-3">Metodo: {checkoutResult.method === 'mercadopago_point' ? 'Mercado Pago Point' : checkoutResult.method === 'transbank' ? 'Webpay Plus' : 'Efectivo'}</p>
                                 </div>
                             </div>
 
