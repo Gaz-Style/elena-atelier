@@ -274,18 +274,16 @@ export default function CursosPage() {
                                         )}
                                     </div>
 
-                                    <a
-                                        href={`https://wa.me/56912345678?text=Hola,%20quiero%20inscribirme%20al%20curso:%20${encodeURIComponent(course.title)}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                    <Link
+                                        href={`/cursos/inscripcion?curso=${course.id}`}
                                         className={`w-full flex items-center justify-center gap-2 py-4 text-xs uppercase tracking-widest font-bold rounded-sm transition-all ${
                                             course.featured
                                                 ? 'bg-brand-sand text-brand-charcoal hover:bg-white'
                                                 : 'bg-white/10 text-white hover:bg-white/20 border border-white/10'
                                         }`}
                                     >
-                                        Inscribirme <ChevronRight className="w-3.5 h-3.5" />
-                                    </a>
+                                        Quiero Inscribirme <ChevronRight className="w-3.5 h-3.5" />
+                                    </Link>
                                 </div>
                             </div>
                         </article>
