@@ -509,7 +509,7 @@ export default function POSPage() {
         e.preventDefault();
         if (!customOrderName) return;
         
-        const finalPrice = customPrice ? Math.round(Number(customPrice)) : Math.round(calculatedPrice);
+        const finalPrice = customPrice ? Math.round(Number(customPrice.replace(/\D/g, ''))) : Math.round(calculatedPrice);
         const hasDiscount = finalPrice < Math.round(calculatedPrice);
         const discountPct = hasDiscount ? Math.round(((Math.round(calculatedPrice) - finalPrice) / Math.round(calculatedPrice)) * 100) : 0;
 
@@ -1324,17 +1324,19 @@ export default function POSPage() {
                                         <div className="relative">
                                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">$</span>
                                             <input 
-                                                type="number" 
-                                                min="0" 
+                                                type="text" 
                                                 value={customPrice} 
-                                                onChange={(e) => setCustomPrice(e.target.value)} 
-                                                placeholder={Math.round(calculatedPrice).toString()} 
-                                                className="pl-7 pr-3 py-2.5 w-36 bg-white/10 border border-white/20 rounded-sm text-white text-sm font-bold outline-none focus:border-brand-sand focus:bg-white/15 transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                onChange={(e) => {
+                                                    const val = e.target.value.replace(/\D/g, '');
+                                                    setCustomPrice(val ? new Intl.NumberFormat('es-CL').format(Number(val)) : '');
+                                                }} 
+                                                placeholder={new Intl.NumberFormat('es-CL').format(Math.round(calculatedPrice))} 
+                                                className="pl-7 pr-3 py-2.5 w-36 bg-white/10 border border-white/20 rounded-sm text-white text-sm font-bold outline-none focus:border-brand-sand focus:bg-white/15 transition-all"
                                             />
                                         </div>
                                         <button 
                                             type="button"
-                                            onClick={() => setCustomPrice(Math.round(calculatedPrice).toString())}
+                                            onClick={() => setCustomPrice(new Intl.NumberFormat('es-CL').format(Math.round(calculatedPrice)))}
                                             className="px-3.5 py-2.5 bg-white/5 border border-white/20 hover:border-brand-sand rounded-sm text-[9px] uppercase tracking-widest font-bold text-white transition-all active:scale-95 cursor-pointer"
                                             title="Copiar precio sugerido"
                                         >
@@ -1343,7 +1345,7 @@ export default function POSPage() {
                                     </div>
                                     {/* Mostrar porcentaje de descuento */}
                                     {(() => {
-                                        const finalPrice = customPrice ? Number(customPrice) : calculatedPrice;
+                                        const finalPrice = customPrice ? Number(customPrice.replace(/\D/g, '')) : calculatedPrice;
                                         if (finalPrice > 0 && finalPrice < calculatedPrice) {
                                             const discountPct = Math.round(((calculatedPrice - finalPrice) / calculatedPrice) * 100);
                                             if (discountPct > 0) {
