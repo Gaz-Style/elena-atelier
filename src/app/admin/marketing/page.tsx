@@ -189,24 +189,14 @@ export default function MarketingDashboard() {
                         <ListTodo className="w-4 h-4" /> Plan de Marketing & Checklist
                     </button>
                     <button
-                        onClick={() => setActiveTab('ai-content')}
+                        onClick={() => setActiveTab('ai-studio')}
                         className={`py-4 px-6 font-medium text-xs uppercase tracking-widest border-b-2 transition-all duration-300 flex items-center gap-2 ${
-                            activeTab === 'ai-content'
+                            activeTab === 'ai-studio'
                                 ? 'border-brand-terracotta text-brand-charcoal font-bold'
                                 : 'border-transparent text-gray-400 hover:text-brand-charcoal hover:border-gray-300'
                         }`}
                     >
-                        <Sparkles className="w-4 h-4" /> Asistente IA
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('newsletter')}
-                        className={`py-4 px-6 font-medium text-xs uppercase tracking-widest border-b-2 transition-all duration-300 flex items-center gap-2 ${
-                            activeTab === 'newsletter'
-                                ? 'border-brand-terracotta text-brand-charcoal font-bold'
-                                : 'border-transparent text-gray-400 hover:text-brand-charcoal hover:border-gray-300'
-                        }`}
-                    >
-                        <MessageSquare className="w-4 h-4" /> Newsletter
+                        <Sparkles className="w-4 h-4" /> Studio de Contenido IA
                     </button>
                 </div>
 
@@ -518,90 +508,64 @@ export default function MarketingDashboard() {
                     </div>
                 )}
 
-                {activeTab === 'ai-content' && (
+                {activeTab === 'ai-studio' && (
                     <div className="space-y-8 animate-fadeIn">
-                        <div className="bg-white p-8 rounded-sm shadow-sm border border-gray-200/80">
-                            <div className="flex items-center gap-3 mb-6 pb-6 border-b border-gray-100">
-                                <Sparkles className="w-6 h-6 text-brand-terracotta" />
+                        {/* Header for AI Studio */}
+                        <div className="bg-gradient-to-r from-brand-charcoal to-gray-900 p-8 rounded-sm shadow-xl text-white relative overflow-hidden">
+                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                                 <div>
-                                    <h2 className="text-2xl font-serif">Asistente de Contenido IA</h2>
-                                    <p className="text-sm text-text-secondary">Genera copys persuasivos para Instagram y TikTok usando inteligencia artificial.</p>
+                                    <h2 className="text-3xl font-serif flex items-center gap-3">
+                                        <Sparkles className="w-6 h-6 text-brand-terracotta" />
+                                        Studio de Contenido Autónomo
+                                    </h2>
+                                    <p className="text-sm text-gray-400 mt-2 max-w-2xl">
+                                        Motor de inteligencia artificial dual. Analiza tendencias globales para redactar tus newsletters por segmento y genera guiones virales para tus redes sociales con la voz de tu marca.
+                                    </p>
                                 </div>
-                            </div>
-                            
-                            <div className="grid md:grid-cols-2 gap-8">
-                                <div className="space-y-4">
-                                    <label className="text-xs uppercase tracking-widest font-bold text-gray-500">¿Qué confeccionaste hoy?</label>
-                                    <textarea 
-                                        className="w-full h-32 p-4 bg-gray-50 border border-gray-200 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none resize-none text-sm"
-                                        placeholder="Ej: Terminé un vestido de novia de raso de seda con escote en V y bordado a mano en la espalda. Clienta de Vitacura."
-                                    ></textarea>
-                                    <button className="bg-brand-charcoal hover:bg-brand-terracotta text-white px-6 py-3 rounded-sm uppercase tracking-widest text-[10px] font-bold transition-all w-full flex items-center justify-center gap-2">
-                                        <Sparkles className="w-3 h-3" /> Generar Guion y Copy
-                                    </button>
-                                </div>
-                                <div className="bg-brand-sand/10 border border-gray-100 p-6 rounded-sm min-h-[200px] flex flex-col items-center justify-center text-center">
-                                    <Sparkles className="w-8 h-8 text-gray-300 mb-4" />
-                                    <p className="text-sm text-gray-400 italic font-serif">El asistente analizará tu texto y generará un storytelling de lujo listo para copiar y pegar en tus redes sociales.</p>
-                                </div>
+                                <button className="bg-brand-terracotta hover:bg-[#b05c4b] text-white px-8 py-4 rounded-sm uppercase tracking-widest text-[10px] font-bold transition-all shadow-lg shadow-brand-terracotta/20 flex items-center gap-2 shrink-0">
+                                    <Sparkles className="w-4 h-4" /> Ejecutar Curaduría Global
+                                </button>
                             </div>
                         </div>
-                    </div>
-                )}
-
-                {activeTab === 'newsletter' && (
-                    <div className="space-y-8 animate-fadeIn">
-                        <div className="bg-white p-8 rounded-sm shadow-sm border border-gray-200/80">
-                            <div className="flex items-center gap-3 mb-6 pb-6 border-b border-gray-100">
-                                <MessageSquare className="w-6 h-6 text-brand-terracotta" />
-                                <div>
-                                    <h2 className="text-2xl font-serif">Newsletter "Tendencias & Alta Costura"</h2>
-                                    <p className="text-sm text-text-secondary">Envía tu boletín editorial mensual a las clientas VIP fidelizadas.</p>
+                        
+                        <div className="grid lg:grid-cols-2 gap-8">
+                            {/* Left Column: Newsletter & CRM Segmentation */}
+                            <div className="bg-white p-8 rounded-sm shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-md transition-shadow">
+                                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+                                    <MessageSquare className="w-5 h-5 text-brand-terracotta" />
+                                    <h3 className="text-xl font-serif text-brand-charcoal">Redacción Editorial (Newsletters)</h3>
                                 </div>
-                            </div>
-                            
-                            <div className="space-y-8">
-                                <div className="bg-brand-sand/10 border border-gray-200/60 p-6 rounded-sm">
-                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-                                        <div>
-                                            <h3 className="font-serif text-lg">Curatoría Autónoma de Tendencias</h3>
-                                            <p className="text-xs text-text-secondary mt-1">El sistema buscará noticias globales de Alta Costura y las adaptará según el segmento de edad y gustos de tu CRM.</p>
-                                        </div>
-                                        <button className="bg-brand-charcoal text-white px-6 py-3 rounded-sm uppercase tracking-widest text-[10px] font-bold transition-all flex items-center gap-2 hover:bg-brand-terracotta shrink-0">
-                                            <Sparkles className="w-4 h-4" /> Buscar y Redactar Borradores
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-6">
-                                    <h4 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 border-b border-gray-100 pb-2">Borradores por Segmento (Listos para Revisión)</h4>
+                                
+                                <div className="space-y-6 flex-grow">
+                                    <p className="text-xs text-text-secondary">Borradores generados por IA listos para tu revisión y envío segmentado.</p>
                                     
                                     {/* Segmento 1 */}
-                                    <div className="border border-gray-200 rounded-sm overflow-hidden">
-                                        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                                    <div className="border border-brand-sand/50 bg-gradient-to-br from-white to-brand-sand/10 rounded-sm overflow-hidden hover:shadow-md transition-all">
+                                        <div className="px-6 py-4 border-b border-brand-sand/50 flex justify-between items-center bg-white/50 backdrop-blur-sm">
                                             <div>
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 text-blue-700 text-[9px] uppercase tracking-widest rounded-full font-bold mb-1">
-                                                    Generación Z / Millennials (20-35 años)
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-brand-charcoal text-white text-[9px] uppercase tracking-widest rounded-full font-bold mb-1">
+                                                    Generación Z / Millennials
                                                 </span>
-                                                <p className="text-xs text-gray-500">Intereses: Sustentabilidad, Upcycling, Tendencias TikTok</p>
+                                                <p className="text-[10px] uppercase tracking-wider text-gray-500 mt-1">Enfoque: Upcycling & Sustentabilidad</p>
                                             </div>
-                                            <span className="text-xs font-mono bg-white px-2 py-1 border border-gray-200 rounded-sm text-gray-500">14 Clientas</span>
+                                            <span className="text-xs font-mono bg-brand-sand/30 px-3 py-1 rounded-sm text-brand-charcoal font-bold border border-brand-sand/50">14 VIPs</span>
                                         </div>
                                         <div className="p-6 space-y-4">
                                             <div>
-                                                <label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Asunto Propuesto</label>
-                                                <input type="text" className="w-full mt-1 p-2 bg-white border border-gray-200 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none text-sm font-medium text-brand-charcoal" defaultValue="El regreso del corsé y la seda sustentable ✨" />
+                                                <label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Asunto Propuesto</label>
+                                                <input type="text" className="w-full mt-1 p-3 bg-white border border-gray-200 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none text-sm font-medium text-brand-charcoal shadow-inner" defaultValue="El regreso del corsé y la seda sustentable ✨" />
                                             </div>
                                             <div>
-                                                <label className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Cuerpo del Correo</label>
+                                                <label className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Cuerpo del Correo</label>
                                                 <textarea 
-                                                    className="w-full mt-1 h-32 p-3 bg-white border border-gray-200 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none resize-none text-sm text-gray-600 leading-relaxed"
-                                                    defaultValue="Hola {nombre}, esta semana en las pasarelas de París vimos cómo el upcycling se tomó la alta costura. En Elena Atelier estamos implementando..."
+                                                    className="w-full mt-1 h-28 p-3 bg-white border border-gray-200 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none resize-none text-sm text-gray-600 leading-relaxed shadow-inner"
+                                                    defaultValue="Hola {nombre}, esta semana en París el upcycling se tomó la alta costura. En Elena Atelier estamos transformando sedas vintage en piezas únicas para ti..."
                                                 ></textarea>
                                             </div>
                                             <div className="flex justify-end gap-3 pt-2">
-                                                <button className="px-4 py-2 border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-sm uppercase tracking-widest text-[9px] font-bold transition-all">Rechazar</button>
-                                                <button className="bg-brand-terracotta hover:bg-brand-terracotta/90 text-white px-4 py-2 rounded-sm uppercase tracking-widest text-[9px] font-bold transition-all flex items-center gap-1">
+                                                <button className="px-5 py-2 border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700 rounded-sm uppercase tracking-widest text-[9px] font-bold transition-all">Editar / Rechazar</button>
+                                                <button className="bg-brand-charcoal hover:bg-brand-terracotta text-white px-5 py-2 rounded-sm uppercase tracking-widest text-[9px] font-bold transition-all flex items-center gap-2">
                                                     <CheckCircle2 className="w-3 h-3" /> Aprobar y Enviar
                                                 </button>
                                             </div>
@@ -609,21 +573,72 @@ export default function MarketingDashboard() {
                                     </div>
 
                                     {/* Segmento 2 */}
-                                    <div className="border border-gray-200 rounded-sm overflow-hidden opacity-75">
-                                        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                                    <div className="border border-gray-200 bg-gray-50/50 rounded-sm overflow-hidden opacity-70">
+                                        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                                             <div>
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 text-purple-700 text-[9px] uppercase tracking-widest rounded-full font-bold mb-1">
-                                                    Generación X / Boomers (45+ años)
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-200 text-gray-600 text-[9px] uppercase tracking-widest rounded-full font-bold mb-1">
+                                                    Generación X / Boomers
                                                 </span>
-                                                <p className="text-xs text-gray-500">Intereses: Sastrería Clásica, Calce Perfecto, Eventos de Gala</p>
+                                                <p className="text-[10px] uppercase tracking-wider text-gray-400 mt-1">Enfoque: Sastrería Clásica & Gala</p>
                                             </div>
-                                            <span className="text-xs font-mono bg-white px-2 py-1 border border-gray-200 rounded-sm text-gray-500">28 Clientas</span>
+                                            <span className="text-xs font-mono bg-white border border-gray-200 px-3 py-1 rounded-sm text-gray-500 font-bold">28 VIPs</span>
                                         </div>
-                                        <div className="p-6 flex items-center justify-center text-center h-32 bg-gray-50/50">
-                                            <p className="text-xs text-gray-400 uppercase tracking-widest font-medium">Esperando ejecución de IA para redactar este segmento...</p>
+                                        <div className="p-6 flex items-center justify-center text-center h-24">
+                                            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">En cola para redacción IA...</p>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
 
+                            {/* Right Column: Social Media AI */}
+                            <div className="bg-brand-charcoal p-8 rounded-sm shadow-xl flex flex-col h-full relative overflow-hidden">
+                                {/* Decorative blob */}
+                                <div className="absolute -top-24 -right-24 w-64 h-64 bg-brand-terracotta rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+                                
+                                <div className="relative z-10 flex flex-col h-full">
+                                    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-700">
+                                        <Sparkles className="w-5 h-5 text-brand-terracotta" />
+                                        <h3 className="text-xl font-serif text-white">Guiones para RRSS</h3>
+                                    </div>
+                                    
+                                    <div className="space-y-6 flex-grow flex flex-col">
+                                        <p className="text-xs text-gray-400 leading-relaxed">
+                                            Toma inspiración de las tendencias generadas en el Newsletter y conviértelas en un TikTok o Reel. ¿Qué confeccionaste hoy?
+                                        </p>
+                                        
+                                        <div className="flex-grow flex flex-col gap-4">
+                                            <div className="space-y-2 flex-grow flex flex-col">
+                                                <label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Contexto / Inspiración (Copia ideas del newsletter aquí)</label>
+                                                <textarea 
+                                                    className="w-full flex-grow min-h-[150px] p-4 bg-gray-900 border border-gray-700 text-gray-300 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none resize-none text-sm placeholder-gray-700 shadow-inner"
+                                                    placeholder="Ej: Basado en la tendencia del corset sustentable, hoy terminé un vestido de novia de raso de seda con escote en V..."
+                                                ></textarea>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Plataforma</label>
+                                                    <select className="w-full p-3 bg-gray-900 border border-gray-700 text-gray-300 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none text-xs">
+                                                        <option>Instagram Reel</option>
+                                                        <option>TikTok (Estilo Storytime)</option>
+                                                        <option>Post Carrusel</option>
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[9px] uppercase tracking-widest font-bold text-gray-500">Tono de Voz</label>
+                                                    <select className="w-full p-3 bg-gray-900 border border-gray-700 text-gray-300 rounded-sm focus:ring-1 focus:ring-brand-terracotta outline-none text-xs">
+                                                        <option>Lujo y Exclusividad</option>
+                                                        <option>Cercano y Educativo</option>
+                                                        <option>Inspirador y Emocional</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <button className="bg-brand-terracotta hover:bg-[#b05c4b] text-white px-6 py-4 rounded-sm uppercase tracking-widest text-[10px] font-bold transition-all w-full flex items-center justify-center gap-2 shadow-lg shadow-brand-terracotta/20 mt-4">
+                                            <Sparkles className="w-4 h-4" /> Generar Guion Viral
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
