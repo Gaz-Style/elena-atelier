@@ -1022,3 +1022,71 @@ export async function wakeUpMercadoPagoTerminalAction(amount: number, descriptio
         return { success: false, error: err instanceof Error ? err.message : String(err) };
     }
 }
+
+export async function requestDiscountAuthorizationAction(payload: {
+    sellerName: string;
+    itemName: string;
+    originalPrice: number;
+    suggestedPrice: number;
+    discountPct: number;
+}) {
+    const { sellerName, itemName, originalPrice, suggestedPrice, discountPct } = payload;
+    const smtpUser = process.env.SMTP_USER || '';
+    const smtpPassword = process.env.SMTP_PASSWORD || '';
+
+    if (!smtpUser || !smtpPassword) {
+        console.error('Faltan variables SMTP_USER o SMTP_PASSWORD.');
+        return { success: false, error: 'Credenciales de correo no configuradas.' };
+    }
+
+    const transporter = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+            user: smtpUser,
+            pass: smtpPassword,
+        },
+    });
+
+    const formatCurrency = (val: number) => {
+        return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val);
+    };
+
+    const pin = Math.floor(1000 + Math.random() * 9000).toString();
+
+    const htmlContent = `
+    <div style="font-family: sans-serif; padding: 20px;">
+        <h2>⚠️ Autorización de Descuento Requerida</h2>
+        <p>Se está intentando aplicar un descuento mayor al 20% en el POS.</p>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <tr><td style="padding: 5px; border-bottom: 1px solid #ccc;"><b>Vendedora:</b></td><td style="padding: 5px; border-bottom: 1px solid #ccc;">${sellerName || 'Caja Principal'}</td></tr>
+            <tr><td style="padding: 5px; border-bottom: 1px solid #ccc;"><b>Prenda/Servicio:</b></td><td style="padding: 5px; border-bottom: 1px solid #ccc;">${itemName}</td></tr>
+            <tr><td style="padding: 5px; border-bottom: 1px solid #ccc;"><b>Precio Calculado:</b></td><td style="padding: 5px; border-bottom: 1px solid #ccc;">${formatCurrency(suggestedPrice)}</td></tr>
+            <tr><td style="padding: 5px; border-bottom: 1px solid #ccc;"><b>Precio a Cobrar:</b></td><td style="padding: 5px; border-bottom: 1px solid #ccc; color: #d9534f; font-weight: bold;">${formatCurrency(originalPrice)}</td></tr>
+            <tr><td style="padding: 5px; border-bottom: 1px solid #ccc;"><b>Descuento:</b></td><td style="padding: 5px; border-bottom: 1px solid #ccc; color: #d9534f; font-weight: bold;">${discountPct}%</td></tr>
+        </table>
+        <div style="margin-top: 20px; padding: 15px; background: #f8d7da; color: #721c24; border-radius: 5px; text-align: center;">
+            <p style="margin: 0; font-size: 14px;">Si apruebas este descuento, dicta el siguiente PIN a la vendedora:</p>
+            <h1 style="margin: 10px 0 0 0; font-size: 36px; letter-spacing: 5px;">${pin}</h1>
+        </div>
+    </div>
+    `;
+
+    try {
+        const fromAddress = smtpUser.includes('gmail.com') ? 'contacto@elenalacosturera.cl' : smtpUser;
+        const toAddress = smtpUser; // Send to admin
+
+        await transporter.sendMail({
+            from: `"ELENA POS Alertas" <${fromAddress}>`,
+            to: toAddress,
+            subject: `[URGENTE] Autorización de Descuento - ${discountPct}% en ${itemName}`,
+            html: htmlContent,
+        });
+
+        return { success: true, pin };
+    } catch (err: unknown) {
+        console.error('Error enviando email de autorización:', err);
+        return { success: false, error: err instanceof Error ? err.message : String(err) };
+    }
+}

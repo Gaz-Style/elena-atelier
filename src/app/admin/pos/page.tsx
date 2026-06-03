@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, 
 import { getCostSettings } from '../finance/actions';
 import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
-import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction, saveBudgetAction, wakeUpMercadoPagoTerminalAction } from './actions';
+import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction, saveBudgetAction, wakeUpMercadoPagoTerminalAction, requestDiscountAuthorizationAction } from './actions';
 import { createPaymentPreference } from '@/lib/payments';
 import { createWebpayTransaction } from '@/lib/transbank';
 
@@ -150,7 +150,11 @@ export default function POSPage() {
     const [orderImages, setOrderImages] = useState<{ url: string; notes: string }[]>([]);
     const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
     const [deadline, setDeadline] = useState<string>('');
-
+    const [showAuthModal, setShowAuthModal] = useState(false);
+    const [authPinInput, setAuthPinInput] = useState('');
+    const [expectedPin, setExpectedPin] = useState('');
+    const [pendingAuthItem, setPendingAuthItem] = useState<any>(null);
+    const [isAuthorizing, setIsAuthorizing] = useState(false);
     // Adjusted dates working backward from manual deadline if needed
     const adjustedDates = React.useMemo(() => {
         if (!estimatedDates) return null;
@@ -513,7 +517,7 @@ export default function POSPage() {
         const hasDiscount = finalPrice < Math.round(calculatedPrice);
         const discountPct = hasDiscount ? Math.round(((Math.round(calculatedPrice) - finalPrice) / Math.round(calculatedPrice)) * 100) : 0;
 
-        addToCart({
+        const cartItem = {
             id: Date.now(),
             name: customOrderName,
             price: finalPrice,
@@ -535,8 +539,36 @@ export default function POSPage() {
                 fixed: fixedCost,
                 margin: marginPercentage
             }
-        });
-        
+        };
+
+        if (discountPct > 20) {
+            setPendingAuthItem(cartItem);
+            setShowAuthModal(true);
+            setIsAuthorizing(true);
+            requestDiscountAuthorizationAction({
+                sellerName: 'Caja Principal',
+                itemName: customOrderName,
+                originalPrice: finalPrice,
+                suggestedPrice: Math.round(calculatedPrice),
+                discountPct
+            }).then(res => {
+                setIsAuthorizing(false);
+                if (res.success) {
+                    setExpectedPin(res.pin || '');
+                } else {
+                    alert('Error enviando solicitud de autorización al admin.');
+                    setShowAuthModal(false);
+                    setPendingAuthItem(null);
+                }
+            });
+            return;
+        }
+
+        addToCart(cartItem);
+        resetCustomOrderForm();
+    };
+
+    const resetCustomOrderForm = () => {
         setCustomOrderName('');
         setCustomOrderCategory('Diseño y confección');
         setHoursEstimated(0);
@@ -2228,6 +2260,76 @@ export default function POSPage() {
                             <button onClick={handleCloseCheckout} className="flex-1 py-3 bg-brand-charcoal text-white text-[10px] uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all rounded-sm">
                                 Finalizar y Nueva Orden
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Authorization Modal */}
+            {showAuthModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white max-w-sm w-full shadow-2xl rounded-sm overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="bg-[#f8d7da] p-6 text-center border-b border-[#f5c6cb]">
+                            <div className="mx-auto w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm">
+                                <AlertCircle className="w-6 h-6 text-[#721c24]" />
+                            </div>
+                            <h2 className="text-lg font-bold text-[#721c24] mb-1">Autorización Requerida</h2>
+                            <p className="text-xs text-[#721c24]/80">Descuento superior al 20%</p>
+                        </div>
+                        <div className="p-6">
+                            {isAuthorizing ? (
+                                <div className="flex flex-col items-center justify-center py-6">
+                                    <Loader2 className="w-8 h-8 animate-spin text-brand-terracotta mb-4" />
+                                    <p className="text-sm text-center text-gray-600">Enviando solicitud silenciosa al Administrador...</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <p className="text-sm text-center text-gray-600">
+                                        El administrador ha sido notificado. Por favor, ingrese el PIN de 4 dígitos proporcionado para continuar:
+                                    </p>
+                                    <input 
+                                        type="text" 
+                                        maxLength={4}
+                                        value={authPinInput}
+                                        onChange={(e) => setAuthPinInput(e.target.value.replace(/\D/g, ''))}
+                                        className="w-full text-center text-3xl font-bold tracking-[0.5em] p-4 bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta"
+                                        placeholder="••••"
+                                        autoFocus
+                                    />
+                                    <div className="flex gap-3 pt-2">
+                                        <button 
+                                            onClick={() => {
+                                                setShowAuthModal(false);
+                                                setPendingAuthItem(null);
+                                                setAuthPinInput('');
+                                                setExpectedPin('');
+                                            }} 
+                                            className="flex-1 py-3 border border-gray-200 text-gray-600 text-[10px] uppercase tracking-widest font-bold hover:bg-gray-50 transition-all rounded-sm"
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                if (authPinInput === expectedPin && expectedPin !== '') {
+                                                    addToCart(pendingAuthItem);
+                                                    resetCustomOrderForm();
+                                                    setShowAuthModal(false);
+                                                    setPendingAuthItem(null);
+                                                    setAuthPinInput('');
+                                                    setExpectedPin('');
+                                                } else {
+                                                    alert('PIN incorrecto. Intente nuevamente.');
+                                                    setAuthPinInput('');
+                                                }
+                                            }}
+                                            disabled={authPinInput.length !== 4}
+                                            className="flex-1 py-3 bg-brand-terracotta text-white text-[10px] uppercase tracking-widest font-bold hover:bg-brand-charcoal transition-all rounded-sm disabled:opacity-50"
+                                        >
+                                            Autorizar
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
