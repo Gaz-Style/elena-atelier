@@ -196,7 +196,7 @@ export default function MarketingDashboard() {
                                 : 'border-transparent text-gray-400 hover:text-brand-charcoal hover:border-gray-300'
                         }`}
                     >
-                        <Sparkles className="w-4 h-4" /> Studio de Contenido IA
+                        <Sparkles className="w-4 h-4" /> AI Content Pipeline
                     </button>
                 </div>
 
