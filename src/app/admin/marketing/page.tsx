@@ -18,137 +18,69 @@ interface Task {
     impact: 'Alto' | 'Medio' | 'Bajo';
 }
 
+import { getMarketingTasks, updateMarketingTaskStatus, getMarketingMetrics } from './actions';
+
 export default function MarketingDashboard() {
     const [activeTab, setActiveTab] = useState<'dashboard' | 'plan'>('dashboard');
     const [copiedLink, setCopiedLink] = useState(false);
     
-    // Checklist Tasks State
-    const [tasks, setTasks] = useState<Task[]>([
-        {
-            id: '1',
-            title: 'Optimización de Metadatos Web',
-            description: 'Implementar el título premium y la meta descripción optimizada para Google, OpenGraph y Twitter en Next.js.',
-            category: 'SEO & GEO',
-            status: 'completed',
-            date: '20-May-2026',
-            impact: 'Alto'
-        },
-        {
-            id: '2',
-            title: 'Marcado de Datos Estructurados Schema LocalBusiness',
-            description: 'Inyección de JSON-LD estructurado en el layout web con coordenadas exactas de Tabancura, teléfono y servicios clave para alimentar motores de IA.',
-            category: 'SEO & GEO',
-            status: 'completed',
-            date: '20-May-2026',
-            impact: 'Alto'
-        },
-        {
-            id: '3',
-            title: 'Corrección de Contraste en Layout del Panel ERP',
-            description: 'Solucionar el problema de la capa oscura y el sangrado del fondo negro en el admin layout, garantizando legibilidad total.',
-            category: 'Automatización CRM',
-            status: 'completed',
-            date: '20-May-2026',
-            impact: 'Bajo'
-        },
-        {
-            id: '4',
-            title: 'Ajuste de Ficha de Google Business Profile (Maps)',
-            description: 'Modificar el nombre oficial a "ELENA La Costurera - Alta Costura & Sastrería a Medida" y alinear la dirección física en Vitacura. (¡Logrado! Actualizados el título y la descripción optimizada).',
-            category: 'SEO & GEO',
-            status: 'completed',
-            date: '20-May-2026',
-            impact: 'Alto'
-        },
-        {
-            id: '5',
-            title: 'Anuncios Google Ads (SEM) Hiperlocales',
-            description: 'Configurar y activar campaña de búsqueda local con un radio de 5km en Vitacura para palabras clave como "arreglos de ropa vitacura" y "sastrería".',
-            category: 'Meta Ads',
-            status: 'pending',
-            date: 'Jun-2026',
-            impact: 'Alto'
-        },
-        {
-            id: '6',
-            title: 'Campaña de Reseñas de 5 Estrellas en WhatsApp',
-            description: 'Implementar el flujo de envío automatizado utilizando el enlace de reseña directa activo (https://g.page/r/Cfv2lRZLdYUuEBM/review) para clientas tras retirar exitosamente su prenda.',
-            category: 'SEO & GEO',
-            status: 'in_progress',
-            date: 'En Curso',
-            impact: 'Alto'
-        },
-        {
-            id: '7',
-            title: 'Reels ASMR de Storytelling & Costura Invisible',
-            description: 'Producir videos estéticos de 15 segundos con audio macro (sonido de tijeras sobre seda y agujas) para Reels de Instagram de forma orgánica y pagada.',
-            category: 'Meta Ads',
-            status: 'in_progress',
-            date: 'En Curso',
-            impact: 'Medio'
-        },
-        {
-            id: '8',
-            title: 'Kit de Rescate "Perfect Fit" para Influencers Locales',
-            description: 'Identificar y contactar a 5 micro-influencers (5k-20k seguidores) en sector oriente para regalarles un servicio de compostura fina a cambio de UGC.',
-            category: 'Influencer Loop',
-            status: 'pending',
-            date: 'Jul-2026',
-            impact: 'Alto'
-        },
-        {
-            id: '9',
-            title: 'Flujo de Trazabilidad en Tiempo Real (WhatsApp API)',
-            description: 'Conectar el ERP con alertas automáticas informando al cliente la fase de su prenda ("Tu prenda entró a corte", "Listo para retiro").',
-            category: 'Automatización CRM',
-            status: 'pending',
-            date: 'Ago-2026',
-            impact: 'Medio'
-        },
-        {
-            id: '10',
-            title: 'Programa de Referidos "Cofre Atelier"',
-            description: 'Implementar el bucle viral donde la clienta recomendada y la recomendadora reciben un servicio de limpieza y planchado ecológico de cortesía.',
-            category: 'Viral Loop (Referidos)',
-            status: 'pending',
-            date: 'Sep-2026',
-            impact: 'Medio'
-        }
-    ]);
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [metricsData, setMetricsData] = useState<{ whatsappConversion: number, chatsTotal: number }>({ whatsappConversion: 0, chatsTotal: 0 });
 
-    // Filters state
+    const loadData = async () => {
+        const [tasksData, metrics] = await Promise.all([
+            getMarketingTasks(),
+            getMarketingMetrics()
+        ]);
+        setTasks(tasksData.map((t: any) => ({
+            id: t.id,
+            title: t.title,
+            description: t.description,
+            category: t.category,
+            status: t.status,
+            date: t.target_date,
+            impact: t.impact
+        })));
+        setMetricsData(metrics);
+    };
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
     const [selectedCategory, setSelectedCategory] = useState<string>('Todas');
     const [selectedStatus, setSelectedStatus] = useState<string>('Todos');
 
-    // Toggle Task Status Handler
-    const handleToggleStatus = (taskId: string) => {
+    const handleToggleStatus = async (taskId: string) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        let newStatus: 'completed' | 'in_progress' | 'pending';
+        if (task.status === 'pending') newStatus = 'in_progress';
+        else if (task.status === 'in_progress') newStatus = 'completed';
+        else newStatus = 'pending';
+        
+        const newDate = newStatus === 'completed' ? 'Hoy' : newStatus === 'in_progress' ? 'En Curso' : 'Pendiente';
+        
+        // Optimistic update
         setTasks(prevTasks => prevTasks.map(t => {
             if (t.id === taskId) {
-                let newStatus: 'completed' | 'in_progress' | 'pending';
-                if (t.status === 'pending') newStatus = 'in_progress';
-                else if (t.status === 'in_progress') newStatus = 'completed';
-                else newStatus = 'pending';
-                
-                return {
-                    ...t,
-                    status: newStatus,
-                    date: newStatus === 'completed' ? 'Hoy' : newStatus === 'in_progress' ? 'En Curso' : 'Pendiente'
-                };
+                return { ...t, status: newStatus, date: newDate };
             }
             return t;
         }));
+
+        await updateMarketingTaskStatus(taskId, newStatus, newDate);
     };
 
-    // Calculate dynamic stats
-    const totalTasks = tasks.length;
+    const totalTasks = tasks.length || 1; // Prevent div by 0 initially
     const completedTasks = tasks.filter(t => t.status === 'completed').length;
     const inProgressTasks = tasks.filter(t => t.status === 'in_progress').length;
     const pendingTasks = tasks.filter(t => t.status === 'pending').length;
-    const completionRate = Math.round((completedTasks / totalTasks) * 100);
+    const completionRate = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
 
     const categories = ['Todas', 'SEO & GEO', 'Meta Ads', 'Influencer Loop', 'Automatización CRM', 'Viral Loop (Referidos)'];
     
-    // Filtered tasks
     const filteredTasks = tasks.filter(t => {
         const categoryMatch = selectedCategory === 'Todas' || t.category === selectedCategory;
         const statusMatch = selectedStatus === 'Todos' || 
@@ -161,7 +93,7 @@ export default function MarketingDashboard() {
     const metrics = [
         { title: 'ROAS Meta Ads', value: '4.8x', icon: Target, detail: '$1.2M invertido', color: 'text-pink-600' },
         { title: 'Recomendaciones IA', value: '42', icon: Search, detail: '+15% vs mes anterior', color: 'text-blue-500' },
-        { title: 'Conv. WhatsApp', value: '15%', icon: MessageSquare, detail: '320 conversaciones', color: 'text-green-500' },
+        { title: 'Conv. WhatsApp', value: `${metricsData.whatsappConversion}%`, icon: MessageSquare, detail: `${metricsData.chatsTotal} conversaciones`, color: 'text-green-500' },
         { title: 'Ventas Influencers', value: '15', icon: Award, detail: '12 menciones VIP', color: 'text-purple-600' },
     ];
 
