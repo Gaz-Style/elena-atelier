@@ -301,6 +301,9 @@ export default function LiveProductionBoard() {
         if (o.status === 'delivered') return false;
         if (o.status === 'ready') return true;
         
+        // Evitar duplicados en columna 1 y 3. Si está en confección activa, pertenece a columna 1.
+        if (['draft', 'cutting', 'sewing', 'finishing'].includes(o.status)) return false;
+        
         if (o.final_delivery_date) {
             const delDate = new Date(o.final_delivery_date);
             return delDate.toDateString() === now.toDateString();
@@ -472,10 +475,18 @@ export default function LiveProductionBoard() {
                                                         <h4 className="font-serif text-lg leading-snug mt-1 text-white">{order.description}</h4>
                                                     </div>
                                                     
-                                                    {/* Badge displaying status */}
-                                                    <span className="text-[8px] uppercase font-bold tracking-widest px-2.5 py-1 rounded bg-[#202334] text-gray-400 border border-gray-700">
-                                                        {order.status === 'draft' ? 'Ingresado' : order.status === 'cutting' ? 'Corte' : 'Costura'}
-                                                    </span>
+                                                    <div className="flex flex-col items-end gap-1">
+                                                        {/* Badge displaying status */}
+                                                        <span className="text-[8px] uppercase font-bold tracking-widest px-2.5 py-1 rounded bg-[#202334] text-gray-400 border border-gray-700">
+                                                            {order.status === 'draft' ? 'Ingresado' : order.status === 'cutting' ? 'Corte' : 'Costura'}
+                                                        </span>
+                                                        {/* Badge displaying agenda si es futura */}
+                                                        {order.production_start_date && new Date(order.production_start_date).toDateString() !== now.toDateString() && new Date(order.production_start_date) > now && (
+                                                            <span className="text-[8px] uppercase font-bold tracking-widest px-2 py-0.5 rounded bg-blue-900/40 text-blue-400 border border-blue-800/50 flex items-center gap-1">
+                                                                📅 Agendado
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
 
                                                 <div className="grid grid-cols-2 gap-4 text-xs pt-3 border-t border-gray-800/80 text-gray-400">
