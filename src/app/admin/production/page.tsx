@@ -105,9 +105,24 @@ export default function ProductionPage() {
     };
 
     async function handleStatusChange(id: string, newStatus: string) {
+        const order = orders.find(o => o.id === id);
         const result = await updateOrderStatus(id, newStatus);
         if (result.success) {
             fetchOrders();
+            
+            // Automatización CRM: Envío de Enlace de Reseña al Entregar
+            if (newStatus === 'delivered' && order && order.customers) {
+                const phone = order.customers.phone || '';
+                const name = order.customers.full_name?.split(' ')[0] || 'Clienta';
+                if (phone) {
+                    const message = `¡Hola ${name}! 🌟 En Elena Atelier nos encantó confeccionar tu pedido. ¿Podrías regalarnos 1 minuto para dejarnos 5 estrellas en Google? Nos ayudaría muchísimo a seguir creciendo: https://g.page/r/Cfv2lRZLdYUuEBM/review ¡Disfruta mucho tu prenda!`;
+                    if (confirm(`¿Deseas enviar el enlace de reseña por WhatsApp a ${name}?`)) {
+                        const cleanPhone = phone.replace(/[^0-9]/g, '');
+                        const finalPhone = cleanPhone.startsWith('56') ? cleanPhone : `569${cleanPhone.slice(-8)}`;
+                        window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(message)}`, '_blank');
+                    }
+                }
+            }
         } else {
             alert(result.error || "Ocurrió un error al cambiar el estado");
             fetchOrders();
