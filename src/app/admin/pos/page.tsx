@@ -992,7 +992,7 @@ export default function POSPage() {
                             {customOrderCategory !== 'Catálogo de servicios' && (
                                 <>
                                     <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Prenda / Artículo *</label>
-                                    <input type="text" value={customOrderName} onChange={(e) => setCustomOrderName(e.target.value)} placeholder="Ej. Pantalón, vestido de novia, chaqueta, etc." className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                    <input type="text" value={customOrderName} onChange={(e) => setCustomOrderName(e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1))} placeholder="Ej. Pantalón, vestido de novia, chaqueta, etc." className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
                                 </>
                             )}
                         </div>
@@ -1057,7 +1057,7 @@ export default function POSPage() {
                                             <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Descripción del Arreglo / Notas Especiales</label>
                                             <textarea 
                                                 value={orderNotes}
-                                                onChange={(e) => setOrderNotes(e.target.value)}
+                                                onChange={(e) => setOrderNotes(e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1))}
                                                 placeholder="Ej. Ajuste de hombros vestido seda, arreglar dobladillo, etc."
                                                 className="w-full h-[120px] p-3 text-xs bg-white border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta resize-none transition-all"
                                             />
@@ -1209,7 +1209,7 @@ export default function POSPage() {
                                     <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Descripción del Arreglo / Notas Especiales</label>
                                     <textarea 
                                         value={orderNotes}
-                                        onChange={(e) => setOrderNotes(e.target.value)}
+                                        onChange={(e) => setOrderNotes(e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1))}
                                         placeholder="Ej. Ajuste de hombros vestido seda, arreglar dobladillo, etc."
                                         className="w-full h-[120px] p-3 text-xs bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta resize-none transition-all focus:bg-white"
                                     />
