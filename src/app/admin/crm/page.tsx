@@ -7,11 +7,24 @@ import { Users, Plus, ChevronRight, Search, MessageCircle } from 'lucide-react';
 export const revalidate = 0; // Disable caching for CRM
 
 export default async function CRMPage() {
-  // Fetch customers from Supabase
-  const { data: customers, error } = await supabase
+  // Fetch customers and their sales from Supabase
+  const { data: customersData, error } = await supabase
     .from('customers')
-    .select('*')
+    .select('*, sales_ledger(id, total_amount, status)')
     .order('created_at', { ascending: false });
+
+  const customers = customersData?.map(c => {
+      const sales = Array.isArray(c.sales_ledger) ? c.sales_ledger : [];
+      const totalSpent = sales.reduce((acc: number, sale: any) => {
+          if (sale.status === 'completed') return acc + (sale.total_amount || 0);
+          return acc;
+      }, 0);
+      return { ...c, totalSpent };
+  }) || [];
+
+  const formatCurrency = (val: number) => {
+      return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(val);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans pb-24">
@@ -61,6 +74,7 @@ export default async function CRMPage() {
                     <th className="py-4 px-6 font-medium whitespace-nowrap">Nombre Completo</th>
                     <th className="py-4 px-6 font-medium whitespace-nowrap">Contacto</th>
                     <th className="py-4 px-6 font-medium whitespace-nowrap">Estilo / Ocasión</th>
+                    <th className="py-4 px-6 font-medium whitespace-nowrap">Total Comprado</th>
                     <th className="py-4 px-6 font-medium text-right whitespace-nowrap">Acciones</th>
                   </tr>
                 </thead>
@@ -88,6 +102,9 @@ export default async function CRMPage() {
                           </span>
                           <div className="text-xs text-gray-500">{customer.typical_occasion}</div>
                         </td>
+                        <td className="py-4 px-6">
+                          <div className="font-serif font-bold text-brand-charcoal">{formatCurrency(customer.totalSpent)}</div>
+                        </td>
                         <td className="py-4 px-6 text-right space-x-4">
                           {customer.phone && (
                             <a 
@@ -99,9 +116,9 @@ export default async function CRMPage() {
                               <MessageCircle className="w-4 h-4" /> <span className="hidden md:inline">WhatsApp</span>
                             </a>
                           )}
-                          <button className="text-xs font-bold uppercase tracking-widest text-brand-terracotta hover:text-brand-charcoal transition-colors inline-flex items-center gap-1">
+                          <Link href={`/admin/crm/${customer.id}`} className="text-xs font-bold uppercase tracking-widest text-brand-terracotta hover:text-brand-charcoal transition-colors inline-flex items-center gap-1">
                             Ver <span className="hidden md:inline">Perfil</span> <ChevronRight className="w-3 h-3" />
-                          </button>
+                          </Link>
                         </td>
                       </tr>
                     ))
