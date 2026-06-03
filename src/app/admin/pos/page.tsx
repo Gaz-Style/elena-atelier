@@ -958,23 +958,25 @@ export default function POSPage() {
                         <Tag className="w-4 h-4" /> 2. Detalle del Trabajo
                     </h3>
                     
-                    <div className="bg-brand-sand/10 border border-brand-sand/30 p-4 rounded-sm mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                            <p className="text-xs font-bold text-brand-charcoal uppercase tracking-wider flex items-center gap-1.5">👤 Asignar Costurera / Operaria responsable</p>
-                            <p className="text-[10px] text-gray-500 leading-normal mt-0.5">Elige la costurera que realizará este trabajo para estimar la fecha de entrega según su backlog y agenda.</p>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="col-span-2">
+                            <label className="block text-[10px] uppercase tracking-widest text-brand-charcoal font-bold mb-1 flex items-center gap-1.5">
+                                👤 Costurera / Operaria Asignada
+                            </label>
+                            <p className="text-[10px] text-gray-500 leading-normal mb-2">Selecciona la costurera para calcular la agenda y tiempos de entrega automáticamente.</p>
+                            <select
+                                value={assignedOperatorId}
+                                onChange={(e) => setAssignedOperatorId(e.target.value)}
+                                className="w-full p-3 text-sm font-medium bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta transition-colors"
+                            >
+                                <option value="unassigned">Sin asignar (Enviar al Taller General)</option>
+                                {operators.map((op: any) => (
+                                    <option key={op.id} value={op.id}>
+                                        {op.name} ({op.daily_hours_capacity}h por día)
+                                    </option>
+                                ))}
+                            </select>
                         </div>
-                        <select
-                            value={assignedOperatorId}
-                            onChange={(e) => setAssignedOperatorId(e.target.value)}
-                            className="text-xs uppercase font-bold text-brand-charcoal bg-white border border-gray-200 outline-none p-2.5 rounded-sm focus:border-brand-sand cursor-pointer min-w-[210px] transition-all"
-                        >
-                            <option value="unassigned">Sin asignar (Taller General)</option>
-                            {operators.map((op: any) => (
-                                <option key={op.id} value={op.id}>
-                                    {op.name} ({op.daily_hours_capacity}h/d)
-                                </option>
-                            ))}
-                        </select>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
