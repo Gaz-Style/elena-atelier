@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getOperatorsWithPayrollAction, payOperatorAction, updateOperatorContractAction } from './actions';
-import { Save, Settings, X } from 'lucide-react';
+import { Save, Settings, X, ArrowLeft, Users, DollarSign, Briefcase, CheckCircle, Clock } from 'lucide-react';
 
 export default function HRPage() {
     const [operators, setOperators] = useState<any[]>([]);
