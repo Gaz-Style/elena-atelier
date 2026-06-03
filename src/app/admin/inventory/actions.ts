@@ -10,12 +10,17 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export async function getInventoryItems() {
     try {
         const { data, error } = await supabase
-            .from('fabric_inventory')
+            .from('erp_inventory')
             .select('*')
             .order('name', { ascending: true });
         
         if (error) throw error;
-        return data || [];
+        // Map stock_qty to stock, and cost_per_unit to price for the UI
+        return (data || []).map(item => ({
+            ...item,
+            stock: Number(item.stock_qty),
+            price: Number(item.cost_per_unit)
+        }));
     } catch (e: any) {
         console.error('Error fetching inventory:', e);
         return [];
@@ -33,15 +38,13 @@ export async function addInventoryItem(item: {
 }) {
     try {
         const { data, error } = await supabase
-            .from('fabric_inventory')
+            .from('erp_inventory')
             .insert([{
                 name: item.name,
                 category: item.category,
-                stock_meters: item.category === 'telas' ? item.stock : 0,
-                stock: item.stock,
+                stock_qty: item.stock,
                 unit: item.unit,
-                price_per_meter: item.category === 'telas' ? item.price : 0,
-                price: item.price,
+                cost_per_unit: item.price,
                 color: item.color,
                 composition: item.composition
             }])
@@ -58,18 +61,15 @@ export async function addInventoryItem(item: {
 export async function updateInventoryStock(id: string, newStock: number) {
     try {
         const { data: currentItem } = await supabase
-            .from('fabric_inventory')
+            .from('erp_inventory')
             .select('category')
             .eq('id', id)
             .single();
 
-        const updates: any = { stock: newStock };
-        if (currentItem && currentItem.category === 'telas') {
-            updates.stock_meters = newStock;
-        }
+        const updates: any = { stock_qty: newStock };
 
         const { error } = await supabase
-            .from('fabric_inventory')
+            .from('erp_inventory')
             .update(updates)
             .eq('id', id);
         
