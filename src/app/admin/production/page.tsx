@@ -158,11 +158,12 @@ export default function ProductionPage() {
 
     const getOrdersForDate = (d: Date) => {
         return activeOrders.filter(o => {
-            if (!o.deadline) return false;
-            const deadDate = new Date(o.deadline);
-            return deadDate.getFullYear() === d.getFullYear() &&
-                   deadDate.getMonth() === d.getMonth() &&
-                   deadDate.getDate() === d.getDate();
+            const targetDateStr = o.production_start_date || o.deadline;
+            if (!targetDateStr) return false;
+            const targetDate = new Date(targetDateStr);
+            return targetDate.getFullYear() === d.getFullYear() &&
+                   targetDate.getMonth() === d.getMonth() &&
+                   targetDate.getDate() === d.getDate();
         });
     };
 
