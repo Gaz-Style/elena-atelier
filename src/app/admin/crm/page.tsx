@@ -15,13 +15,17 @@ export default async function CRMPage() {
     .select('*, sales_ledger(id, total_amount, status)')
     .order('created_at', { ascending: false });
 
-  const customers = customersData?.map(c => {
+  let customers = customersData?.map(c => {
       const sales = Array.isArray(c.sales_ledger) ? c.sales_ledger : [];
       const totalSpent = sales.reduce((acc: number, sale: any) => {
           return acc + (sale.total_amount || 0);
       }, 0);
-      return { ...c, totalSpent };
+      const totalOrders = sales.length;
+      return { ...c, totalSpent, totalOrders };
   }) || [];
+
+  // Rank customers by total spent descending
+  customers.sort((a, b) => b.totalSpent - a.totalSpent);
 
   const formatCurrency = (val: number) => {
       return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(val);
@@ -87,11 +91,24 @@ export default async function CRMPage() {
                       </td>
                     </tr>
                   ) : (
-                    customers.map((customer) => (
-                      <tr key={customer.id} className="hover:bg-gray-50/50 transition-colors group">
-                        <td className="py-4 px-6">
-                          <div className="font-serif text-lg text-brand-charcoal">{customer.full_name}</div>
-                          <div className="text-xs text-gray-400 font-mono mt-1">ID: {customer.id.split('-')[0]}</div>
+                    customers.map((customer, index) => (
+                      <tr key={customer.id} className={`hover:bg-gray-50/50 transition-colors group ${index < 3 ? 'bg-brand-sand/10' : ''}`}>
+                        <td className="py-4 px-6 relative">
+                          {index < 3 && (
+                              <div className="absolute top-4 -left-2 w-1 h-12 bg-brand-terracotta rounded-r-md"></div>
+                          )}
+                          <div className="flex items-center gap-3">
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${index === 0 ? 'bg-yellow-100 text-yellow-700 border border-yellow-300' : index === 1 ? 'bg-gray-200 text-gray-700 border border-gray-300' : index === 2 ? 'bg-orange-100 text-orange-800 border border-orange-300' : 'bg-gray-100 text-gray-500'}`}>
+                                  #{index + 1}
+                              </div>
+                              <div>
+                                  <div className="font-serif text-lg text-brand-charcoal flex items-center gap-2">
+                                      {customer.full_name}
+                                      {index < 5 && <span className="px-1.5 py-0.5 bg-brand-charcoal text-white text-[8px] uppercase tracking-widest rounded-sm font-bold">VIP</span>}
+                                  </div>
+                                  <div className="text-xs text-gray-400 font-mono mt-1">ID: {customer.id.split('-')[0]}</div>
+                              </div>
+                          </div>
                         </td>
                         <td className="py-4 px-6">
                           <div className="text-sm text-brand-charcoal">{customer.email}</div>
