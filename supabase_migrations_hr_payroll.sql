@@ -33,8 +33,8 @@ DECLARE
     order_sale_price NUMERIC;
     calculated_pay NUMERIC := 0;
 BEGIN
-    -- Solo actuar si el estado cambia a 'delivered' o 'completed' y hay un operador asignado
-    IF NEW.status = 'delivered' AND OLD.status != 'delivered' AND NEW.assigned_operator_id IS NOT NULL THEN
+    -- Solo actuar si el estado cambia a 'ready' o 'delivered' y hay un operador asignado
+    IF (NEW.status = 'ready' OR NEW.status = 'delivered') AND OLD.status NOT IN ('ready', 'delivered') AND NEW.assigned_operator_id IS NOT NULL THEN
         
         -- Obtener datos del operador
         SELECT contract_type, commission_percentage 
