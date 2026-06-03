@@ -34,6 +34,18 @@ export default function ProductionPage() {
         { id: 'ready', label: 'Final QC / Listo' }
     ];
 
+    async function fetchOrders() {
+        setLoading(true);
+        const data = await getProductionOrders();
+        setOrders(data || []);
+        setLoading(false);
+    }
+
+    async function fetchOperators() {
+        const data = await getOperatorsAction();
+        setOperators(data || []);
+    }
+
     useEffect(() => {
         fetchOrders();
         fetchOperators();
@@ -58,18 +70,6 @@ export default function ProductionPage() {
             supabase.removeChannel(channel);
         };
     }, []);
-
-    async function fetchOrders() {
-        setLoading(true);
-        const data = await getProductionOrders();
-        setOrders(data || []);
-        setLoading(false);
-    }
-
-    async function fetchOperators() {
-        const data = await getOperatorsAction();
-        setOperators(data || []);
-    }
 
     const getDailyCapacity = (date: Date) => {
         const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay(); // 1=Mon, 7=Sun

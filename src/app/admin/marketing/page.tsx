@@ -27,24 +27,23 @@ export default function MarketingDashboard() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [metricsData, setMetricsData] = useState<{ whatsappConversion: number, chatsTotal: number }>({ whatsappConversion: 0, chatsTotal: 0 });
 
-    const loadData = async () => {
-        const [tasksData, metrics] = await Promise.all([
-            getMarketingTasks(),
-            getMarketingMetrics()
-        ]);
-        setTasks(tasksData.map((t: any) => ({
-            id: t.id,
-            title: t.title,
-            description: t.description,
-            category: t.category,
-            status: t.status,
-            date: t.target_date,
-            impact: t.impact
-        })));
-        setMetricsData(metrics);
-    };
-
     useEffect(() => {
+        const loadData = async () => {
+            const [tasksData, metrics] = await Promise.all([
+                getMarketingTasks(),
+                getMarketingMetrics()
+            ]);
+            setTasks(tasksData.map((t: any) => ({
+                id: t.id,
+                title: t.title,
+                description: t.description,
+                category: t.category,
+                status: t.status,
+                date: t.target_date,
+                impact: t.impact
+            })));
+            setMetricsData(metrics);
+        };
         loadData();
     }, []);
 
