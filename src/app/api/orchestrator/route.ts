@@ -46,11 +46,45 @@ export async function POST(req: Request) {
 
                 switch (task.agent_role) {
                     case 'whatsapp_closer':
-                        // Here you would connect to OpenAI / Anthropic
-                        // e.g., const response = await openai.chat.completions.create(...)
+                        const deepseekKey = process.env.DEEPSEEK_API_KEY;
+                        if (!deepseekKey) throw new Error("DeepSeek API Key not found");
+                        
+                        const userMessage = task.payload.content || "Hola";
+                        
+                        const response = await fetch("https://api.deepseek.com/chat/completions", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": `Bearer ${deepseekKey}`
+                            },
+                            body: JSON.stringify({
+                                model: "deepseek-chat",
+                                messages: [
+                                    { role: "system", content: "Eres 'The Luxury Closer', el asistente exclusivo de ventas de alta costura del atelier Elena La Costurera. Responde con sofisticación, amabilidad, elegancia extrema y de manera concisa. Eres la primera línea de contacto VIP." },
+                                    { role: "user", content: userMessage }
+                                ],
+                                max_tokens: 150
+                            })
+                        });
+
+                        const responseData = await response.json();
+                        const aiReply = responseData.choices?.[0]?.message?.content || "Disculpe, en este momento el atelier está con alta demanda. Un asesor humano le atenderá a la brevedad.";
+
+                        // Guardar respuesta del bot en el historial de mensajes
+                        if (task.payload.chat_id) {
+                            await supabase
+                                .from('crm_whatsapp_messages')
+                                .insert([{
+                                    chat_id: task.payload.chat_id,
+                                    sender_type: 'bot',
+                                    message_type: 'text',
+                                    content: aiReply
+                                }]);
+                        }
+
                         resultPayload = { 
                             action: 'reply', 
-                            message: 'Soy el Agente de Ventas de Alta Gama. Mensaje procesado con IA simulada.',
+                            message: aiReply,
                             original_payload: task.payload 
                         };
                         break;
