@@ -80,6 +80,13 @@ export default function MarketingDashboard() {
 
     const categories = ['Todas', 'SEO & GEO', 'Meta Ads', 'Influencer Loop', 'Automatización CRM', 'Viral Loop (Referidos)'];
     
+    const categoryProgress = categories.filter(c => c !== 'Todas').map(cat => {
+        const catTasks = tasks.filter(t => t.category === cat);
+        const catCompleted = catTasks.filter(t => t.status === 'completed').length;
+        const total = catTasks.length || 1;
+        const rate = catTasks.length > 0 ? Math.round((catCompleted / total) * 100) : 0;
+        return { name: cat, completed: catCompleted, total: catTasks.length, rate };
+    });
     const filteredTasks = tasks.filter(t => {
         const categoryMatch = selectedCategory === 'Todas' || t.category === selectedCategory;
         const statusMatch = selectedStatus === 'Todos' || 
@@ -265,8 +272,8 @@ export default function MarketingDashboard() {
                 ) : (
                     <div className="space-y-12 animate-fadeIn">
                         {/* Progress and Strategy Summary Banner */}
-                        <div className="bg-white p-8 rounded-sm shadow-sm border border-gray-200/80 flex flex-col md:flex-row justify-between items-center gap-8">
-                            <div className="space-y-3 max-w-2xl text-center md:text-left">
+                        <div className="bg-white p-8 rounded-sm shadow-sm border border-gray-200/80 flex flex-col md:flex-row justify-between items-start gap-8">
+                            <div className="space-y-3 max-w-xl">
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-terracotta/10 text-brand-terracotta text-[10px] uppercase tracking-widest rounded-full font-bold">
                                     <Sparkles className="w-3 h-3" /> Estrategia 360° Activa
                                 </span>
@@ -276,16 +283,20 @@ export default function MarketingDashboard() {
                                 </p>
                             </div>
                             
-                            {/* Dynamic Percentage Gauge */}
-                            <div className="flex flex-col items-center justify-center p-6 bg-brand-sand/10 border border-gray-100 rounded-sm w-48 text-center shrink-0">
-                                <p className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold mb-2">Puntos Completados</p>
-                                <div className="relative flex items-center justify-center">
-                                    <span className="text-4xl font-serif font-bold text-brand-charcoal">{completionRate}%</span>
-                                </div>
-                                <div className="w-full bg-gray-200 h-1.5 rounded-full mt-3 overflow-hidden">
-                                    <div className="bg-brand-terracotta h-full transition-all duration-500" style={{ width: `${completionRate}%` }}></div>
-                                </div>
-                                <p className="text-[10px] text-text-secondary mt-2 uppercase font-medium">{completedTasks} de {totalTasks} completados</p>
+                            {/* Dynamic Percentage Gauge per Category */}
+                            <div className="flex-1 w-full flex flex-col gap-3 p-6 bg-brand-sand/10 border border-gray-100 rounded-sm">
+                                <p className="text-[10px] uppercase tracking-widest text-brand-charcoal font-bold mb-1">Progreso por Módulo Estratégico</p>
+                                {categoryProgress.map(cat => (
+                                    <div key={cat.name} className="flex flex-col gap-1">
+                                        <div className="flex justify-between text-[9px] uppercase tracking-widest font-semibold text-gray-500">
+                                            <span>{cat.name}</span>
+                                            <span className={cat.rate === 100 ? 'text-brand-terracotta' : ''}>{cat.rate}% ({cat.completed}/{cat.total})</span>
+                                        </div>
+                                        <div className="w-full bg-white h-1.5 rounded-full overflow-hidden border border-gray-200/50">
+                                            <div className="bg-brand-charcoal h-full transition-all duration-500" style={{ width: `${cat.rate}%` }}></div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
