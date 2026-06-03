@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, 
 import { getCostSettings } from '../finance/actions';
 import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
-import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction, saveBudgetAction, wakeUpMercadoPagoTerminalAction, requestDiscountAuthorizationAction } from './actions';
+import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction, saveBudgetAction, wakeUpMercadoPagoTerminalAction, requestDiscountAuthorizationAction, getOperatorsDailyLoadAction } from './actions';
 import { createPaymentPreference } from '@/lib/payments';
 import { createWebpayTransaction } from '@/lib/transbank';
 
@@ -84,6 +84,7 @@ const getDefaultProductionHours = (name: string, category: string): number => {
 export default function POSPage() {
     const [cart, setCart] = useState<any[]>([]);
     const [products, setProducts] = useState<any[]>([]);
+    const [loadBalancerModal, setLoadBalancerModal] = useState<{ show: boolean, targetOpId: string, itemIndex: number | null, estimatedHours: number, targetName: string, targetLoadDays: string, alternatives: any[] } | null>(null);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [paymentMethod, setPaymentMethod] = useState<'mercadopago_point' | 'transbank' | 'cash' | null>(null);
@@ -603,6 +604,47 @@ export default function POSPage() {
         setLoading(false);
     };
 
+    const handleOperatorSelection = async (opId: string, itemIndex: number | null, estimatedHours: number) => {
+        if (opId === 'unassigned' || opId === '') {
+            if (itemIndex === null) setAssignedOperatorId(opId);
+            else {
+                const newCart = [...cart];
+                newCart[itemIndex] = { ...newCart[itemIndex], assignedOperatorId: opId };
+                setCart(newCart);
+            }
+            return;
+        }
+
+        const operatorsLoad = await getOperatorsDailyLoadAction();
+        const targetOp = operatorsLoad.find((o: any) => o.id === opId);
+        
+        if (targetOp) {
+            const newBacklog = targetOp.backlog + estimatedHours;
+            const newPercentage = Math.round((newBacklog / targetOp.dailyCapacity) * 100);
+            
+            if (newPercentage > 100) {
+                const alternatives = operatorsLoad.filter((o: any) => o.id !== opId && o.workloadPercentage < 100);
+                setLoadBalancerModal({
+                    show: true,
+                    targetOpId: opId,
+                    itemIndex: itemIndex,
+                    estimatedHours: estimatedHours,
+                    targetName: targetOp.name,
+                    targetLoadDays: (newBacklog / targetOp.dailyCapacity).toFixed(1),
+                    alternatives: alternatives
+                });
+                return;
+            }
+        }
+
+        if (itemIndex === null) setAssignedOperatorId(opId);
+        else {
+            const newCart = [...cart];
+            newCart[itemIndex] = { ...newCart[itemIndex], assignedOperatorId: opId };
+            setCart(newCart);
+        }
+    };
+
     const handleCheckout = async () => {
         if (cart.length === 0 || !paymentMethod || !selectedCustomer) return;
         setIsProcessing(true);
@@ -998,7 +1040,7 @@ export default function POSPage() {
                             <p className="text-[10px] text-gray-500 leading-normal mb-2">Selecciona la costurera para calcular la agenda y tiempos de entrega automáticamente.</p>
                             <select
                                 value={assignedOperatorId}
-                                onChange={(e) => setAssignedOperatorId(e.target.value)}
+                                onChange={(e) => handleOperatorSelection(e.target.value, null, selectedCatalogProduct ? Number(selectedCatalogProduct.estimated_hours || 2) : (Number(customEstimatedHours) || 2))}
                                 className="w-full p-3 text-sm font-medium bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta transition-colors"
                             >
                                 <option value="" disabled>-- Selecciona Costurera o Taller General --</option>
@@ -1448,11 +1490,7 @@ export default function POSPage() {
                                             <span className="text-[9px] uppercase font-bold text-gray-400 tracking-wider w-16">👤 Asignar:</span>
                                             <select
                                                 value={item.assignedOperatorId || 'unassigned'}
-                                                onChange={(e) => {
-                                                    const newCart = [...cart];
-                                                    newCart[i] = { ...newCart[i], assignedOperatorId: e.target.value };
-                                                    setCart(newCart);
-                                                }}
+                                                onChange={(e) => handleOperatorSelection(e.target.value, i, Number(item.estimatedHours || 2))}
                                                 className="flex-1 text-[10px] uppercase font-semibold text-brand-charcoal bg-white border border-gray-200 outline-none p-2 rounded-sm focus:border-brand-sand cursor-pointer"
                                             >
                                                 <option value="unassigned">Sin asignar (Taller)</option>
@@ -2322,6 +2360,83 @@ export default function POSPage() {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* LOAD BALANCER MODAL */}
+            {loadBalancerModal && loadBalancerModal.show && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white max-w-lg w-full rounded-sm shadow-2xl overflow-hidden border-t-4 border-red-500">
+                        <div className="p-6 bg-red-50 border-b border-red-100 flex items-start gap-4">
+                            <AlertCircle className="w-8 h-8 text-red-500 shrink-0 mt-1" />
+                            <div>
+                                <h3 className="text-lg font-bold text-red-800">Alerta de Sobrecarga</h3>
+                                <p className="text-sm text-red-600 mt-1">
+                                    ¿Seguro que quieres asignar a <strong>{loadBalancerModal.targetName}</strong>? 
+                                    Esto elevaría su carga de hoy a <strong>{loadBalancerModal.targetLoadDays} días</strong>, generando un cuello de botella.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div className="p-6 space-y-4">
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-brand-charcoal border-b border-gray-100 pb-2">Sugerencias con capacidad inmediata:</h4>
+                            
+                            {loadBalancerModal.alternatives.length > 0 ? (
+                                <div className="space-y-3">
+                                    {loadBalancerModal.alternatives.map((alt: any) => (
+                                        <div key={alt.id} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-sm hover:border-brand-sand transition-colors">
+                                            <div>
+                                                <p className="font-bold text-brand-charcoal">{alt.name}</p>
+                                                <p className="text-xs text-emerald-600 font-medium">Carga actual: {alt.loadDays} días ({alt.workloadPercentage}%)</p>
+                                            </div>
+                                            <button 
+                                                onClick={() => {
+                                                    // Asignar a la alternativa
+                                                    if (loadBalancerModal.itemIndex === null) {
+                                                        setAssignedOperatorId(alt.id);
+                                                    } else {
+                                                        const newCart = [...cart];
+                                                        newCart[loadBalancerModal.itemIndex] = { ...newCart[loadBalancerModal.itemIndex], assignedOperatorId: alt.id };
+                                                        setCart(newCart);
+                                                    }
+                                                    setLoadBalancerModal(null);
+                                                }}
+                                                className="px-4 py-2 bg-brand-charcoal text-white text-[10px] uppercase font-bold tracking-wider rounded-sm hover:bg-brand-terracotta transition-colors"
+                                            >
+                                                Reasignar
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-500 italic">No hay otras costureras disponibles hoy con capacidad.</p>
+                            )}
+                        </div>
+                        
+                        <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+                            <button 
+                                onClick={() => setLoadBalancerModal(null)}
+                                className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-800 uppercase tracking-widest"
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    // Forzar asignación a pesar de la sobrecarga (Exclusividad)
+                                    if (loadBalancerModal.itemIndex === null) {
+                                        setAssignedOperatorId(loadBalancerModal.targetOpId);
+                                    } else {
+                                        const newCart = [...cart];
+                                        newCart[loadBalancerModal.itemIndex] = { ...newCart[loadBalancerModal.itemIndex], assignedOperatorId: loadBalancerModal.targetOpId };
+                                        setCart(newCart);
+                                    }
+                                    setLoadBalancerModal(null);
+                                }}
+                                className="px-4 py-2 bg-red-100 text-red-700 text-[10px] font-bold uppercase tracking-wider rounded-sm hover:bg-red-200 transition-colors"
+                            >
+                                Forzar Asignación (Exclusivo)
+                            </button>
                         </div>
                     </div>
                 </div>

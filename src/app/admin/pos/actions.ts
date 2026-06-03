@@ -1090,3 +1090,48 @@ export async function requestDiscountAuthorizationAction(payload: {
         return { success: false, error: err instanceof Error ? err.message : String(err) };
     }
 }
+
+export async function getOperatorsDailyLoadAction() {
+    const supabase = await createClient();
+    const todayStr = new Date().toDateString();
+
+    const { data: activeOrders } = await supabase
+        .from('production_orders')
+        .select('assigned_operator_id, estimated_hours, status, production_start_date, deadline')
+        .not('assigned_operator_id', 'is', null)
+        .in('status', ['draft', 'cutting', 'sewing', 'finishing']);
+
+    const { data: operators } = await supabase
+        .from('atelier_operators')
+        .select('id, name, daily_hours_capacity, status')
+        .eq('status', 'active');
+
+    if (!operators) return [];
+
+    return operators.map(op => {
+        let backlog = 0;
+        if (activeOrders) {
+            activeOrders.forEach(o => {
+                if (o.assigned_operator_id === op.id) {
+                    const targetDateStr = o.production_start_date || o.deadline;
+                    if (!targetDateStr) {
+                        backlog += Number(o.estimated_hours || 0);
+                    } else {
+                        if (new Date(targetDateStr).toDateString() === todayStr) {
+                            backlog += Number(o.estimated_hours || 0);
+                        }
+                    }
+                }
+            });
+        }
+        return {
+            id: op.id,
+            name: op.name,
+            dailyCapacity: op.daily_hours_capacity || 7,
+            backlog,
+            workloadPercentage: Math.round((backlog / (op.daily_hours_capacity || 7)) * 100),
+            loadDays: (backlog / (op.daily_hours_capacity || 7)).toFixed(1)
+        };
+    }).sort((a, b) => a.workloadPercentage - b.workloadPercentage);
+}
+
