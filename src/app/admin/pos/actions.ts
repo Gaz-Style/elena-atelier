@@ -426,6 +426,7 @@ export async function createPOSOrdersAction(payload: {
         isCustom?: boolean;
         hours?: number;
         assignedOperatorId?: string;
+        bomItems?: { itemId: string; estimatedQty: number; notes: string }[];
     }[];
     deadline?: string | null;
     productionStartDate?: string | null;
@@ -465,9 +466,9 @@ export async function createPOSOrdersAction(payload: {
     const saleId = saleData.id;
 
     // 2. Insert Production Orders linked to Sales Ledger
-    const insertPromises = items.map(item => {
+    const insertPromises = items.map(async item => {
         const orderType = item.isCustom ? 'bespoke' : 'b2b_batch';
-        return supabase
+        const { data: pOrder, error: pError } = await supabase
             .from('production_orders')
             .insert([{
                 sale_id: saleId,
@@ -485,7 +486,25 @@ export async function createPOSOrdersAction(payload: {
                 pos_order_id: posOrderId || null,
                 payment_method: paymentMethod || null,
                 payment_status: paymentStatus || 'pending'
-            }]);
+            }])
+            .select('id')
+            .single();
+
+        if (pError) return { error: pError };
+
+        // If there are BOM items, insert them into erp_order_bom
+        if (item.bomItems && item.bomItems.length > 0 && pOrder) {
+            const bomInserts = item.bomItems.map((b: any) => ({
+                order_id: pOrder.id,
+                item_id: b.itemId,
+                estimated_qty: b.estimatedQty,
+                notes: b.notes || ''
+            }));
+            const { error: bomError } = await supabase.from('erp_order_bom').insert(bomInserts);
+            if (bomError) console.error('Error inserting BOM:', bomError);
+        }
+
+        return { success: true, data: pOrder };
     });
 
     const results = await Promise.all(insertPromises);
