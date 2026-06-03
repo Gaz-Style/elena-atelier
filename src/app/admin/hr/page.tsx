@@ -2,13 +2,29 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Users, DollarSign, Briefcase, CheckCircle, Clock } from 'lucide-react';
-import { getOperatorsWithPayrollAction, payOperatorAction } from './actions';
+import { getOperatorsWithPayrollAction, payOperatorAction, updateOperatorContractAction } from './actions';
+import { Save, Settings, X } from 'lucide-react';
 
 export default function HRPage() {
     const [operators, setOperators] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [isConfigOpen, setIsConfigOpen] = useState(false);
+    const [savingOpId, setSavingOpId] = useState<string | null>(null);
+
+    const handleSaveContract = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const opId = formData.get('id') as string;
+        setSavingOpId(opId);
+        const res = await updateOperatorContractAction(formData);
+        if (res.success) {
+            loadData();
+        } else {
+            alert("Error: " + res.error);
+        }
+        setSavingOpId(null);
+    };
 
     const loadData = () => {
         setLoading(true);
@@ -50,7 +66,57 @@ export default function HRPage() {
                         <h1 className="text-3xl font-serif text-brand-charcoal">Recursos Humanos y Liquidaciones</h1>
                         <p className="text-gray-500 mt-1">Gestión de Billeteras Digitales y Pago a Destajo (RRHH)</p>
                     </div>
+                    <button onClick={() => setIsConfigOpen(!isConfigOpen)} className="mt-4 md:mt-0 flex items-center gap-2 bg-white border border-gray-200 text-brand-charcoal px-4 py-2 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors shadow-sm">
+                        <Settings className="w-4 h-4" />
+                        Condiciones Comerciales
+                    </button>
                 </div>
+
+                {isConfigOpen && (
+                    <div className="bg-white border border-gray-200 shadow-sm p-6 rounded-sm animate-in fade-in slide-in-from-top-4">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="font-serif text-2xl text-brand-charcoal">Configuración de Contratos y Comisiones</h2>
+                            <button onClick={() => setIsConfigOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5"/></button>
+                        </div>
+                        <div className="space-y-6">
+                            {operators.map(op => (
+                                <form key={op.id} onSubmit={handleSaveContract} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-gray-50 p-4 border border-gray-100 rounded-sm">
+                                    <input type="hidden" name="id" value={op.id} />
+                                    
+                                    <div className="md:col-span-3">
+                                        <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Operaria(o)</label>
+                                        <p className="font-bold text-brand-charcoal py-2">{op.name}</p>
+                                    </div>
+                                    
+                                    <div className="md:col-span-3">
+                                        <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Tipo de Contrato</label>
+                                        <select name="contract_type" defaultValue={op.contract_type || 'fixed'} className="w-full text-sm p-2 border border-gray-200 rounded-sm focus:ring-brand-terracotta bg-white outline-none">
+                                            <option value="fixed">Sueldo Fijo Mensual</option>
+                                            <option value="percentage">Comisión por Prenda (%)</option>
+                                            <option value="piecework">Destajo Fijo por Prenda ($)</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div className="md:col-span-2">
+                                        <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Sueldo Base ($)</label>
+                                        <input type="number" name="base_salary" defaultValue={op.base_salary || 0} className="w-full text-sm p-2 border border-gray-200 rounded-sm focus:ring-brand-terracotta outline-none" />
+                                    </div>
+                                    
+                                    <div className="md:col-span-2">
+                                        <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Comisión (%)</label>
+                                        <input type="number" step="0.1" name="commission_percentage" defaultValue={op.commission_percentage || 0} className="w-full text-sm p-2 border border-gray-200 rounded-sm focus:ring-brand-terracotta outline-none" />
+                                    </div>
+                                    
+                                    <div className="md:col-span-2">
+                                        <button disabled={savingOpId === op.id} type="submit" className="w-full bg-brand-charcoal text-white flex justify-center items-center gap-2 py-2 text-xs font-bold uppercase tracking-widest rounded-sm hover:bg-brand-terracotta transition-colors shadow-sm">
+                                            {savingOpId === op.id ? '...' : <><Save className="w-3.5 h-3.5" /> Guardar</>}
+                                        </button>
+                                    </div>
+                                </form>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {loading ? (
                     <div className="text-center py-20 text-gray-500">Cargando datos del equipo...</div>

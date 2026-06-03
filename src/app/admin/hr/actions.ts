@@ -53,3 +53,19 @@ export async function payOperatorAction(operatorId: string) {
     
     return { success: true };
 }
+
+export async function updateOperatorContractAction(formData: FormData) {
+    const id = formData.get('id') as string;
+    const contract_type = formData.get('contract_type') as string;
+    const base_salary = Number(formData.get('base_salary') || 0);
+    const commission_percentage = Number(formData.get('commission_percentage') || 0);
+    
+    const supabase = await createClient();
+    const { error } = await supabase
+        .from('atelier_operators')
+        .update({ contract_type, base_salary, commission_percentage })
+        .eq('id', id);
+        
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+}
