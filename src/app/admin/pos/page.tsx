@@ -1201,24 +1201,13 @@ export default function POSPage() {
                         </div>
                     ) : (
                         <div className="space-y-6 pt-4 border-t border-gray-50 animate-in fade-in duration-500">
-                            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Análisis ERP de Costos y Margen</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div>
-                                    <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-2">Horas Taller Estimadas</label>
-                                    <input type="number" min="0" value={hoursEstimated || ''} onChange={(e) => setHoursEstimated(Number(e.target.value))} className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta" placeholder="0" />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-2">Insumos y Materiales</label>
-                                    <input type="number" min="0" value={materialsCost || ''} onChange={(e) => setMaterialsCost(Number(e.target.value))} className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta" placeholder="0" />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-2">Detalles / Pedrería / Extras</label>
-                                    <input type="number" min="0" value={extraCost || ''} onChange={(e) => setExtraCost(Number(e.target.value))} className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta" placeholder="0" />
-                                </div>
+                            <div>
+                                <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-2">Horas Taller Estimadas</label>
+                                <input type="number" min="0" value={hoursEstimated || ''} onChange={(e) => setHoursEstimated(Number(e.target.value))} className="w-full md:w-[calc(50%-12px)] p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta" placeholder="0" />
                             </div>
                             
                             {/* Notes and Photo attachment for Custom Order */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-1">
                                     <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Descripción del Arreglo / Notas Especiales</label>
                                     <textarea 
@@ -1372,7 +1361,7 @@ export default function POSPage() {
 
                                 <button 
                                     onClick={(e) => handleAddCustomOrder(e)}
-                                    disabled={!customOrderName || (!hoursEstimated && !materialsCost && !extraCost)}
+                                    disabled={!customOrderName || !hoursEstimated}
                                     className="w-full md:w-auto bg-brand-terracotta text-white px-10 py-4 text-[10px] uppercase tracking-widest font-bold rounded-sm hover:bg-white hover:text-brand-terracotta transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md">
                                     Añadir a la Orden
                                 </button>
