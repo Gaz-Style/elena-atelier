@@ -2,7 +2,21 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createClient } from '@/lib/supabase/server';
 
+async function logSystemEvent(supabase: any, level: string, message: string, payload: any = null) {
+    try {
+        await supabase.from('system_logs').insert([{
+            service: 'MercadoPago Webhook',
+            level,
+            message,
+            payload
+        }]);
+    } catch (e) {
+        console.error('Failed to write to system_logs', e);
+    }
+}
+
 export async function POST(req: Request) {
+    const supabase = await createClient();
     try {
         const signatureHeader = req.headers.get('x-signature') || '';
         const requestId = req.headers.get('x-request-id') || '';
@@ -12,6 +26,7 @@ export async function POST(req: Request) {
         const payload = JSON.parse(bodyText);
 
         console.log('Recibido Webhook MP:', payload);
+        await logSystemEvent(supabase, 'INFO', 'Recibido Webhook MP', payload);
 
         // Validación de firma (HMAC) si el secreto está configurado
         if (webhookSecret && signatureHeader) {
@@ -33,6 +48,7 @@ export async function POST(req: Request) {
 
             if (generatedSignature !== v1) {
                 console.error('Firma de Webhook de Mercado Pago inválida.');
+                await logSystemEvent(supabase, 'WARN', 'Firma de Webhook de Mercado Pago inválida.', { generatedSignature, v1, ts });
                 // En modo estricto devolveríamos 403, pero por ahora lo dejamos pasar o logeamos.
                 // return NextResponse.json({ error: 'Firma inválida' }, { status: 403 });
             }
@@ -64,6 +80,8 @@ export async function POST(req: Request) {
                         
                         if (externalRef) {
                             console.log(`Pago aprobado para external_reference: ${externalRef}`);
+                            await logSystemEvent(supabase, 'INFO', `Pago aprobado MP`, { paymentId, externalRef, status: payment.status });
+                            
                             const supabase = await createClient();
                             
                             // Actualizar todas las filas de la orden (puede tener multiples items)
@@ -77,6 +95,7 @@ export async function POST(req: Request) {
                                 
                             if (error) {
                                 console.error('Error actualizando estado en BD:', error);
+                                await logSystemEvent(supabase, 'ERROR', 'Error actualizando production_orders', { error, externalRef });
                             } else {
                                 console.log('Ordenes actualizadas correctamente a PAGADO');
                                 
@@ -92,11 +111,16 @@ export async function POST(req: Request) {
                             }
                         } else {
                             console.warn('El pago aprobado no tiene external_reference. Imposible asociar a la base de datos automáticamente.');
+                            await logSystemEvent(supabase, 'WARN', 'Pago aprobado sin external_reference', { paymentId });
                             // Aquí se podría intentar hacer match por monto si guardáramos el precio en la BD.
                         }
+                    } else {
+                        await logSystemEvent(supabase, 'INFO', `Pago no está aprobado. Estado: ${payment.status}`, { paymentId, status: payment.status });
                     }
                 } else {
-                    console.error('Error al consultar pago a Mercado Pago:', await mpResponse.text());
+                    const errorText = await mpResponse.text();
+                    console.error('Error al consultar pago a Mercado Pago:', errorText);
+                    await logSystemEvent(supabase, 'ERROR', 'Error consultando API MP', { error: errorText, paymentId });
                 }
             }
         }
@@ -104,6 +128,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ received: true });
     } catch (err: any) {
         console.error('Excepción en Webhook de Mercado Pago:', err);
+        await logSystemEvent(supabase, 'ERROR', 'Excepción general en Webhook', { error: err.message || String(err) });
         return NextResponse.json({ error: err.message || String(err) }, { status: 500 });
     }
 }

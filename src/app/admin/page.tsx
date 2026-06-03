@@ -148,12 +148,15 @@ export default function AdminDashboard() {
                         </Link>
                     ))}
 
-                    {/* Settings Placeholder Card */}
-                    <div className="bg-gray-100/50 p-8 rounded-sm border border-dashed border-gray-200 flex flex-col items-center justify-center text-center opacity-60">
-                        <Settings className="w-8 h-8 text-gray-400 mb-4" />
-                        <h3 className="text-xs uppercase tracking-widest font-bold text-gray-400">Configuración Global</h3>
-                        <p className="text-[10px] mt-2 text-gray-400">Logs de sistema y seguridad</p>
-                    </div>
+                    {/* System Logs Card */}
+                    <Link 
+                        href="/admin/logs"
+                        className="bg-brand-charcoal text-white p-8 rounded-sm border border-gray-800 shadow-sm hover:shadow-xl hover:border-brand-sand transition-all flex flex-col justify-center items-center text-center h-64"
+                    >
+                        <Settings className="w-8 h-8 text-brand-sand mb-4" />
+                        <h3 className="text-xs uppercase tracking-widest font-bold text-brand-sand">System Logs & Webhooks</h3>
+                        <p className="text-[10px] mt-2 text-white/60">Monitoreo en vivo de pasarelas de pago y eventos</p>
+                    </Link>
                 </div>
 
                 {/* Global Overview Section */}
