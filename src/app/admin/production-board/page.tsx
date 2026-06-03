@@ -162,9 +162,7 @@ export default function LiveProductionBoard() {
             return;
         }
         let nextStatus = 'delivered';
-        if (currentStatus === 'draft') nextStatus = 'cutting';
-        else if (currentStatus === 'cutting') nextStatus = 'sewing';
-        else if (currentStatus === 'sewing') nextStatus = 'finishing';
+        if (currentStatus === 'draft' || currentStatus === 'cutting' || currentStatus === 'sewing') nextStatus = 'finishing';
         else if (currentStatus === 'finishing') nextStatus = 'ready';
 
         const res = await updateOrderStatus(id, nextStatus);
@@ -298,10 +296,18 @@ export default function LiveProductionBoard() {
     // 1. Confección Activa: Órdenes en borrador, corte o costura
     const activeProduction = orders.filter(o => 
         o.status === 'draft' || o.status === 'cutting' || o.status === 'sewing'
-    );
+    ).sort((a, b) => {
+        const dateA = new Date(a.production_end_date || a.deadline || '2099-01-01').getTime();
+        const dateB = new Date(b.production_end_date || b.deadline || '2099-01-01').getTime();
+        return dateA - dateB;
+    });
 
     // 2. Control de Calidad / Pruebas: Órdenes en Fitting/QC (finishing)
-    const qcAndFitting = orders.filter(o => o.status === 'finishing');
+    const qcAndFitting = orders.filter(o => o.status === 'finishing').sort((a, b) => {
+        const dateA = new Date(a.production_end_date || a.deadline || '2099-01-01').getTime();
+        const dateB = new Date(b.production_end_date || b.deadline || '2099-01-01').getTime();
+        return dateA - dateB;
+    });
 
     // 3. Despacho / Listos Hoy: Órdenes en estado 'ready' (listo) o cuya entrega es hoy y siguen pendientes
     const readyForDispatch = orders.filter(o => {
@@ -316,6 +322,10 @@ export default function LiveProductionBoard() {
             return delDate.toDateString() === now.toDateString();
         }
         return false;
+    }).sort((a, b) => {
+        const dateA = new Date(a.final_delivery_date || a.deadline || '2099-01-01').getTime();
+        const dateB = new Date(b.final_delivery_date || b.deadline || '2099-01-01').getTime();
+        return dateA - dateB;
     });
 
     return (
@@ -349,6 +359,13 @@ export default function LiveProductionBoard() {
                     </div>
                     
                     {/* Action button to open settings drawer */}
+                    <Link 
+                        href="/admin/production"
+                        className="bg-transparent border border-gray-700 hover:border-gray-500 text-gray-300 px-4 py-2.5 rounded-sm text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all"
+                    >
+                        <Calendar className="w-4 h-4" />
+                        Ver Calendario
+                    </Link>
                     <button 
                         onClick={() => { setConfigTab('general'); setIsConfigOpen(true); }}
                         className="bg-brand-sand/10 border border-brand-sand/30 hover:border-brand-sand hover:bg-brand-sand/20 text-[#C5A880] px-4 py-2.5 rounded-sm text-xs font-bold uppercase tracking-widest flex items-center gap-2 transition-all"
