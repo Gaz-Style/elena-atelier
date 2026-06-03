@@ -1,12 +1,14 @@
 import React from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 import Navbar from '@/components/Navbar';
 import { Users, Plus, ChevronRight, Search, MessageCircle } from 'lucide-react';
 
 export const revalidate = 0; // Disable caching for CRM
 
 export default async function CRMPage() {
+  const supabase = await createClient();
+  
   // Fetch customers and their sales from Supabase
   const { data: customersData, error } = await supabase
     .from('customers')
