@@ -280,8 +280,15 @@ export default function LiveProductionBoard() {
     const activeStatuses = ['draft', 'cutting', 'sewing', 'finishing'];
 
     const getOperatorBacklog = (opId: string) => {
+        const todayStr = new Date().toDateString();
         return orders
-            .filter(o => o.assigned_operator_id === opId && activeStatuses.includes(o.status))
+            .filter(o => {
+                if (o.assigned_operator_id !== opId) return false;
+                if (!activeStatuses.includes(o.status)) return false;
+                const targetDateStr = o.production_start_date || o.deadline;
+                if (!targetDateStr) return true; // Si no tiene fecha asignada, la asumimos como carga actual/hoy
+                return new Date(targetDateStr).toDateString() === todayStr;
+            })
             .reduce((sum, o) => sum + Number(o.estimated_hours || 0), 0);
     };
 
@@ -395,7 +402,7 @@ export default function LiveProductionBoard() {
 
                                         <div className="space-y-1">
                                             <div className="flex justify-between text-[10px] text-gray-400">
-                                                <span>Carga asignada: <strong>{backlog}h</strong></span>
+                                                <span>Carga de hoy: <strong>{backlog}h</strong></span>
                                                 <span className={`${textColor} font-bold`}>{workloadPercentage}% cap. ({loadDays} días)</span>
                                             </div>
                                             
