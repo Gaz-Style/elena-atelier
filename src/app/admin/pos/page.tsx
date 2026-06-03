@@ -255,21 +255,28 @@ export default function POSPage() {
         });
     }, [deadline, adjustedDates?.productionEndDate]);
 
-    // Calcular reactivamente las fechas sugeridas por el taller al cambiar el carrito (por costurera)
+    const [allEstimates, setAllEstimates] = useState<any>({});
+
+    // Calcular reactivamente las fechas sugeridas por el taller al cambiar el carrito (por costurera y fecha agendada)
     React.useEffect(() => {
-        // 1. Group total hours by unique operator id selected
-        const groupHoursMap: { [key: string]: number } = {};
+        // 1. Group total hours by unique operator id and scheduled start date
+        const groupMap: { [key: string]: { hours: number, opId: string, scheduledDate?: string } } = {};
         
         cart.forEach(item => {
             const opId = item.assignedOperatorId || 'unassigned';
+            const scheduledDate = item.scheduledStartDate || '';
+            const key = `${opId}_${scheduledDate}`;
             const hours = item.isCustom 
                 ? Number(item.details?.hours || 0) 
                 : getDefaultProductionHours(item.name, item.category);
             
-            groupHoursMap[opId] = (groupHoursMap[opId] || 0) + hours;
+            if (!groupMap[key]) {
+                groupMap[key] = { hours: 0, opId, scheduledDate: scheduledDate || undefined };
+            }
+            groupMap[key].hours += hours;
         });
 
-        const totalCartHours = Object.values(groupHoursMap).reduce((sum, h) => sum + h, 0);
+        const totalCartHours = Object.values(groupMap).reduce((sum, g) => sum + g.hours, 0);
         
         if (totalCartHours === 0) {
             setEstimatedDates(null);
@@ -282,19 +289,24 @@ export default function POSPage() {
         setLoadingEstimatedDates(true);
 
         // 2. Fetch estimated dates for each group in parallel
-        const promises = Object.entries(groupHoursMap).map(([opId, hours]) => {
-            return getEstimatedDatesAction(hours, opId);
+        const promises = Object.values(groupMap).map(group => {
+            return getEstimatedDatesAction(group.hours, group.opId, group.scheduledDate);
         });
 
         Promise.all(promises).then(results => {
             // Find the latest finalDeliveryDate
             let latestResult = results[0];
-            for (let i = 1; i < results.length; i++) {
+            const newEstimatesMap: any = {};
+            const keys = Object.keys(groupMap);
+            for (let i = 0; i < results.length; i++) {
+                const key = keys[i];
+                newEstimatesMap[key] = results[i];
                 if (new Date(results[i].finalDeliveryDate) > new Date(latestResult.finalDeliveryDate)) {
                     latestResult = results[i];
                 }
             }
 
+            setAllEstimates(newEstimatesMap);
             setEstimatedDates(latestResult);
             if (!adminOverride) {
                 setDeadline(latestResult.finalDeliveryDate);
@@ -576,10 +588,11 @@ export default function POSPage() {
                     name: item.name,
                     price: item.price,
                     category: item.category,
-                    notes: item.notes || '',
+                    hours: Number(item.details?.hours || getDefaultProductionHours(item.name, item.category)),
+                    notes: item.details?.notes || '',
                     isCustom: !!item.isCustom,
-                    hours: item.isCustom ? (item.details?.hours || 0) : getDefaultProductionHours(item.name, item.category),
-                    assignedOperatorId: item.assignedOperatorId || 'unassigned'
+                    assignedOperatorId: item.assignedOperatorId || 'unassigned',
+                    scheduledStartDate: item.scheduledStartDate || undefined
                 })),
                 deadline: deadline || null,
                 productionStartDate: adjustedDates?.productionStartDate || null,
@@ -1386,24 +1399,61 @@ export default function POSPage() {
                                     )}
                                     
                                     {/* Selector de Costurera Asignada */}
-                                    <div className="mt-3 flex items-center gap-2">
-                                        <span className="text-[9px] uppercase font-bold text-gray-400 tracking-wider">👤 Asignar:</span>
-                                        <select
-                                            value={item.assignedOperatorId || 'unassigned'}
-                                            onChange={(e) => {
-                                                const newCart = [...cart];
-                                                newCart[i] = { ...newCart[i], assignedOperatorId: e.target.value };
-                                                setCart(newCart);
-                                            }}
-                                            className="text-[9px] uppercase font-semibold text-brand-charcoal bg-white border border-gray-200 outline-none p-1 rounded-sm focus:border-brand-sand cursor-pointer max-w-[170px]"
-                                        >
-                                            <option value="unassigned">Sin asignar (Taller)</option>
-                                            {operators.map((op: any) => (
-                                                <option key={op.id} value={op.id}>
-                                                    {op.name} ({op.daily_hours_capacity}h/d)
-                                                </option>
-                                            ))}
-                                        </select>
+                                    <div className="mt-3 flex flex-col gap-3 border-t border-gray-100 pt-3">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[9px] uppercase font-bold text-gray-400 tracking-wider w-16">👤 Asignar:</span>
+                                            <select
+                                                value={item.assignedOperatorId || 'unassigned'}
+                                                onChange={(e) => {
+                                                    const newCart = [...cart];
+                                                    newCart[i] = { ...newCart[i], assignedOperatorId: e.target.value };
+                                                    setCart(newCart);
+                                                }}
+                                                className="flex-1 text-[10px] uppercase font-semibold text-brand-charcoal bg-white border border-gray-200 outline-none p-2 rounded-sm focus:border-brand-sand cursor-pointer"
+                                            >
+                                                <option value="unassigned">Sin asignar (Taller)</option>
+                                                {operators.map((op: any) => (
+                                                    <option key={op.id} value={op.id}>
+                                                        {op.name} ({op.daily_hours_capacity}h/d)
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        {(() => {
+                                            const groupKey = `${item.assignedOperatorId || 'unassigned'}_${item.scheduledStartDate || ''}`;
+                                            const estimate = allEstimates[groupKey];
+                                            const isOverloaded = estimate && estimate.operatorWorkloadPercentage > 100;
+                                            return (
+                                                <>
+                                                    {isOverloaded && (
+                                                        <div className="text-[9px] bg-red-50 border border-red-200 text-red-700 p-2 rounded-sm flex items-start gap-2">
+                                                            <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                                                            <div>
+                                                                <strong className="block mb-0.5">{estimate.operatorName} tiene sobrecarga de {estimate.operatorWorkloadDays} días ({estimate.operatorWorkloadPercentage}%).</strong>
+                                                                Sugerimos elegir otra costurera o agendar fecha de inicio.
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {item.assignedOperatorId && item.assignedOperatorId !== 'unassigned' && (
+                                                        <div className="flex items-center gap-2 bg-gray-50/50 p-2 rounded-sm border border-gray-100">
+                                                            <span className="text-[9px] uppercase font-bold text-gray-400 tracking-wider w-16">📅 Agenda:</span>
+                                                            <input 
+                                                                type="date"
+                                                                value={item.scheduledStartDate || ''}
+                                                                onChange={(e) => {
+                                                                    const newCart = [...cart];
+                                                                    newCart[i] = { ...newCart[i], scheduledStartDate: e.target.value };
+                                                                    setCart(newCart);
+                                                                }}
+                                                                className="flex-1 text-xs p-1.5 bg-white border border-gray-200 text-brand-charcoal rounded-sm focus:border-brand-sand outline-none"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
                                     </div>
                                     
                                     {/* Display individual image notes in cart */}

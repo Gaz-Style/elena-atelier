@@ -588,7 +588,7 @@ export async function getAtelierConfigAction() {
 }
 
 
-export async function getEstimatedDatesAction(newHours: number, assignedOperatorId?: string) {
+export async function getEstimatedDatesAction(newHours: number, assignedOperatorId?: string, scheduledStartDate?: string) {
     const supabase = await createClient();
     
     // 1. Fetch config with RLS disabled
@@ -655,7 +655,7 @@ export async function getEstimatedDatesAction(newHours: number, assignedOperator
     const backlogHours = activeOrders?.reduce((sum, o) => sum + Number(o.estimated_hours || 0), 0) || 0;
     
     // 3. Timezone helper to get Chile Offset dynamically
-    const now = new Date();
+    const now = scheduledStartDate ? new Date(scheduledStartDate) : new Date();
     const getChileOffsetString = (date: Date) => {
         const formatter = new Intl.DateTimeFormat("en-US", {
             timeZone: "America/Santiago",
@@ -784,9 +784,13 @@ export async function getEstimatedDatesAction(newHours: number, assignedOperator
         return result;
     }
     
-    // Perform scheduling calculations using Chilean local time
-    const productionStartDate = addWorkHours(nowInChile, backlogHours, CD);
-    const productionEndDate = addWorkHours(productionStartDate, newHours, CD);
+    // 6. Execute scheduling math
+    // Si se agendó un inicio específico, asumimos que no hace cola tras el backlog actual
+    const totalHoursToComplete = scheduledStartDate ? newHours : backlogHours + newHours;
+    
+    // We start from nowInChile to find when production finishes
+    const productionStartDate = scheduledStartDate ? new Date(scheduledStartDate) : nowInChile;
+    const productionEndDate = addWorkHours(productionStartDate, totalHoursToComplete, CD);
     
     let finalDeliveryDate = addBufferDays(productionEndDate, bufferDays);
     
@@ -805,6 +809,9 @@ export async function getEstimatedDatesAction(newHours: number, assignedOperator
         finalDeliveryDate: formatChileLocalToISO(finalDeliveryDate),
         backlogHours,
         dailyCapacity: CD,
+        operatorWorkloadPercentage: usingOperator ? Math.round((backlogHours / laborCapacity) * 100) : null,
+        operatorWorkloadDays: usingOperator ? (backlogHours / laborCapacity).toFixed(1) : null,
+        operatorName: usingOperator ? operatorName : null,
         config: {
             laborCapacity,
             activeOperators,
