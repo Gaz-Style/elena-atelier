@@ -1194,7 +1194,6 @@ export default function POSPage() {
                                         >
                                             Añadir a la Orden
                                         </button>
-                                    </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1320,7 +1319,6 @@ export default function POSPage() {
                                     )}
                                 </div>
                             </div>
-                </div>
 
                 {/* Section 4: Detalle Precio Orden (A Medida) */}
                 <div className={`transition-all mt-6 ${(!selectedCustomer || assignedOperatorId === '' || !customOrderName.trim()) ? 'opacity-50 pointer-events-none' : ''}`}>
@@ -1380,6 +1378,7 @@ export default function POSPage() {
                                 </button>
                             </div>
                         </div>
+                    </div>
                     )}
                 </div>
             </div>
