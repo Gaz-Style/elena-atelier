@@ -12,11 +12,51 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { full_name, email, phone, course_id, course_name, current_level, message } = body;
 
-        if (!full_name || !email) {
-            return NextResponse.json({ error: 'Nombre y email son requeridos.' }, { status: 400 });
+        if (!full_name || !email || !phone) {
+            return NextResponse.json({ error: 'Nombre, email y teléfono son requeridos.' }, { status: 400 });
         }
 
-        // Save lead to Supabase
+        // 1. Store globally in system: Upsert into 'customers' table
+        let customerId = null;
+        try {
+            // Check if customer exists by email
+            const { data: existingCustomer } = await supabase
+                .from('customers')
+                .select('id')
+                .eq('email', email)
+                .maybeSingle();
+
+            if (existingCustomer) {
+                customerId = existingCustomer.id;
+                // Update their name/phone if they left new ones
+                await supabase
+                    .from('customers')
+                    .update({ full_name, phone, updated_at: new Date().toISOString() })
+                    .eq('id', customerId);
+            } else {
+                // Create customer globally
+                const { data: newCustomer, error: insertError } = await supabase
+                    .from('customers')
+                    .insert([{
+                        email,
+                        full_name,
+                        phone,
+                        style_preference: `Interesada en curso: ${course_name}`,
+                        notes: `Origen: Embudo de cursos. Nivel: ${current_level}. Mensaje inicial: ${message || 'Ninguno'}`
+                    }])
+                    .select('id')
+                    .single();
+
+                if (!insertError && newCustomer) {
+                    customerId = newCustomer.id;
+                }
+            }
+        } catch (crmErr) {
+            console.error('Error syncing with global customers table:', crmErr);
+            // Non-blocking for the lead submission itself
+        }
+
+        // 2. Save lead details to Supabase course_leads table
         const { data, error } = await supabase
             .from('course_leads')
             .insert([{

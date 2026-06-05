@@ -7,7 +7,7 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// OpenAI client will be initialized lazily inside the route handler
 
 const COURSES_INFO = {
     iniciacion: { name: 'Iniciación a la Costura', price: 52500, originalPrice: 70000, level: 'Principiante', duration: '2 sesiones de 2 horas', includes: 'Materiales incluidos' },
@@ -52,8 +52,13 @@ ESTILO: Amable, cálida, experta, sofisticada. Usa "tú" informal. Respuestas co
 
 NUNCA inventes precios que no están arriba. NUNCA prometas descuentos adicionales sin confirmar.`;
 
+        const openai = new OpenAI({ 
+            apiKey: process.env.OPENAI_API_KEY || 'placeholder_for_build',
+            baseURL: 'https://api.deepseek.com/v1' 
+        });
+
         const completion = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
+            model: 'deepseek-chat',
             messages: [
                 { role: 'system', content: systemPrompt },
                 ...messages

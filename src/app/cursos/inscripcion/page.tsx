@@ -1,16 +1,16 @@
 'use client';
 
-import React, { useState, useRef, useEffect, Suspense } from 'react';
+import React, { useState, useRef, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowRight, ArrowLeft, Loader2, Send, CheckCircle2, User, Sparkles, Phone } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Loader2, Send, CheckCircle2, User, Sparkles, Phone, ShieldCheck, MessageCircle, X } from 'lucide-react';
 
 const COURSES = [
-    { id: 'iniciacion', name: 'Iniciación a la Costura', price: 52500, level: 'Principiante' },
-    { id: 'confeccion', name: 'Costura & Confección', price: 75000, level: 'Intermedio' },
-    { id: 'arreglos', name: 'Arreglos & Sastrería', price: 65000, level: 'Intermedio' },
-    { id: 'patronaje', name: 'Patronaje & Diseño', price: 120000, level: 'Avanzado' },
-    { id: 'pack', name: 'Pack Formación Completa', price: 699999, level: 'Todos los niveles' },
+    { id: 'iniciacion', name: 'Iniciación a la Costura', price: 52500, originalPrice: 70000, level: 'Principiante' },
+    { id: 'confeccion', name: 'Costura & Confección', price: 75000, originalPrice: 90000, level: 'Intermedio' },
+    { id: 'arreglos', name: 'Arreglos & Sastrería', price: 65000, originalPrice: 80000, level: 'Intermedio' },
+    { id: 'patronaje', name: 'Patronaje & Diseño', price: 120000, originalPrice: null, level: 'Avanzado' },
+    { id: 'pack', name: 'Pack Formación Completa', price: 699999, originalPrice: 1146000, level: 'Todos los niveles' },
 ];
 
 const LEVELS = [
@@ -28,11 +28,14 @@ function InscripcionContent() {
 
     const [step, setStep] = useState(1);
     const [leadId, setLeadId] = useState<string | null>(null);
-    const [isHandoff, setIsHandoff] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+
+    // Chat state
+    const [showChat, setShowChat] = useState(false);
     const [chatLoading, setChatLoading] = useState(false);
     const [inputMsg, setInputMsg] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
+    const [aiGreetingSent, setAiGreetingSent] = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
 
     const [form, setForm] = useState({
@@ -51,10 +54,10 @@ function InscripcionContent() {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, chatLoading]);
 
-    // Step 1 submit: save lead
+    // Step 1 submit: save lead → go directly to payment (step 2)
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!form.full_name || !form.email || !form.course_id || !form.current_level) return;
+        if (!form.full_name || !form.email || !form.phone || !form.course_id || !form.current_level) return;
         setSubmitting(true);
 
         try {
@@ -66,29 +69,31 @@ function InscripcionContent() {
             const data = await res.json();
             if (data.success) {
                 setLeadId(data.leadId);
-                setStep(2);
-                // Send initial AI greeting
-                sendAIGreeting(data.leadId);
+                setStep(2); // Go straight to payment
+            } else {
+                alert(data.error || 'Ocurrió un error inesperado al procesar tus datos.');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
+            alert('Error de conexión: No se pudo contactar al servidor.');
         } finally {
             setSubmitting(false);
         }
     };
 
-    const sendAIGreeting = async (id: string) => {
+    // AI Chat - only triggered when user opens the chat panel
+    const sendAIGreeting = useCallback(async () => {
+        if (aiGreetingSent) return;
+        setAiGreetingSent(true);
         setChatLoading(true);
         try {
+            const introMessage = `Hola, me llamo ${form.full_name} y me interesa el curso "${selectedCourse?.name}". Mi nivel actual es: ${LEVELS.find(l => l.value === form.current_level)?.label}.${form.message ? ` Mi consulta: ${form.message}` : ''}`;
             const res = await fetch('/api/cursos/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    messages: [{
-                        role: 'user',
-                        content: `Hola, me llamo ${form.full_name} y me interesa el curso "${selectedCourse?.name}". Mi nivel actual es: ${LEVELS.find(l => l.value === form.current_level)?.label}.${form.message ? ` Mi consulta: ${form.message}` : ''}`
-                    }],
-                    leadId: id,
+                    messages: [{ role: 'user', content: introMessage }],
+                    leadId,
                     leadName: form.full_name,
                     courseId: form.course_id,
                     courseName: selectedCourse?.name,
@@ -98,17 +103,26 @@ function InscripcionContent() {
             const data = await res.json();
             if (data.reply) {
                 setMessages([
-                    { role: 'user', content: `Hola, me interesa el curso "${selectedCourse?.name}". Mi nivel: ${LEVELS.find(l => l.value === form.current_level)?.label}.${form.message ? ` ${form.message}` : ''}` },
                     { role: 'assistant', content: data.reply }
                 ]);
-                if (data.isHandoff) setIsHandoff(true);
             }
         } catch (err) {
             console.error(err);
+            setMessages([{
+                role: 'assistant',
+                content: `¡Hola ${form.full_name.split(' ')[0]}! Bienvenida a Elena Atelier. Veo que te interesa nuestro curso "${selectedCourse?.name}". ¿En qué puedo ayudarte?`
+            }]);
         } finally {
             setChatLoading(false);
         }
-    };
+    }, [aiGreetingSent, form, selectedCourse, leadId]);
+
+    // Trigger AI greeting when chat panel opens
+    useEffect(() => {
+        if (showChat && !aiGreetingSent) {
+            sendAIGreeting();
+        }
+    }, [showChat, aiGreetingSent, sendAIGreeting]);
 
     const sendMessage = async () => {
         if (!inputMsg.trim() || chatLoading) return;
@@ -134,19 +148,25 @@ function InscripcionContent() {
             const data = await res.json();
             if (data.reply) {
                 setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
-                if (data.isHandoff) setIsHandoff(true);
             }
         } catch (err) {
             console.error(err);
+            setMessages(prev => [...prev, { role: 'assistant', content: 'Lo siento, tuve un problema de conexión. ¿Puedes repetir tu pregunta?' }]);
         } finally {
             setChatLoading(false);
         }
     };
 
-    const whatsappHandoff = () => {
-        const transcript = messages.map(m => `${m.role === 'user' ? form.full_name : 'Elena IA'}: ${m.content}`).join('\n');
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    };
+
+    const handlePayment = () => {
         const text = encodeURIComponent(
-            `Hola Elena, te contacta ${form.full_name} (${form.email}${form.phone ? ` / ${form.phone}` : ''}). Está interesada en el curso "${selectedCourse?.name}". Su nivel: ${LEVELS.find(l => l.value === form.current_level)?.label}.\n\nConversación con IA:\n${transcript}`
+            `¡Hola Elena! Soy ${form.full_name}.\n\nQuiero confirmar mi inscripción y realizar el pago del curso "${selectedCourse?.name}" por ${selectedCourse ? formatCLP(selectedCourse.price) : ''}.\n\nMi email: ${form.email}\nTeléfono: ${form.phone}\nNivel: ${LEVELS.find(l => l.value === form.current_level)?.label}\n\n¡Gracias!`
         );
         window.open(`https://wa.me/${process.env.NEXT_PUBLIC_ELENA_WHATSAPP || '56912345678'}?text=${text}`, '_blank');
     };
@@ -170,7 +190,9 @@ function InscripcionContent() {
                 <div className="flex items-center gap-2">
                     {[1, 2].map(n => (
                         <div key={n} className={`flex items-center justify-center w-7 h-7 rounded-full text-[10px] font-bold border transition-all ${
-                            step >= n ? 'bg-brand-sand text-brand-charcoal border-brand-sand' : 'bg-white/5 text-white/30 border-white/10'
+                            step > n ? 'bg-brand-sand text-brand-charcoal border-brand-sand' 
+                            : step === n ? 'bg-brand-sand/20 text-brand-sand border-brand-sand/50' 
+                            : 'bg-white/5 text-white/30 border-white/10'
                         }`}>
                             {step > n ? <CheckCircle2 className="w-4 h-4" /> : n}
                         </div>
@@ -180,25 +202,16 @@ function InscripcionContent() {
 
             <main className="max-w-2xl mx-auto px-6 py-12">
 
-                {/* STEP 1: Lead Capture Form */}
+                {/* ═══════════════════════════════════════════ */}
+                {/* STEP 1: Lead Capture Form                  */}
+                {/* ═══════════════════════════════════════════ */}
                 {step === 1 && (
                     <div className="space-y-8">
                         <div className="text-center space-y-2">
                             <p className="text-[10px] uppercase tracking-[0.4em] text-brand-sand font-bold">Paso 1 de 2</p>
                             <h1 className="font-serif text-4xl text-white">Cuéntanos sobre ti</h1>
-                            <p className="text-white/50 text-sm">Antes de conectarte con nuestra asistente, necesitamos algunos datos para personalizar tu experiencia.</p>
+                            <p className="text-white/50 text-sm">Completa tus datos para reservar tu lugar en el curso.</p>
                         </div>
-
-                        {selectedCourse && (
-                            <div className="bg-white/5 border border-brand-sand/20 rounded-sm p-5 flex items-center justify-between">
-                                <div>
-                                    <p className="text-[9px] uppercase tracking-widest text-brand-sand/60 font-bold mb-1">Curso seleccionado</p>
-                                    <p className="font-serif text-lg text-white">{selectedCourse.name}</p>
-                                    <p className="text-xs text-white/40">{selectedCourse.level}</p>
-                                </div>
-                                <p className="font-serif text-2xl text-brand-sand">{formatCLP(selectedCourse.price)}</p>
-                            </div>
-                        )}
 
                         <form onSubmit={handleFormSubmit} className="space-y-5">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -227,9 +240,10 @@ function InscripcionContent() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] uppercase tracking-widest font-bold text-white/50">Teléfono (opcional)</label>
+                                <label className="text-[10px] uppercase tracking-widest font-bold text-white/50">Teléfono *</label>
                                 <input
                                     type="tel"
+                                    required
                                     value={form.phone}
                                     onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                                     placeholder="+56 9 1234 5678"
@@ -239,36 +253,49 @@ function InscripcionContent() {
 
                             <div className="space-y-2">
                                 <label className="text-[10px] uppercase tracking-widest font-bold text-white/50">Curso de Interés *</label>
-                                <select
-                                    required
-                                    value={form.course_id}
-                                    onChange={e => setForm(f => ({ ...f, course_id: e.target.value }))}
-                                    className="w-full bg-white/5 border border-white/10 focus:border-brand-sand rounded-sm px-4 py-3 text-sm text-white outline-none transition-colors appearance-none"
-                                >
-                                    <option value="" className="bg-brand-charcoal">-- Selecciona un curso --</option>
-                                    {COURSES.map(c => (
-                                        <option key={c.id} value={c.id} className="bg-brand-charcoal">{c.name} — {formatCLP(c.price)}</option>
-                                    ))}
-                                </select>
+                                <div className="relative">
+                                    <select
+                                        required
+                                        value={form.course_id}
+                                        onChange={e => setForm(f => ({ ...f, course_id: e.target.value }))}
+                                        className="w-full bg-white/5 border border-white/10 focus:border-brand-sand rounded-sm px-4 py-3 pr-10 text-sm text-white outline-none transition-colors appearance-none cursor-pointer"
+                                    >
+                                        <option value="" className="bg-brand-charcoal text-white/40">-- Selecciona un curso --</option>
+                                        {COURSES.map(c => (
+                                            <option key={c.id} value={c.id} className="bg-brand-charcoal text-white">
+                                                {c.name} — {formatCLP(c.price)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white/50">
+                                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                                        </svg>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="space-y-2">
                                 <label className="text-[10px] uppercase tracking-widest font-bold text-white/50">Tu Nivel de Costura Actual *</label>
-                                <div className="grid grid-cols-2 gap-3">
-                                    {LEVELS.map(l => (
-                                        <button
-                                            type="button"
-                                            key={l.value}
-                                            onClick={() => setForm(f => ({ ...f, current_level: l.value }))}
-                                            className={`px-4 py-3 rounded-sm border text-sm font-medium text-left transition-all ${
-                                                form.current_level === l.value
-                                                    ? 'border-brand-sand bg-brand-sand/10 text-brand-sand'
-                                                    : 'border-white/10 bg-white/5 text-white/60 hover:border-white/30'
-                                            }`}
-                                        >
-                                            {l.label}
-                                        </button>
-                                    ))}
+                                <div className="relative">
+                                    <select
+                                        required
+                                        value={form.current_level}
+                                        onChange={e => setForm(f => ({ ...f, current_level: e.target.value }))}
+                                        className="w-full bg-white/5 border border-white/10 focus:border-brand-sand rounded-sm px-4 py-3 pr-10 text-sm text-white outline-none transition-colors appearance-none cursor-pointer"
+                                    >
+                                        <option value="" className="bg-brand-charcoal text-white/40">-- Selecciona tu nivel --</option>
+                                        {LEVELS.map(l => (
+                                            <option key={l.value} value={l.value} className="bg-brand-charcoal text-white">
+                                                {l.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white/50">
+                                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                                        </svg>
+                                    </div>
                                 </div>
                             </div>
 
@@ -283,13 +310,23 @@ function InscripcionContent() {
                                 />
                             </div>
 
-                            <button
-                                type="submit"
-                                disabled={submitting || !form.full_name || !form.email || !form.course_id || !form.current_level}
-                                className="w-full py-4 bg-brand-sand text-brand-charcoal font-bold text-xs uppercase tracking-widest rounded-sm hover:bg-white transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                            >
-                                {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Continuar al Chat <ArrowRight className="w-4 h-4" /></>}
-                            </button>
+                             <div className="pt-4">
+                                <button
+                                    type="submit"
+                                    disabled={submitting || !form.full_name || !form.email || !form.phone || !form.course_id || !form.current_level}
+                                    className="w-full py-4.5 bg-brand-sand text-brand-charcoal font-black text-xs uppercase tracking-widest rounded-sm hover:bg-white hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 shadow-lg shadow-brand-sand/10 hover:shadow-white/10 disabled:opacity-40 disabled:scale-100 disabled:cursor-not-allowed cursor-pointer border border-brand-sand hover:border-white"
+                                    style={{ height: '56px' }}
+                                >
+                                    {submitting ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <>
+                                            Continuar al Pago
+                                            <ArrowRight className="w-4 h-4 shrink-0" />
+                                        </>
+                                    )}
+                                </button>
+                            </div>
 
                             <p className="text-center text-[10px] text-white/30">
                                 Tus datos están seguros y no serán compartidos con terceros.
@@ -298,140 +335,202 @@ function InscripcionContent() {
                     </div>
                 )}
 
-                {/* STEP 2: AI Chat */}
+                {/* ═══════════════════════════════════════════ */}
+                {/* STEP 2: Digital Luxury Pass + Payment       */}
+                {/* ═══════════════════════════════════════════ */}
                 {step === 2 && (
-                    <div className="space-y-6">
+                    <div className="space-y-8">
+                        {/* Header */}
                         <div className="text-center space-y-2">
                             <p className="text-[10px] uppercase tracking-[0.4em] text-brand-sand font-bold">Paso 2 de 2</p>
-                            <h1 className="font-serif text-4xl text-white">Hola, {form.full_name.split(' ')[0]} 👋</h1>
-                            <p className="text-white/50 text-sm">Nuestra asistente IA está lista para resolver todas tus dudas sobre el curso.</p>
+                            <h1 className="font-serif text-3xl text-white">¡Tu Pase de Acceso, {form.full_name.split(' ')[0]}!</h1>
+                            <p className="text-white/50 text-sm">Confirma el pago para activar tu matrícula y reservar tu lugar.</p>
                         </div>
 
-                        {/* Course context chip */}
-                        {selectedCourse && (
-                            <div className="flex items-center justify-center gap-3 flex-wrap">
-                                <span className="px-3 py-1.5 bg-brand-sand/10 border border-brand-sand/20 rounded-full text-[10px] font-bold uppercase tracking-widest text-brand-sand">
-                                    {selectedCourse.name}
-                                </span>
-                                <span className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest text-white/50">
-                                    {formatCLP(selectedCourse.price)}
-                                </span>
+                        {/* Luxury Digital Pass */}
+                        <div className="relative border border-brand-sand/30 p-8 bg-black/40 rounded-sm shadow-2xl space-y-8 overflow-hidden">
+                            {/* Watermark */}
+                            <div className="absolute right-0 bottom-0 opacity-5 pointer-events-none">
+                                <Sparkles className="w-64 h-64 text-brand-sand" />
                             </div>
-                        )}
 
-                        {/* Chat window */}
-                        <div className="bg-white/5 border border-white/10 rounded-sm overflow-hidden flex flex-col" style={{ minHeight: '420px', maxHeight: '500px' }}>
-                            {/* Chat header */}
-                            <div className="px-5 py-4 border-b border-white/10 flex items-center gap-3 bg-white/5">
-                                <div className="w-8 h-8 rounded-full bg-brand-sand/20 flex items-center justify-center">
-                                    <Sparkles className="w-4 h-4 text-brand-sand" />
+                            {/* Pass Header */}
+                            <div className="flex justify-between items-start border-b border-white/10 pb-6">
+                                <div className="space-y-1">
+                                    <span className="text-[9px] uppercase tracking-[0.3em] text-brand-sand font-bold block">Digital Luxury Pass</span>
+                                    <h2 className="font-serif text-2xl text-white">{selectedCourse?.name}</h2>
+                                    <p className="text-[10px] font-mono text-white/40">ID: {(leadId || 'PENDING').substring(0, 8).toUpperCase()}</p>
                                 </div>
-                                <div>
-                                    <p className="text-sm font-bold text-white">Elena IA</p>
-                                    <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest">En línea</p>
+                                <div className="px-3 py-1 bg-brand-sand/15 border border-brand-sand/30 rounded-sm text-[9px] uppercase tracking-widest text-brand-sand font-bold">
+                                    Pendiente de Pago
                                 </div>
                             </div>
 
-                            {/* Messages */}
-                            <div className="flex-1 overflow-y-auto p-5 space-y-4">
-                                {messages.length === 0 && chatLoading && (
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-7 h-7 rounded-full bg-brand-sand/20 flex items-center justify-center shrink-0">
-                                            <Sparkles className="w-3.5 h-3.5 text-brand-sand" />
-                                        </div>
-                                        <div className="bg-white/10 rounded-sm px-4 py-3">
-                                            <div className="flex gap-1">
-                                                <span className="w-2 h-2 bg-brand-sand/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                                <span className="w-2 h-2 bg-brand-sand/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                                <span className="w-2 h-2 bg-brand-sand/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {messages.map((msg, i) => (
-                                    <div key={i} className={`flex items-start gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                                        <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
-                                            msg.role === 'user' ? 'bg-white/10' : 'bg-brand-sand/20'
-                                        }`}>
-                                            {msg.role === 'user'
-                                                ? <User className="w-3.5 h-3.5 text-white/60" />
-                                                : <Sparkles className="w-3.5 h-3.5 text-brand-sand" />
-                                            }
-                                        </div>
-                                        <div className={`max-w-[80%] rounded-sm px-4 py-3 text-sm leading-relaxed ${
-                                            msg.role === 'user'
-                                                ? 'bg-brand-sand/20 text-white/90'
-                                                : 'bg-white/10 text-white/90'
-                                        }`}>
-                                            {msg.content}
-                                        </div>
-                                    </div>
-                                ))}
-
-                                {messages.length > 0 && chatLoading && (
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-7 h-7 rounded-full bg-brand-sand/20 flex items-center justify-center shrink-0">
-                                            <Sparkles className="w-3.5 h-3.5 text-brand-sand" />
-                                        </div>
-                                        <div className="bg-white/10 rounded-sm px-4 py-3">
-                                            <div className="flex gap-1">
-                                                <span className="w-2 h-2 bg-brand-sand/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                                <span className="w-2 h-2 bg-brand-sand/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                                <span className="w-2 h-2 bg-brand-sand/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                                <div ref={chatEndRef} />
+                            {/* Pass Details */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                                <div className="space-y-1">
+                                    <span className="text-[9px] uppercase tracking-widest text-white/40 block">Titular del Pase</span>
+                                    <p className="font-medium text-white">{form.full_name}</p>
+                                    <p className="text-xs text-white/50">{form.email}</p>
+                                    <p className="text-xs text-white/50">{form.phone}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-[9px] uppercase tracking-widest text-white/40 block">Nivel Asignado</span>
+                                    <p className="font-medium text-white">
+                                        {LEVELS.find(l => l.value === form.current_level)?.label}
+                                    </p>
+                                </div>
                             </div>
 
-                            {/* Input */}
-                            {!isHandoff && (
-                                <div className="border-t border-white/10 p-4 flex gap-3">
+                            {/* Payment breakdown */}
+                            <div className="border-t border-white/10 pt-6 space-y-4">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-white/50">Valor del Curso</span>
+                                    <span className="text-white">{selectedCourse ? formatCLP(selectedCourse.originalPrice || selectedCourse.price) : ''}</span>
+                                </div>
+                                {selectedCourse?.originalPrice && (
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-white/50">Descuento Promocional</span>
+                                        <span className="text-green-400 font-bold">
+                                            -{formatCLP(selectedCourse.originalPrice - selectedCourse.price)}
+                                        </span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-white/50">Matrícula y Materiales</span>
+                                    <span className="text-green-400 font-bold uppercase tracking-wider text-[10px]">¡Gratis! Incluido</span>
+                                </div>
+                                <div className="flex justify-between items-center border-t border-white/10 pt-4">
+                                    <span className="font-serif text-lg text-white">Total a Pagar</span>
+                                    <span className="font-serif text-3xl text-brand-sand font-bold">
+                                        {selectedCourse ? formatCLP(selectedCourse.price) : ''}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Location */}
+                            <div className="border-t border-white/5 pt-6 text-center">
+                                <p className="text-[9px] uppercase tracking-widest text-white/30">Lugar de clases</p>
+                                <p className="text-xs text-white/60">Tabancura 1091, Oficina 319, Vitacura, Santiago</p>
+                            </div>
+                        </div>
+
+                        {/* CTA Actions */}
+                        <div className="space-y-4 pt-2">
+                            <button
+                                onClick={handlePayment}
+                                className="w-full py-4.5 bg-brand-sand text-brand-charcoal font-black text-xs uppercase tracking-widest rounded-sm hover:bg-white hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 shadow-lg shadow-brand-sand/15 cursor-pointer border border-brand-sand"
+                                style={{ height: '56px' }}
+                            >
+                                <ShieldCheck className="w-5 h-5" />
+                                Confirmar y Pagar
+                                <ArrowRight className="w-4 h-4 shrink-0" />
+                            </button>
+
+                            <div className="flex items-center justify-center gap-2 text-[10px] text-white/30">
+                                <ShieldCheck className="w-3 h-3" />
+                                Pago seguro · Te contactaremos para coordinar el método de pago
+                            </div>
+
+                            {/* Optional: Chat with AI */}
+                            <button
+                                onClick={() => setShowChat(!showChat)}
+                                className="w-full py-3 bg-white/5 border border-white/10 hover:border-white/20 text-white/50 hover:text-white font-bold text-xs uppercase tracking-widest rounded-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                            >
+                                <MessageCircle className="w-3.5 h-3.5" />
+                                {showChat ? 'Cerrar Chat' : '¿Tienes dudas? Pregúntale a nuestra asesora'}
+                            </button>
+                        </div>
+
+                        {/* Collapsible AI Chat Panel */}
+                        {showChat && (
+                            <div className="border border-white/10 rounded-sm bg-black/30 overflow-hidden flex flex-col animate-in slide-in-from-top duration-300" style={{ height: '380px' }}>
+                                {/* Chat Header */}
+                                <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-full bg-brand-sand/20 flex items-center justify-center">
+                                            <Sparkles className="w-3 h-3 text-brand-sand" />
+                                        </div>
+                                        <span className="text-xs font-bold text-white/70">Elena IA · Asesora</span>
+                                    </div>
+                                    <button onClick={() => setShowChat(false)} className="text-white/30 hover:text-white transition-colors cursor-pointer">
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+
+                                {/* Messages */}
+                                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                                    {messages.length === 0 && chatLoading && (
+                                        <div className="flex items-center gap-3 text-white/40 text-sm">
+                                            <div className="w-7 h-7 rounded-full bg-brand-sand/20 flex items-center justify-center shrink-0">
+                                                <Sparkles className="w-3.5 h-3.5 text-brand-sand" />
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="w-2 h-2 rounded-full bg-brand-sand/50 animate-bounce" style={{ animationDelay: '0ms' }} />
+                                                <div className="w-2 h-2 rounded-full bg-brand-sand/50 animate-bounce" style={{ animationDelay: '150ms' }} />
+                                                <div className="w-2 h-2 rounded-full bg-brand-sand/50 animate-bounce" style={{ animationDelay: '300ms' }} />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {messages.map((msg, i) => (
+                                        <div key={i} className={`flex gap-2.5 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                            {msg.role === 'assistant' && (
+                                                <div className="w-7 h-7 rounded-full bg-brand-sand/20 flex items-center justify-center shrink-0 mt-1">
+                                                    <Sparkles className="w-3.5 h-3.5 text-brand-sand" />
+                                                </div>
+                                            )}
+                                            <div className={`max-w-[80%] px-3.5 py-2.5 rounded-sm text-[13px] leading-relaxed ${
+                                                msg.role === 'user'
+                                                    ? 'bg-brand-sand/15 text-white border border-brand-sand/20'
+                                                    : 'bg-white/5 text-white/90 border border-white/10'
+                                            }`}>
+                                                {msg.content}
+                                            </div>
+                                            {msg.role === 'user' && (
+                                                <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center shrink-0 mt-1">
+                                                    <User className="w-3.5 h-3.5 text-white/50" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+
+                                    {chatLoading && messages.length > 0 && (
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-7 h-7 rounded-full bg-brand-sand/20 flex items-center justify-center shrink-0">
+                                                <Sparkles className="w-3.5 h-3.5 text-brand-sand" />
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="w-2 h-2 rounded-full bg-brand-sand/50 animate-bounce" style={{ animationDelay: '0ms' }} />
+                                                <div className="w-2 h-2 rounded-full bg-brand-sand/50 animate-bounce" style={{ animationDelay: '150ms' }} />
+                                                <div className="w-2 h-2 rounded-full bg-brand-sand/50 animate-bounce" style={{ animationDelay: '300ms' }} />
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div ref={chatEndRef} />
+                                </div>
+
+                                {/* Input */}
+                                <div className="border-t border-white/10 p-3 flex gap-2 bg-white/5">
                                     <input
                                         type="text"
                                         value={inputMsg}
                                         onChange={e => setInputMsg(e.target.value)}
-                                        onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                                        onKeyDown={handleKeyDown}
                                         placeholder="Escribe tu pregunta..."
-                                        className="flex-1 bg-white/5 border border-white/10 focus:border-brand-sand rounded-sm px-4 py-2.5 text-sm text-white placeholder-white/20 outline-none transition-colors"
+                                        className="flex-1 bg-white/5 border border-white/10 focus:border-brand-sand rounded-sm px-3 py-2.5 text-sm text-white placeholder-white/30 outline-none transition-colors"
                                         disabled={chatLoading}
                                     />
                                     <button
                                         onClick={sendMessage}
                                         disabled={!inputMsg.trim() || chatLoading}
-                                        className="px-4 py-2.5 bg-brand-sand text-brand-charcoal rounded-sm hover:bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                        className="px-3.5 py-2.5 bg-brand-sand text-brand-charcoal rounded-sm hover:bg-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                                     >
-                                        <Send className="w-4 h-4" />
+                                        {chatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                     </button>
                                 </div>
-                            )}
-                        </div>
-
-                        {/* CTA Buttons */}
-                        <div className="space-y-3">
-                            {isHandoff ? (
-                                <>
-                                    <div className="text-center p-4 bg-white/5 border border-brand-sand/20 rounded-sm">
-                                        <p className="text-sm text-white/70">Elena estará encantada de atenderte personalmente 💛</p>
-                                    </div>
-                                    <button
-                                        onClick={whatsappHandoff}
-                                        className="w-full py-4 bg-green-600 hover:bg-green-500 text-white font-bold text-xs uppercase tracking-widest rounded-sm transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <Phone className="w-4 h-4" /> Conectar con Elena por WhatsApp
-                                    </button>
-                                </>
-                            ) : (
-                                <button
-                                    onClick={whatsappHandoff}
-                                    className="w-full py-3 bg-white/5 border border-white/10 hover:border-white/30 text-white/60 hover:text-white font-bold text-xs uppercase tracking-widest rounded-sm transition-all flex items-center justify-center gap-2"
-                                >
-                                    <Phone className="w-3.5 h-3.5" /> Prefiero hablar directamente con Elena
-                                </button>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </main>

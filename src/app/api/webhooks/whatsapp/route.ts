@@ -97,7 +97,10 @@ export async function POST(req: Request) {
                     if (chatData.session_status === 'bot' && content) {
                         try {
                             const { OpenAI } = await import('openai');
-                            const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+                            const openai = new OpenAI({ 
+                                apiKey: process.env.OPENAI_API_KEY,
+                                baseURL: 'https://api.deepseek.com/v1'
+                            });
                             
                             // Get recent conversation context
                             const { data: recentMsgs } = await supabase
@@ -160,7 +163,7 @@ Si el cliente muestra una intención clara de compra o agenda, o pide hablar con
                             };
 
                             const completion = await openai.chat.completions.create({
-                                model: 'gpt-4o-mini',
+                                model: 'deepseek-chat',
                                 messages: [systemPrompt, ...conversation] as any,
                             });
                             
@@ -186,8 +189,32 @@ Si el cliente muestra una intención clara de compra o agenda, o pide hablar con
                                         .eq('id', chatData.id);
                                 }
                                 
-                                // TODO: Call WhatsApp Cloud API to send botReply back to the user
-                                // ...
+                                // 5. Call WhatsApp Cloud API to send botReply back to the user
+                                const token = process.env.WHATSAPP_API_TOKEN;
+                                const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+                                
+                                if (token && phoneId) {
+                                    const fbResponse = await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Authorization': `Bearer ${token}`,
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify({
+                                            messaging_product: 'whatsapp',
+                                            to: phoneNumber,
+                                            type: 'text',
+                                            text: { body: botReply }
+                                        })
+                                    });
+                                    
+                                    if (!fbResponse.ok) {
+                                        const errorData = await fbResponse.json();
+                                        console.error('Error sending WhatsApp message:', JSON.stringify(errorData, null, 2));
+                                    }
+                                } else {
+                                    console.error('Missing WhatsApp API credentials in .env.local');
+                                }
                             }
                         } catch (err) {
                             console.error('Error generating AI reply:', err);

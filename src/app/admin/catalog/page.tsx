@@ -18,6 +18,8 @@ export default function CatalogManager() {
     const [tempTime, setTempTime] = useState(0);
     const [tempMaterials, setTempMaterials] = useState(0);
     const [suggestedPrice, setSuggestedPrice] = useState(0);
+    const [selectedCategory, setSelectedCategory] = useState('');
+    const [isNewCategory, setIsNewCategory] = useState(false);
 
     useEffect(() => {
         fetchCatalog();
@@ -46,10 +48,14 @@ export default function CatalogManager() {
         setLoading(false);
     }
 
+    const allCategories = [...new Set(items.map(item => item.category))];
+
     const openAddModal = () => {
         setEditingItem(null);
         setTempTime(0);
         setTempMaterials(0);
+        setSelectedCategory(allCategories[0] || '');
+        setIsNewCategory(false);
         setIsModalOpen(true);
     };
 
@@ -57,6 +63,8 @@ export default function CatalogManager() {
         setEditingItem(item);
         setTempTime(item.production_time_minutes || 0);
         setTempMaterials(item.material_cost || 0);
+        setSelectedCategory(item.category);
+        setIsNewCategory(false);
         setIsModalOpen(true);
     };
 
@@ -251,12 +259,48 @@ export default function CatalogManager() {
                                             </div>
                                             <div className="space-y-3">
                                                 <label className="block text-[11px] uppercase tracking-widest font-bold text-gray-500">Categoría</label>
-                                                <select name="category" defaultValue={editingItem?.category || 'Bastas'} className="w-full p-4 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-brand-terracotta text-sm rounded-sm appearance-none">
-                                                    <option value="Bastas">Bastas (Ajustes Rápidos)</option>
-                                                    <option value="Sastrería">Sastrería y Compostura</option>
-                                                    <option value="Gala">Vestidos de Gala</option>
-                                                    <option value="Novias">Novias y Alta Costura</option>
-                                                </select>
+                                                {!isNewCategory ? (
+                                                    <select 
+                                                        name="category" 
+                                                        value={selectedCategory}
+                                                        onChange={(e) => {
+                                                            if (e.target.value === 'NEW') {
+                                                                setIsNewCategory(true);
+                                                                setSelectedCategory('');
+                                                            } else {
+                                                                setSelectedCategory(e.target.value);
+                                                            }
+                                                        }}
+                                                        className="w-full p-4 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-brand-terracotta text-sm rounded-sm appearance-none"
+                                                    >
+                                                        {allCategories.map(cat => (
+                                                            <option key={cat} value={cat}>{cat}</option>
+                                                        ))}
+                                                        <option value="NEW" className="font-bold text-brand-terracotta">+ Nueva Categoría...</option>
+                                                    </select>
+                                                ) : (
+                                                    <div className="flex gap-2">
+                                                        <input 
+                                                            name="category" 
+                                                            autoFocus
+                                                            required 
+                                                            placeholder="Nombre de la nueva categoría" 
+                                                            type="text" 
+                                                            className="w-full p-4 bg-gray-50 border-none outline-none focus:ring-1 focus:ring-brand-terracotta text-sm rounded-sm" 
+                                                        />
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={() => {
+                                                                setIsNewCategory(false);
+                                                                setSelectedCategory(allCategories[0] || '');
+                                                            }}
+                                                            className="px-4 text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-sm transition-colors"
+                                                            title="Cancelar nueva categoría"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-8">

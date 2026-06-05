@@ -162,13 +162,12 @@ export default function CursosPage() {
                         <a href="#cursos" className="inline-flex items-center gap-2 px-8 py-4 bg-brand-sand text-brand-charcoal font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors rounded-sm">
                             Ver Cursos <ChevronRight className="w-4 h-4" />
                         </a>
-                        <a
-                            href={`https://wa.me/56912345678?text=Hola,%20me%20interesa%20información%20sobre%20los%20cursos%20de%20costura%20de%20Elena%20Atelier`}
-                            target="_blank"
+                        <Link
+                            href="/cursos/inscripcion"
                             className="inline-flex items-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold text-xs uppercase tracking-widest hover:bg-white/20 transition-colors rounded-sm"
                         >
-                            Consultar por WhatsApp
-                        </a>
+                            Quiero Más Información
+                        </Link>
                     </div>
                 </div>
             </header>
@@ -324,13 +323,12 @@ export default function CursosPage() {
                     <h2 className="font-serif text-4xl text-white">Tabancura 1091, Oficina 319<br />Vitacura, Santiago</h2>
                     <p className="text-white/50 text-sm">Horario de clases: Lunes a Sábado, 10:30 – 19:00 hrs</p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                        <a
-                            href="https://wa.me/56912345678?text=Hola,%20quiero%20información%20sobre%20cursos%20de%20costura%20en%20Elena%20Atelier"
-                            target="_blank"
+                        <Link
+                            href="/cursos/inscripcion"
                             className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-brand-sand text-brand-charcoal font-bold text-xs uppercase tracking-widest hover:bg-white transition-colors rounded-sm"
                         >
-                            Reservar lugar por WhatsApp
-                        </a>
+                            Reservar mi Lugar
+                        </Link>
                         <Link
                             href="/"
                             className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 border border-white/20 text-white font-bold text-xs uppercase tracking-widest hover:bg-white/20 transition-colors rounded-sm"
