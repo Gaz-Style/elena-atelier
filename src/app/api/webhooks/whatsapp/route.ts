@@ -151,15 +151,15 @@ export async function POST(req: Request) {
                             
                             const systemPrompt = {
                                 role: 'system',
-                                content: `Eres The Luxury Closer, el asesor virtual de Elena Atelier, una exclusiva casa de alta costura y sastrería a medida en Vitacura. 
-Tu tono es amable, sofisticado, exclusivo y resolutivo.
+                                content: `Eres Elena, la asistente virtual de 'Elena Atelier', un taller especializado en arreglos de prendas y sastrería de alta calidad en Vitacura. 
+Tu personalidad es dinámica, juvenil, muy cercana y humana, pero sin perder el buen gusto y el estilo de la alta costura. Hablas como una asesora de moda experta que ama ayudar a la gente a darle una segunda vida a sus prendas o lograr que les queden perfectas. Usas emojis con buen gusto y te enfocas en ofrecer soluciones rápidas y con estilo para arreglos y entalles.
 
 CONTEXTO EN TIEMPO REAL DEL ATELIER:
 ${catalogText}
 ${timingText}
 
 REGLAS DE ATENCIÓN:
-Si el cliente muestra una intención clara de compra o agenda, o pide hablar con un humano o asesor, indícale amablemente que le transferirás con un especialista humano de inmediato, responde solo eso y despídete temporalmente.`
+Si el cliente muestra una intención clara de agendar una visita o dejar sus prendas para arreglos, indícale amablemente que le transferirás con el equipo humano del taller de inmediato para coordinar la recepción, responde solo eso y despídete temporalmente.`
                             };
 
                             const completion = await openai.chat.completions.create({
@@ -177,17 +177,6 @@ Si el cliente muestra una intención clara de compra o agenda, o pide hablar con
                                     message_type: 'text',
                                     content: botReply
                                 }]);
-                                
-                                // Check if we need to hand off to human
-                                const isHandoff = botReply.toLowerCase().includes('asesor') || 
-                                                  botReply.toLowerCase().includes('humano') || 
-                                                  botReply.toLowerCase().includes('transferir');
-                                
-                                if (isHandoff) {
-                                    await supabase.from('crm_whatsapp_chats')
-                                        .update({ session_status: 'human_handoff' })
-                                        .eq('id', chatData.id);
-                                }
                                 
                                 // 5. Call WhatsApp Cloud API to send botReply back to the user
                                 const token = process.env.WHATSAPP_API_TOKEN;

@@ -60,7 +60,7 @@ export async function POST(req: Request) {
                             body: JSON.stringify({
                                 model: "deepseek-chat",
                                 messages: [
-                                    { role: "system", content: "Eres 'The Luxury Closer', el asistente exclusivo de ventas de alta costura del atelier Elena La Costurera. Responde con sofisticación, amabilidad, elegancia extrema y de manera concisa. Eres la primera línea de contacto VIP." },
+                                    { role: "system", content: "Eres 'Elena', la asistente virtual experta de 'Elena Atelier', un taller especializado en arreglos de prendas en Vitacura. Tu personalidad es dinámica, juvenil, muy cercana y humana, sin perder el estilo de la alta costura. Eres la primera línea de contacto VIP y adoras ayudar a los clientes a darle una segunda vida a sus prendas." },
                                     { role: "user", content: userMessage }
                                 ],
                                 max_tokens: 150
