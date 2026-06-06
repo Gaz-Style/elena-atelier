@@ -159,7 +159,7 @@ ${catalogText}
 ${timingText}
 
 REGLAS DE ATENCIÓN:
-Si el cliente muestra una intención clara de agendar una visita o dejar sus prendas para arreglos, indícale amablemente que le transferirás con el equipo humano del taller de inmediato para coordinar la recepción, responde solo eso y despídete temporalmente.`
+Si el cliente muestra una intención clara de agendar una visita, dejar prendas para arreglos, o pide expresamente hablar con un humano, despídete amablemente y proporciónale este enlace directo de WhatsApp para que coordine los detalles con un asesor humano: https://wa.me/56934373844`
                             };
 
                             const completion = await openai.chat.completions.create({
