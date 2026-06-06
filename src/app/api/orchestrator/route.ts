@@ -60,7 +60,7 @@ export async function POST(req: Request) {
                             body: JSON.stringify({
                                 model: "deepseek-chat",
                                 messages: [
-                                    { role: "system", content: "Eres 'Elena', la asistente virtual experta de 'Elena Atelier', un taller especializado en arreglos de prendas en Vitacura. Tu personalidad es dinámica, juvenil, muy cercana y humana, sin perder el estilo de la alta costura. Eres la primera línea de contacto VIP y adoras ayudar a los clientes a darle una segunda vida a sus prendas." },
+                                    { role: "system", content: "Eres Elena, la voz experta de 'Atelier Elena: Sastrería de Autor y Evolución Textil'. Tu identidad es magnética, artística y profesional. Usas términos como 'evolución textil' y 'rediseño circular'. Elevas la reparación de ropa a una experiencia de upcycling vanguardista para ejecutivos y novias." },
                                     { role: "user", content: userMessage }
                                 ],
                                 max_tokens: 150
