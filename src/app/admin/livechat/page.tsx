@@ -81,7 +81,7 @@ export default function LiveChatPage() {
                             <ArrowLeft className="w-3 h-3" />
                             Volver al Panel
                         </Link>
-                        <h1 className="text-xl font-serif">The Luxury Closer (Live Chat)</h1>
+                        <h1 className="text-xl font-serif">Elena La Costurera (Live Chat)</h1>
                     </div>
                 </div>
 
@@ -174,7 +174,7 @@ export default function LiveChatPage() {
                                                         <div className="flex items-center gap-1 mb-1 opacity-70">
                                                             {msg.sender_type === 'bot' ? <Bot className="w-3 h-3" /> : <User className="w-3 h-3" />}
                                                             <span className="text-[9px] uppercase tracking-widest font-bold">
-                                                                {msg.sender_type === 'bot' ? 'The Luxury Closer' : 'Asesor'}
+                                                                {msg.sender_type === 'bot' ? 'Elena La Costurera' : 'Asesor'}
                                                             </span>
                                                         </div>
                                                     )}
