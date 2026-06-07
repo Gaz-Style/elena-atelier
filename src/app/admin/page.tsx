@@ -14,7 +14,8 @@ import {
     Package,
     Receipt,
     Activity,
-    FileText
+    FileText,
+    Calendar
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 
@@ -26,6 +27,13 @@ export default function AdminDashboard() {
             href: '/admin/pos',
             icon: ShoppingBag,
             color: 'bg-orange-100 text-orange-700'
+        },
+        {
+            title: 'Agenda de Citas',
+            desc: 'Visualización y bloqueo de citas automáticas por IA.',
+            href: '/admin/agenda',
+            icon: Calendar,
+            color: 'bg-blue-100 text-blue-700'
         },
         {
             title: 'Planilla de Ventas',
