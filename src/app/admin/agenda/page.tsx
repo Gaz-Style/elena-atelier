@@ -8,7 +8,7 @@ export default async function AgendaPage({
 }: {
     searchParams: { date?: string }
 }) {
-    const supabase = createClient();
+    const supabase = await createClient();
     
     // Configurar la fecha seleccionada o el día actual
     const today = new Date();
@@ -31,7 +31,7 @@ export default async function AgendaPage({
     // Server Actions
     async function addBloqueo(formData: FormData) {
         'use server';
-        const supabase = createClient();
+        const supabase = await createClient();
         const horaStr = formData.get('hora') as string;
         const notas = formData.get('notas') as string;
         
@@ -54,7 +54,7 @@ export default async function AgendaPage({
 
     async function cancelarEvento(formData: FormData) {
         'use server';
-        const supabase = createClient();
+        const supabase = await createClient();
         const id = formData.get('id') as string;
         
         await supabase.from('agendamientos').update({ estado: 'cancelado' }).eq('id', id);
