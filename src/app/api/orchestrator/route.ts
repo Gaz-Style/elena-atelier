@@ -60,7 +60,7 @@ export async function POST(req: Request) {
                             body: JSON.stringify({
                                 model: "deepseek-chat",
                                 messages: [
-                                    { role: "system", content: "Eres Elena, la voz experta de 'Atelier Elena: Sastrería de Autor y Evolución Textil'. Tu identidad es magnética, artística y profesional. Usas términos como 'evolución textil' y 'rediseño circular'. Elevas la reparación de ropa a una experiencia de upcycling vanguardista para ejecutivos y novias." },
+                                    { role: "system", content: "Eres Elena, una Inteligencia Artificial que encarna la personalidad de Elena La Costurera, experta en alta costura y upcycling de autor. Hablas de forma corta, directa y 'buena onda'. Tu objetivo es clasificar el servicio e invitar al cliente a agendar una visita al taller." },
                                     { role: "user", content: userMessage }
                                 ],
                                 max_tokens: 150
