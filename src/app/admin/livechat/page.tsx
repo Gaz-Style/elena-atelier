@@ -73,17 +73,35 @@ export default function LiveChatPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F0EDE8] p-6 font-sans flex flex-col h-screen">
-            <div className="max-w-7xl mx-auto w-full flex-grow flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="bg-brand-charcoal px-6 py-4 flex items-center justify-between text-white shrink-0">
-                    <div>
-                        <Link href="/admin/dashboard" className="text-gray-400 hover:text-white text-xs flex items-center gap-2 mb-1 transition-colors">
-                            <ArrowLeft className="w-3 h-3" />
-                            Volver al Panel
-                        </Link>
-                        <h1 className="text-xl font-serif">Elena La Costurera (Live Chat)</h1>
-                    </div>
+        <div className="min-h-screen bg-gray-50 flex font-sans h-screen">
+            {/* Sidebar Simple */}
+            <aside className="w-64 bg-white border-r border-gray-200 p-6 flex flex-col hidden md:flex shrink-0">
+                <div className="mb-10">
+                    <h2 className="text-xl font-serif font-bold tracking-wider">ELENA ATELIER</h2>
+                    <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">Admin Panel</p>
                 </div>
+                <nav className="flex-1 space-y-2">
+                    <Link href="/admin/livechat" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black text-white text-sm font-medium">
+                        Live Chat
+                    </Link>
+                    <Link href="/admin/agenda" className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-black transition-colors text-sm font-medium">
+                        Agenda
+                    </Link>
+                </nav>
+            </aside>
+
+            {/* Main Chat Area Wrapper */}
+            <div className="flex-1 p-6 flex flex-col h-screen overflow-hidden">
+                <div className="w-full flex-grow flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="bg-brand-charcoal px-6 py-4 flex items-center justify-between text-white shrink-0">
+                        <div>
+                            <Link href="/admin" className="text-gray-400 hover:text-white text-xs flex items-center gap-2 mb-1 transition-colors">
+                                <ArrowLeft className="w-3 h-3" />
+                                Volver al Dashboard
+                            </Link>
+                            <h1 className="text-xl font-serif">Elena La Costurera (Live Chat)</h1>
+                        </div>
+                    </div>
 
                 <div className="flex flex-grow overflow-hidden">
                     {/* Sidebar */}
@@ -229,6 +247,7 @@ export default function LiveChatPage() {
                         )}
                     </div>
                 </div>
+            </div>
             </div>
         </div>
     );
