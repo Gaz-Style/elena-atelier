@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { consultar_disponibilidad, agendar_visita } from '@/lib/agenda';
 
 const WHATSAPP_VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'elena_atelier_secret';
 
@@ -177,12 +178,79 @@ REGLAS DE ATENCIÓN Y CONTACTO HUMANO:
 Si el cliente muestra una intención clara de agendar una cita en el Atelier, dejar prendas para arreglos, o pide expresamente hablar con un humano, despídete amablemente y proporciónale este enlace directo de WhatsApp para que coordine su visita con el equipo: https://wa.me/56934373844`
                             };
 
-                            const completion = await openai.chat.completions.create({
+                            const tools = [
+                                {
+                                    type: "function",
+                                    function: {
+                                        name: "consultar_disponibilidad",
+                                        description: "Consulta los bloques horarios disponibles en la agenda para una fecha específica. Úsalo cuando el cliente pregunte por horas libres. Hoy es " + new Date().toLocaleDateString('es-CL', { timeZone: 'America/Santiago' }),
+                                        parameters: {
+                                            type: "object",
+                                            properties: {
+                                                fecha: {
+                                                    type: "string",
+                                                    description: "La fecha a consultar en formato YYYY-MM-DD"
+                                                }
+                                            },
+                                            required: ["fecha"]
+                                        }
+                                    }
+                                },
+                                {
+                                    type: "function",
+                                    function: {
+                                        name: "agendar_visita",
+                                        description: "Agenda una cita en el taller de Elena. SOLO ejecútalo cuando el cliente haya confirmado la fecha/hora Y haya proporcionado su nombre, apellido, celular y correo.",
+                                        parameters: {
+                                            type: "object",
+                                            properties: {
+                                                nombre: { type: "string" },
+                                                apellido: { type: "string" },
+                                                celular: { type: "string", description: "Debe incluir código de país, ej: +569..." },
+                                                correo: { type: "string" },
+                                                fecha_hora: { type: "string", description: "Fecha y hora exacta en formato ISO 8601, ej: 2026-06-15T16:00:00-04:00" }
+                                            },
+                                            required: ["nombre", "apellido", "celular", "correo", "fecha_hora"]
+                                        }
+                                    }
+                                }
+                            ];
+
+                            let completion = await openai.chat.completions.create({
                                 model: 'deepseek-chat',
                                 messages: [systemPrompt, ...conversation] as any,
+                                tools: tools as any,
+                                tool_choice: "auto",
                             });
                             
-                            const botReply = completion.choices[0].message.content;
+                            let botMessage = completion.choices[0].message;
+
+                            if (botMessage.tool_calls) {
+                                const toolCall = botMessage.tool_calls[0];
+                                const funcName = toolCall.function.name;
+                                const args = JSON.parse(toolCall.function.arguments);
+                                
+                                let toolResult = "";
+                                if (funcName === "consultar_disponibilidad") {
+                                    toolResult = await consultar_disponibilidad(args.fecha);
+                                } else if (funcName === "agendar_visita") {
+                                    toolResult = await agendar_visita(args.nombre, args.apellido, args.celular, args.correo, args.fecha_hora);
+                                }
+                                
+                                completion = await openai.chat.completions.create({
+                                    model: 'deepseek-chat',
+                                    messages: [
+                                        systemPrompt, 
+                                        ...conversation, 
+                                        botMessage, 
+                                        { role: "tool", tool_call_id: toolCall.id, name: funcName, content: toolResult }
+                                    ] as any,
+                                });
+                                
+                                botMessage = completion.choices[0].message;
+                            }
+                            
+                            const botReply = botMessage.content;
                             
                             if (botReply) {
                                 // Save bot reply to DB
