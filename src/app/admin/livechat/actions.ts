@@ -61,26 +61,47 @@ export async function sendWhatsAppMessageAction(chatId: string, content: string)
         .eq('id', chatId);
 
     // 3. Actually send the message via WhatsApp Cloud API
-    // const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
-    // const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
-    /*
-    const { data: chatData } = await supabase.from('crm_whatsapp_chats').select('phone_number').eq('id', chatId).single();
-    if (chatData) {
-        await fetch(`https://graph.facebook.com/v17.0/${PHONE_NUMBER_ID}/messages`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                messaging_product: 'whatsapp',
-                to: chatData.phone_number,
-                type: 'text',
-                text: { body: content }
-            })
-        });
+    const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
+    const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+    if (WHATSAPP_API_TOKEN && PHONE_NUMBER_ID) {
+        const { createClient: createAdminClient } = await import('@supabase/supabase-js');
+        const adminClient = createAdminClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+        const { data: chatData } = await adminClient
+            .from('crm_whatsapp_chats')
+            .select('phone_number')
+            .eq('id', chatId)
+            .single();
+
+        if (chatData?.phone_number) {
+            try {
+                const wRes = await fetch(`https://graph.facebook.com/v17.0/${PHONE_NUMBER_ID}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        messaging_product: 'whatsapp',
+                        to: chatData.phone_number,
+                        type: 'text',
+                        text: { body: content }
+                    })
+                });
+                const wData = await wRes.json();
+                console.log('LiveChat send response:', wData);
+                if (wData.error) {
+                    return { success: false, error: wData.error.message };
+                }
+            } catch (e: any) {
+                console.error('Error sending WhatsApp from LiveChat:', e);
+                return { success: false, error: e.message };
+            }
+        }
     }
-    */
 
     return { success: true };
 }
