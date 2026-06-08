@@ -515,6 +515,37 @@ export async function createPOSOrdersAction(payload: {
         return { success: false, error: errors[0].error?.message };
     }
 
+    // 3. Si hay finalDeliveryDate, sincronizar con la Agenda como "Retiro de Prenda"
+    if (finalDeliveryDate && finalCustomerId) {
+        try {
+            // Obtener datos del cliente para la agenda
+            const { data: customerData } = await supabase
+                .from('customers')
+                .select('full_name, phone, email')
+                .eq('id', finalCustomerId)
+                .single();
+
+            if (customerData) {
+                const nombre = customerData.full_name.split(' ')[0] || 'Cliente';
+                const apellido = customerData.full_name.split(' ').slice(1).join(' ') || '';
+                
+                await supabase.from('agendamientos').insert([{
+                    nombre,
+                    apellido,
+                    celular: customerData.phone || '',
+                    correo: customerData.email || '',
+                    fecha_hora: finalDeliveryDate,
+                    origen: 'pos',
+                    tipo_evento: 'retiro_encargo',
+                    estado: 'confirmado',
+                    notas: `Retiro de Orden ${internalId}`
+                }]);
+            }
+        } catch (syncError) {
+            console.error('Error sincronizando retiro con la agenda:', syncError);
+        }
+    }
+
     return { success: true };
 }
 
