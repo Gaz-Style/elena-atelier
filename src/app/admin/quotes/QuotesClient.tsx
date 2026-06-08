@@ -89,7 +89,10 @@ export default function QuotesClient({ budgets }: { budgets: Budget[] }) {
     const updateStatus = async (id: string, status: 'pending' | 'accepted' | 'expired') => {
         setActionLoading(id + status);
         startTransition(async () => {
-            await updateBudgetStatusAction(id, status);
+            const res = await updateBudgetStatusAction(id, status);
+            if (res && !res.success) {
+                alert("Error al actualizar el estado: " + res.error);
+            }
             setActionLoading(null);
             router.refresh();
         });

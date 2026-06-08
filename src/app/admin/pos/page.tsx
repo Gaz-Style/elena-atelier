@@ -779,6 +779,18 @@ export default function POSPage() {
         setDailyWorkload(null);
     };
 
+    const handleCloseBudgetModal = () => {
+        setIsBudgetModalOpen(false);
+        setCart([]);
+        setSelectedCustomer(null);
+        setOrderNotes('');
+        setOrderImages([]);
+        setActiveImageIndex(0);
+        setDeadline('');
+        setDailyWorkload(null);
+        setPaymentConfirmed(false);
+    };
+
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(value);
     };
@@ -786,10 +798,46 @@ export default function POSPage() {
     const generateBudgetLink = async () => {
         setIsProcessing(true);
         try {
+            const orderId = Math.floor(Math.random() * 90000) + 10000;
+            const posOrderId = `order_${orderId}`;
+
+            const orderRes = await createPOSOrdersAction({
+                customerId: selectedCustomer ? selectedCustomer.id : 'unassigned',
+                posOrderId: posOrderId,
+                paymentMethod: '',
+                paymentStatus: 'pending',
+                status: 'scheduled',
+                items: cart.map(item => ({
+                    name: item.name,
+                    price: item.price,
+                    category: item.category,
+                    hours: Number(item.details?.hours || getDefaultProductionHours(item.name, item.category)),
+                    notes: item.details?.notes || '',
+                    isCustom: !!item.isCustom,
+                    assignedOperatorId: item.assignedOperatorId || 'unassigned',
+                    scheduledStartDate: item.scheduledStartDate || undefined
+                })),
+                deadline: null,
+                productionStartDate: adjustedDates?.productionStartDate || null,
+                productionEndDate: adjustedDates?.productionEndDate || null,
+                finalDeliveryDate: null
+            });
+
+            if (!orderRes.success) {
+                alert("Error al registrar el presupuesto en producción: " + orderRes.error);
+                setIsProcessing(false);
+                return;
+            }
+
             const budgetData = {
                 cart: cart,
                 total: total,
-                date: new Date().toISOString()
+                date: new Date().toISOString(),
+                customerId: selectedCustomer ? selectedCustomer.id : null,
+                customerName: selectedCustomer ? selectedCustomer.full_name : null,
+                customerEmail: selectedCustomer ? selectedCustomer.email : null,
+                customerPhone: selectedCustomer ? selectedCustomer.phone : null,
+                posOrderId: posOrderId
             };
             const result = await saveBudgetAction(budgetData);
             
@@ -2072,7 +2120,7 @@ export default function POSPage() {
                                     Ver como Cliente
                                 </button>
                                 <button 
-                                    onClick={() => setIsBudgetModalOpen(false)}
+                                    onClick={handleCloseBudgetModal}
                                     className="py-3 bg-brand-charcoal text-white text-[10px] uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all rounded-sm"
                                 >
                                     Finalizar

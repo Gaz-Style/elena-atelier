@@ -31,9 +31,9 @@ export default function ProductionPage() {
     const [calendarView, setCalendarView] = useState<'monthly' | 'weekly' | 'daily'>('monthly');
 
     const stages = [
+        { id: 'scheduled', label: 'Por Recibir (Presupuestos)' },
         { id: 'draft', label: 'Ingresado' },
-        { id: 'cutting', label: 'Corte' },
-        { id: 'sewing', label: 'Confección' },
+        { id: 'sewing', label: 'Corte/Confección' },
         { id: 'finishing', label: 'Fitting / Prueba' },
         { id: 'ready', label: 'Final QC / Listo' }
     ];
@@ -398,9 +398,21 @@ export default function ProductionPage() {
                                                             </select>
                                                         </div>
                                                         <h4 className="font-serif text-sm mb-1">{order.description}</h4>
-                                                        <p className="text-xs text-text-secondary mb-2 flex items-center gap-1">
-                                                            <User className="w-3.5 h-3.5 text-gray-400" /> {order.customers?.full_name || 'Sin cliente'}
-                                                        </p>
+                                                        <div className="text-xs text-text-secondary mb-2 flex flex-col gap-1.5">
+                                                            <div className="flex items-center gap-1">
+                                                                <User className="w-3.5 h-3.5 text-gray-400" /> {order.customers?.full_name || 'Sin cliente'}
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className={`text-[8px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-sm ${order.payment_status === 'completed' || order.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                                                                    {order.payment_status === 'completed' || order.payment_status === 'paid' ? 'Pagado' : 'Pendiente'}
+                                                                </span>
+                                                                {(order.payment_status === 'completed' || order.payment_status === 'paid') && order.status === 'scheduled' && (
+                                                                    <span className="text-[8px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded-sm bg-red-100 text-red-700 animate-pulse border border-red-200">
+                                                                        Presupuesto aceptado debe ser confirmado
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
 
                                                         <div className="mb-3 text-[10px] flex items-center gap-1">
                                                             {order.atelier_operators ? (

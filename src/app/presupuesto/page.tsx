@@ -115,6 +115,19 @@ function BudgetContent() {
         );
     }
 
+    if (data.status === 'accepted' || data.status === 'paid') {
+        return (
+            <div className="min-h-screen flex items-center justify-center p-8 bg-brand-charcoal text-white font-sans">
+                <div className="text-center space-y-6 max-w-md bg-white/5 p-12 border border-white/10 rounded-sm">
+                    <CheckCircle className="w-16 h-16 text-green-400 mx-auto" />
+                    <h1 className="font-serif text-3xl text-brand-sand">Presupuesto Confirmado</h1>
+                    <p className="text-white/60 text-sm leading-relaxed">Este proyecto ya fue agendado y/o pagado exitosamente. No es necesario realizar más acciones.</p>
+                    <Link href="/" className="inline-block mt-4 px-8 py-3 bg-brand-sand text-black text-xs uppercase tracking-widest font-bold hover:bg-white transition-all">Volver al sitio</Link>
+                </div>
+            </div>
+        );
+    }
+
     if (status === 'paying' && paymentMethod === 'presencial') {
         return (
             <div className="min-h-screen flex items-center justify-center p-4 bg-brand-charcoal text-white font-sans">
@@ -418,6 +431,7 @@ function BudgetContent() {
                                                                 posOrderId: buyOrder,
                                                                 paymentMethod: paymentMethod === 'web' ? 'transbank' : 'local',
                                                                 paymentStatus: 'pending',
+                                                                status: 'scheduled',
                                                                 items: data.cart.map((item: any) => ({
                                                                     name: item.name,
                                                                     price: item.price,

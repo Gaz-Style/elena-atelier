@@ -486,6 +486,7 @@ export async function createPOSOrdersAction(payload: {
     posOrderId?: string;
     paymentMethod?: string;
     paymentStatus?: string;
+    status?: string;
     items: {
         name: string;
         price: number;
@@ -501,7 +502,7 @@ export async function createPOSOrdersAction(payload: {
     productionEndDate?: string | null;
     finalDeliveryDate?: string | null;
 }) {
-    const { customerId, posOrderId, paymentMethod, paymentStatus, items, deadline, productionStartDate, productionEndDate, finalDeliveryDate } = payload;
+    const { customerId, posOrderId, paymentMethod, paymentStatus, status, items, deadline, productionStartDate, productionEndDate, finalDeliveryDate } = payload;
     const supabase = await createClient();
 
     const totalAmount = items.reduce((sum, item) => sum + item.price, 0);
@@ -543,7 +544,7 @@ export async function createPOSOrdersAction(payload: {
                 customer_id: finalCustomerId,
                 description: item.name,
                 order_type: orderType,
-                status: 'draft',
+                status: status || 'draft',
                 notes: item.notes || '',
                 deadline: finalDeliveryDate || deadline || null,
                 estimated_hours: item.hours || 0,
@@ -1036,7 +1037,7 @@ export async function saveBudgetAction(payload: any) {
 }
 
 export async function updateBudgetStatusAction(id: string, status: 'pending' | 'accepted' | 'expired') {
-    const supabase = await createClient();
+    const supabase = getAdminClient();
     const { error } = await supabase
         .from('budgets')
         .update({ status, updated_at: new Date().toISOString() })
@@ -1211,6 +1212,49 @@ export async function requestDiscountAuthorizationAction(payload: {
             html: htmlContent,
         });
 
+        // WhatsApp Notification
+        const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+        const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
+        if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
+            const numeroEncargado = '56984021940';
+            try {
+                const wRes = await fetch(`https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        messaging_product: 'whatsapp',
+                        to: numeroEncargado,
+                        type: 'template',
+                        template: {
+                            name: 'alerta_descuento_pos',
+                            language: {
+                                code: 'es'
+                            },
+                            components: [
+                                {
+                                    type: 'body',
+                                    parameters: [
+                                        { type: 'text', text: sellerName || 'Caja Principal' },
+                                        { type: 'text', text: itemName },
+                                        { type: 'text', text: String(discountPct) },
+                                        { type: 'text', text: formatCurrency(originalPrice) },
+                                        { type: 'text', text: String(pin) }
+                                    ]
+                                }
+                            ]
+                        }
+                    })
+                });
+                const wData = await wRes.json();
+                console.log('Respuesta Meta POS:', wData);
+            } catch (wspErr) {
+                console.error('Error enviando WhatsApp POS:', wspErr);
+            }
+        }
+
         return { success: true, pin };
     } catch (err: unknown) {
         console.error('Error enviando email de autorización:', err);
@@ -1264,6 +1308,26 @@ export async function getOperatorsDailyLoadAction() {
 
 import { enviar_correo_confirmacion } from '@/lib/agenda';
 
+function parseChileDateString(isoString: string) {
+    const d = new Date(isoString);
+    const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Santiago',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23'
+    });
+    const parts = formatter.formatToParts(d);
+    const p: Record<string, string> = {};
+    parts.forEach(part => { p[part.type] = part.value; });
+    return {
+        dateStr: `${p.year}-${p.month}-${p.day}`,
+        horaStr: `${p.hour}:00`
+    };
+}
+
 export async function getAvailableSlotsAction(dateStr: string) {
     try {
         const slots: string[] = [];
@@ -1293,8 +1357,8 @@ export async function getAvailableSlotsAction(dateStr: string) {
             .neq('estado', 'cancelado');
             
         const horasOcupadas = eventos ? eventos.map((e: any) => {
-            const d = new Date(e.fecha_hora);
-            return d.getHours().toString().padStart(2, '0') + ':00';
+            const { horaStr } = parseChileDateString(e.fecha_hora);
+            return horaStr;
         }) : [];
 
         const startHour = parseInt(configDia.hora_inicio.split(':')[0]);
@@ -1329,9 +1393,38 @@ export async function confirmPresencialBookingAction(payload: {
     try {
         const { budgetId, dateStr, timeStr, customerName, customerEmail, customerPhone, orderPayload } = payload;
         
-        // 1. Create POS order
-        const orderRes = await createPOSOrdersAction(orderPayload);
-        if (!orderRes.success) throw new Error(orderRes.error || 'No se pudo crear la orden');
+        const supabase = getAdminClient();
+        const fechaHoraIso = `${dateStr}T${timeStr.padStart(5, '0')}:00-04:00`;
+
+        // 1. Manage POS order
+        if (orderPayload.posOrderId) {
+            const { data: existingSale } = await supabase.from('sales_ledger').select('id').eq('internal_id', orderPayload.posOrderId).single();
+            if (existingSale) {
+                // Update production_orders
+                await supabase.from('production_orders')
+                    .update({ 
+                        deadline: fechaHoraIso,
+                        final_delivery_date: fechaHoraIso,
+                        payment_method: orderPayload.paymentMethod,
+                        payment_status: orderPayload.paymentStatus
+                    })
+                    .eq('pos_order_id', orderPayload.posOrderId);
+                
+                // Update sales_ledger
+                await supabase.from('sales_ledger')
+                    .update({
+                        payment_method: orderPayload.paymentMethod,
+                        status: orderPayload.paymentStatus === 'completed' || orderPayload.paymentStatus === 'paid' ? 'completed' : 'pending'
+                    })
+                    .eq('internal_id', orderPayload.posOrderId);
+            } else {
+                const orderRes = await createPOSOrdersAction(orderPayload);
+                if (!orderRes.success) throw new Error(orderRes.error || 'No se pudo crear la orden');
+            }
+        } else {
+            const orderRes = await createPOSOrdersAction(orderPayload);
+            if (!orderRes.success) throw new Error(orderRes.error || 'No se pudo crear la orden');
+        }
         
         // 2. Update budget status
         if (budgetId) {
@@ -1339,9 +1432,8 @@ export async function confirmPresencialBookingAction(payload: {
         }
 
         // 3. Create appointment
-        const supabase = getAdminClient();
-        const fechaHoraIso = `${dateStr}T${timeStr.padStart(5, '0')}:00-04:00`;
-        const { error: eventError } = await supabase.from('agendamientos').insert({
+        const supabaseEvent = getAdminClient();
+        const { error: eventError } = await supabaseEvent.from('agendamientos').insert({
             nombre: customerName.split(' ')[0],
             apellido: customerName.split(' ').slice(1).join(' ') || '',
             celular: customerPhone || '',
@@ -1390,9 +1482,7 @@ export async function getMonthAvailabilityAction(year: number, month: number) {
         const bookedByDate = new Map<string, string[]>();
         if (eventos) {
             eventos.forEach((e: any) => {
-                const d = new Date(e.fecha_hora);
-                const dateStr = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
-                const horaStr = d.getHours().toString().padStart(2, '0') + ':00';
+                const { dateStr, horaStr } = parseChileDateString(e.fecha_hora);
                 if (!bookedByDate.has(dateStr)) bookedByDate.set(dateStr, []);
                 bookedByDate.get(dateStr)!.push(horaStr);
             });

@@ -25,8 +25,17 @@ export async function getProductionOrders() {
   return data;
 }
 
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+const getAdminClient = () => {
+    return createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+};
+
 export async function updateOrderStatus(id: string, newStatus: string) {
-  const supabase = await createClient();
+  const supabase = getAdminClient();
   
   // 1. Verificar si tiene costurera asignada antes de cambiar de estado
   const { data: order, error: fetchError } = await supabase
