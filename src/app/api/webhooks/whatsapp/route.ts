@@ -250,8 +250,8 @@ Si el cliente muestra una intención clara de agendar una cita en el Atelier, de
                             
                             let botMessage = completion.choices[0].message;
 
-                            if (botMessage.tool_calls) {
-                                const toolCall = botMessage.tool_calls[0];
+                            if (botMessage.tool_calls && botMessage.tool_calls.length > 0) {
+                                const toolCall = botMessage.tool_calls[0] as any;
                                 const funcName = toolCall.function.name;
                                 const args = JSON.parse(toolCall.function.arguments);
                                 
