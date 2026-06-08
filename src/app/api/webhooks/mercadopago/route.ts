@@ -81,14 +81,23 @@ export async function POST(req: Request) {
                         if (externalRef) {
                             console.log(`Pago aprobado para external_reference: ${externalRef}`);
                             await logSystemEvent(supabase, 'INFO', `Pago aprobado MP`, { paymentId, externalRef, status: payment.status });
-                            
+
+                            // Determinar método de pago real desde la respuesta de MP
+                            const mpPaymentType = payment.payment_type_id || '';
+                            const mpPaymentMethodId = payment.payment_method_id || '';
+                            let paymentMethodLabel = 'MercadoPago';
+                            if (mpPaymentType === 'credit_card') paymentMethodLabel = 'Tarjeta de Crédito (MP)';
+                            else if (mpPaymentType === 'debit_card') paymentMethodLabel = 'Tarjeta de Débito (MP)';
+                            else if (mpPaymentType === 'bank_transfer' || mpPaymentMethodId === 'pse') paymentMethodLabel = 'Transferencia Bancaria';
+                            else if (mpPaymentType === 'ticket') paymentMethodLabel = 'Efectivo (MP)';
+                            else if (mpPaymentType === 'prepaid_card') paymentMethodLabel = 'Tarjeta Prepago (MP)';
 
                             // Actualizar todas las filas de la orden (puede tener multiples items)
                             const { data, error } = await supabase
                                 .from('production_orders')
                                 .update({ 
                                     payment_status: 'PAGADO',
-                                    payment_method: 'Mercado_Pago_Presencial'
+                                    payment_method: paymentMethodLabel
                                 })
                                 .eq('pos_order_id', externalRef);
                                 
@@ -104,7 +113,7 @@ export async function POST(req: Request) {
                                     .update({ 
                                         status: 'completed',
                                         external_transaction_id: paymentId,
-                                        payment_method: 'Mercado_Pago_Presencial'
+                                        payment_method: paymentMethodLabel
                                     })
                                     .eq('internal_id', externalRef);
 
@@ -155,14 +164,14 @@ export async function POST(req: Request) {
 
                                         // Notify owner
                                         await sendWsp('56984021940', 'alerta_pago_recibido', [
-                                            clienteName, prenda, monto, externalRef
+                                            clienteName, prenda, monto, externalRef, paymentMethodLabel
                                         ]);
 
                                         // Notify customer if we have their phone
                                         if (clientePhone && clientePhone.length >= 9) {
                                             const fullPhone = clientePhone.startsWith('56') ? clientePhone : `56${clientePhone}`;
                                             await sendWsp(fullPhone, 'confirmacion_pago_cliente', [
-                                                clienteName, prenda, monto, externalRef
+                                                clienteName, prenda, monto, externalRef, paymentMethodLabel
                                             ]);
                                         }
                                     } else {
