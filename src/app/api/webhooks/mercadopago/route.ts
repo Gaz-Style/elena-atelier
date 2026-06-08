@@ -107,6 +107,71 @@ export async function POST(req: Request) {
                                         payment_method: 'Mercado_Pago_Presencial'
                                     })
                                     .eq('internal_id', externalRef);
+
+                                // --- WhatsApp Notifications ---
+                                const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+                                const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
+
+                                if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
+                                    const sendWsp = async (to: string, templateName: string, params: string[]) => {
+                                        try {
+                                            const r = await fetch(`https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+                                                method: 'POST',
+                                                headers: { 'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`, 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({
+                                                    messaging_product: 'whatsapp',
+                                                    to,
+                                                    type: 'template',
+                                                    template: {
+                                                        name: templateName,
+                                                        language: { code: 'es' },
+                                                        components: [{
+                                                            type: 'body',
+                                                            parameters: params.map(p => ({ type: 'text', text: p }))
+                                                        }]
+                                                    }
+                                                })
+                                            });
+                                            const d = await r.json();
+                                            console.log(`WhatsApp ${templateName} → ${to}:`, d);
+                                        } catch (e) {
+                                            console.error(`Error WhatsApp ${templateName}:`, e);
+                                        }
+                                    };
+
+                                    // Fetch order details to get customer info
+                                    const { data: orders } = await supabase
+                                        .from('production_orders')
+                                        .select('customer_name, customer_phone, item_name, total_price')
+                                        .eq('pos_order_id', externalRef)
+                                        .limit(1);
+
+                                    if (orders && orders.length > 0) {
+                                        const order = orders[0];
+                                        const monto = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(payment.transaction_amount || order.total_price || 0);
+                                        const prenda = order.item_name || 'Servicio';
+                                        const clienteName = order.customer_name || 'Clienta';
+                                        const clientePhone = order.customer_phone?.replace(/[^0-9]/g, '');
+
+                                        // Notify owner
+                                        await sendWsp('56984021940', 'alerta_pago_recibido', [
+                                            clienteName, prenda, monto, externalRef
+                                        ]);
+
+                                        // Notify customer if we have their phone
+                                        if (clientePhone && clientePhone.length >= 9) {
+                                            const fullPhone = clientePhone.startsWith('56') ? clientePhone : `56${clientePhone}`;
+                                            await sendWsp(fullPhone, 'confirmacion_pago_cliente', [
+                                                clienteName, prenda, monto, externalRef
+                                            ]);
+                                        }
+                                    } else {
+                                        // No order details — notify owner with just the reference
+                                        await sendWsp('56984021940', 'alerta_pago_recibido', [
+                                            'Clienta', 'Orden', `Ref: ${externalRef}`, externalRef
+                                        ]);
+                                    }
+                                }
                             }
                         } else {
                             console.warn('El pago aprobado no tiene external_reference. Imposible asociar a la base de datos automáticamente.');
