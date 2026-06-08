@@ -1253,3 +1253,104 @@ export async function getOperatorsDailyLoadAction() {
     }).sort((a, b) => a.workloadPercentage - b.workloadPercentage);
 }
 
+import { enviar_correo_confirmacion } from '@/lib/agenda';
+
+export async function getAvailableSlotsAction(dateStr: string) {
+    try {
+        const slots: string[] = [];
+        const dateParts = dateStr.split('-'); // YYYY-MM-DD
+        const targetDate = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), 12, 0, 0);
+        
+        const dayOfWeek = targetDate.getDay();
+        
+        // Fetch schedule configuration
+        const { data: configs } = await createClient().from('configuracion_horarios').select('*').eq('activo', true);
+        if (!configs || configs.length === 0) return { success: true, slots: [] };
+        
+        const configDia = configs.find((c: any) => c.dia_semana === dayOfWeek);
+        if (!configDia) return { success: true, slots: [] }; // Closed this day
+
+        // Fetch booked events
+        const startOfSearch = new Date(targetDate);
+        startOfSearch.setHours(0, 0, 0, 0);
+        const endOfSearch = new Date(targetDate);
+        endOfSearch.setHours(23, 59, 59, 999);
+
+        const { data: eventos } = await createClient()
+            .from('agendamientos')
+            .select('fecha_hora')
+            .gte('fecha_hora', startOfSearch.toISOString())
+            .lte('fecha_hora', endOfSearch.toISOString())
+            .neq('estado', 'cancelado');
+            
+        const horasOcupadas = eventos ? eventos.map((e: any) => {
+            const d = new Date(e.fecha_hora);
+            return d.getHours().toString().padStart(2, '0') + ':00';
+        }) : [];
+
+        const startHour = parseInt(configDia.hora_inicio.split(':')[0]);
+        const endHour = parseInt(configDia.hora_fin.split(':')[0]);
+
+        for (let h = startHour; h < endHour; h++) {
+            const horaStr = h.toString().padStart(2, '0') + ':00';
+            const bloqueISO = `${dateStr}T${h.toString().padStart(2, '0')}:00:00-04:00`;
+            const bloqueDate = new Date(bloqueISO);
+            
+            if (bloqueDate > new Date() && !horasOcupadas.includes(horaStr)) {
+                slots.push(horaStr);
+            }
+        }
+
+        return { success: true, slots };
+    } catch (err: any) {
+        console.error('Error fetching available slots:', err);
+        return { success: false, error: err.message };
+    }
+}
+
+export async function confirmPresencialBookingAction(payload: {
+    budgetId: string;
+    dateStr: string;
+    timeStr: string;
+    customerName: string;
+    customerEmail: string;
+    customerPhone: string;
+    orderPayload: any;
+}) {
+    try {
+        const { budgetId, dateStr, timeStr, customerName, customerEmail, customerPhone, orderPayload } = payload;
+        
+        // 1. Create POS order
+        const orderRes = await createPOSOrdersAction(orderPayload);
+        if (!orderRes.success) throw new Error(orderRes.error || 'No se pudo crear la orden');
+        
+        // 2. Update budget status
+        if (budgetId) {
+            await updateBudgetStatusAction(budgetId, 'accepted');
+        }
+
+        // 3. Create appointment
+        const fechaHoraIso = `${dateStr}T${timeStr.padStart(5, '0')}:00-04:00`;
+        const { error: eventError } = await createClient().from('agendamientos').insert({
+            tipo: 'cliente',
+            titulo: `Visita ${customerName} (Pago en Taller)`,
+            fecha_hora: fechaHoraIso,
+            duracion_minutos: 60,
+            estado: 'agendado',
+            cliente_nombre: customerName,
+            cliente_telefono: customerPhone || '',
+            cliente_correo: customerEmail || '',
+            origen: 'web'
+        });
+
+        if (eventError) throw eventError;
+
+        // 4. Send email
+        await enviar_correo_confirmacion(customerName.split(' ')[0], customerName.split(' ')[1] || '', customerPhone || '', customerEmail, fechaHoraIso);
+
+        return { success: true };
+    } catch (err: any) {
+        console.error('Error in presencial booking:', err);
+        return { success: false, error: err.message || 'Error al agendar cita' };
+    }
+}

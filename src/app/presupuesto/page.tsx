@@ -2,16 +2,23 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { CheckCircle, CreditCard, Store, Calendar, MapPin, Check } from 'lucide-react';
+import { CheckCircle, CreditCard, Store, Calendar as CalendarIcon, MapPin, Check, Clock, ChevronRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { createWebpayTransaction } from '@/lib/transbank';
-import { getBudgetAction, createPOSOrdersAction, updateBudgetStatusAction } from '../admin/pos/actions';
+import { getBudgetAction, createPOSOrdersAction, updateBudgetStatusAction, getAvailableSlotsAction, confirmPresencialBookingAction } from '../admin/pos/actions';
 
 function BudgetContent() {
     const searchParams = useSearchParams();
     const [data, setData] = useState<any>(null);
-    const [status, setStatus] = useState<'viewing' | 'accepted' | 'paying'>('viewing');
+    const [status, setStatus] = useState<'viewing' | 'accepted' | 'scheduling' | 'paying'>('viewing');
     const [paymentMethod, setPaymentMethod] = useState<'web' | 'presencial' | null>(null);
+
+    // Scheduling state
+    const [selectedDate, setSelectedDate] = useState<string>('');
+    const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+    const [selectedTime, setSelectedTime] = useState<string>('');
+    const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+    const [isConfirmingBooking, setIsConfirmingBooking] = useState(false);
 
     useEffect(() => {
         const loadBudget = async () => {
@@ -41,6 +48,23 @@ function BudgetContent() {
         loadBudget();
     }, [searchParams]);
 
+    useEffect(() => {
+        if (selectedDate) {
+            const fetchSlots = async () => {
+                setIsLoadingSlots(true);
+                setSelectedTime('');
+                const res = await getAvailableSlotsAction(selectedDate);
+                if (res.success && res.slots) {
+                    setAvailableSlots(res.slots);
+                } else {
+                    setAvailableSlots([]);
+                }
+                setIsLoadingSlots(false);
+            };
+            fetchSlots();
+        }
+    }, [selectedDate]);
+
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(value);
     };
@@ -65,8 +89,8 @@ function BudgetContent() {
                         <Check className="w-10 h-10 text-green-400" />
                     </div>
                     <div className="space-y-4">
-                        <h1 className="font-serif text-3xl text-brand-sand">¡Presupuesto Aceptado!</h1>
-                        <p className="text-white/60 text-sm leading-relaxed">Hemos recibido tu confirmación. Te esperamos en nuestro Atelier para dar inicio a tu proyecto.</p>
+                        <h1 className="font-serif text-3xl text-brand-sand">¡Cita Confirmada!</h1>
+                        <p className="text-white/60 text-sm leading-relaxed">Hemos recibido tu confirmación y hemos agendado tu visita. Te esperamos en nuestro Atelier para dar inicio a tu proyecto.</p>
                     </div>
                     <div className="bg-white/5 border border-white/10 p-6 rounded-sm text-left space-y-4">
                         <div className="flex items-start gap-4 text-sm">
@@ -74,8 +98,10 @@ function BudgetContent() {
                             <p className="text-white/80">Tabancura 1091, Of. 319 · Vitacura<br/>Santiago, Chile</p>
                         </div>
                         <div className="flex items-start gap-4 text-sm">
-                            <Calendar className="w-5 h-5 text-brand-sand shrink-0" />
-                            <p className="text-white/80">Horario: Lun - Vie de 10:00 a 19:00</p>
+                            <CalendarIcon className="w-5 h-5 text-brand-sand shrink-0" />
+                            <p className="text-white/80">
+                                {new Date(`${selectedDate}T${selectedTime}`).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })} a las {selectedTime} hrs
+                            </p>
                         </div>
                     </div>
                     <Link 
@@ -307,14 +333,9 @@ function BudgetContent() {
                                     </div>
                                 </button>
                                 <button 
-                                    onClick={async () => {
+                                    onClick={() => {
                                         setPaymentMethod('presencial');
-                                        setStatus('paying');
-                                        // Mark budget as accepted in DB
-                                        const budgetId = searchParams.get('id');
-                                        if (budgetId) {
-                                            await updateBudgetStatusAction(budgetId, 'accepted');
-                                        }
+                                        setStatus('scheduling');
                                     }}
                                     className="flex flex-col items-center gap-4 p-8 border border-white/10 bg-white/5 hover:border-brand-sand rounded-sm text-white transition-all group cursor-pointer"
                                 >
@@ -323,7 +344,7 @@ function BudgetContent() {
                                     </div>
                                     <div className="text-center">
                                         <p className="text-sm font-bold uppercase tracking-widest text-white">Pagar en Atelier</p>
-                                        <p className="text-[10px] text-white/50 mt-1">Confirmar ahora y pagar presencialmente</p>
+                                        <p className="text-[10px] text-white/50 mt-1">Agendar cita y pagar presencialmente</p>
                                     </div>
                                 </button>
                             </div>
@@ -334,10 +355,138 @@ function BudgetContent() {
                                 Volver al detalle
                             </button>
                         </div>
+                    ) : status === 'scheduling' ? (
+                        <div className="w-full space-y-6 animate-in slide-in-from-bottom duration-500 bg-white/5 p-6 border border-white/10 rounded-sm backdrop-blur-xl">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h4 className="font-serif text-2xl text-white">Agenda tu Visita</h4>
+                                    <p className="text-xs text-brand-sand mt-1 uppercase tracking-widest font-bold">Selecciona fecha y hora</p>
+                                </div>
+                                <button onClick={() => setStatus('accepted')} className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white">
+                                    Volver
+                                </button>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <label className="text-[10px] text-white/50 font-bold uppercase tracking-widest flex items-center gap-2">
+                                        <CalendarIcon className="w-4 h-4" /> 1. Elige una Fecha
+                                    </label>
+                                    <input 
+                                        type="date" 
+                                        min={new Date().toISOString().split('T')[0]}
+                                        className="w-full bg-black/40 border border-white/20 text-white p-3 text-sm focus:border-brand-sand focus:outline-none rounded-sm font-sans"
+                                        value={selectedDate}
+                                        onChange={(e) => setSelectedDate(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="space-y-4">
+                                    <label className="text-[10px] text-white/50 font-bold uppercase tracking-widest flex items-center gap-2">
+                                        <Clock className="w-4 h-4" /> 2. Elige una Hora
+                                    </label>
+                                    
+                                    {!selectedDate ? (
+                                        <div className="h-[48px] flex items-center text-sm text-white/40 italic">
+                                            Selecciona una fecha primero
+                                        </div>
+                                    ) : isLoadingSlots ? (
+                                        <div className="h-[48px] flex items-center text-sm text-brand-sand gap-2">
+                                            <Loader2 className="w-4 h-4 animate-spin" /> Buscando disponibilidad...
+                                        </div>
+                                    ) : availableSlots.length === 0 ? (
+                                        <div className="h-[48px] flex items-center text-sm text-red-400">
+                                            No hay horas disponibles este día.
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {availableSlots.map(time => (
+                                                <button
+                                                    key={time}
+                                                    onClick={() => setSelectedTime(time)}
+                                                    className={`py-2 text-sm rounded-sm transition-all border ${
+                                                        selectedTime === time 
+                                                        ? 'bg-brand-sand text-black border-brand-sand font-bold' 
+                                                        : 'bg-black/40 text-white/80 border-white/20 hover:border-brand-sand hover:text-brand-sand'
+                                                    }`}
+                                                >
+                                                    {time}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <button 
+                                disabled={!selectedDate || !selectedTime || isConfirmingBooking}
+                                onClick={async () => {
+                                    setIsConfirmingBooking(true);
+                                    try {
+                                        const orderId = Date.now().toString();
+                                        const buyOrder = `order_${orderId}`;
+                                        
+                                        const orderPayload = {
+                                            customerId: data.customerId || 'unassigned',
+                                            posOrderId: buyOrder,
+                                            paymentMethod: 'presencial',
+                                            paymentStatus: 'pending',
+                                            items: data.cart.map((item: any) => ({
+                                                name: item.name,
+                                                price: item.price,
+                                                category: item.category,
+                                                notes: item.notes || '',
+                                                isCustom: !!item.isCustom,
+                                                hours: item.details?.hours || 0,
+                                                assignedOperatorId: item.assignedOperatorId || 'unassigned'
+                                            })),
+                                            deadline: null,
+                                            productionStartDate: null,
+                                            productionEndDate: null,
+                                            finalDeliveryDate: null
+                                        };
+                                        
+                                        const budgetId = searchParams.get('id') || '';
+                                        
+                                        const res = await confirmPresencialBookingAction({
+                                            budgetId,
+                                            dateStr: selectedDate,
+                                            timeStr: selectedTime,
+                                            customerName: data.customerName || 'Cliente',
+                                            customerEmail: data.customerEmail || '',
+                                            customerPhone: data.customerPhone || '',
+                                            orderPayload
+                                        });
+
+                                        if (res.success) {
+                                            setStatus('paying');
+                                        } else {
+                                            throw new Error(res.error || 'Error al confirmar la cita');
+                                        }
+                                    } catch (err: any) {
+                                        console.error('Error confirming booking:', err);
+                                        alert(err.message || 'Ocurrió un error al confirmar. Por favor reintente.');
+                                    } finally {
+                                        setIsConfirmingBooking(false);
+                                    }
+                                }}
+                                className={`w-full mt-4 flex items-center justify-center gap-2 py-4 text-xs font-bold uppercase tracking-widest transition-all ${
+                                    !selectedDate || !selectedTime || isConfirmingBooking
+                                    ? 'bg-white/10 text-white/30 cursor-not-allowed'
+                                    : 'bg-brand-sand text-black hover:bg-brand-sand/90 shadow-[0_0_20px_rgba(193,127,95,0.3)] cursor-pointer'
+                                }`}
+                            >
+                                {isConfirmingBooking ? (
+                                    <><Loader2 className="w-4 h-4 animate-spin" /> Confirmando Cita...</>
+                                ) : (
+                                    <><CheckCircle className="w-4 h-4" /> Confirmar Cita y Finalizar</>
+                                )}
+                            </button>
+                        </div>
                     ) : (
                         <div className="w-full text-center py-4 space-y-4">
                             <div className="inline-flex items-center gap-4 px-8 py-3 bg-white/5 text-brand-sand rounded-full text-sm font-bold animate-pulse">
-                                <span className="w-4 h-4 rounded-full border-2 border-brand-sand border-t-transparent animate-spin" /> Redirigiendo a pasarela Mercado Pago...
+                                <span className="w-4 h-4 rounded-full border-2 border-brand-sand border-t-transparent animate-spin" /> Redirigiendo...
                             </div>
                         </div>
                     )}
