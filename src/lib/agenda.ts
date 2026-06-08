@@ -89,23 +89,72 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
     const horaLegible = dateObj.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' });
     const fechaLegible = dateObj.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Santiago' });
 
+    const smtpUser = process.env.SMTP_USER || '';
+    const fromAddress = smtpUser.includes('gmail.com') ? 'contacto@elenalacosturera.cl' : smtpUser;
+
     try {
         await transporter.sendMail({
-            from: `"Atelier Elena" <${process.env.SMTP_USER}>`,
+            from: `"ELENA La Costurera" <${fromAddress}>`,
             to: correo,
-            subject: 'Tu cita en Elena La Costurera ha sido confirmada ✨',
+            subject: 'Confirmación de Cita — ELENA La Costurera',
             html: `
-                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-                    <h2 style="color: #111;">¡Hola ${nombre}!</h2>
-                    <p>Nos emociona recibirte en nuestro Atelier. Tu cita ha sido agendada exitosamente.</p>
-                    <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #333; margin: 20px 0;">
-                        <p><strong>Fecha:</strong> ${fechaLegible}</p>
-                        <p><strong>Hora:</strong> ${horaLegible}</p>
-                    </div>
-                    <p>Recuerda traer tus prendas si se trata de Upcycling Fit & Repair.</p>
-                    <p>¡Nos vemos pronto!</p>
-                    <p><strong>Atelier Elena: Sastrería de Autor y Evolución Textil</strong></p>
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <meta charset="utf-8">
+            <style>
+              @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,300;0,400;0,600;1,400&display=swap');
+            </style>
+            </head>
+            <body style="margin: 0; padding: 40px 20px; background-color: #f5f5f0; font-family: 'Inter', sans-serif;">
+              <div style="max-width: 480px; margin: 0 auto; background-color: #111111; border-radius: 8px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
+                
+                <!-- Header -->
+                <div style="padding: 40px 30px; text-align: center; border-bottom: 1px dashed rgba(245, 242, 235, 0.15);">
+                  <div style="font-size: 10px; color: #8A857D; letter-spacing: 6px; text-transform: uppercase; margin-bottom: 12px;">Atelier</div>
+                  <h1 style="font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 300; color: #FFFFFF; margin: 0; letter-spacing: 2px;">ELENA</h1>
+                  <div style="font-size: 8px; color: #C17F5F; letter-spacing: 4px; text-transform: uppercase; margin-top: 8px;">La Costurera</div>
                 </div>
+                
+                <!-- Body -->
+                <div style="padding: 40px 30px; text-align: center;">
+                  <h2 style="font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 300; color: #FFFFFF; margin: 0 0 24px 0; font-style: italic;">¡Hola ${nombre}!</h2>
+                  
+                  <p style="color: #F5F5F0; font-size: 13px; line-height: 1.6; font-weight: 300; margin-bottom: 30px; opacity: 0.9;">
+                    Nos emociona recibirte. Tu cita para Premium Custom Upcycling & Alta Costura ha sido confirmada en nuestro sistema.
+                  </p>
+                  
+                  <!-- Ticket Details -->
+                  <div style="border: 1px solid rgba(193, 127, 95, 0.3); border-radius: 4px; padding: 24px; background-color: rgba(255,255,255,0.03); margin-bottom: 30px;">
+                    <p style="font-size: 9px; font-weight: 600; color: #C17F5F; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 12px 0;">LUXURY PASS & RESERVA</p>
+                    
+                    <div style="margin-bottom: 16px;">
+                      <span style="font-size: 9px; text-transform: uppercase; color: #8A857D; letter-spacing: 1px;">Fecha de Visita</span><br>
+                      <strong style="font-size: 16px; color: #FFFFFF; font-family: 'Playfair Display', serif; display: inline-block; margin-top: 6px;">${fechaLegible}</strong>
+                    </div>
+                    
+                    <div>
+                      <span style="font-size: 9px; text-transform: uppercase; color: #8A857D; letter-spacing: 1px;">Horario Exclusivo</span><br>
+                      <strong style="font-size: 14px; color: #C17F5F; font-family: 'Inter', sans-serif; display: inline-block; margin-top: 6px; font-weight: 400;">${horaLegible} hrs</strong>
+                    </div>
+                  </div>
+                  
+                  <p style="font-size: 11px; color: #8A857D; font-style: italic; line-height: 1.5; margin-bottom: 0;">
+                    *Si asistes por Upcycling Fit & Repair, recuerda traer tus prendas. Te esperamos en Av. Tabancura 1091, Vitacura.
+                  </p>
+                </div>
+                
+                <!-- Footer -->
+                <div style="background-color: #0A0A0A; padding: 24px; text-align: center;">
+                  <span style="display: inline-block; width: 1px; height: 16px; background-color: #333; margin: 0 2px;"></span>
+                  <span style="display: inline-block; width: 3px; height: 16px; background-color: #333; margin: 0 2px;"></span>
+                  <span style="display: inline-block; width: 1px; height: 16px; background-color: #333; margin: 0 2px;"></span>
+                  <div style="font-size: 8px; color: #555; letter-spacing: 3px; margin-top: 12px; text-transform: uppercase;">SASTRERÍA DE AUTOR</div>
+                </div>
+                
+              </div>
+            </body>
+            </html>
             `
         });
         
