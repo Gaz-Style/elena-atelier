@@ -1263,8 +1263,8 @@ export async function getAvailableSlotsAction(dateStr: string) {
         
         const dayOfWeek = targetDate.getDay();
         
-        // Fetch schedule configuration
-        const { data: configs } = await createClient().from('configuracion_horarios').select('*').eq('activo', true);
+        const supabase = await createClient();
+        const { data: configs } = await supabase.from('configuracion_horarios').select('*').eq('activo', true);
         if (!configs || configs.length === 0) return { success: true, slots: [] };
         
         const configDia = configs.find((c: any) => c.dia_semana === dayOfWeek);
@@ -1276,7 +1276,7 @@ export async function getAvailableSlotsAction(dateStr: string) {
         const endOfSearch = new Date(targetDate);
         endOfSearch.setHours(23, 59, 59, 999);
 
-        const { data: eventos } = await createClient()
+        const { data: eventos } = await supabase
             .from('agendamientos')
             .select('fecha_hora')
             .gte('fecha_hora', startOfSearch.toISOString())
@@ -1330,8 +1330,9 @@ export async function confirmPresencialBookingAction(payload: {
         }
 
         // 3. Create appointment
+        const supabase = await createClient();
         const fechaHoraIso = `${dateStr}T${timeStr.padStart(5, '0')}:00-04:00`;
-        const { error: eventError } = await createClient().from('agendamientos').insert({
+        const { error: eventError } = await supabase.from('agendamientos').insert({
             tipo: 'cliente',
             titulo: `Visita ${customerName} (Pago en Taller)`,
             fecha_hora: fechaHoraIso,
@@ -1361,14 +1362,15 @@ export async function getMonthAvailabilityAction(year: number, month: number) {
         const endDate = new Date(year, month + 1, 0, 23, 59, 59);
 
         // Fetch schedule configuration
-        const { data: configs } = await createClient().from('configuracion_horarios').select('*').eq('activo', true);
+        const supabase = await createClient();
+        const { data: configs } = await supabase.from('configuracion_horarios').select('*').eq('activo', true);
         const configsByDay = new Map();
         if (configs) {
             configs.forEach((c: any) => configsByDay.set(c.dia_semana, c));
         }
 
         // Fetch booked events for the month
-        const { data: eventos } = await createClient()
+        const { data: eventos } = await supabase
             .from('agendamientos')
             .select('fecha_hora')
             .gte('fecha_hora', startDate.toISOString())
