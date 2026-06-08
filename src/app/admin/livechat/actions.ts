@@ -78,7 +78,7 @@ export async function sendWhatsAppMessageAction(chatId: string, content: string)
 
         if (chatData?.phone_number) {
             try {
-                const wRes = await fetch(`https://graph.facebook.com/v17.0/${PHONE_NUMBER_ID}/messages`, {
+                const wRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
