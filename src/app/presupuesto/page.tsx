@@ -396,10 +396,10 @@ function BudgetContent() {
                                                 {selectedDayData.bookedSlots.map((time: string) => (
                                                     <div
                                                         key={`booked-${time}`}
-                                                        className="py-4 border border-white/5 bg-black/20 text-white/20 text-sm font-bold uppercase tracking-widest flex items-center justify-center relative overflow-hidden"
+                                                        className="py-4 border border-white/5 bg-transparent flex flex-col items-center justify-center transition-all duration-300"
                                                     >
-                                                        <span className="line-through decoration-white/20">{time}</span>
-                                                        <span className="absolute text-[8px] text-white/40 bg-[#1a1a1a] px-2 uppercase tracking-widest transform rotate-[-15deg] border border-white/5">Ocupado</span>
+                                                        <span className="text-sm font-bold text-white/20 line-through decoration-white/10">{time}</span>
+                                                        <span className="text-[11px] font-serif italic text-brand-sand/50 mt-1 tracking-wider">Reservado</span>
                                                     </div>
                                                 ))}
                                             </div>
