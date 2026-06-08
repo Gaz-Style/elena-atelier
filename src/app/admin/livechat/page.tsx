@@ -13,7 +13,38 @@ export default function LiveChatPage() {
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const [sendError, setSendError] = useState<string | null>(null);
+    const [autoRevertSeconds, setAutoRevertSeconds] = useState<number | null>(null);
+    const autoRevertRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const AUTO_REVERT_SECS = 30; // 30 seconds
+
+    const clearAutoRevert = () => {
+        if (autoRevertRef.current) clearInterval(autoRevertRef.current);
+        autoRevertRef.current = null;
+        setAutoRevertSeconds(null);
+    };
+
+    const startAutoRevert = (chatId: string) => {
+        clearAutoRevert();
+        setAutoRevertSeconds(AUTO_REVERT_SECS);
+        let remaining = AUTO_REVERT_SECS;
+        autoRevertRef.current = setInterval(async () => {
+            remaining -= 1;
+            setAutoRevertSeconds(remaining);
+            if (remaining <= 0) {
+                clearAutoRevert();
+                await toggleBotSessionAction(chatId, true);
+                setSelectedChat((prev: any) => {
+                    if (prev && prev.id === chatId) {
+                        return { ...prev, session_status: 'bot' };
+                    }
+                    return prev;
+                });
+                loadChats();
+            }
+        }, 1000);
+    };
 
     const loadChats = () => {
         getWhatsAppChatsAction().then(data => {
@@ -30,13 +61,24 @@ export default function LiveChatPage() {
     }, []);
 
     useEffect(() => {
-        if (selectedChat) {
+        if (selectedChat?.id) {
             getWhatsAppMessagesAction(selectedChat.id).then(msgs => {
                 setMessages(msgs);
                 scrollToBottom();
             });
         }
-    }, [selectedChat]);
+    }, [selectedChat?.id]);
+
+    useEffect(() => {
+        if (selectedChat?.id && selectedChat?.session_status !== 'bot') {
+            startAutoRevert(selectedChat.id);
+        } else {
+            clearAutoRevert();
+        }
+        return () => {
+            clearAutoRevert();
+        };
+    }, [selectedChat?.id, selectedChat?.session_status]);
 
     const scrollToBottom = () => {
         setTimeout(() => {
@@ -70,6 +112,9 @@ export default function LiveChatPage() {
         if (selectedChat.session_status === 'bot') {
             setSelectedChat({ ...selectedChat, session_status: 'human_handoff' });
             loadChats();
+        } else {
+            // Already in human_handoff, restart the timer
+            startAutoRevert(selectedChat.id);
         }
     };
 
@@ -77,7 +122,8 @@ export default function LiveChatPage() {
         if (!selectedChat) return;
         const newStatus = selectedChat.session_status === 'bot' ? false : true;
         await toggleBotSessionAction(selectedChat.id, newStatus);
-        setSelectedChat({ ...selectedChat, session_status: newStatus ? 'bot' : 'human_handoff' });
+        const newSessionStatus = newStatus ? 'bot' : 'human_handoff';
+        setSelectedChat({ ...selectedChat, session_status: newSessionStatus });
         loadChats();
     };
 
@@ -175,6 +221,11 @@ export default function LiveChatPage() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
+                                        {selectedChat.session_status !== 'bot' && autoRevertSeconds !== null && (
+                                            <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100 animate-pulse">
+                                                IA en {autoRevertSeconds}s
+                                            </span>
+                                        )}
                                         <button 
                                             onClick={toggleBot}
                                             className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wide transition-colors ${
