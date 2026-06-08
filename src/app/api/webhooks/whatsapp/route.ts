@@ -199,8 +199,9 @@ CONTEXTO EN TIEMPO REAL DEL ATELIER:
 ${catalogText}
 ${timingText}
 
-REGLAS DE ATENCIÓN Y CONTACTO HUMANO:
-Si el cliente muestra una intención clara de agendar una cita en el Atelier, dejar prendas para arreglos, o pide expresamente hablar con un humano, despídete amablemente y proporciónale este enlace directo de WhatsApp para que coordine su visita con el equipo: https://wa.me/56934373844`
+REGLAS DE ATENCIÓN Y HERRAMIENTAS:
+1. SIEMPRE debes usar la herramienta "consultar_disponibilidad" para revisar la agenda real ANTES de confirmar o sugerir una hora específica. NUNCA inventes fechas ni horas de tu cabeza, usa la herramienta.
+2. Si el cliente pide expresamente hablar con un humano o hacer un reclamo, proporciónale este enlace: https://wa.me/56934373844`
                             };
 
                             const tools = [
