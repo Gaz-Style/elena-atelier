@@ -1348,7 +1348,9 @@ export async function confirmPresencialBookingAction(payload: {
             correo: customerEmail || '',
             fecha_hora: fechaHoraIso,
             estado: 'confirmado',
-            origen: 'web'
+            tipo_evento: 'cita_cliente',
+            origen: 'web',
+            notas: `Ref Orden: ${orderPayload.posOrderId} - Pago: ${orderPayload.paymentMethod === 'transbank' ? 'Transbank (Pendiente)' : 'Local'}`
         });
 
         if (eventError) throw eventError;

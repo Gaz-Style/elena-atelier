@@ -416,7 +416,7 @@ function BudgetContent() {
                                                             const orderPayload = {
                                                                 customerId: data.customerId || 'unassigned',
                                                                 posOrderId: buyOrder,
-                                                                paymentMethod: 'presencial',
+                                                                paymentMethod: paymentMethod === 'web' ? 'transbank' : 'local',
                                                                 paymentStatus: 'pending',
                                                                 items: data.cart.map((item: any) => ({
                                                                     name: item.name,
@@ -445,10 +445,23 @@ function BudgetContent() {
                                                                 orderPayload
                                                             });
 
-                                                            if (res.success) {
-                                                                setStatus('paying');
-                                                            } else {
+                                                            if (!res.success) {
                                                                 throw new Error(res.error || 'Error al confirmar la cita');
+                                                            }
+
+                                                            if (paymentMethod === 'web') {
+                                                                const sessionId = `session_web_${orderId}`;
+                                                                const callbackUrl = `${window.location.origin}/presupuesto/pago-exitoso`;
+                                                                
+                                                                const tbkRes = await createWebpayTransaction(buyOrder, sessionId, data.total, callbackUrl);
+                                                                
+                                                                if (tbkRes.success && tbkRes.url && tbkRes.token) {
+                                                                    window.location.href = `${tbkRes.url}?token_ws=${tbkRes.token}`;
+                                                                } else {
+                                                                    throw new Error(tbkRes.error || 'Error al inicializar Transbank');
+                                                                }
+                                                            } else {
+                                                                setStatus('paying');
                                                             }
                                                         } catch (err: any) {
                                                             console.error('Error confirming booking:', err);
@@ -514,54 +527,9 @@ function BudgetContent() {
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <button 
-                                        onClick={async () => {
+                                        onClick={() => {
                                             setPaymentMethod('web');
-                                            setStatus('paying');
-                                            try {
-                                                const orderId = Date.now().toString();
-                                                const buyOrder = `order_${orderId}`;
-                                                
-                                                const orderPayload = {
-                                                    customerId: data.customerId || 'unassigned',
-                                                    posOrderId: buyOrder,
-                                                    paymentMethod: 'transbank',
-                                                    paymentStatus: 'pending',
-                                                    items: data.cart.map((item: any) => ({
-                                                        name: item.name,
-                                                        price: item.price,
-                                                        category: item.category,
-                                                        notes: item.notes || '',
-                                                        isCustom: !!item.isCustom,
-                                                        hours: item.details?.hours || 0,
-                                                        assignedOperatorId: item.assignedOperatorId || 'unassigned'
-                                                    })),
-                                                    deadline: null,
-                                                    productionStartDate: null,
-                                                    productionEndDate: null,
-                                                    finalDeliveryDate: null
-                                                };
-                                                
-                                                const orderRes = await createPOSOrdersAction(orderPayload);
-                                                if (!orderRes.success) {
-                                                    throw new Error(orderRes.error || 'No se pudo crear la orden');
-                                                }
-                                                
-                                                const sessionId = `session_web_${orderId}`;
-                                                const callbackUrl = `${window.location.origin}/presupuesto/pago-exitoso`;
-                                                
-                                                const tbkRes = await createWebpayTransaction(buyOrder, sessionId, data.total, callbackUrl);
-                                                
-                                                if (tbkRes.success && tbkRes.url && tbkRes.token) {
-                                                    window.location.href = `${tbkRes.url}?token_ws=${tbkRes.token}`;
-                                                } else {
-                                                    throw new Error(tbkRes.error || 'Error al inicializar Transbank');
-                                                }
-                                            } catch (err) {
-                                                console.error('Error redirecting to Webpay:', err);
-                                                alert('Ocurrió un error al procesar el pago. Por favor reintente.');
-                                                setStatus('accepted');
-                                                setPaymentMethod(null);
-                                            }
+                                            setStatus('scheduling');
                                         }}
                                         className="flex flex-col items-center gap-4 p-8 border border-white/10 bg-white/5 hover:border-brand-sand rounded-sm text-white transition-all group cursor-pointer"
                                     >
