@@ -236,28 +236,30 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
             text: `Se ha agendado una nueva cita:\nNombre: ${nombre} ${apellido}\nCelular: ${celular}\nCorreo: ${correo}\nFecha: ${fechaLegible} a las ${horaLegible}`
         });
 
-        // Notificación por WhatsApp al encargado (984021940)
+        // Notificación por WhatsApp a encargados
         const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
         const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
         if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
-            const numeroEncargado = '56984021940';
+            const numerosEncargados = ['56984021940', '56937667709'];
             const mensajeWsp = `🔔 *Nueva Cita Agendada*\n\n*Cliente:* ${nombre} ${apellido}\n*Fecha:* ${fechaLegible}\n*Hora:* ${horaLegible}\n*Tel:* ${celular}`;
             
-            const resp = await fetch(`https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    messaging_product: 'whatsapp',
-                    to: numeroEncargado,
-                    type: 'text',
-                    text: { body: mensajeWsp }
-                })
-            });
-            const data = await resp.json();
-            console.log('WhatsApp Encargado Response:', data);
+            for (const numeroEncargado of numerosEncargados) {
+                const resp = await fetch(`https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        messaging_product: 'whatsapp',
+                        to: numeroEncargado,
+                        type: 'text',
+                        text: { body: mensajeWsp }
+                    })
+                });
+                const data = await resp.json();
+                console.log(`WhatsApp Encargado (${numeroEncargado}):`, data);
+            }
         }
     } catch (mailError) {
         console.error('Error enviando correos:', mailError);

@@ -162,10 +162,12 @@ export async function POST(req: Request) {
                                         const clienteName = order.customer_name || 'Clienta';
                                         const clientePhone = order.customer_phone?.replace(/[^0-9]/g, '');
 
-                                        // Notify owner
-                                        await sendWsp('56984021940', 'alerta_pago_recibido', [
-                                            clienteName, prenda, monto, externalRef, paymentMethodLabel
-                                        ]);
+                                        // Notify owners
+                                        for (const ownerNum of ['56984021940', '56937667709']) {
+                                            await sendWsp(ownerNum, 'alerta_pago_recibido', [
+                                                clienteName, prenda, monto, externalRef, paymentMethodLabel
+                                            ]);
+                                        }
 
                                         // Notify customer if we have their phone
                                         if (clientePhone && clientePhone.length >= 9) {
@@ -175,10 +177,12 @@ export async function POST(req: Request) {
                                             ]);
                                         }
                                     } else {
-                                        // No order details — notify owner with just the reference
-                                        await sendWsp('56984021940', 'alerta_pago_recibido', [
-                                            'Clienta', 'Orden', `Ref: ${externalRef}`, externalRef
-                                        ]);
+                                        // No order details — notify owners with just the reference
+                                        for (const ownerNum of ['56984021940', '56937667709']) {
+                                            await sendWsp(ownerNum, 'alerta_pago_recibido', [
+                                                'Clienta', 'Orden', `Ref: ${externalRef}`, externalRef, 'MercadoPago'
+                                            ]);
+                                        }
                                     }
                                 }
                             }

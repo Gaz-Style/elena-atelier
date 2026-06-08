@@ -1216,42 +1216,44 @@ export async function requestDiscountAuthorizationAction(payload: {
         const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
         const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
         if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
-            const numeroEncargado = '56984021940';
-            try {
-                const wRes = await fetch(`https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        messaging_product: 'whatsapp',
-                        to: numeroEncargado,
-                        type: 'template',
-                        template: {
-                            name: 'alerta_descuento_pos',
-                            language: {
-                                code: 'es'
-                            },
-                            components: [
-                                {
-                                    type: 'body',
-                                    parameters: [
-                                        { type: 'text', text: sellerName || 'Caja Principal' },
-                                        { type: 'text', text: itemName },
-                                        { type: 'text', text: String(discountPct) },
-                                        { type: 'text', text: formatCurrency(originalPrice) },
-                                        { type: 'text', text: String(pin) }
-                                    ]
-                                }
-                            ]
-                        }
-                    })
-                });
-                const wData = await wRes.json();
-                console.log('Respuesta Meta POS:', wData);
-            } catch (wspErr) {
-                console.error('Error enviando WhatsApp POS:', wspErr);
+            const numerosEncargados = ['56984021940', '56937667709'];
+            for (const numeroEncargado of numerosEncargados) {
+                try {
+                    const wRes = await fetch(`https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            messaging_product: 'whatsapp',
+                            to: numeroEncargado,
+                            type: 'template',
+                            template: {
+                                name: 'alerta_descuento_pos',
+                                language: {
+                                    code: 'es'
+                                },
+                                components: [
+                                    {
+                                        type: 'body',
+                                        parameters: [
+                                            { type: 'text', text: sellerName || 'Caja Principal' },
+                                            { type: 'text', text: itemName },
+                                            { type: 'text', text: String(discountPct) },
+                                            { type: 'text', text: formatCurrency(originalPrice) },
+                                            { type: 'text', text: String(pin) }
+                                        ]
+                                    }
+                                ]
+                            }
+                        })
+                    });
+                    const wData = await wRes.json();
+                    console.log(`Respuesta Meta POS (${numeroEncargado}):`, wData);
+                } catch (wspErr) {
+                    console.error(`Error enviando WhatsApp POS a ${numeroEncargado}:`, wspErr);
+                }
             }
         }
 
