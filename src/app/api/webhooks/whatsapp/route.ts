@@ -208,7 +208,7 @@ ${timingText}`
                                     type: "function",
                                     function: {
                                         name: "consultar_disponibilidad",
-                                        description: "Consulta los bloques horarios disponibles en la agenda para una fecha específica. Úsalo cuando el cliente pregunte por horas libres. Hoy es " + new Date().toLocaleDateString('es-CL', { timeZone: 'America/Santiago' }),
+                                        description: "Consulta los bloques horarios libres en la agenda. ÚSALO OBLIGATORIAMENTE en el PASO 3 del Protocolo, INMEDIATAMENTE DESPUÉS de que el cliente te dé su Nombre y datos. Hoy es " + new Date().toLocaleDateString('es-CL', { timeZone: 'America/Santiago' }),
                                         parameters: {
                                             type: "object",
                                             properties: {
