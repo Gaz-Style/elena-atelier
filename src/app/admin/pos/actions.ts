@@ -1354,3 +1354,99 @@ export async function confirmPresencialBookingAction(payload: {
         return { success: false, error: err.message || 'Error al agendar cita' };
     }
 }
+
+export async function getMonthAvailabilityAction(year: number, month: number) {
+    try {
+        const startDate = new Date(year, month, 1, 0, 0, 0);
+        const endDate = new Date(year, month + 1, 0, 23, 59, 59);
+
+        // Fetch schedule configuration
+        const { data: configs } = await createClient().from('configuracion_horarios').select('*').eq('activo', true);
+        const configsByDay = new Map();
+        if (configs) {
+            configs.forEach((c: any) => configsByDay.set(c.dia_semana, c));
+        }
+
+        // Fetch booked events for the month
+        const { data: eventos } = await createClient()
+            .from('agendamientos')
+            .select('fecha_hora')
+            .gte('fecha_hora', startDate.toISOString())
+            .lte('fecha_hora', endDate.toISOString())
+            .neq('estado', 'cancelado');
+
+        // Group booked events by date string (YYYY-MM-DD)
+        const bookedByDate = new Map<string, string[]>();
+        if (eventos) {
+            eventos.forEach((e: any) => {
+                const d = new Date(e.fecha_hora);
+                const dateStr = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+                const horaStr = d.getHours().toString().padStart(2, '0') + ':00';
+                if (!bookedByDate.has(dateStr)) bookedByDate.set(dateStr, []);
+                bookedByDate.get(dateStr)!.push(horaStr);
+            });
+        }
+
+        const daysInMonth = endDate.getDate();
+        const availability = [];
+        const now = new Date();
+
+        for (let i = 1; i <= daysInMonth; i++) {
+            const currentDate = new Date(year, month, i, 12, 0, 0);
+            const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
+            const dayOfWeek = currentDate.getDay();
+            const configDia = configsByDay.get(dayOfWeek);
+            
+            // Check if day is past
+            const isPast = currentDate < new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+
+            if (!configDia || isPast) {
+                availability.push({
+                    date: dateStr,
+                    isOpen: false,
+                    availableSlots: [],
+                    bookedSlots: []
+                });
+                continue;
+            }
+
+            const startHour = parseInt(configDia.hora_inicio.split(':')[0]);
+            const endHour = parseInt(configDia.hora_fin.split(':')[0]);
+            const bookedToday = bookedByDate.get(dateStr) || [];
+            
+            const availableSlots = [];
+            const bookedSlots = [];
+
+            for (let h = startHour; h < endHour; h++) {
+                const horaStr = h.toString().padStart(2, '0') + ':00';
+                
+                // If checking today, don't allow past hours
+                const bloqueISO = `${dateStr}T${horaStr}:00-04:00`;
+                const bloqueDate = new Date(bloqueISO);
+                
+                if (bloqueDate < now) {
+                    continue; // Skip past hours today
+                }
+
+                if (bookedToday.includes(horaStr)) {
+                    bookedSlots.push(horaStr);
+                } else {
+                    availableSlots.push(horaStr);
+                }
+            }
+
+            availability.push({
+                date: dateStr,
+                isOpen: true,
+                availableSlots,
+                bookedSlots,
+                isFull: availableSlots.length === 0 && bookedSlots.length > 0
+            });
+        }
+
+        return { success: true, availability };
+    } catch (err: any) {
+        console.error('Error fetching month availability:', err);
+        return { success: false, error: err.message };
+    }
+}
