@@ -123,7 +123,7 @@ function BudgetContent() {
                         <Check className="w-10 h-10 text-green-400" />
                     </div>
                     <div className="space-y-4">
-                        <h1 className="font-serif text-3xl text-brand-sand">¡Audiencia Confirmada!</h1>
+                        <h1 className="font-serif text-3xl text-brand-sand">¡Cita Confirmada!</h1>
                         <p className="text-white/60 text-sm leading-relaxed">Tu cita exclusiva ha sido agendada. Te esperamos en nuestro Atelier para dar inicio a tu proyecto.</p>
                     </div>
                     <div className="bg-white/5 border border-white/10 p-6 rounded-sm text-left space-y-4">
@@ -282,7 +282,7 @@ function BudgetContent() {
                         <div className="p-8 md:p-16">
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12 border-b border-white/10 pb-8">
                                 <div>
-                                    <h2 className="font-serif text-3xl text-white">Agenda tu Audiencia</h2>
+                                    <h2 className="font-serif text-3xl text-white">Agenda tu Cita</h2>
                                     <p className="text-xs text-brand-sand mt-2 uppercase tracking-widest font-bold">Selección de Fecha y Hora</p>
                                 </div>
                                 <div className="text-left md:text-right">
@@ -468,7 +468,7 @@ function BudgetContent() {
                                                     {isConfirmingBooking ? (
                                                         <><Loader2 className="w-5 h-5 animate-spin" /> Asegurando Cupo...</>
                                                     ) : (
-                                                        <><CheckCircle className="w-5 h-5" /> Reservar Audiencia</>
+                                                        <><CheckCircle className="w-5 h-5" /> Reservar Cita</>
                                                     )}
                                                 </button>
                                                 <button 
