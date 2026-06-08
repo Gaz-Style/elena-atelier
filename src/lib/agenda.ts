@@ -15,61 +15,66 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-export async function consultar_disponibilidad(fecha: string) {
+export async function consultar_disponibilidad(fecha_inicial: string) {
     try {
-        const dateObj = new Date(`${fecha}T12:00:00`);
-        const dayOfWeek = dateObj.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
+        const slotsEncontrados = [];
+        const maxDiasBusqueda = 7;
+        let fechaActual = new Date(`${fecha_inicial}T12:00:00-04:00`);
 
-        // 1. Consultar configuración de horarios para el día solicitado
-        const { data: config, error: configError } = await supabase
-            .from('configuracion_horarios')
-            .select('*')
-            .eq('dia_semana', dayOfWeek)
-            .single();
+        const { data: configs } = await supabase.from('configuracion_horarios').select('*').eq('activo', true);
+        if (!configs || configs.length === 0) return "El taller no tiene horarios configurados.";
 
-        // Si hay error (ej. tabla no existe aún) o el día está inactivo
-        if (configError || !config || !config.activo) {
-            return `El taller no atiende los días ${dateObj.toLocaleDateString('es-CL', { weekday: 'long' })}. Por favor intenta otro día.`;
-        }
-
-        // Buscamos eventos en esa fecha
-        const startOfDay = new Date(`${fecha}T00:00:00-04:00`); // Santiago timezone
-        const endOfDay = new Date(`${fecha}T23:59:59-04:00`);
+        const startOfSearch = new Date(`${fecha_inicial}T00:00:00-04:00`);
+        const endOfSearch = new Date(startOfSearch);
+        endOfSearch.setDate(endOfSearch.getDate() + maxDiasBusqueda);
 
         const { data: eventos, error } = await supabase
             .from('agendamientos')
             .select('fecha_hora')
-            .gte('fecha_hora', startOfDay.toISOString())
-            .lte('fecha_hora', endOfDay.toISOString())
+            .gte('fecha_hora', startOfSearch.toISOString())
+            .lte('fecha_hora', endOfSearch.toISOString())
             .neq('estado', 'cancelado');
-
+            
         if (error) throw error;
+        const horasOcupadas = eventos ? eventos.map((e) => new Date(e.fecha_hora).toISOString()) : [];
 
-        // Construir bloques base según la hora de inicio y fin de la BD
-        const startHour = parseInt(config.hora_inicio.split(':')[0]);
-        const endHour = parseInt(config.hora_fin.split(':')[0]);
+        for (let i = 0; i < maxDiasBusqueda; i++) {
+            if (slotsEncontrados.length >= 3) break;
 
-        const bloquesDisponibles = [];
-        for (let i = startHour; i < endHour; i++) { // Usa < endHour para que el último bloque termine en hora_fin
-            const horaStr = i.toString().padStart(2, '0');
-            const bloque = `${fecha}T${horaStr}:00:00-04:00`;
-            bloquesDisponibles.push(bloque);
+            const dayOfWeek = fechaActual.getDay();
+            const configDia = configs.find(c => c.dia_semana === dayOfWeek);
+
+            if (configDia) {
+                const fechaStr = fechaActual.toISOString().split('T')[0];
+                const startHour = parseInt(configDia.hora_inicio.split(':')[0]);
+                const endHour = parseInt(configDia.hora_fin.split(':')[0]);
+
+                for (let h = startHour; h < endHour; h++) {
+                    const horaStr = h.toString().padStart(2, '0');
+                    const bloqueISO = `${fechaStr}T${horaStr}:00:00-04:00`;
+                    
+                    const bloqueDate = new Date(bloqueISO);
+                    if (bloqueDate > new Date()) {
+                        if (!horasOcupadas.includes(bloqueDate.toISOString())) {
+                            slotsEncontrados.push({
+                                fecha: fechaStr,
+                                diaLegible: fechaActual.toLocaleDateString('es-CL', { weekday: 'long', timeZone: 'America/Santiago' }),
+                                hora: `${horaStr}:00`
+                            });
+                        }
+                    }
+                }
+            }
+            
+            fechaActual.setDate(fechaActual.getDate() + 1);
         }
 
-        // Filtrar bloques ocupados
-        const horasOcupadas = eventos.map((e) => new Date(e.fecha_hora).toISOString());
-        
-        const disponiblesReales = bloquesDisponibles.filter((bloque) => {
-            const dateStr = new Date(bloque).toISOString();
-            return !horasOcupadas.includes(dateStr);
-        });
-
-        if (disponiblesReales.length === 0) {
-            return `No hay horas disponibles para la fecha ${fecha}. Por favor intenta otro día.`;
+        if (slotsEncontrados.length === 0) {
+            return `No hay horas disponibles en los próximos días empezando desde ${fecha_inicial}.`;
         }
 
-        const horasLegibles = disponiblesReales.map(b => new Date(b).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' }));
-        return `Las horas disponibles para el ${fecha} son: ${horasLegibles.join(', ')}.`;
+        const opciones = slotsEncontrados.slice(0, 3).map((s, idx) => `Opción ${idx + 1}: ${s.diaLegible} ${s.fecha} a las ${s.hora}`);
+        return `Opciones de horarios disponibles:\n${opciones.join('\n')}`;
 
     } catch (err: any) {
         console.error('Error consultar_disponibilidad:', err);
