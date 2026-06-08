@@ -82,6 +82,9 @@ export async function consultar_disponibilidad(fecha_inicial: string) {
     }
 }
 
+import fs from 'fs';
+import path from 'path';
+
 export async function enviar_correo_confirmacion(nombre: string, apellido: string, celular: string, correo: string, fechaAjustada: string) {
     if (!correo) return;
     
@@ -92,70 +95,137 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
     const smtpUser = process.env.SMTP_USER || '';
     const fromAddress = smtpUser.includes('gmail.com') ? 'contacto@elenalacosturera.cl' : smtpUser;
 
+    const attachments = [];
+    let cardBgUrl = '';
+
+    const filePath = path.join(process.cwd(), 'public', 'trabajos', 'model_desnuda_bw.png');
+    if (fs.existsSync(filePath)) {
+        attachments.push({
+            filename: 'model_desnuda_bw.png',
+            path: filePath,
+            cid: 'luxuryPassBg'
+        });
+        cardBgUrl = 'cid:luxuryPassBg';
+    } else {
+        cardBgUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGUlEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAA8F8bGgABxZqVdgAAAABJRU5ErkJggg==';
+    }
+
     try {
         await transporter.sendMail({
             from: `"ELENA La Costurera" <${fromAddress}>`,
             to: correo,
             subject: 'Confirmación de Cita — ELENA La Costurera',
-            html: `
-            <!DOCTYPE html>
-            <html>
-            <head>
-            <meta charset="utf-8">
-            <style>
-              @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,300;0,400;0,600;1,400&display=swap');
-            </style>
-            </head>
-            <body style="margin: 0; padding: 40px 20px; background-color: #f5f5f0; font-family: 'Inter', sans-serif;">
-              <div style="max-width: 480px; margin: 0 auto; background-color: #111111; border-radius: 8px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
-                
-                <!-- Header -->
-                <div style="padding: 40px 30px; text-align: center; border-bottom: 1px dashed rgba(245, 242, 235, 0.15);">
-                  <div style="font-size: 10px; color: #8A857D; letter-spacing: 6px; text-transform: uppercase; margin-bottom: 12px;">Atelier</div>
-                  <h1 style="font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 300; color: #FFFFFF; margin: 0; letter-spacing: 2px;">ELENA</h1>
-                  <div style="font-size: 8px; color: #C17F5F; letter-spacing: 4px; text-transform: uppercase; margin-top: 8px;">La Costurera</div>
-                </div>
-                
-                <!-- Body -->
-                <div style="padding: 40px 30px; text-align: center;">
-                  <h2 style="font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 300; color: #FFFFFF; margin: 0 0 24px 0; font-style: italic;">¡Hola ${nombre}!</h2>
-                  
-                  <p style="color: #F5F5F0; font-size: 13px; line-height: 1.6; font-weight: 300; margin-bottom: 30px; opacity: 0.9;">
-                    Nos emociona recibirte. Tu cita para Premium Custom Upcycling & Alta Costura ha sido confirmada en nuestro sistema.
-                  </p>
-                  
-                  <!-- Ticket Details -->
-                  <div style="border: 1px solid rgba(193, 127, 95, 0.3); border-radius: 4px; padding: 24px; background-color: rgba(255,255,255,0.03); margin-bottom: 30px;">
-                    <p style="font-size: 9px; font-weight: 600; color: #C17F5F; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 12px 0;">LUXURY PASS & RESERVA</p>
-                    
-                    <div style="margin-bottom: 16px;">
-                      <span style="font-size: 9px; text-transform: uppercase; color: #8A857D; letter-spacing: 1px;">Fecha de Visita</span><br>
-                      <strong style="font-size: 16px; color: #FFFFFF; font-family: 'Playfair Display', serif; display: inline-block; margin-top: 6px;">${fechaLegible}</strong>
-                    </div>
-                    
-                    <div>
-                      <span style="font-size: 9px; text-transform: uppercase; color: #8A857D; letter-spacing: 1px;">Horario Exclusivo</span><br>
-                      <strong style="font-size: 14px; color: #C17F5F; font-family: 'Inter', sans-serif; display: inline-block; margin-top: 6px; font-weight: 400;">${horaLegible} hrs</strong>
-                    </div>
-                  </div>
-                  
-                  <p style="font-size: 11px; color: #8A857D; font-style: italic; line-height: 1.5; margin-bottom: 0;">
-                    *Si asistes por Upcycling Fit & Repair, recuerda traer tus prendas. Te esperamos en Av. Tabancura 1091, Vitacura.
-                  </p>
-                </div>
-                
-                <!-- Footer -->
-                <div style="background-color: #0A0A0A; padding: 24px; text-align: center;">
-                  <span style="display: inline-block; width: 1px; height: 16px; background-color: #333; margin: 0 2px;"></span>
-                  <span style="display: inline-block; width: 3px; height: 16px; background-color: #333; margin: 0 2px;"></span>
-                  <span style="display: inline-block; width: 1px; height: 16px; background-color: #333; margin: 0 2px;"></span>
-                  <div style="font-size: 8px; color: #555; letter-spacing: 3px; margin-top: 12px; text-transform: uppercase;">SASTRERÍA DE AUTOR</div>
-                </div>
-                
-              </div>
-            </body>
-            </html>
-            `
+            attachments: attachments,
+            html: `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elena La Costurera — Luxury Pass</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,700;1,300&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #F0EDE8; margin: 0; padding: 24px; -webkit-font-smoothing: antialiased;">
+  <!-- Card Container -->
+  <div style="max-width: 360px; margin: 0 auto; background-color: #1A1A1A; background-image: linear-gradient(to bottom, rgba(26, 26, 26, 0.25) 0%, rgba(26, 26, 26, 0.85) 60%, #1A1A1A 100%), url('${cardBgUrl}'); background-size: cover; background-position: center; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); border: 1px solid rgba(245, 242, 235, 0.15); overflow: hidden; color: #F5F5F0;">
+    
+    <!-- Tag Hole -->
+    <div style="width: 12px; height: 12px; background-color: #F0EDE8; border-radius: 50%; margin: 28px auto 0 auto; opacity: 0.9;"></div>
+    
+    <!-- Header -->
+    <div style="text-align: center; padding: 28px 20px 24px 20px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto; width: 130px; border-collapse: collapse;">
+        <tr>
+          <td>
+            <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td align="left" style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; color: #FFFFFF; line-height: 1; padding: 0;">E</td>
+                <td align="center" style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; color: #FFFFFF; line-height: 1; padding: 0;">L</td>
+                <td align="center" style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; color: #FFFFFF; line-height: 1; padding: 0;">E</td>
+                <td align="center" style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; color: #FFFFFF; line-height: 1; padding: 0;">N</td>
+                <td align="right" style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; color: #FFFFFF; line-height: 1; padding: 0;">A</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-top: 8px; line-height: 1; font-size: 1px;">&nbsp;</td>
+        </tr>
+        <tr>
+          <td>
+            <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td align="left" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">L</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">A</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0; width: 6px;">&nbsp;</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">C</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">O</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">S</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">T</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">U</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">R</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">E</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">R</td>
+                <td align="right" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">A</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+    
+    <!-- Table-based Ticket Divider -->
+    <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; margin: 0; border-collapse: collapse;">
+      <tr>
+        <td style="width: 8px; height: 16px; background-color: #F0EDE8; border-radius: 0 8px 8px 0;"></td>
+        <td style="border-bottom: 1px dashed rgba(245, 242, 235, 0.12); vertical-align: middle; height: 8px; line-height: 1px; font-size: 1px;">&nbsp;</td>
+        <td style="width: 8px; height: 16px; background-color: #F0EDE8; border-radius: 8px 0 0 8px;"></td>
+      </tr>
+    </table>
+    
+    <!-- Body -->
+    <div style="padding: 36px 30px 40px 30px; text-align: center;">
+      <p style="font-size: 8px; font-weight: 600; color: #C17F5F; letter-spacing: 5px; text-transform: uppercase; margin: 0 0 4px 0; font-family: 'Inter', sans-serif;">Confirmación Cita</p>
+      
+      <p style="font-family: 'Playfair Display', Georgia, serif; font-size: 24px; font-style: italic; font-weight: 400; color: #F5F5F0; margin: 0 0 36px 0; letter-spacing: 0.5px;">¡Hola ${nombre}!</p>
+      
+      <div style="margin-bottom: 30px;">
+        <p style="color: #F5F5F0; font-size: 13px; line-height: 1.6; font-weight: 300; margin-bottom: 30px; opacity: 0.9;">
+          Nos emociona recibirte. Tu cita para Premium Custom Upcycling & Alta Costura ha sido confirmada en nuestro sistema.
+        </p>
+        
+        <div style="border: 1px solid rgba(245, 242, 235, 0.15); border-radius: 4px; display: inline-block; padding: 16px 24px; background-color: rgba(255, 255, 255, 0.03); margin-bottom: 20px; text-align: center; width: 85%;">
+          <p style="font-size: 8px; font-weight: 600; color: #C17F5F; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 6px 0; font-family: 'Inter', sans-serif;">LUXURY PASS & RESERVA</p>
+          <hr style="border: 0; border-top: 1px solid rgba(245, 242, 235, 0.1); margin: 8px 0 12px 0;">
+          <span style="font-size: 8px; text-transform: uppercase; color: #8A857D; letter-spacing: 1px;">Fecha de Visita</span><br>
+          <strong style="font-size: 14px; color: #FFFFFF; font-family: 'Playfair Display', Georgia, serif; display: inline-block; margin-top: 4px; margin-bottom: 12px;">${fechaLegible}</strong><br>
+          <span style="font-size: 8px; text-transform: uppercase; color: #8A857D; letter-spacing: 1px;">Horario Exclusivo</span><br>
+          <strong style="font-size: 12px; color: #C17F5F; font-family: 'Inter', sans-serif; display: inline-block; margin-top: 4px;">${horaLegible} hrs</strong>
+          <p style="font-size: 8px; color: #8A857D; font-style: italic; margin-top: 12px; line-height: 1.4; margin-bottom: 0;">
+            *Si asistes por Upcycling Fit & Repair, recuerda traer tus prendas. Te esperamos en Av. Tabancura 1091, Vitacura.
+          </p>
+        </div>
+      </div>
+      
+      <!-- Barcode -->
+      <div style="margin: 36px 0 12px 0; text-align: center; opacity: 0.7;">
+        <span style="display: inline-block; width: 1px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 2px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 1px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 3px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 1px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 2px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 1px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 4px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 1.5px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 1px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <div style="font-size: 7.5px; color: #8A857D; letter-spacing: 4px; margin-top: 6px; text-transform: uppercase; font-family: 'Inter', sans-serif;">ELENA*CITA*LA*COSTURERA</div>
+      </div>
+      
+      <p style="font-size: 8px; color: #8A857D; letter-spacing: 2.5px; margin-top: 28px; font-weight: 400; font-family: 'Inter', sans-serif;">Av. Tabancura 1091 · Vitacura</p>
+    </div>
+  </div>
+</body>
+</html>`
         });
         
         // Notificación interna a Elena
