@@ -1342,14 +1342,12 @@ export async function confirmPresencialBookingAction(payload: {
         const supabase = getAdminClient();
         const fechaHoraIso = `${dateStr}T${timeStr.padStart(5, '0')}:00-04:00`;
         const { error: eventError } = await supabase.from('agendamientos').insert({
-            tipo: 'cliente',
-            titulo: `Visita ${customerName} (Pago en Taller)`,
+            nombre: customerName.split(' ')[0],
+            apellido: customerName.split(' ').slice(1).join(' ') || '',
+            celular: customerPhone || '',
+            correo: customerEmail || '',
             fecha_hora: fechaHoraIso,
-            duracion_minutos: 60,
-            estado: 'agendado',
-            cliente_nombre: customerName,
-            cliente_telefono: customerPhone || '',
-            cliente_correo: customerEmail || '',
+            estado: 'confirmado',
             origen: 'web'
         });
 
