@@ -468,7 +468,7 @@ function BudgetContent() {
                                                     {isConfirmingBooking ? (
                                                         <><Loader2 className="w-5 h-5 animate-spin" /> Asegurando Cupo...</>
                                                     ) : (
-                                                        <><CheckCircle className="w-5 h-5" /> Reservar Cita</>
+                                                        <><CheckCircle className="w-5 h-5" /> Reservar</>
                                                     )}
                                                 </button>
                                                 <button 
