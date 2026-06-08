@@ -34,7 +34,11 @@ export default async function HorariosPage() {
 
     async function saveHorarios(formData: FormData) {
         'use server';
-        const supabase = await createClient();
+        const { createClient: createSupabaseClient } = await import('@supabase/supabase-js');
+        const supabaseAdmin = createSupabaseClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
 
         for (let i = 0; i <= 6; i++) {
             const activo = formData.get(`activo_${i}`) === 'on';
@@ -42,12 +46,14 @@ export default async function HorariosPage() {
             const hora_fin = formData.get(`fin_${i}`) as string;
 
             // Upsert configuration
-            await supabase.from('configuracion_horarios').upsert({
+            const { error } = await supabaseAdmin.from('configuracion_horarios').upsert({
                 dia_semana: i,
                 activo,
                 hora_inicio: hora_inicio ? `${hora_inicio}:00` : null,
                 hora_fin: hora_fin ? `${hora_fin}:00` : null
             }, { onConflict: 'dia_semana' });
+            
+            if (error) console.error("Error saving horario", i, ":", error);
         }
 
         revalidatePath('/admin/horarios');
