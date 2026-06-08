@@ -11,6 +11,8 @@ export default function LiveChatPage() {
     const [messages, setMessages] = useState<any[]>([]);
     const [replyText, setReplyText] = useState('');
     const [loading, setLoading] = useState(true);
+    const [sending, setSending] = useState(false);
+    const [sendError, setSendError] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const loadChats = () => {
@@ -43,17 +45,24 @@ export default function LiveChatPage() {
     };
 
     const handleSend = async () => {
-        if (!replyText.trim() || !selectedChat) return;
+        if (!replyText.trim() || !selectedChat || sending) return;
         const txt = replyText;
         setReplyText('');
+        setSendError(null);
+        setSending(true);
         
         // Optimistic update
-        setMessages([...messages, { id: Date.now(), sender_type: 'human', content: txt, created_at: new Date().toISOString() }]);
+        setMessages(prev => [...prev, { id: Date.now(), sender_type: 'human', content: txt, created_at: new Date().toISOString() }]);
         scrollToBottom();
 
-        await sendWhatsAppMessageAction(selectedChat.id, txt);
+        const result = await sendWhatsAppMessageAction(selectedChat.id, txt);
+        setSending(false);
         
-        // Refresh
+        if (!result.success) {
+            setSendError(result.error || 'Error desconocido al enviar el mensaje');
+        }
+        
+        // Refresh messages from DB
         const msgs = await getWhatsAppMessagesAction(selectedChat.id);
         setMessages(msgs);
         
@@ -219,10 +228,16 @@ export default function LiveChatPage() {
                                             El Agente IA está respondiendo automáticamente. Al enviar un mensaje, el bot se pausará.
                                         </div>
                                     )}
+                                    {sendError && (
+                                        <div className="mb-2 text-[11px] text-red-700 font-medium bg-red-50 p-2 rounded-md border border-red-200 flex items-start gap-2">
+                                            <span className="shrink-0 mt-0.5">⚠️</span>
+                                            <span><strong>Error WhatsApp:</strong> {sendError}</span>
+                                        </div>
+                                    )}
                                     <div className="flex gap-3">
                                         <textarea
                                             value={replyText}
-                                            onChange={(e) => setReplyText(e.target.value)}
+                                            onChange={(e) => { setReplyText(e.target.value); setSendError(null); }}
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter' && !e.shiftKey) {
                                                     e.preventDefault();
@@ -234,10 +249,10 @@ export default function LiveChatPage() {
                                         />
                                         <button
                                             onClick={handleSend}
-                                            disabled={!replyText.trim()}
+                                            disabled={!replyText.trim() || sending}
                                             className="bg-brand-charcoal text-white p-4 rounded-lg hover:bg-brand-terracotta transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center h-[60px] w-[60px]"
                                         >
-                                            <Send className="w-5 h-5" />
+                                            {sending ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-5 h-5" />}
                                         </button>
                                     </div>
                                 </div>
