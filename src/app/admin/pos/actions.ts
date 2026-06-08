@@ -3,6 +3,15 @@
 import nodemailer from 'nodemailer';
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+const getAdminClient = () => {
+    return createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+};
+
 import fs from 'fs';
 import path from 'path';
 const backgroundImgBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGUlEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAA8F8bGgABxZqVdgAAAABJRU5ErkJggg==';
@@ -1263,7 +1272,7 @@ export async function getAvailableSlotsAction(dateStr: string) {
         
         const dayOfWeek = targetDate.getDay();
         
-        const supabase = await createClient();
+        const supabase = getAdminClient();
         const { data: configs } = await supabase.from('configuracion_horarios').select('*').eq('activo', true);
         if (!configs || configs.length === 0) return { success: true, slots: [] };
         
@@ -1330,7 +1339,7 @@ export async function confirmPresencialBookingAction(payload: {
         }
 
         // 3. Create appointment
-        const supabase = await createClient();
+        const supabase = getAdminClient();
         const fechaHoraIso = `${dateStr}T${timeStr.padStart(5, '0')}:00-04:00`;
         const { error: eventError } = await supabase.from('agendamientos').insert({
             tipo: 'cliente',
@@ -1362,7 +1371,7 @@ export async function getMonthAvailabilityAction(year: number, month: number) {
         const endDate = new Date(year, month + 1, 0, 23, 59, 59);
 
         // Fetch schedule configuration
-        const supabase = await createClient();
+        const supabase = getAdminClient();
         const { data: configs } = await supabase.from('configuracion_horarios').select('*').eq('activo', true);
         const configsByDay = new Map();
         if (configs) {
