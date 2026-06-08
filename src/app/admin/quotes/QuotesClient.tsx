@@ -79,7 +79,8 @@ export default function QuotesClient({ budgets }: { budgets: Budget[] }) {
         .reduce((acc, b) => acc + (b.total_amount || 0), 0);
 
     const copyLink = (id: string) => {
-        const link = `${window.location.origin}/presupuesto?id=${id}`;
+        const baseUrl = window.location.origin.includes('localhost') ? 'https://elenalacosturera.cl' : window.location.origin;
+        const link = `${baseUrl}/presupuesto?id=${id}`;
         navigator.clipboard.writeText(link);
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);

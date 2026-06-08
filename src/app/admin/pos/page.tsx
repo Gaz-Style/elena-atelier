@@ -794,7 +794,7 @@ export default function POSPage() {
             const result = await saveBudgetAction(budgetData);
             
             if (result.success && result.id) {
-                const baseUrl = window.location.origin;
+                const baseUrl = window.location.origin.includes('localhost') ? 'https://elenalacosturera.cl' : window.location.origin;
                 const link = `${baseUrl}/presupuesto?id=${result.id}`;
                 setGeneratedLink(link);
                 if (selectedCustomer) {
