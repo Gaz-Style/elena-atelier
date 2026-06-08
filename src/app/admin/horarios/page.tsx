@@ -1,13 +1,16 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { ArrowLeft, Clock, Save, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
 
 export default async function HorariosPage() {
-    const supabase = await createClient();
+    const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // Fetch existing config
-    const { data: horarios, error } = await supabase
+    const { data: horarios, error } = await supabaseAdmin
         .from('configuracion_horarios')
         .select('*')
         .order('dia_semana', { ascending: true });
