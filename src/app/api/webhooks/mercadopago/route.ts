@@ -172,8 +172,8 @@ export async function POST(req: Request) {
                                         // Notify customer if we have their phone
                                         if (clientePhone && clientePhone.length >= 9) {
                                             const fullPhone = clientePhone.startsWith('56') ? clientePhone : `56${clientePhone}`;
-                                            await sendWsp(fullPhone, 'confirmacion_pago_client', [
-                                                clienteName, prenda, monto, externalRef, paymentMethodLabel
+                                            await sendWsp(fullPhone, 'confirmacion_pago_cliente', [
+                                                clienteName
                                             ], 'es_CL');
 
                                             // Log to Live Chat
