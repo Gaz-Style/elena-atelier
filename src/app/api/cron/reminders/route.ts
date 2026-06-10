@@ -49,8 +49,15 @@ export async function GET(request: Request) {
                     body: JSON.stringify({
                         messaging_product: 'whatsapp',
                         to: phoneNumber,
-                        type: 'text',
-                        text: { body: message }
+                        type: 'template',
+                        template: {
+                            name: 'recordatorio_cita',
+                            language: { code: 'es_CL' }, // Adjust if you used 'es'
+                            components: [{
+                                type: 'body',
+                                parameters: [{ type: 'text', text: cita.nombre }]
+                            }]
+                        }
                     })
                 });
 
