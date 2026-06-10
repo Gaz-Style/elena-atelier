@@ -122,9 +122,9 @@ export async function POST(req: Request) {
                                 const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
 
                                 if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
-                                    const sendWsp = async (to: string, templateName: string, params: string[]) => {
+                                    const sendWsp = async (to: string, templateName: string, params: string[], languageCode: string = 'es_CL') => {
                                         try {
-                                            const r = await fetch(`https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+                                            const r = await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
                                                 method: 'POST',
                                                 headers: { 'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`, 'Content-Type': 'application/json' },
                                                 body: JSON.stringify({
@@ -133,7 +133,7 @@ export async function POST(req: Request) {
                                                     type: 'template',
                                                     template: {
                                                         name: templateName,
-                                                        language: { code: 'es' },
+                                                        language: { code: languageCode },
                                                         components: [{
                                                             type: 'body',
                                                             parameters: params.map(p => ({ type: 'text', text: p }))
@@ -166,22 +166,22 @@ export async function POST(req: Request) {
                                         for (const ownerNum of ['56984021940', '56937667709']) {
                                             await sendWsp(ownerNum, 'alerta_pago_recibido', [
                                                 clienteName, prenda, monto, externalRef, paymentMethodLabel
-                                            ]);
+                                            ], 'en');
                                         }
 
                                         // Notify customer if we have their phone
                                         if (clientePhone && clientePhone.length >= 9) {
                                             const fullPhone = clientePhone.startsWith('56') ? clientePhone : `56${clientePhone}`;
-                                            await sendWsp(fullPhone, 'confirmacion_pago_cliente', [
+                                            await sendWsp(fullPhone, 'confirmacion_pago_client', [
                                                 clienteName, prenda, monto, externalRef, paymentMethodLabel
-                                            ]);
+                                            ], 'es_CL');
                                         }
                                     } else {
                                         // No order details — notify owners with just the reference
                                         for (const ownerNum of ['56984021940', '56937667709']) {
                                             await sendWsp(ownerNum, 'alerta_pago_recibido', [
                                                 'Clienta', 'Orden', `Ref: ${externalRef}`, externalRef, 'MercadoPago'
-                                            ]);
+                                            ], 'en');
                                         }
                                     }
                                 }

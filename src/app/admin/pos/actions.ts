@@ -1235,9 +1235,9 @@ export async function requestDiscountAuthorizationAction(payload: {
                             to: numeroEncargado,
                             type: 'template',
                             template: {
-                                name: 'alerta_descuento_pos',
+                                name: 'alerta_pos',
                                 language: {
-                                    code: 'es'
+                                    code: 'es_CL'
                                 },
                                 components: [
                                     {
