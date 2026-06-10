@@ -867,6 +867,46 @@ export default function POSPage() {
                             if (!res.success) console.error('Error auto-sending budget email:', res.error);
                         }).catch(err => console.error('Unexpected error auto-sending budget email:', err))
                           .finally(() => setIsSendingEmail(false));
+                    // Auto-send WhatsApp if customer has phone
+                    if (selectedCustomer.phone) {
+                        const WHATSAPP_API_TOKEN = process.env.NEXT_PUBLIC_WHATSAPP_API_TOKEN || process.env.WHATSAPP_API_TOKEN;
+                        const PHONE_NUMBER_ID = process.env.NEXT_PUBLIC_WHATSAPP_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_NUMBER_ID;
+                        
+                        if (WHATSAPP_API_TOKEN && PHONE_NUMBER_ID) {
+                            const cleanPhone = selectedCustomer.phone.replace(/\D/g, '');
+                            const finalPhone = cleanPhone.startsWith('56') ? cleanPhone : `56${cleanPhone}`;
+                            
+                            fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    messaging_product: 'whatsapp',
+                                    to: finalPhone,
+                                    type: 'template',
+                                    template: {
+                                        name: 'envio_presupuesto',
+                                        language: { code: 'es_CL' },
+                                        components: [
+                                            {
+                                                type: 'body',
+                                                parameters: [{ type: 'text', text: selectedCustomer.full_name }]
+                                            },
+                                            {
+                                                type: 'button',
+                                                sub_type: 'url',
+                                                index: '0',
+                                                parameters: [{ type: 'text', text: result.id }]
+                                            }
+                                        ]
+                                    }
+                                })
+                            }).then(res => res.json()).then(data => {
+                                if (data.error) console.error('Error auto-sending budget WhatsApp:', data.error);
+                            }).catch(err => console.error('Unexpected error WhatsApp:', err));
+                        }
                     }
                 }
                 setIsBudgetModalOpen(true);
