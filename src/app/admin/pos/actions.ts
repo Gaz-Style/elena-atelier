@@ -1201,6 +1201,7 @@ export async function requestDiscountAuthorizationAction(payload: {
     </div>
     `;
 
+    // 1. Send Email (non-blocking)
     try {
         const fromAddress = smtpUser.includes('gmail.com') ? 'contacto@elenalacosturera.cl' : smtpUser;
         const toAddress = smtpUser; // Send to admin
@@ -1211,15 +1212,19 @@ export async function requestDiscountAuthorizationAction(payload: {
             subject: `[URGENTE] Autorización de Descuento - ${discountPct}% en ${itemName}`,
             html: htmlContent,
         });
+    } catch (emailErr) {
+        console.error('Error enviando email de autorización (se procederá con WhatsApp):', emailErr);
+    }
 
-        // WhatsApp Notification
+    // 2. Send WhatsApp Notification
+    try {
         const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
         const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
         if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
             const numerosEncargados = ['56984021940', '56937667709'];
             for (const numeroEncargado of numerosEncargados) {
                 try {
-                    const wRes = await fetch(`https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+                    const wRes = await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
@@ -1240,9 +1245,9 @@ export async function requestDiscountAuthorizationAction(payload: {
                                         parameters: [
                                             { type: 'text', text: sellerName || 'Caja Principal' },
                                             { type: 'text', text: itemName },
-                                            { type: 'text', text: String(discountPct) },
+                                            { type: 'text', text: `${discountPct}%` },
                                             { type: 'text', text: formatCurrency(originalPrice) },
-                                            { type: 'text', text: String(pin) }
+                                            { type: 'text', text: `${pin} Ingresar` }
                                         ]
                                     }
                                 ]
@@ -1256,12 +1261,11 @@ export async function requestDiscountAuthorizationAction(payload: {
                 }
             }
         }
-
-        return { success: true, pin };
-    } catch (err: unknown) {
-        console.error('Error enviando email de autorización:', err);
-        return { success: false, error: err instanceof Error ? err.message : String(err) };
+    } catch (wspOuterErr) {
+        console.error('Error general en el envío de WhatsApp de autorización:', wspOuterErr);
     }
+
+    return { success: true, pin };
 }
 
 export async function getOperatorsDailyLoadAction() {
