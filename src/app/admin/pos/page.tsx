@@ -867,6 +867,7 @@ export default function POSPage() {
                             if (!res.success) console.error('Error auto-sending budget email:', res.error);
                         }).catch(err => console.error('Unexpected error auto-sending budget email:', err))
                           .finally(() => setIsSendingEmail(false));
+                    }
                     // Auto-send WhatsApp if customer has phone
                     if (selectedCustomer.phone) {
                         const WHATSAPP_API_TOKEN = process.env.NEXT_PUBLIC_WHATSAPP_API_TOKEN || process.env.WHATSAPP_API_TOKEN;
