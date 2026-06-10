@@ -1100,6 +1100,66 @@ export async function updateOrderStatusToPaidAction(posOrderId: string) {
         // No retornamos error fatal si ya se actualizó la producción, pero queda logueado.
     }
     
+    // --- WhatsApp Confirmation ---
+    try {
+        const { data: orderInfo } = await supabase.from('production_orders').select('customer_id').eq('pos_order_id', posOrderId).single();
+        if (orderInfo && orderInfo.customer_id && orderInfo.customer_id !== 'unassigned') {
+            const { data: custInfo } = await supabase.from('crm_customers').select('phone, full_name').eq('id', orderInfo.customer_id).single();
+            if (custInfo && custInfo.phone) {
+                const WHATSAPP_API_TOKEN = process.env.NEXT_PUBLIC_WHATSAPP_API_TOKEN || process.env.WHATSAPP_API_TOKEN;
+                const PHONE_NUMBER_ID = process.env.NEXT_PUBLIC_WHATSAPP_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_NUMBER_ID;
+                if (WHATSAPP_API_TOKEN && PHONE_NUMBER_ID) {
+                    const cleanPhone = custInfo.phone.replace(/\D/g, '');
+                    const finalPhone = cleanPhone.startsWith('56') ? cleanPhone : `56${cleanPhone}`;
+                    
+                    const wpRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            messaging_product: 'whatsapp',
+                            to: finalPhone,
+                            type: 'template',
+                            template: {
+                                name: 'confirmacion_pago_cliente',
+                                language: { code: 'es_CL' },
+                                components: [{
+                                    type: 'body',
+                                    parameters: [{ type: 'text', text: custInfo.full_name }]
+                                }]
+                            }
+                        })
+                    });
+                    
+                    if (wpRes.ok) {
+                        // Log to Live Chat
+                        const { data: chatSession } = await supabase.from('crm_chat_sessions').select('id').eq('customer_phone', finalPhone).single();
+                        let sessionId = chatSession?.id;
+                        if (!sessionId) {
+                            const { data: newSession } = await supabase.from('crm_chat_sessions').insert([{
+                                customer_phone: finalPhone,
+                                customer_name: custInfo.full_name,
+                                unread_count: 0,
+                                last_message_at: new Date().toISOString()
+                            }]).select('id').single();
+                            sessionId = newSession?.id;
+                        }
+                        if (sessionId) {
+                            await supabase.from('crm_whatsapp_messages').insert([{
+                                session_id: sessionId,
+                                sender: 'system',
+                                content: `[Sistema] Transbank Webpay Plus: Se envió la plantilla confirmacion_pago_cliente automáticamente.`,
+                                status: 'sent'
+                            }]);
+                        }
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        console.error('Error enviando WhatsApp de confirmación de pago Webpay:', e);
+    }
+    // ----------------------------
+    
     revalidatePath('/admin/production-board');
     return { success: true };
 }

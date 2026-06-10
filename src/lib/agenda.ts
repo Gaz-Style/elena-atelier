@@ -272,6 +272,38 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
                 const data = await resp.json();
                 console.log(`WhatsApp Encargado (${numeroEncargado}):`, data);
             }
+            
+            // Notificación por WhatsApp al CLIENTE
+            if (celular) {
+                const cleanPhone = celular.replace(/\D/g, '');
+                const finalPhone = cleanPhone.startsWith('56') ? cleanPhone : `56${cleanPhone}`;
+                const respClient = await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        messaging_product: 'whatsapp',
+                        to: finalPhone,
+                        type: 'template',
+                        template: {
+                            name: 'cita_confirmada_cliente',
+                            language: { code: 'es_CL' },
+                            components: [{
+                                type: 'body',
+                                parameters: [
+                                    { type: 'text', text: nombre }
+                                ]
+                            }]
+                        }
+                    })
+                });
+                const dataClient = await respClient.json();
+                console.log(`WhatsApp Cliente (${finalPhone}):`, dataClient);
+                
+                // Opcional: Guardar en CRM Live Chat si tienes acceso a supabase aquí
+            }
         }
     } catch (mailError) {
         console.error('Error enviando correos:', mailError);
