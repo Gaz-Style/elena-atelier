@@ -244,7 +244,7 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
             const mensajeWsp = `🔔 *Nueva Cita Agendada*\n\n*Cliente:* ${nombre} ${apellido}\n*Fecha:* ${fechaLegible}\n*Hora:* ${horaLegible}\n*Tel:* ${celular}`;
             
             for (const numeroEncargado of numerosEncargados) {
-                const resp = await fetch(`https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+                const resp = await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
@@ -253,8 +253,20 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
                     body: JSON.stringify({
                         messaging_product: 'whatsapp',
                         to: numeroEncargado,
-                        type: 'text',
-                        text: { body: mensajeWsp }
+                        type: 'template',
+                        template: {
+                            name: 'alerta_nueva_cita',
+                            language: { code: 'es_CL' },
+                            components: [{
+                                type: 'body',
+                                parameters: [
+                                    { type: 'text', text: `${nombre} ${apellido}` },
+                                    { type: 'text', text: fechaLegible },
+                                    { type: 'text', text: horaLegible },
+                                    { type: 'text', text: celular }
+                                ]
+                            }]
+                        }
                     })
                 });
                 const data = await resp.json();
