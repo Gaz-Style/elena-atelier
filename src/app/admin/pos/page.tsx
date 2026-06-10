@@ -848,6 +848,26 @@ export default function POSPage() {
                 if (selectedCustomer) {
                     setClientPhone(selectedCustomer.phone || '');
                     setClientEmail(selectedCustomer.email || '');
+                    
+                    // Auto-send email if customer has email
+                    if (selectedCustomer.email) {
+                        setIsSendingEmail(true);
+                        sendBudgetEmailAction({
+                            customerEmail: selectedCustomer.email,
+                            customerName: selectedCustomer.full_name || 'Estimada Clienta',
+                            budgetLink: link,
+                            items: cart.map(item => ({
+                                name: item.name,
+                                price: item.price,
+                                category: item.category,
+                                notes: item.notes
+                            })),
+                            total: total
+                        }).then(res => {
+                            if (!res.success) console.error('Error auto-sending budget email:', res.error);
+                        }).catch(err => console.error('Unexpected error auto-sending budget email:', err))
+                          .finally(() => setIsSendingEmail(false));
+                    }
                 }
                 setIsBudgetModalOpen(true);
             } else {
