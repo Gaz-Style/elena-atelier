@@ -57,6 +57,36 @@ export async function GET(request: Request) {
                 if (fbResponse.ok) {
                     remindersSent++;
                     // Opcional: Marcar como "recordatorio_enviado" en la DB si agregas esa columna
+
+                    // Log to Live Chat
+                    try {
+                        let { data: chatData } = await supabase
+                            .from('crm_whatsapp_chats')
+                            .select('id')
+                            .eq('phone_number', phoneNumber)
+                            .single();
+
+                        if (!chatData) {
+                            const { data: newChat } = await supabase
+                                .from('crm_whatsapp_chats')
+                                .insert([{ phone_number: phoneNumber, session_status: 'bot' }])
+                                .select('id')
+                                .single();
+                            chatData = newChat;
+                        }
+
+                        if (chatData) {
+                            await supabase.from('crm_whatsapp_messages').insert([{
+                                chat_id: chatData.id,
+                                sender_type: 'system',
+                                message_type: 'text',
+                                content: `🔔 *Recordatorio Enviado Automáticamente*\n${message}`
+                            }]);
+                        }
+                    } catch (dbErr) {
+                        console.error('Error logging reminder to LiveChat:', dbErr);
+                    }
+
                 } else {
                     const errorData = await fbResponse.json();
                     console.error('Error enviando recordatorio a', cita.celular, errorData);

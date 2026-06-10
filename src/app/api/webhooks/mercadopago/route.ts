@@ -175,6 +175,36 @@ export async function POST(req: Request) {
                                             await sendWsp(fullPhone, 'confirmacion_pago_client', [
                                                 clienteName, prenda, monto, externalRef, paymentMethodLabel
                                             ], 'es_CL');
+
+                                            // Log to Live Chat
+                                            try {
+                                                let { data: chatData } = await supabase
+                                                    .from('crm_whatsapp_chats')
+                                                    .select('id')
+                                                    .eq('phone_number', fullPhone)
+                                                    .single();
+
+                                                if (!chatData) {
+                                                    const { data: newChat } = await supabase
+                                                        .from('crm_whatsapp_chats')
+                                                        .insert([{ phone_number: fullPhone, session_status: 'bot' }])
+                                                        .select('id')
+                                                        .single();
+                                                    chatData = newChat;
+                                                }
+
+                                                if (chatData) {
+                                                    const readableMsg = `✅ *Confirmación de Pago Enviada*\n\nEstimada ${clienteName}, confirmamos el pago de tu prenda *${prenda}* por un valor de *${monto}* (ID Orden: ${externalRef}) a través de *${paymentMethodLabel}*. ¡Tu proyecto ya está en proceso!`;
+                                                    await supabase.from('crm_whatsapp_messages').insert([{
+                                                        chat_id: chatData.id,
+                                                        sender_type: 'system',
+                                                        message_type: 'text',
+                                                        content: readableMsg
+                                                    }]);
+                                                }
+                                            } catch (dbErr) {
+                                                console.error('Error logging confirmacion_pago to LiveChat:', dbErr);
+                                            }
                                         }
                                     } else {
                                         // No order details — notify owners with just the reference
