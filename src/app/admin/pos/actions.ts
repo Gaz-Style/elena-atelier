@@ -1169,29 +1169,58 @@ export async function wakeUpMercadoPagoTerminalAction(amount: number, descriptio
         return { success: false, error: 'Token de MP no configurado' };
     }
 
-    // Using the SN provided by the user as Device ID
-    const deviceId = 'NCC804183989'; 
-
-    const payload = {
-        amount: amount,
-        description: description,
-        payment: {
-            installments: 1,
-            type: "credit_card",
-            installments_cost: "merchant"
-        },
-        additional_info: {
-            external_reference: posOrderId,
-            print_on_terminal: true
-        }
-    };
-
     try {
-        const response = await fetch(`https://api.mercadopago.com/point/integration-api/devices/${deviceId}/payment-intents`, {
+        // 1. Obtener la lista de terminales para encontrar el ID correcto
+        const terminalsResponse = await fetch('https://api.mercadopago.com/terminals/v1/list', {
+            headers: { 'Authorization': `Bearer ${mpToken}` }
+        });
+
+        if (!terminalsResponse.ok) {
+            console.error('Error al obtener terminales:', await terminalsResponse.text());
+            return { success: false, error: 'No se pudo validar el terminal físico.' };
+        }
+
+        const terminalsData = await terminalsResponse.json();
+        const devices = terminalsData?.data?.terminals || [];
+        
+        // Buscar el terminal que contenga el SN proporcionado, o usar el primero
+        let terminalId = '';
+        const targetSN = 'NCC804183989';
+        const foundDevice = devices.find((d: any) => d.id.includes(targetSN));
+        
+        if (foundDevice) {
+            terminalId = foundDevice.id;
+        } else if (devices.length > 0) {
+            terminalId = devices[0].id;
+        } else {
+            return { success: false, error: 'No hay maquinitas Mercado Pago Point vinculadas a esta cuenta.' };
+        }
+
+        // 2. Crear la orden de cobro en el terminal usando la nueva API
+        const { randomUUID } = require('crypto');
+        const payload = {
+            type: "point",
+            external_reference: posOrderId,
+            transactions: {
+                payments: [
+                    { amount: amount.toString() }
+                ]
+            },
+            config: {
+                point: {
+                    terminal_id: terminalId,
+                    print_on_terminal: "buyer_ticket"
+                }
+            },
+            description: description
+        };
+
+        const response = await fetch(`https://api.mercadopago.com/v1/orders`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${mpToken}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-Idempotency-Key': randomUUID()
             },
             body: JSON.stringify(payload)
         });
@@ -1199,7 +1228,7 @@ export async function wakeUpMercadoPagoTerminalAction(amount: number, descriptio
         if (!response.ok) {
             const errData = await response.text();
             console.error('Error despertando terminal MP:', errData);
-            return { success: false, error: `Error MP: ${response.status} - ${errData}` };
+            return { success: false, error: `Error MP Orders API: ${response.status} - ${errData}` };
         }
 
         const data = await response.json();
