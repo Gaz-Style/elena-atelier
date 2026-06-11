@@ -1209,7 +1209,7 @@ export async function wakeUpMercadoPagoTerminalAction(amount: number, descriptio
             config: {
                 point: {
                     terminal_id: terminalId,
-                    print_on_terminal: "buyer_ticket"
+                    print_on_terminal: "no_ticket"
                 }
             },
             description: description
