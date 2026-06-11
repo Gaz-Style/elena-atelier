@@ -119,8 +119,8 @@ export default async function SalesLedgerPage() {
                     </div>
                     
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
+                        <table className="w-full text-left border-collapse" suppressHydrationWarning>
+                            <thead suppressHydrationWarning>
                                 <tr className="border-b border-gray-200 bg-gray-50 text-[10px] uppercase tracking-widest text-gray-500">
                                     <th className="p-4 font-bold">ID Transacción</th>
                                     <th className="p-4 font-bold">Fecha</th>
@@ -131,7 +131,7 @@ export default async function SalesLedgerPage() {
                                     <th className="p-4 font-bold text-right">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody className="text-sm text-gray-600">
+                            <tbody className="text-sm text-gray-600" suppressHydrationWarning>
                                 {safeSales.length === 0 ? (
                                     <tr>
                                         <td colSpan={7} className="p-8 text-center text-gray-400 italic">
