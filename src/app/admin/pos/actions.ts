@@ -1208,8 +1208,7 @@ export async function wakeUpMercadoPagoTerminalAction(amount: number, descriptio
             },
             config: {
                 point: {
-                    terminal_id: terminalId,
-                    print_on_terminal: "no_ticket"
+                    terminal_id: terminalId
                 }
             },
             description: description
