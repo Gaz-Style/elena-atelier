@@ -5,13 +5,14 @@ import { useSearchParams } from 'next/navigation';
 import { CheckCircle, CreditCard, Store, Calendar as CalendarIcon, MapPin, Check, Clock, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { createWebpayTransaction } from '@/lib/transbank';
+import { createPaymentPreference } from '@/lib/payments';
 import { getBudgetAction, createPOSOrdersAction, updateBudgetStatusAction, getMonthAvailabilityAction, confirmPresencialBookingAction } from '../admin/pos/actions';
 
 function BudgetContent() {
     const searchParams = useSearchParams();
     const [data, setData] = useState<any>(null);
     const [status, setStatus] = useState<'viewing' | 'accepted' | 'scheduling' | 'paying'>('viewing');
-    const [paymentMethod, setPaymentMethod] = useState<'web' | 'presencial' | null>(null);
+    const [paymentMethod, setPaymentMethod] = useState<'transbank' | 'mercadopago' | 'presencial' | null>(null);
 
     // Scheduling state
     const today = new Date();
@@ -174,6 +175,76 @@ function BudgetContent() {
     for (let i = 1; i <= daysInMonth; i++) {
         calendarGrid.push(i);
     }
+
+    const processPayment = async (method: 'transbank' | 'mercadopago' | 'presencial') => {
+        setPaymentMethod(method);
+        setStatus('paying');
+        try {
+            const orderId = Date.now().toString();
+            const buyOrder = `order_${orderId}`;
+            
+            const orderPayload = {
+                customerId: data.customerId || 'unassigned',
+                posOrderId: buyOrder,
+                paymentMethod: method === 'presencial' ? 'local' : method,
+                paymentStatus: 'pending',
+                status: 'scheduled',
+                items: data.cart.map((item: any) => ({
+                    name: item.name,
+                    price: item.price,
+                    category: item.category,
+                    notes: item.notes || '',
+                    isCustom: !!item.isCustom,
+                    hours: item.details?.hours || 0,
+                    assignedOperatorId: item.assignedOperatorId || 'unassigned'
+                })),
+                deadline: null,
+                productionStartDate: null,
+                productionEndDate: null,
+                finalDeliveryDate: null
+            };
+            
+            const budgetId = searchParams.get('id') || '';
+            
+            const res = await confirmPresencialBookingAction({
+                budgetId,
+                dateStr: selectedDate,
+                timeStr: selectedTime,
+                customerName: data.customerName || 'Cliente',
+                customerEmail: data.customerEmail || '',
+                customerPhone: data.customerPhone || '',
+                orderPayload
+            });
+
+            if (!res.success) {
+                throw new Error(res.error || 'Error al confirmar la cita');
+            }
+
+            if (method === 'transbank') {
+                const sessionId = `session_web_${orderId}`;
+                const callbackUrl = `${window.location.origin}/presupuesto/pago-exitoso`;
+                
+                const tbkRes = await createWebpayTransaction(buyOrder, sessionId, data.total, callbackUrl);
+                
+                if (tbkRes.success && tbkRes.url && tbkRes.token) {
+                    window.location.href = `${tbkRes.url}?token_ws=${tbkRes.token}`;
+                } else {
+                    throw new Error(tbkRes.error || 'Error al inicializar Transbank');
+                }
+            } else if (method === 'mercadopago') {
+                const mpRes = await createPaymentPreference(data.cart, buyOrder, window.location.origin);
+                if (mpRes && mpRes.init_point) {
+                    window.location.href = mpRes.init_point;
+                } else {
+                    throw new Error('Error al inicializar Mercado Pago');
+                }
+            }
+        } catch (err: any) {
+            console.error('Error confirming booking:', err);
+            alert(err.message || 'Ocurrió un error al procesar el pago. Por favor reintente.');
+            setStatus('accepted');
+        }
+    };
 
     return (
         <div className="min-h-screen bg-brand-charcoal text-white pb-32 font-sans overflow-x-hidden">
@@ -419,84 +490,17 @@ function BudgetContent() {
 
                                             <div className="pt-8 border-t border-white/10">
                                                 <button 
-                                                    disabled={!selectedTime || isConfirmingBooking}
-                                                    onClick={async () => {
-                                                        setIsConfirmingBooking(true);
-                                                        try {
-                                                            const orderId = Date.now().toString();
-                                                            const buyOrder = `order_${orderId}`;
-                                                            
-                                                            const orderPayload = {
-                                                                customerId: data.customerId || 'unassigned',
-                                                                posOrderId: buyOrder,
-                                                                paymentMethod: paymentMethod === 'web' ? 'transbank' : 'local',
-                                                                paymentStatus: 'pending',
-                                                                status: 'scheduled',
-                                                                items: data.cart.map((item: any) => ({
-                                                                    name: item.name,
-                                                                    price: item.price,
-                                                                    category: item.category,
-                                                                    notes: item.notes || '',
-                                                                    isCustom: !!item.isCustom,
-                                                                    hours: item.details?.hours || 0,
-                                                                    assignedOperatorId: item.assignedOperatorId || 'unassigned'
-                                                                })),
-                                                                deadline: null,
-                                                                productionStartDate: null,
-                                                                productionEndDate: null,
-                                                                finalDeliveryDate: null
-                                                            };
-                                                            
-                                                            const budgetId = searchParams.get('id') || '';
-                                                            
-                                                            const res = await confirmPresencialBookingAction({
-                                                                budgetId,
-                                                                dateStr: selectedDate,
-                                                                timeStr: selectedTime,
-                                                                customerName: data.customerName || 'Cliente',
-                                                                customerEmail: data.customerEmail || '',
-                                                                customerPhone: data.customerPhone || '',
-                                                                orderPayload
-                                                            });
-
-                                                            if (!res.success) {
-                                                                throw new Error(res.error || 'Error al confirmar la cita');
-                                                            }
-
-                                                            if (paymentMethod === 'web') {
-                                                                const sessionId = `session_web_${orderId}`;
-                                                                const callbackUrl = `${window.location.origin}/presupuesto/pago-exitoso`;
-                                                                
-                                                                const tbkRes = await createWebpayTransaction(buyOrder, sessionId, data.total, callbackUrl);
-                                                                
-                                                                if (tbkRes.success && tbkRes.url && tbkRes.token) {
-                                                                    window.location.href = `${tbkRes.url}?token_ws=${tbkRes.token}`;
-                                                                } else {
-                                                                    throw new Error(tbkRes.error || 'Error al inicializar Transbank');
-                                                                }
-                                                            } else {
-                                                                setStatus('paying');
-                                                            }
-                                                        } catch (err: any) {
-                                                            console.error('Error confirming booking:', err);
-                                                            alert(err.message || 'Ocurrió un error al confirmar. Por favor reintente.');
-                                                        } finally {
-                                                            setIsConfirmingBooking(false);
-                                                        }
-                                                    }}
+                                                    disabled={!selectedTime}
+                                                    onClick={() => setStatus('accepted')}
                                                     className={`
                                                         w-full flex items-center justify-center gap-3 py-5 text-xs font-bold uppercase tracking-[0.2em] transition-all duration-500
-                                                        ${!selectedTime || isConfirmingBooking
+                                                        ${!selectedTime
                                                             ? 'bg-white/5 text-white/30 border border-white/10 cursor-not-allowed'
                                                             : 'bg-brand-sand text-[#121212] hover:bg-white hover:text-black shadow-[0_0_30px_rgba(193,127,95,0.4)] cursor-pointer'
                                                         }
                                                     `}
                                                 >
-                                                    {isConfirmingBooking ? (
-                                                        <><Loader2 className="w-5 h-5 animate-spin" /> Asegurando Cupo...</>
-                                                    ) : (
-                                                        <><CheckCircle className="w-5 h-5" /> Reservar</>
-                                                    )}
+                                                    <CheckCircle className="w-5 h-5" /> Confirmar Horario
                                                 </button>
                                                 <button 
                                                     onClick={() => setStatus('accepted')} 
@@ -525,7 +529,7 @@ function BudgetContent() {
                                     <p className="text-sm text-white/80 mt-1">Haz clic para aceptar y elegir tu método de pago.</p>
                                 </div>
                                 <button 
-                                    onClick={() => setStatus('accepted')}
+                                    onClick={() => setStatus('scheduling')}
                                     className="w-full md:w-auto glass-btn group relative inline-flex items-center justify-center gap-3 px-10 py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] cursor-pointer"
                                 >
                                     <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-white group-hover:text-[#121212] transition-colors duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
@@ -539,27 +543,33 @@ function BudgetContent() {
                                     <h4 className="font-serif text-2xl text-white">Selecciona tu método de pago</h4>
                                     <p className="text-xs text-brand-sand mt-1 uppercase tracking-widest font-bold">Confirmación de Orden</p>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <button 
-                                        onClick={() => {
-                                            setPaymentMethod('web');
-                                            setStatus('scheduling');
-                                        }}
+                                        onClick={() => processPayment('transbank')}
                                         className="flex flex-col items-center gap-4 p-8 border border-white/10 bg-white/5 hover:border-brand-sand rounded-sm text-white transition-all group cursor-pointer"
                                     >
                                         <div className="bg-white/5 p-4 rounded-full group-hover:scale-110 transition-transform">
                                             <CreditCard className="w-8 h-8 text-brand-sand" />
                                         </div>
                                         <div className="text-center">
-                                            <p className="text-sm font-bold uppercase tracking-widest text-white">Pago Online Web</p>
-                                            <p className="text-[10px] text-white/50 mt-1">Mercado Pago / Tarjetas / Transferencia</p>
+                                            <p className="text-sm font-bold uppercase tracking-widest text-white">Transbank Webpay</p>
+                                            <p className="text-[10px] text-white/50 mt-1">Tarjetas de Crédito / Débito</p>
                                         </div>
                                     </button>
                                     <button 
-                                        onClick={() => {
-                                            setPaymentMethod('presencial');
-                                            setStatus('scheduling');
-                                        }}
+                                        onClick={() => processPayment('mercadopago')}
+                                        className="flex flex-col items-center gap-4 p-8 border border-white/10 bg-white/5 hover:border-brand-sand rounded-sm text-white transition-all group cursor-pointer"
+                                    >
+                                        <div className="bg-white/5 p-4 rounded-full group-hover:scale-110 transition-transform">
+                                            <CreditCard className="w-8 h-8 text-[#009EE3]" />
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="text-sm font-bold uppercase tracking-widest text-white">Mercado Pago</p>
+                                            <p className="text-[10px] text-white/50 mt-1">Saldo en Cuenta / Tarjetas</p>
+                                        </div>
+                                    </button>
+                                    <button 
+                                        onClick={() => processPayment('presencial')}
                                         className="flex flex-col items-center gap-4 p-8 border border-brand-sand/50 bg-brand-sand/5 hover:bg-brand-sand/10 hover:border-brand-sand rounded-sm text-white transition-all group cursor-pointer relative overflow-hidden"
                                     >
                                         <div className="absolute top-0 right-0 bg-brand-sand text-black text-[8px] font-bold uppercase tracking-widest px-3 py-1 rounded-bl-sm">
@@ -575,7 +585,7 @@ function BudgetContent() {
                                     </button>
                                 </div>
                                 <button 
-                                    onClick={() => setStatus('viewing')} 
+                                    onClick={() => setStatus('scheduling')} 
                                     className="w-full text-[10px] uppercase tracking-widest font-bold text-white/40 hover:text-brand-sand cursor-pointer transition-colors"
                                 >
                                     Volver al detalle

@@ -4,7 +4,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle2, XCircle, Loader2, ArrowLeft, Printer, CreditCard } from 'lucide-react';
 import { commitWebpayTransaction } from '@/lib/transbank';
-import { updateOrderStatusToPaidAction } from '../../admin/pos/actions';
+import { updateOrderStatusToPaidAction, getPOSOrderAmountAction } from '../../admin/pos/actions';
 import Link from 'next/link';
 
 function CallbackContent() {
@@ -16,16 +16,63 @@ function CallbackContent() {
 
     const token_ws = searchParams.get('token_ws');
     const tbk_token = searchParams.get('TBK_TOKEN');
+    
+    // Mercado Pago params
+    const mpStatus = searchParams.get('status') || searchParams.get('collection_status');
+    const mpExternalRef = searchParams.get('external_reference');
+    const mpPaymentId = searchParams.get('payment_id') || searchParams.get('collection_id');
+    const isMpError = searchParams.get('error') === 'true';
 
     useEffect(() => {
+        // 1. Detectar anulación de Transbank
         if (tbk_token) {
             setError('La compra fue anulada en el portal de Webpay (no se realizó ningún cargo).');
             setLoading(false);
             return;
         }
 
+        // 2. Detectar respuesta de Mercado Pago
+        if (mpStatus || isMpError) {
+            if (isMpError || (mpStatus && mpStatus !== 'approved' && mpStatus !== 'pending')) {
+                setError('La transacción de Mercado Pago fue rechazada, cancelada o falló.');
+                setLoading(false);
+                return;
+            }
+
+            if (mpStatus === 'approved' && mpExternalRef) {
+                // Actualizar orden a pagada en la BD
+                updateOrderStatusToPaidAction(mpExternalRef)
+                    .then(async () => {
+                        // Obtener monto real de la base de datos
+                        const amountRes = await getPOSOrderAmountAction(mpExternalRef);
+                        setPaymentData({
+                            amount: amountRes.success ? amountRes.amount : 0,
+                            buy_order: mpExternalRef,
+                            authorization_code: mpPaymentId || 'MP-OK',
+                            payment_type_code: 'MercadoPago',
+                            card_detail: { card_number: 'Mercado Pago' },
+                            response_code: 0
+                        });
+                        setLoading(false);
+                    })
+                    .catch((err) => {
+                        console.error('Error al actualizar estado de orden MP:', err);
+                        setError('Ocurrió un error al actualizar el estado de tu pago en nuestro sistema.');
+                        setLoading(false);
+                    });
+            } else if (mpStatus === 'pending') {
+                setError('El pago de Mercado Pago está pendiente de aprobación.');
+                setLoading(false);
+            } else {
+                setError('No se pudo verificar el pago de Mercado Pago.');
+                setLoading(false);
+            }
+            return;
+        }
+
+        // 3. Fallback a confirmación de Transbank
         if (!token_ws) {
-            setError('No se recibió el token de confirmación de Webpay.');
+            setError('No se recibieron credenciales de confirmación de pago válidas.');
             setLoading(false);
             return;
         }
@@ -50,7 +97,7 @@ function CallbackContent() {
                 setError('Ocurrió un error inesperado al procesar el pago.');
                 setLoading(false);
             });
-    }, [token_ws]);
+    }, [token_ws, tbk_token, mpStatus, mpExternalRef, mpPaymentId, isMpError]);
 
     const formatCurrency = (val: number) => {
         return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val);

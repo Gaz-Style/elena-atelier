@@ -5,7 +5,7 @@ const MERCADO_PAGO_CONFIG = {
     accessToken: process.env.MP_ACCESS_TOKEN,
 };
 
-export async function createPaymentPreference(items: any[]) {
+export async function createPaymentPreference(items: any[], externalReference?: string, backUrlBase?: string, customSuccessPath?: string) {
     const mpAccessToken = process.env.MP_ACCESS_TOKEN || '';
     if (!mpAccessToken) {
         console.error('Missing MP_ACCESS_TOKEN in env');
@@ -20,7 +20,13 @@ export async function createPaymentPreference(items: any[]) {
             currency_id: 'CLP'
         }));
 
-        console.log('Creating Mercado Pago production preference for items:', formattedItems);
+        const base = backUrlBase || 'https://elenalacosturera.com';
+        const successPath = customSuccessPath || '/presupuesto/pago-exitoso';
+        const successUrl = `${base}${successPath}`;
+        const failureUrl = `${base}${successPath}?error=true`;
+        const pendingUrl = `${base}${successPath}?pending=true`;
+
+        console.log('Creating Mercado Pago production preference for items:', formattedItems, 'External reference:', externalReference);
 
         const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
             method: 'POST',
@@ -30,10 +36,11 @@ export async function createPaymentPreference(items: any[]) {
             },
             body: JSON.stringify({
                 items: formattedItems,
+                external_reference: externalReference,
                 back_urls: {
-                    success: 'https://elenalacosturera.com/pago-exitoso',
-                    failure: 'https://elenalacosturera.com/pago-fallido',
-                    pending: 'https://elenalacosturera.com/pago-pendiente'
+                    success: successUrl,
+                    failure: failureUrl,
+                    pending: pendingUrl
                 },
                 auto_return: 'approved'
             })

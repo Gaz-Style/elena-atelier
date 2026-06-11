@@ -437,7 +437,6 @@ export async function sendOrderConfirmationEmailAction(payload: {
           <a href="${paymentUrl}" target="_blank" style="display: block; background-color: #C17F5F; color: #FFFFFF !important; text-decoration: none; padding: 15px 24px; font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 2.5px; border-radius: 2px; border: 1px solid #C17F5F; font-family: 'Inter', sans-serif; box-shadow: 0 4px 12px rgba(193, 127, 95, 0.25);">
             PAGAR EN LÍNEA: ${formatCurrency(total)}
           </a>
-          <p style="font-size: 8px; color: #8A857D; margin-top: 8px; text-transform: uppercase; letter-spacing: 1px; font-family: 'Inter', sans-serif; margin-bottom: 0;">Pagar de forma segura con Webpay Plus</p>
         </div>
         ` : ''}
       </div>
@@ -1616,4 +1615,19 @@ export async function getMonthAvailabilityAction(year: number, month: number) {
         console.error('Error fetching month availability:', err);
         return { success: false, error: err.message };
     }
+}
+
+export async function getPOSOrderAmountAction(posOrderId: string) {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('production_orders')
+        .select('total_price')
+        .eq('pos_order_id', posOrderId)
+        .limit(1);
+
+    if (error || !data || data.length === 0) {
+        console.error('Error fetching order amount:', error);
+        return { success: false, amount: 0 };
+    }
+    return { success: true, amount: data[0].total_price || 0 };
 }

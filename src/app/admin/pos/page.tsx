@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, Plus, MessageSquare, Mail, ClipboardList, TrendingUp, Loader2, Package, Camera, FileText, AlertCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, Plus, MessageSquare, Mail, ClipboardList, TrendingUp, Loader2, Package, Camera, FileText, AlertCircle, Globe } from 'lucide-react';
 import { getCostSettings } from '../finance/actions';
 import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
@@ -680,28 +680,9 @@ export default function POSPage() {
                 return;
             }
 
-            // Generar link de pago solo si es Transbank (Online)
             let paymentUrl = '';
             if (paymentMethod === 'transbank') {
-                try {
-                    const buyOrder = `order_${orderId}`;
-                    const sessionId = `session_${selectedCustomer.id}_${Date.now()}`;
-                    const callbackUrl = `${window.location.origin}/admin/pos/webpay-callback`;
-                    
-                    console.log('Iniciando pago Transbank:', { buyOrder, sessionId, total, callbackUrl });
-                    const tbkRes = await createWebpayTransaction(buyOrder, sessionId, total, callbackUrl);
-                    if (tbkRes.success && tbkRes.url && tbkRes.token) {
-                        paymentUrl = `${tbkRes.url}?token_ws=${tbkRes.token}`;
-                    } else {
-                        console.error('Error al generar la transacción de Transbank:', tbkRes.error);
-                    }
-                } catch (tbkErr) {
-                    console.error('Excepción al generar la transacción de Transbank:', tbkErr);
-                }
-                
-                if (!paymentUrl) {
-                    paymentUrl = `https://webpay3gint.transbank.cl/webpayserver/initTransaction`;
-                }
+                paymentUrl = `${window.location.origin}/pagar/order_${orderId}`;
             } else if (paymentMethod === 'mercadopago_point') {
                 // Wake up the physical terminal
                 try {
@@ -2024,7 +2005,7 @@ export default function POSPage() {
                                         : 'border-gray-200 hover:border-brand-charcoal text-brand-charcoal bg-white cursor-pointer font-bold'
                             }`}>
                             <CreditCard className="w-4 h-4 text-brand-terracotta" />
-                            Mercado Pago Point
+                            Pago Máquina
                         </button>
                         <button 
                             type="button"
@@ -2037,8 +2018,8 @@ export default function POSPage() {
                                         ? 'bg-brand-charcoal text-white border-brand-charcoal shadow-sm font-bold'
                                         : 'border-gray-200 hover:border-brand-charcoal text-brand-charcoal bg-white cursor-pointer font-bold'
                             }`}>
-                            <CreditCard className="w-4 h-4 text-red-500" />
-                            Webpay Plus
+                            <Globe className="w-4 h-4 text-blue-500" />
+                            Pago en línea
                         </button>
                         <button 
                             type="button"
@@ -2318,7 +2299,8 @@ export default function POSPage() {
                                                             total: checkoutResult.total,
                                                             paymentMethod: checkoutResult.method,
                                                             date: checkoutResult.date,
-                                                            deliveryDate: checkoutResult.deliveryDate || ''
+                                                            deliveryDate: checkoutResult.deliveryDate || '',
+                                                            paymentUrl: checkoutResult.paymentUrl
                                                         });
                                                         if (res.success) {
                                                             alert('¡Comprobante enviado por correo con éxito! ✨');
@@ -2374,7 +2356,7 @@ export default function POSPage() {
                                     rel="noopener noreferrer"
                                     className="flex-1 py-3 bg-brand-terracotta hover:bg-brand-charcoal text-white text-[10px] uppercase tracking-widest font-bold transition-all rounded-sm text-center flex items-center justify-center gap-2 shadow-md"
                                 >
-                                    <span>💳</span> {checkoutResult.method === 'transbank' ? 'Pagar con Webpay' : 'Pagar con Mercado Pago'}
+                                    <span>💳</span> Ir a Página de Pago
                                 </a>
                             )}
                             

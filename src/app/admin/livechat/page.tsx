@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Send, Bot, User, Phone, CheckCircle, Search, ToggleLeft, ToggleRight } from 'lucide-react';
-import { getWhatsAppChatsAction, getWhatsAppMessagesAction, sendWhatsAppMessageAction, toggleBotSessionAction } from './actions';
+import { ArrowLeft, Send, Bot, User, Phone, CheckCircle, Search, ToggleLeft, ToggleRight, FileText } from 'lucide-react';
+import { getWhatsAppChatsAction, getWhatsAppMessagesAction, sendWhatsAppMessageAction, toggleBotSessionAction, sendWhatsAppTemplateAction } from './actions';
 
 export default function LiveChatPage() {
     const [chats, setChats] = useState<any[]>([]);
@@ -16,6 +16,15 @@ export default function LiveChatPage() {
     const [autoRevertSeconds, setAutoRevertSeconds] = useState<number | null>(null);
     const autoRevertRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+    const [templateClientName, setTemplateClientName] = useState('');
+    const [templatePrenda, setTemplatePrenda] = useState('');
+    const [templateMonto, setTemplateMonto] = useState('');
+    const [templateOrderId, setTemplateOrderId] = useState('');
+    const [templatePaymentMethod, setTemplatePaymentMethod] = useState('Transferencia Bancaria');
+    const [templateSending, setTemplateSending] = useState(false);
+    const [templateSendError, setTemplateSendError] = useState<string | null>(null);
 
     const AUTO_REVERT_SECS = 30; // 30 seconds
 
@@ -115,6 +124,41 @@ export default function LiveChatPage() {
         } else {
             // Already in human_handoff, restart the timer
             startAutoRevert(selectedChat.id);
+        }
+    };
+
+    const handleSendTemplate = async () => {
+        if (!selectedChat || templateSending) return;
+        setTemplateSendError(null);
+        setTemplateSending(true);
+
+        const params = [
+            templateClientName || 'Clienta',
+            templatePrenda,
+            templateMonto,
+            templateOrderId || 'S/N',
+            templatePaymentMethod
+        ];
+
+        const result = await sendWhatsAppTemplateAction(selectedChat.id, 'confirmacion_pago_cliente', params);
+        setTemplateSending(false);
+
+        if (result.success) {
+            setIsTemplateModalOpen(false);
+            // Refresh messages from DB
+            const msgs = await getWhatsAppMessagesAction(selectedChat.id);
+            setMessages(msgs);
+            scrollToBottom();
+            
+            // Switch bot to human handoff if needed
+            if (selectedChat.session_status === 'bot') {
+                setSelectedChat({ ...selectedChat, session_status: 'human_handoff' });
+                loadChats();
+            } else {
+                startAutoRevert(selectedChat.id);
+            }
+        } else {
+            setTemplateSendError(result.error || 'Error al enviar la plantilla');
         }
     };
 
@@ -285,6 +329,25 @@ export default function LiveChatPage() {
                                             <span><strong>Error WhatsApp:</strong> {sendError}</span>
                                         </div>
                                     )}
+                                    <div className="flex justify-between items-center mb-2 px-1">
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    setTemplateClientName(selectedChat.customers?.full_name?.split(' ')[0] || 'Clienta');
+                                                    setTemplatePrenda('');
+                                                    setTemplateMonto('');
+                                                    setTemplateOrderId('');
+                                                    setTemplatePaymentMethod('Transferencia Bancaria');
+                                                    setTemplateSendError(null);
+                                                    setIsTemplateModalOpen(true);
+                                                }}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-sand/20 hover:bg-brand-sand/40 border border-brand-sand/50 text-brand-charcoal rounded-md text-xs font-semibold transition-colors"
+                                            >
+                                                <FileText className="w-3.5 h-3.5" />
+                                                Plantilla de Pago
+                                            </button>
+                                        </div>
+                                    </div>
                                     <div className="flex gap-3">
                                         <textarea
                                             value={replyText}
@@ -316,6 +379,117 @@ export default function LiveChatPage() {
                         )}
                     </div>
                 </div>
+            {/* Modal de Plantilla de Confirmación de Pago */}
+            {isTemplateModalOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-xl shadow-xl border border-gray-100 max-w-md w-full p-6 mx-4">
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 className="font-serif text-lg font-bold text-brand-charcoal">Enviar Plantilla de Confirmación</h3>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Esta plantilla oficial de WhatsApp se enviará directamente al cliente.
+                                </p>
+                            </div>
+                            <button 
+                                onClick={() => setIsTemplateModalOpen(false)}
+                                className="text-gray-400 hover:text-gray-600 font-bold text-lg"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Nombre de la Clienta</label>
+                                <input 
+                                    type="text" 
+                                    value={templateClientName}
+                                    onChange={(e) => setTemplateClientName(e.target.value)}
+                                    placeholder="Ej: María"
+                                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-md outline-none focus:bg-white focus:border-brand-terracotta focus:ring-1 focus:ring-brand-terracotta transition-colors"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Prenda / Servicio</label>
+                                <input 
+                                    type="text" 
+                                    value={templatePrenda}
+                                    onChange={(e) => setTemplatePrenda(e.target.value)}
+                                    placeholder="Ej: Ajuste Vestido de Fiesta"
+                                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-md outline-none focus:bg-white focus:border-brand-terracotta focus:ring-1 focus:ring-brand-terracotta transition-colors"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Monto ($)</label>
+                                    <input 
+                                        type="text" 
+                                        value={templateMonto}
+                                        onChange={(e) => setTemplateMonto(e.target.value)}
+                                        placeholder="Ej: $45.000"
+                                        className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-md outline-none focus:bg-white focus:border-brand-terracotta focus:ring-1 focus:ring-brand-terracotta transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">ID Orden / Referencia</label>
+                                    <input 
+                                        type="text" 
+                                        value={templateOrderId}
+                                        onChange={(e) => setTemplateOrderId(e.target.value)}
+                                        placeholder="Ej: order_123"
+                                        className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-md outline-none focus:bg-white focus:border-brand-terracotta focus:ring-1 focus:ring-brand-terracotta transition-colors"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Medio de Pago</label>
+                                <select
+                                    value={templatePaymentMethod}
+                                    onChange={(e) => setTemplatePaymentMethod(e.target.value)}
+                                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-md outline-none focus:bg-white focus:border-brand-terracotta focus:ring-1 focus:ring-brand-terracotta transition-colors"
+                                >
+                                    <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                                    <option value="MercadoPago">MercadoPago</option>
+                                    <option value="Transbank">Transbank</option>
+                                    <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+                                    <option value="Tarjeta de Débito">Tarjeta de Débito</option>
+                                    <option value="Efectivo">Efectivo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {templateSendError && (
+                            <div className="mt-3 text-[11px] text-red-700 font-medium bg-red-50 p-2 rounded-md border border-red-200">
+                                {templateSendError}
+                            </div>
+                        )}
+
+                        <div className="mt-6 flex justify-end gap-3">
+                            <button
+                                onClick={() => setIsTemplateModalOpen(false)}
+                                className="px-4 py-2 border border-gray-200 hover:bg-gray-50 rounded-md text-xs font-bold text-gray-500 uppercase tracking-wider transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleSendTemplate}
+                                disabled={templateSending || !templatePrenda.trim() || !templateMonto.trim()}
+                                className="px-4 py-2 bg-brand-charcoal hover:bg-brand-terracotta text-white rounded-md text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {templateSending ? (
+                                    <>
+                                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        Enviando...
+                                    </>
+                                ) : 'Enviar Plantilla'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             </div>
             </div>
         </div>
