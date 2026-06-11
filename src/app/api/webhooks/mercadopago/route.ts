@@ -28,6 +28,19 @@ export async function POST(req: Request) {
         console.log('Recibido Webhook MP:', payload);
         await logSystemEvent(supabase, 'INFO', 'Recibido Webhook MP', payload);
 
+        // Extraer ID del pago/recurso de forma compatible con múltiples formatos (Point y Online)
+        let paymentId = payload.data?.id;
+        if (!paymentId && payload.resource) {
+            if (typeof payload.resource === 'string') {
+                if (payload.resource.includes('/')) {
+                    const parts = payload.resource.split('/');
+                    paymentId = parts[parts.length - 1];
+                } else {
+                    paymentId = payload.resource;
+                }
+            }
+        }
+
         // Validación de firma (HMAC) si el secreto está configurado
         if (webhookSecret && signatureHeader) {
             const parts = signatureHeader.split(',');
@@ -40,7 +53,7 @@ export async function POST(req: Request) {
             }
 
             const dataUrl = req.url.split('?')[1] || ''; // Data from query params if any
-            let manifest = `id:${payload.data?.id};request-id:${requestId};ts:${ts};`;
+            let manifest = `id:${paymentId || ''};request-id:${requestId};ts:${ts};`;
             
             const hmac = crypto.createHmac('sha256', webhookSecret);
             hmac.update(manifest);
@@ -56,8 +69,6 @@ export async function POST(req: Request) {
 
         // Si es un evento de pago (point o online)
         if (payload.action === 'payment.created' || payload.type === 'payment' || payload.topic === 'payment') {
-            const paymentId = payload.data?.id;
-            
             if (paymentId) {
                 const mpAccessToken = process.env.MP_ACCESS_TOKEN || '';
                 if (!mpAccessToken) {

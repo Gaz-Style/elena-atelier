@@ -1210,8 +1210,7 @@ export async function wakeUpMercadoPagoTerminalAction(amount: number, descriptio
                 point: {
                     terminal_id: terminalId
                 }
-            },
-            description: description
+            }
         };
 
         const response = await fetch(`https://api.mercadopago.com/v1/orders`, {

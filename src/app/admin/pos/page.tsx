@@ -2175,7 +2175,7 @@ export default function POSPage() {
             {/* Work Order / Success Modal */}
             {checkoutResult && (
                 <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-                    <div className="bg-white rounded-sm shadow-2xl w-full max-w-2xl flex flex-col overflow-hidden animate-in zoom-in duration-300">
+                    <div className="bg-white rounded-sm shadow-2xl w-full max-w-2xl flex flex-col overflow-hidden animate-in zoom-in duration-300 max-h-[calc(100vh-2rem)]">
                         {/* Polling hook logic */}
                         <PollingComponent 
                             checkoutResult={checkoutResult} 
@@ -2193,7 +2193,7 @@ export default function POSPage() {
                             <button onClick={handleCloseCheckout} className="text-white/40 hover:text-white"><X className="w-6 h-6" /></button>
                         </div>
 
-                        <div className="p-8 space-y-8 overflow-y-auto max-h-[70vh]">
+                        <div className="p-8 space-y-8 overflow-y-auto flex-1">
                             {/* Staff Info */}
                             <div className="grid grid-cols-2 gap-8 pb-6 border-b border-gray-100">
                                 <div>
