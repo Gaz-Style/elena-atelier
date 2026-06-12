@@ -61,31 +61,8 @@ export default function ReviewPage() {
             <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#C17F5F] mix-blend-screen filter blur-[120px] opacity-[0.06]"></div>
 
             {/* Header / Brand Logo */}
-            <header className="w-full max-w-md mx-auto pt-8 pb-4 text-center z-10">
-                <table align="center" border={0} cellPadding={0} cellSpacing={0} className="margin: 0 auto; width: 180px; border-collapse: collapse;">
-                    <tbody>
-                        <tr>
-                            <td>
-                                <table border={0} cellPadding={0} cellSpacing={0} className="w-full border-collapse">
-                                    <tbody>
-                                        <tr>
-                                            <td align="left" className="font-serif text-3xl font-black text-white leading-none tracking-[0.2em] uppercase">E</td>
-                                            <td align="center" className="font-serif text-3xl font-black text-white leading-none tracking-[0.2em] uppercase">L</td>
-                                            <td align="center" className="font-serif text-3xl font-black text-white leading-none tracking-[0.2em] uppercase">E</td>
-                                            <td align="center" className="font-serif text-3xl font-black text-white leading-none tracking-[0.2em] uppercase">N</td>
-                                            <td align="right" className="font-serif text-3xl font-black text-white leading-none tracking-[0.2em] uppercase">A</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td className="pt-2 font-sans text-[9px] font-bold text-[#C17F5F] tracking-[0.45em] uppercase text-center">
-                                LA COSTURERA
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <header className="w-full max-w-md mx-auto pt-8 pb-4 text-center z-10 flex flex-col items-center">
+                <img src="/logotipo.png" alt="Elena La Costurera Logo" className="h-16 w-auto object-contain" />
                 <p className="text-[8px] uppercase tracking-[0.3em] text-white/40 mt-4">Alta Costura & Sastrería de Autor</p>
             </header>
 
