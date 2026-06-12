@@ -52,10 +52,13 @@ export default function ReviewPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#1A1A1A] text-white flex flex-col justify-between p-6 relative overflow-hidden font-sans">
+        <div 
+            className="min-h-screen text-white flex flex-col justify-between p-6 relative overflow-hidden font-sans bg-cover bg-center"
+            style={{ backgroundImage: "linear-gradient(to bottom, rgba(26, 26, 26, 0.88), rgba(26, 26, 26, 0.82), rgba(26, 26, 26, 0.92)), url('/elena-taller.png')" }}
+        >
             {/* Decorative organic shapes for background */}
-            <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[#C17F5F] mix-blend-screen filter blur-[150px] opacity-10 animate-pulse"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#C17F5F] mix-blend-screen filter blur-[120px] opacity-10"></div>
+            <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[#C17F5F] mix-blend-screen filter blur-[150px] opacity-[0.06] animate-pulse"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#C17F5F] mix-blend-screen filter blur-[120px] opacity-[0.06]"></div>
 
             {/* Header / Brand Logo */}
             <header className="w-full max-w-md mx-auto pt-8 pb-4 text-center z-10">
