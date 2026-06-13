@@ -134,6 +134,9 @@ export default async function CRMPage() {
                               <MessageCircle className="w-4 h-4" /> <span className="hidden md:inline">WhatsApp</span>
                             </a>
                           )}
+                          <Link href={`/admin/crm/${customer.id}/editar`} className="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-brand-terracotta transition-colors inline-flex items-center gap-1">
+                            Editar
+                          </Link>
                           <Link href={`/admin/crm/${customer.id}`} className="text-xs font-bold uppercase tracking-widest text-brand-terracotta hover:text-brand-charcoal transition-colors inline-flex items-center gap-1">
                             Ver <span className="hidden md:inline">Perfil</span> <ChevronRight className="w-3 h-3" />
                           </Link>

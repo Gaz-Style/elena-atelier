@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import Navbar from '@/components/Navbar';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, User, Phone, Mail, FileText, Calendar, CheckCircle, Clock } from 'lucide-react';
+import { ArrowLeft, User, Phone, Mail, FileText, Calendar, CheckCircle, Clock, Edit } from 'lucide-react';
 
 export const revalidate = 0;
 
@@ -53,9 +53,18 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
                 
                 {/* Header */}
                 <header className="border-b border-gray-200 pb-8">
-                    <Link href="/admin/crm" className="text-[10px] uppercase tracking-widest text-gray-400 font-bold hover:text-brand-terracotta transition-colors flex items-center gap-2 mb-4">
-                        <ArrowLeft className="w-3 h-3" /> Volver al Directorio
-                    </Link>
+                    <div className="flex justify-between items-center mb-4">
+                        <Link href="/admin/crm" className="text-[10px] uppercase tracking-widest text-gray-400 font-bold hover:text-brand-terracotta transition-colors flex items-center gap-2">
+                            <ArrowLeft className="w-3 h-3" /> Volver al Directorio
+                        </Link>
+                        <Link 
+                            href={`/admin/crm/${customer.id}/editar`} 
+                            className="bg-brand-charcoal hover:bg-brand-terracotta text-white px-4 py-2 text-[10px] uppercase tracking-widest font-bold rounded-sm transition-all flex items-center gap-2"
+                        >
+                            <Edit className="w-3.5 h-3.5" />
+                            Editar Perfil
+                        </Link>
+                    </div>
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                         <div>
                             <h1 className="font-serif text-4xl text-brand-charcoal">{customer.full_name}</h1>
