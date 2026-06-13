@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 import Navbar from '@/components/Navbar';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, User, Phone, Mail, FileText, Calendar, CheckCircle, Clock, Edit } from 'lucide-react';
@@ -19,6 +19,7 @@ function formatDate(dateStr: string) {
 
 export default async function CustomerProfilePage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
+    const supabase = await createClient();
 
     // Fetch customer data
     const { data: customer, error: customerError } = await supabase
