@@ -70,12 +70,26 @@ export default function LiveChatPage() {
     }, []);
 
     useEffect(() => {
-        if (selectedChat?.id) {
-            getWhatsAppMessagesAction(selectedChat.id).then(msgs => {
-                setMessages(msgs);
-                scrollToBottom();
-            });
-        }
+        let interval: NodeJS.Timeout;
+        
+        const loadMessages = () => {
+            if (selectedChat?.id) {
+                getWhatsAppMessagesAction(selectedChat.id).then(msgs => {
+                    setMessages(prev => {
+                        if (prev.length !== msgs.length) {
+                            scrollToBottom();
+                            return msgs;
+                        }
+                        return prev;
+                    });
+                });
+            }
+        };
+
+        loadMessages();
+        interval = setInterval(loadMessages, 5000); // Polling cada 5 segundos para recibir mensajes del cliente en tiempo real
+        
+        return () => clearInterval(interval);
     }, [selectedChat?.id]);
 
     useEffect(() => {
