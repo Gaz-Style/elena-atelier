@@ -134,3 +134,20 @@ export async function deleteSaleAction(saleId: string) {
     revalidatePath('/admin/sales');
     return { success: true };
 }
+
+export async function updateSaleStatusAction(saleId: string, status: string) {
+    const supabase = await createClient();
+    const { error } = await supabase
+        .from('sales_ledger')
+        .update({ status })
+        .eq('id', saleId);
+
+    if (error) {
+        return { success: false, error: error.message };
+    }
+
+    revalidatePath('/admin/sales');
+    revalidatePath(`/admin/sales/${saleId}`);
+    return { success: true };
+}
+

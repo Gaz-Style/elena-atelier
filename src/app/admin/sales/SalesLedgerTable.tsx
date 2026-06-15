@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { CreditCard, CheckCircle, Clock, Trash2, AlertCircle, Loader2 } from 'lucide-react';
-import { requestSaleDeletionAuthorizationAction, deleteSaleAction } from './actions';
+import { requestSaleDeletionAuthorizationAction, deleteSaleAction, updateSaleStatusAction } from './actions';
 
 interface Sale {
     id: string;
@@ -41,6 +41,16 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
             timeZone: 'America/Santiago'
         });
     };
+
+    // Handler when user selects a new status in the dropdown
+    async function handleStatusChange(saleId: string, newStatus: string) {
+        const res = await updateSaleStatusAction(saleId, newStatus);
+        if (res.success) {
+            setSalesList(prev => prev.map(s => s.id === saleId ? { ...s, status: newStatus } : s));
+        } else {
+            alert('Error al actualizar el estado: ' + res.error);
+        }
+    }
 
     // Handler when user clicks "Eliminar"
     async function handleDeleteClick(sale: Sale) {
@@ -151,19 +161,21 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
                                         </div>
                                     </td>
                                     <td className="p-4">
-                                        {sale.status === 'completed' ? (
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-[9px] font-bold uppercase tracking-wider">
-                                                <CheckCircle className="w-3 h-3" /> Pagado
-                                            </span>
-                                        ) : sale.status === 'pending' ? (
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 text-[9px] font-bold uppercase tracking-wider">
-                                                <Clock className="w-3 h-3" /> Pendiente
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 text-[9px] font-bold uppercase tracking-wider">
-                                                Cancelada
-                                            </span>
-                                        )}
+                                        <select
+                                            value={sale.status}
+                                            onChange={(e) => handleStatusChange(sale.id, e.target.value)}
+                                            className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider outline-none border border-transparent cursor-pointer transition-all ${
+                                                sale.status === 'completed' 
+                                                    ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                                                    : sale.status === 'pending' 
+                                                        ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' 
+                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                            }`}
+                                        >
+                                            <option value="pending" className="bg-white text-orange-700 font-bold">Pendiente</option>
+                                            <option value="completed" className="bg-white text-green-700 font-bold">Pagado</option>
+                                            <option value="cancelled" className="bg-white text-gray-600 font-bold">Cancelada</option>
+                                        </select>
                                     </td>
                                     <td className="p-4 text-right space-x-3">
                                         <button 
