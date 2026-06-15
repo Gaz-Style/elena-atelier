@@ -2,8 +2,13 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { CreditCard, CheckCircle, Clock, Trash2, AlertCircle, Loader2 } from 'lucide-react';
-import { requestSaleDeletionAuthorizationAction, deleteSaleAction, updateSaleStatusAction } from './actions';
+import { CreditCard, Trash2, AlertCircle, Loader2 } from 'lucide-react';
+import { 
+    requestSaleDeletionAuthorizationAction, 
+    deleteSaleAction, 
+    updateSaleStatusAction, 
+    requestSaleStatusAuthorizationAction 
+} from './actions';
 
 interface Sale {
     id: string;
@@ -26,7 +31,14 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
     // Auth Modal State
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [isAuthorizing, setIsAuthorizing] = useState(false);
+    const [authMode, setAuthMode] = useState<'delete' | 'status'>('delete');
+    
+    // Delete states
     const [pendingDeleteSale, setPendingDeleteSale] = useState<Sale | null>(null);
+    
+    // Status update states
+    const [pendingStatusChange, setPendingStatusChange] = useState<{ sale: Sale; newStatus: string } | null>(null);
+    
     const [authPinInput, setAuthPinInput] = useState('');
     const [expectedPin, setExpectedPin] = useState('');
 
@@ -43,18 +55,33 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
     };
 
     // Handler when user selects a new status in the dropdown
-    async function handleStatusChange(saleId: string, newStatus: string) {
-        const res = await updateSaleStatusAction(saleId, newStatus);
-        if (res.success) {
-            setSalesList(prev => prev.map(s => s.id === saleId ? { ...s, status: newStatus } : s));
+    async function handleStatusChange(sale: Sale, newStatus: string) {
+        setPendingStatusChange({ sale, newStatus });
+        setAuthMode('status');
+        setIsAuthorizing(true);
+        setShowAuthModal(true);
+
+        const res = await requestSaleStatusAuthorizationAction({
+            internalId: sale.internal_id,
+            totalAmount: sale.total_amount,
+            currentStatus: sale.status,
+            newStatus: newStatus
+        });
+
+        setIsAuthorizing(false);
+        if (res.success && res.pin) {
+            setExpectedPin(res.pin);
         } else {
-            alert('Error al actualizar el estado: ' + res.error);
+            alert(res.error || 'Error enviando solicitud de autorización.');
+            setShowAuthModal(false);
+            setPendingStatusChange(null);
         }
     }
 
     // Handler when user clicks "Eliminar"
     async function handleDeleteClick(sale: Sale) {
         setPendingDeleteSale(sale);
+        setAuthMode('delete');
         setIsAuthorizing(true);
         setShowAuthModal(true);
 
@@ -74,8 +101,8 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
         }
     }
 
-    // Handler to confirm deletion after correct PIN is input
-    async function handleAuthorizeDelete() {
+    // Handler to confirm action after correct PIN is input
+    async function handleAuthorize() {
         // Fallback master PIN is '2026' in case notifications fail
         const masterPin = '2026';
         const isAuthorized = authPinInput === expectedPin || authPinInput === masterPin;
@@ -86,22 +113,38 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
             return;
         }
 
-        if (!pendingDeleteSale) return;
-
         setIsAuthorizing(true);
-        const deleteRes = await deleteSaleAction(pendingDeleteSale.id);
-        setIsAuthorizing(false);
 
-        if (deleteRes.success) {
-            // Update local state list
-            setSalesList(prev => prev.filter(s => s.id !== pendingDeleteSale.id));
-            alert('Venta eliminada exitosamente.');
-            setShowAuthModal(false);
-            setPendingDeleteSale(null);
-            setAuthPinInput('');
-            setExpectedPin('');
-        } else {
-            alert('Error al eliminar venta: ' + deleteRes.error);
+        if (authMode === 'delete') {
+            if (!pendingDeleteSale) return;
+            const deleteRes = await deleteSaleAction(pendingDeleteSale.id);
+            setIsAuthorizing(false);
+
+            if (deleteRes.success) {
+                setSalesList(prev => prev.filter(s => s.id !== pendingDeleteSale.id));
+                alert('Venta eliminada exitosamente.');
+                setShowAuthModal(false);
+                setPendingDeleteSale(null);
+                setAuthPinInput('');
+                setExpectedPin('');
+            } else {
+                alert('Error al eliminar venta: ' + deleteRes.error);
+            }
+        } else if (authMode === 'status') {
+            if (!pendingStatusChange) return;
+            const statusRes = await updateSaleStatusAction(pendingStatusChange.sale.id, pendingStatusChange.newStatus);
+            setIsAuthorizing(false);
+
+            if (statusRes.success) {
+                setSalesList(prev => prev.map(s => s.id === pendingStatusChange.sale.id ? { ...s, status: pendingStatusChange.newStatus } : s));
+                alert('Estado actualizado exitosamente.');
+                setShowAuthModal(false);
+                setPendingStatusChange(null);
+                setAuthPinInput('');
+                setExpectedPin('');
+            } else {
+                alert('Error al actualizar el estado: ' + statusRes.error);
+            }
         }
     }
 
@@ -163,7 +206,7 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
                                     <td className="p-4">
                                         <select
                                             value={sale.status}
-                                            onChange={(e) => handleStatusChange(sale.id, e.target.value)}
+                                            onChange={(e) => handleStatusChange(sale, e.target.value)}
                                             className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider outline-none border border-transparent cursor-pointer transition-all ${
                                                 sale.status === 'completed' 
                                                     ? 'bg-green-100 text-green-700 hover:bg-green-200' 
@@ -204,7 +247,9 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
                                 <AlertCircle className="w-6 h-6 text-[#721c24]" />
                             </div>
                             <h2 className="text-lg font-bold text-[#721c24] mb-1">Autorización Requerida</h2>
-                            <p className="text-xs text-[#721c24]/80">Eliminación de Transacción</p>
+                            <p className="text-xs text-[#721c24]/80">
+                                {authMode === 'delete' ? 'Eliminación de Transacción' : 'Cambio de Estado de Transacción'}
+                            </p>
                         </div>
                         <div className="p-6">
                             {isAuthorizing ? (
@@ -215,7 +260,17 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
                             ) : (
                                 <div className="space-y-4">
                                     <p className="text-sm text-center text-gray-600">
-                                        El administrador ha sido notificado. Por favor, ingrese el PIN de 4 dígitos para autorizar la eliminación de la venta {pendingDeleteSale?.internal_id}:
+                                        El administrador ha sido notificado. Por favor, ingrese el PIN de 4 dígitos para autorizar {
+                                            authMode === 'delete' 
+                                                ? `la eliminación de la venta ${pendingDeleteSale?.internal_id}` 
+                                                : `el cambio de estado de la venta ${pendingStatusChange?.sale.internal_id} a ${
+                                                    pendingStatusChange?.newStatus === 'completed' 
+                                                        ? 'Pagado' 
+                                                        : pendingStatusChange?.newStatus === 'pending' 
+                                                            ? 'Pendiente' 
+                                                            : 'Cancelada'
+                                                }`
+                                        }:
                                     </p>
                                     <input 
                                         type="text" 
@@ -231,6 +286,7 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
                                             onClick={() => {
                                                 setShowAuthModal(false);
                                                 setPendingDeleteSale(null);
+                                                setPendingStatusChange(null);
                                                 setAuthPinInput('');
                                                 setExpectedPin('');
                                             }} 
@@ -239,7 +295,7 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
                                             Cancelar
                                         </button>
                                         <button 
-                                            onClick={handleAuthorizeDelete}
+                                            onClick={handleAuthorize}
                                             disabled={authPinInput.length !== 4}
                                             className="flex-1 py-3 bg-brand-terracotta text-white text-[10px] uppercase tracking-widest font-bold hover:bg-brand-charcoal transition-all rounded-sm disabled:opacity-50"
                                         >
