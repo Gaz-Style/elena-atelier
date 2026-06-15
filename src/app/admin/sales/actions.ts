@@ -117,7 +117,11 @@ export async function requestSaleDeletionAuthorizationAction(payload: {
 }
 
 export async function deleteSaleAction(saleId: string) {
-    const supabase = await createClient();
+    const { createClient: createAdminClient } = await import('@supabase/supabase-js');
+    const supabase = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     const { error } = await supabase
         .from('sales_ledger')
         .delete()
