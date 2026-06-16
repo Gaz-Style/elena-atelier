@@ -188,7 +188,7 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
                                     <td className="p-4">
                                         <span className="font-bold text-brand-charcoal">{sale.internal_id}</span>
                                     </td>
-                                    <td className="p-4 text-xs">
+                                    <td className="p-4 text-xs" suppressHydrationWarning>
                                         {formatDate(sale.created_at)}
                                     </td>
                                     <td className="p-4 font-serif text-brand-charcoal">
