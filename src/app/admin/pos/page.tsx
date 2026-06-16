@@ -217,7 +217,9 @@ export default function POSPage() {
     const [loadBalancerModal, setLoadBalancerModal] = useState<{ show: boolean, targetOpId: string, itemIndex: number | null, estimatedHours: number, targetName: string, targetLoadDays: string, alternatives: any[] } | null>(null);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState<'mercadopago_point' | 'transbank' | 'cash' | null>(null);
+    const [paymentMethod, setPaymentMethod] = useState<'mercadopago_point' | 'transbank' | 'cash' | 'split' | null>(null);
+    const [splitCardAmount, setSplitCardAmount] = useState<number>(0);
+    const [splitCashAmount, setSplitCashAmount] = useState<number>(0);
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentConfirmed, setPaymentConfirmed] = useState(false);
     
@@ -914,16 +916,26 @@ export default function POSPage() {
 
     const handleCheckout = async () => {
         if (cart.length === 0 || !paymentMethod || !selectedCustomer) return;
+        if (paymentMethod === 'split' && (splitCardAmount + splitCashAmount !== total)) {
+            alert('La suma de pago dividido no coincide con el total.');
+            return;
+        }
+        
         setIsProcessing(true);
         
         try {
             const orderId = Math.floor(Math.random() * 90000) + 10000;
             const dateStr = new Date().toLocaleDateString();
 
+            let finalPaymentMethodStr = paymentMethod;
+            if (paymentMethod === 'split') {
+                finalPaymentMethodStr = `Mixto (Máquina: $${splitCardAmount}, Efectivo: $${splitCashAmount})`;
+            }
+
             const res = await createPOSOrdersAction({
                 customerId: selectedCustomer.id,
                 posOrderId: `order_${orderId}`,
-                paymentMethod: paymentMethod,
+                paymentMethod: finalPaymentMethodStr,
                 paymentStatus: 'pending',
                 items: cart.map(item => ({
                     name: item.name,
@@ -950,11 +962,12 @@ export default function POSPage() {
             let paymentUrl = '';
             if (paymentMethod === 'transbank') {
                 paymentUrl = `${window.location.origin}/pagar/order_${orderId}`;
-            } else if (paymentMethod === 'mercadopago_point') {
+            } else if (paymentMethod === 'mercadopago_point' || (paymentMethod === 'split' && splitCardAmount > 0)) {
                 // Wake up the physical terminal
                 try {
                     const mpDesc = `Orden de Trabajo #${orderId}`;
-                    const mpRes = await wakeUpMercadoPagoTerminalAction(total, mpDesc, `order_${orderId}`);
+                    const amountToCharge = paymentMethod === 'split' ? splitCardAmount : total;
+                    const mpRes = await wakeUpMercadoPagoTerminalAction(amountToCharge, mpDesc, `order_${orderId}`);
                     if (!mpRes.success) {
                         console.error('Error despertando terminal Mercado Pago:', mpRes.error);
                         alert(`Error al enviar el cobro a la maquinita física: ${mpRes.error}`);
@@ -971,7 +984,7 @@ export default function POSPage() {
                 customer: selectedCustomer,
                 items: [...cart],
                 total: total,
-                method: paymentMethod,
+                method: finalPaymentMethodStr,
                 date: dateStr,
                 deliveryDate: deadline || (adjustedDates?.finalDeliveryDate ? new Date(adjustedDates.finalDeliveryDate).toLocaleDateString('es-CL') : 'A coordinar'),
                 paymentUrl: paymentUrl
@@ -994,7 +1007,7 @@ export default function POSPage() {
                         images: item.images || []
                     })),
                     total: total,
-                    paymentMethod: paymentMethod,
+                    paymentMethod: finalPaymentMethodStr,
                     date: dateStr,
                     deliveryDate: deadline || adjustedDates?.finalDeliveryDate || '',
                     deliveryWindowStart: adjustedDates?.config?.windowStart?.slice(0, 5) || '15:00',
@@ -2298,7 +2311,7 @@ export default function POSPage() {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-3 gap-3 mt-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
                         <button 
                             type="button"
                             disabled={hasUnassignedItems}
@@ -2341,7 +2354,63 @@ export default function POSPage() {
                             <span className="text-sm leading-none">💵</span>
                             Efectivo / Transf
                         </button>
+                        <button 
+                            type="button"
+                            disabled={hasUnassignedItems}
+                            onClick={() => {
+                                setPaymentMethod('split');
+                                setSplitCardAmount(Math.ceil(total / 2));
+                                setSplitCashAmount(total - Math.ceil(total / 2));
+                            }}
+                            className={`flex flex-col items-center justify-center gap-2 py-3.5 text-[9px] uppercase tracking-widest transition-all rounded-sm border ${
+                                hasUnassignedItems
+                                    ? 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed opacity-50'
+                                    : paymentMethod === 'split'
+                                        ? 'bg-brand-charcoal text-white border-brand-charcoal shadow-sm font-bold'
+                                        : 'border-gray-200 hover:border-brand-charcoal text-brand-charcoal bg-white cursor-pointer font-bold'
+                            }`}>
+                            <span className="text-sm leading-none flex gap-1">💳 💵</span>
+                            Pago Mixto
+                        </button>
                     </div>
+
+                    {paymentMethod === 'split' && (
+                        <div className="mt-4 p-4 border border-brand-terracotta/20 bg-brand-terracotta/5 rounded-sm space-y-4">
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-brand-charcoal text-center mb-2">Detalle de Pago Dividido</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[9px] uppercase tracking-widest text-gray-500 font-bold mb-1">Monto Tarjeta (Máquina)</label>
+                                    <input 
+                                        type="number" 
+                                        value={splitCardAmount} 
+                                        onChange={(e) => {
+                                            const val = Number(e.target.value) || 0;
+                                            setSplitCardAmount(val);
+                                            setSplitCashAmount(total - val);
+                                        }}
+                                        className="w-full border-b border-gray-300 py-2 text-sm bg-transparent outline-none focus:border-brand-charcoal font-mono"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] uppercase tracking-widest text-gray-500 font-bold mb-1">Monto Efectivo / Transf</label>
+                                    <input 
+                                        type="number" 
+                                        value={splitCashAmount} 
+                                        onChange={(e) => {
+                                            const val = Number(e.target.value) || 0;
+                                            setSplitCashAmount(val);
+                                            setSplitCardAmount(total - val);
+                                        }}
+                                        className="w-full border-b border-gray-300 py-2 text-sm bg-transparent outline-none focus:border-brand-charcoal font-mono"
+                                    />
+                                </div>
+                            </div>
+                            {splitCardAmount + splitCashAmount !== total && (
+                                <p className="text-[10px] text-red-500 font-bold text-center">⚠ La suma debe ser exactamente {formatCurrency(total)}</p>
+                            )}
+                        </div>
+                    )}
+
 
                     <div className="grid grid-cols-1 gap-2 mt-4">
                         <button 
@@ -2354,9 +2423,9 @@ export default function POSPage() {
                         <button 
                             type="button"
                             onClick={handleCheckout}
-                            disabled={cart.length === 0 || !paymentMethod || !selectedCustomer || !deadline || isProcessing || hasUnassignedItems}
+                            disabled={cart.length === 0 || !paymentMethod || !selectedCustomer || !deadline || isProcessing || hasUnassignedItems || (paymentMethod === 'split' && splitCardAmount + splitCashAmount !== total)}
                             className={`w-full py-4 text-[10px] uppercase tracking-widest font-bold transition-all ${
-                                cart.length === 0 || !paymentMethod || !selectedCustomer || !deadline || isProcessing || hasUnassignedItems
+                                cart.length === 0 || !paymentMethod || !selectedCustomer || !deadline || isProcessing || hasUnassignedItems || (paymentMethod === 'split' && splitCardAmount + splitCashAmount !== total)
                                     ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                                     : 'bg-green-600 text-white hover:bg-green-700 shadow-md'
                             }`}>
