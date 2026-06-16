@@ -2381,10 +2381,12 @@ export default function POSPage() {
                                 <div>
                                     <label className="block text-[9px] uppercase tracking-widest text-gray-500 font-bold mb-1">Monto Tarjeta (Máquina)</label>
                                     <input 
-                                        type="number" 
-                                        value={splitCardAmount} 
+                                        type="text" 
+                                        inputMode="numeric"
+                                        value={splitCardAmount || ''} 
+                                        placeholder="0"
                                         onChange={(e) => {
-                                            const val = Number(e.target.value) || 0;
+                                            const val = Number(e.target.value.replace(/[^0-9]/g, '')) || 0;
                                             setSplitCardAmount(val);
                                             setSplitCashAmount(total - val);
                                         }}
@@ -2394,10 +2396,12 @@ export default function POSPage() {
                                 <div>
                                     <label className="block text-[9px] uppercase tracking-widest text-gray-500 font-bold mb-1">Monto Efectivo / Transf</label>
                                     <input 
-                                        type="number" 
-                                        value={splitCashAmount} 
+                                        type="text" 
+                                        inputMode="numeric"
+                                        value={splitCashAmount || ''} 
+                                        placeholder="0"
                                         onChange={(e) => {
-                                            const val = Number(e.target.value) || 0;
+                                            const val = Number(e.target.value.replace(/[^0-9]/g, '')) || 0;
                                             setSplitCashAmount(val);
                                             setSplitCardAmount(total - val);
                                         }}
