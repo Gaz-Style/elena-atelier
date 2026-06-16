@@ -2388,7 +2388,6 @@ export default function POSPage() {
                                         onChange={(e) => {
                                             const val = Number(e.target.value.replace(/[^0-9]/g, '')) || 0;
                                             setSplitCardAmount(val);
-                                            setSplitCashAmount(total - val);
                                         }}
                                         className="w-full border-b border-gray-300 py-2 text-sm bg-transparent outline-none focus:border-brand-charcoal font-mono"
                                     />
@@ -2403,7 +2402,6 @@ export default function POSPage() {
                                         onChange={(e) => {
                                             const val = Number(e.target.value.replace(/[^0-9]/g, '')) || 0;
                                             setSplitCashAmount(val);
-                                            setSplitCardAmount(total - val);
                                         }}
                                         className="w-full border-b border-gray-300 py-2 text-sm bg-transparent outline-none focus:border-brand-charcoal font-mono"
                                     />
