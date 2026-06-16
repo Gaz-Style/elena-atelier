@@ -25,6 +25,19 @@ async function updateDatabaseAndNotify(
     console.log(`Procesando pago aprobado para external_reference: ${externalRef}`);
     await logSystemEvent(supabase, 'INFO', `Procesando pago aprobado MP`, { paymentId, externalRef });
 
+    // Check if the order is already paid to prevent duplicate notifications (idempotency check)
+    const { data: existingOrders } = await supabase
+        .from('production_orders')
+        .select('payment_status')
+        .eq('pos_order_id', externalRef)
+        .limit(1);
+
+    if (existingOrders && existingOrders.length > 0 && existingOrders[0].payment_status === 'PAGADO') {
+        console.log(`La orden ${externalRef} ya estaba marcada como PAGADA. Evitando notificación duplicada.`);
+        await logSystemEvent(supabase, 'INFO', `Orden ya estaba pagada, ignorando webhook duplicado`, { externalRef });
+        return true;
+    }
+
     // 1. Actualizar todas las filas de la orden en producción
     const { data, error } = await supabase
         .from('production_orders')
