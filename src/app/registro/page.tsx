@@ -123,12 +123,27 @@ export default function PublicRegistrationPage() {
 
                                 <div className="relative group">
                                     <label className="text-[9px] uppercase tracking-widest font-bold text-brand-sand/50 mb-1 block ml-1">WhatsApp</label>
-                                    <div className="relative">
-                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-brand-sand transition-colors" />
+                                    <div className="relative flex items-center">
+                                        <Phone className="absolute left-4 w-4 h-4 text-white/30 group-focus-within:text-brand-sand transition-colors" />
+                                        <span className="absolute left-11 text-brand-sand font-bold text-sm select-none pointer-events-none tracking-widest">+56 9</span>
                                         <input 
-                                            name="phone" type="tel" placeholder="+56 9 ..." 
-                                            className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-sm text-white text-sm outline-none focus:border-brand-sand focus:bg-white/10 transition-all placeholder:text-white/20" 
+                                            type="tel" placeholder="1234 5678" 
+                                            maxLength={9} // 8 digits + optional space
+                                            onChange={(e) => {
+                                                let val = e.target.value.replace(/\D/g, '').slice(0, 8);
+                                                if (val.length > 4) val = val.slice(0,4) + ' ' + val.slice(4);
+                                                e.target.value = val;
+                                            }}
+                                            className="w-full pl-24 pr-4 py-4 bg-white/5 border border-white/10 rounded-sm text-white text-sm tracking-widest font-mono outline-none focus:border-brand-sand focus:bg-white/10 transition-all placeholder:text-white/20" 
                                         />
+                                        {/* Hidden input to inject the full formatted phone into FormData seamlessly */}
+                                        <input type="hidden" name="phone" />
+                                        <script dangerouslySetInnerHTML={{__html: `
+                                            document.currentScript.parentElement.querySelector('input[type="tel"]').addEventListener('input', function(e) {
+                                                const clean = e.target.value.replace(/\\D/g, '');
+                                                document.currentScript.parentElement.querySelector('input[type="hidden"]').value = clean.length > 0 ? '+56 9 ' + clean : '';
+                                            });
+                                        `}} />
                                     </div>
                                 </div>
                             </div>

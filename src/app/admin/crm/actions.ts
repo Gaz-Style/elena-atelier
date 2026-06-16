@@ -4,6 +4,19 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { sendWelcomeNotifications } from '@/lib/notifications';
 
+/** Normalize any Chilean phone input to the canonical format: +56 9 XXXX XXXX */
+function normalizePhone(raw: string | null): string | null {
+    if (!raw || raw.trim() === '') return null;
+    let digits = raw.replace(/\D/g, '');
+    // Remove country code if present
+    if (digits.startsWith('56')) digits = digits.slice(2);
+    // Remove leading 9 (mobile prefix) to get the 8 local digits
+    if (digits.startsWith('9') && digits.length === 9) digits = digits.slice(1);
+    // If we don't have exactly 8 digits, return cleaned original
+    if (digits.length !== 8) return raw.trim();
+    return `+56 9 ${digits.slice(0, 4)} ${digits.slice(4)}`;
+}
+
 export async function getCustomers() {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -21,7 +34,7 @@ export async function getCustomers() {
 export async function createCustomer(formData: FormData) {
   const full_name = formData.get('full_name') as string;
   const email = formData.get('email') as string;
-  const phone = formData.get('phone') as string;
+  const phone = normalizePhone(formData.get('phone') as string);
   const birthday = formData.get('birthday') as string;
   const style_preference = formData.get('style_preference') as string;
   const typical_occasion = formData.get('typical_occasion') as string;
@@ -54,7 +67,7 @@ export async function createCustomer(formData: FormData) {
 export async function updateCustomer(id: string, formData: FormData) {
   const full_name = formData.get('full_name') as string;
   const email = formData.get('email') as string;
-  const phone = formData.get('phone') as string;
+  const phone = normalizePhone(formData.get('phone') as string);
   const rut = formData.get('rut') as string;
   const birthday = formData.get('birthday') as string;
   const style_preference = formData.get('style_preference') as string;

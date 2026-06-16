@@ -17,6 +17,19 @@ function formatDate(dateStr: string) {
     });
 }
 
+function formatPhoneForDisplay(phone: string | null) {
+    if (!phone) return 'No registrado';
+    let digits = phone.replace(/\D/g, '');
+    if (digits.startsWith('56')) digits = digits.slice(2);
+    if (digits.startsWith('9') && digits.length === 9) {
+        return `+56 9 ${digits.slice(1, 5)} ${digits.slice(5)}`;
+    }
+    if (digits.length === 8) {
+        return `+56 9 ${digits.slice(0, 4)} ${digits.slice(4)}`;
+    }
+    return phone;
+}
+
 export default async function CustomerProfilePage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const supabase = await createClient();
@@ -95,7 +108,7 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
                                     <p className="text-xs text-gray-400 mb-1">Teléfono</p>
                                     <p className="font-medium text-brand-charcoal flex items-center gap-2">
                                         <Phone className="w-3 h-3 text-gray-400" />
-                                        {customer.phone || 'No registrado'}
+                                        {formatPhoneForDisplay(customer.phone)}
                                     </p>
                                 </div>
                                 <div>

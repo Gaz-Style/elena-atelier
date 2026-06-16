@@ -31,6 +31,19 @@ export default async function CRMPage() {
       return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(val);
   };
 
+  const formatPhoneForDisplay = (phone: string | null) => {
+      if (!phone) return 'Sin teléfono';
+      let digits = phone.replace(/\D/g, '');
+      if (digits.startsWith('56')) digits = digits.slice(2);
+      if (digits.startsWith('9') && digits.length === 9) {
+          return `+56 9 ${digits.slice(1, 5)} ${digits.slice(5)}`;
+      }
+      if (digits.length === 8) {
+          return `+56 9 ${digits.slice(0, 4)} ${digits.slice(4)}`;
+      }
+      return phone; // Fallback
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans pb-24">
 
@@ -112,7 +125,7 @@ export default async function CRMPage() {
                         </td>
                         <td className="py-4 px-6">
                           <div className="text-sm text-brand-charcoal">{customer.email}</div>
-                          <div className="text-sm text-gray-500">{customer.phone || 'Sin teléfono'}</div>
+                          <div className="text-sm text-gray-500 font-mono tracking-wider">{formatPhoneForDisplay(customer.phone)}</div>
                         </td>
                         <td className="py-4 px-6">
                           <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-[10px] uppercase tracking-widest rounded-sm mb-1 mr-2 whitespace-nowrap">

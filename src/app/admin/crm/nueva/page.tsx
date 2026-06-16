@@ -60,7 +60,22 @@ export default function NewCustomerPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 flex items-center gap-2"><Phone className="w-3 h-3" /> Teléfono / WhatsApp</label>
-                                    <input name="phone" type="tel" placeholder="+56 9 1234 5678" className="w-full p-3 bg-gray-50 border border-gray-100 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta" />
+                                    <div className="relative flex items-center">
+                                        <span className="absolute left-3 text-brand-terracotta font-bold text-sm select-none pointer-events-none tracking-widest">+56 9</span>
+                                        <input 
+                                            type="tel" placeholder="1234 5678" 
+                                            maxLength={9}
+                                            onChange={(e) => {
+                                                let val = e.target.value.replace(/\D/g, '').slice(0, 8);
+                                                if (val.length > 4) val = val.slice(0,4) + ' ' + val.slice(4);
+                                                e.target.value = val;
+                                                const hidden = e.target.parentElement?.querySelector('input[type="hidden"]') as HTMLInputElement;
+                                                if (hidden) hidden.value = val.replace(/\D/g, '').length > 0 ? '+56 9 ' + val : '';
+                                            }}
+                                            className="w-full pl-20 p-3 bg-gray-50 border border-gray-100 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta font-mono tracking-widest text-sm" 
+                                        />
+                                        <input type="hidden" name="phone" />
+                                    </div>
                                 </div>
                             </div>
 
