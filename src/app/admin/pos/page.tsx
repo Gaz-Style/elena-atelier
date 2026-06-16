@@ -2,11 +2,11 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, Plus, MessageSquare, Mail, ClipboardList, TrendingUp, Loader2, Package, Camera, FileText, AlertCircle, Globe } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, Plus, MessageSquare, Mail, ClipboardList, TrendingUp, Loader2, Package, Camera, FileText, AlertCircle, Globe, Sparkles, Trash2 } from 'lucide-react';
 import { getCostSettings } from '../finance/actions';
 import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
-import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction, saveBudgetAction, wakeUpMercadoPagoTerminalAction, requestDiscountAuthorizationAction, getOperatorsDailyLoadAction } from './actions';
+import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction, saveBudgetAction, wakeUpMercadoPagoTerminalAction, requestDiscountAuthorizationAction, getOperatorsDailyLoadAction, analyzeDesignWithGeminiAction } from './actions';
 import { createPaymentPreference } from '@/lib/payments';
 import { createWebpayTransaction } from '@/lib/transbank';
 
@@ -80,6 +80,136 @@ const getDefaultProductionHours = (name: string, category: string): number => {
     if (category.toLowerCase().includes('bastas')) return 1.0;
     return 1.0; // Default fallback
 };
+
+
+const DEFAULT_HC_TEMPLATES = [
+  {
+    id: 'vestido_gala',
+    name: 'Vestido Gala',
+    svg: `<svg viewBox="0 0 100 150" fill="none" stroke="currentColor" stroke-width="1.2" class="w-12 h-16"><path d="M35,20 C35,20 40,15 50,22 C60,15 65,20 65,20 L68,40 C65,55 68,70 75,120 L25,120 C32,70 35,55 32,40 Z" /><path d="M36,23 C36,23 41,18 50,24 C59,18 64,23 64,23 L66,41 C63,55 66,70 72,117 L28,117 C34,70 37,55 34,41 Z" stroke-dasharray="2 2" stroke-width="0.8" /></svg>`,
+    molderia: 'draping',
+    pieces: 8,
+    tela: 'hard',
+    estructura: { canvas: false, lining: true, cups: true, bones: true, pads: false },
+    acabados: { handHem: true, handButtonholes: 0, handDraping: true, handEmbroideryHours: 6 },
+    pruebas: 3,
+    toile: true,
+    materiales: 120000,
+    extra: 40000
+  },
+  {
+    id: 'chaqueta_sastre',
+    name: 'Chaqueta Sastre',
+    svg: `<svg viewBox="0 0 100 150" fill="none" stroke="currentColor" stroke-width="1.2" class="w-12 h-16"><path d="M30,20 L40,15 L50,25 L60,15 L70,20 L75,60 L70,105 L30,105 L25,60 Z" /><path d="M40,15 L45,40 L50,25 L55,40 L60,15" /><path d="M30,20 L22,65 L26,95 L30,95 L28,60" /><path d="M70,20 L78,65 L74,95 L70,95 L72,60" /></svg>`,
+    molderia: 'custom',
+    pieces: 18,
+    tela: 'medium',
+    estructura: { canvas: true, lining: true, cups: false, bones: false, pads: true },
+    acabados: { handHem: true, handButtonholes: 5, handDraping: false, handEmbroideryHours: 0 },
+    pruebas: 2,
+    toile: true,
+    materiales: 95000,
+    extra: 20000
+  },
+  {
+    id: 'vestido_novia',
+    name: 'Vestido Novia',
+    svg: `<svg viewBox="0 0 100 150" fill="none" stroke="currentColor" stroke-width="1.2" class="w-12 h-16"><path d="M40,20 C40,20 45,15 50,18 C55,15 60,20 60,20 L65,40 C60,50 40,50 35,40 Z" /><path d="M35,40 C35,60 20,130 15,140 L85,140 C80,130 65,60 65,40" /><path d="M45,45 C45,45 50,55 55,45" stroke-dasharray="1 2" stroke-width="0.5" /></svg>`,
+    molderia: 'draping',
+    pieces: 14,
+    tela: 'haute',
+    estructura: { canvas: false, lining: true, cups: true, bones: true, pads: false },
+    acabados: { handHem: true, handButtonholes: 12, handDraping: true, handEmbroideryHours: 15 },
+    pruebas: 4,
+    toile: true,
+    materiales: 250000,
+    extra: 80000
+  },
+  {
+    id: 'pantalon_vestir',
+    name: 'Pantalón Sastre',
+    svg: `<svg viewBox="0 0 100 150" fill="none" stroke="currentColor" stroke-width="1.2" class="w-12 h-16"><path d="M35,30 L65,30 L70,120 L55,120 L50,60 L45,120 L30,120 Z" /><path d="M45,30 L45,50 M55,30 L55,50" stroke-dasharray="2 2" stroke-width="0.8" /><path d="M50,30 L50,55" /></svg>`,
+    molderia: 'custom',
+    pieces: 8,
+    tela: 'medium',
+    estructura: { canvas: false, lining: true, cups: false, bones: false, pads: false },
+    acabados: { handHem: true, handButtonholes: 2, handDraping: false, handEmbroideryHours: 0 },
+    pruebas: 2,
+    toile: true,
+    materiales: 45000,
+    extra: 10000
+  },
+  {
+    id: 'abrigo_sastre',
+    name: 'Abrigo Sastre',
+    svg: `<svg viewBox="0 0 100 150" fill="none" stroke="currentColor" stroke-width="1.2" class="w-12 h-16"><path d="M25,25 L40,20 L50,25 L60,20 L75,25 L80,110 L20,110 Z" /><path d="M40,20 L45,50 L50,25 L55,50 L60,20" /><path d="M25,25 L20,70 L25,75 L30,70 L28,25 M75,25 L80,70 L75,75 L70,70 L72,25" /><path d="M40,70 L60,70 M40,85 L60,85 M50,50 L50,110" /></svg>`,
+    molderia: 'custom',
+    pieces: 16,
+    tela: 'hard',
+    estructura: { canvas: true, lining: true, cups: false, bones: false, pads: true },
+    acabados: { handHem: true, handButtonholes: 6, handDraping: false, handEmbroideryHours: 0 },
+    pruebas: 2,
+    toile: true,
+    materiales: 110000,
+    extra: 30000
+  },
+  {
+    id: 'falda_tubo',
+    name: 'Falda Tubo',
+    svg: `<svg viewBox="0 0 100 150" fill="none" stroke="currentColor" stroke-width="1.2" class="w-12 h-16"><path d="M35,40 L65,40 C65,40 70,60 68,90 L32,90 C30,60 35,40 35,40 Z" /><path d="M45,40 L43,60 M55,40 L57,60" stroke-dasharray="2 2" stroke-width="0.8" /></svg>`,
+    molderia: 'existing',
+    pieces: 4,
+    tela: 'easy',
+    estructura: { canvas: false, lining: true, cups: false, bones: false, pads: false },
+    acabados: { handHem: true, handButtonholes: 0, handDraping: false, handEmbroideryHours: 0 },
+    pruebas: 1,
+    toile: false,
+    materiales: 25000,
+    extra: 5000
+  },
+  {
+    id: 'corse_clasico',
+    name: 'Corsé Clásico',
+    svg: `<svg viewBox="0 0 100 150" fill="none" stroke="currentColor" stroke-width="1.2" class="w-12 h-16"><path d="M35,35 C42,32 58,32 65,35 L68,75 L32,75 Z" /><path d="M38,35 L40,75 M44,34 L46,75 M50,33 L50,75 M56,34 L54,75 M62,35 L60,75" stroke-width="0.8" /></svg>`,
+    molderia: 'custom',
+    pieces: 10,
+    tela: 'hard',
+    estructura: { canvas: true, lining: true, cups: true, bones: true, pads: false },
+    acabados: { handHem: false, handButtonholes: 0, handDraping: false, handEmbroideryHours: 2 },
+    pruebas: 2,
+    toile: true,
+    materiales: 35000,
+    extra: 15000
+  },
+  {
+    id: 'chaleco_sastre',
+    name: 'Chaleco Sastre',
+    svg: `<svg viewBox="0 0 100 150" fill="none" stroke="currentColor" stroke-width="1.2" class="w-12 h-16"><path d="M35,25 L45,20 L55,20 L65,25 L70,60 L60,75 L50,70 L40,75 L30,60 Z" /><path d="M45,20 L50,45 L55,20" /><path d="M50,45 L50,70" /><circle cx="50" cy="50" r="1" /><circle cx="50" cy="58" r="1" /></svg>`,
+    molderia: 'custom',
+    pieces: 12,
+    tela: 'medium',
+    estructura: { canvas: true, lining: true, cups: false, bones: false, pads: false },
+    acabados: { handHem: true, handButtonholes: 5, handDraping: false, handEmbroideryHours: 0 },
+    pruebas: 2,
+    toile: true,
+    materiales: 30000,
+    extra: 10000
+  },
+  {
+    id: 'falda_vuelo',
+    name: 'Falda Vuelo',
+    svg: `<svg viewBox="0 0 100 150" fill="none" stroke="currentColor" stroke-width="1.2" class="w-12 h-16"><path d="M40,40 L60,40 C60,40 80,90 85,110 L15,110 C20,90 40,40 40,40 Z" /><path d="M45,40 C45,40 40,90 35,110 M50,40 C50,40 50,90 50,110 M55,40 C55,40 60,90 65,110" stroke-width="0.8" /></svg>`,
+    molderia: 'existing',
+    pieces: 3,
+    tela: 'easy',
+    estructura: { canvas: false, lining: true, cups: false, bones: false, pads: false },
+    acabados: { handHem: true, handButtonholes: 0, handDraping: false, handEmbroideryHours: 0 },
+    pruebas: 1,
+    toile: false,
+    materiales: 40000,
+    extra: 5000
+  }
+];
 
 export default function POSPage() {
     const [cart, setCart] = useState<any[]>([]);
@@ -156,6 +286,142 @@ export default function POSPage() {
     const [expectedPin, setExpectedPin] = useState('');
     const [pendingAuthItem, setPendingAuthItem] = useState<any>(null);
     const [isAuthorizing, setIsAuthorizing] = useState(false);
+
+    // AI Haute Couture Calculator states
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [aiAnalysisResult, setAiAnalysisResult] = useState<any>(null);
+    const [isAiCalculatorModalOpen, setIsAiCalculatorModalOpen] = useState(false);
+
+    // Haute Couture Modal states
+    const [isHauteCoutureModalOpen, setIsHauteCoutureModalOpen] = useState(false);
+    const [hcTemplates, setHcTemplates] = useState<any[]>([]);
+    const [hcPrendaName, setHcPrendaName] = useState('');
+    const [hcPatternType, setHcPatternType] = useState('custom');
+    const [hcPatternPieces, setHcPatternPieces] = useState(10);
+    const [hcTextileDifficulty, setHcTextileDifficulty] = useState('medium');
+    const [hcInternalArchitecture, setHcInternalArchitecture] = useState({ canvas: false, lining: false, cups: false, bones: false, pads: false });
+    const [hcHandcraft, setHcHandcraft] = useState({ handHem: false, handButtonholes: 0, handDraping: false, handEmbroideryHours: 0 });
+    const [hcFittingsCount, setHcFittingsCount] = useState(2);
+    const [hcToileNeeded, setHcToileNeeded] = useState(false);
+    const [hcMaterialsCost, setHcMaterialsCost] = useState(50000);
+    const [hcExtraCost, setHcExtraCost] = useState(0);
+    const [hcNeckline, setHcNeckline] = useState('redondo');
+    const [hcSleeve, setHcSleeve] = useState('sin manga');
+    const [hcLength, setHcLength] = useState('largo');
+    const [newTemplateName, setNewTemplateName] = useState('');
+
+    // Load HC templates from localStorage
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('elena_hc_custom_templates');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    setHcTemplates([...DEFAULT_HC_TEMPLATES, ...parsed]);
+                    return;
+                } catch (e) { console.error(e); }
+            }
+        }
+        setHcTemplates(DEFAULT_HC_TEMPLATES);
+    }, [isHauteCoutureModalOpen]);
+
+    const handleApplyTemplate = (tpl: any) => {
+        setHcPrendaName(tpl.name);
+        setHcPatternType(tpl.molderia);
+        setHcPatternPieces(tpl.pieces);
+        setHcTextileDifficulty(tpl.tela);
+        setHcInternalArchitecture({ ...tpl.estructura });
+        setHcHandcraft({ ...tpl.acabados });
+        setHcFittingsCount(tpl.pruebas);
+        setHcToileNeeded(tpl.toile);
+        setHcMaterialsCost(tpl.materiales || 0);
+        setHcExtraCost(tpl.extra || 0);
+    };
+
+    const handleDeleteTemplate = (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!confirm("¿Seguro que deseas eliminar esta plantilla personalizada?")) return;
+        const customOnly = hcTemplates.filter(t => t.id.startsWith('custom_') && t.id !== id);
+        localStorage.setItem('elena_hc_custom_templates', JSON.stringify(customOnly));
+        setHcTemplates([...DEFAULT_HC_TEMPLATES, ...customOnly]);
+    };
+
+    const handleSaveAsTemplateInline = (nameToUse?: string) => {
+        const tplName = nameToUse || newTemplateName || hcPrendaName || "Diseño Especial";
+        const newTpl = {
+            id: `custom_${Date.now()}`,
+            name: tplName,
+            img: '/assets/siluetas/vestido_gala.png',
+            molderia: hcPatternType,
+            pieces: hcPatternPieces,
+            tela: hcTextileDifficulty,
+            estructura: hcInternalArchitecture,
+            acabados: hcHandcraft,
+            pruebas: hcFittingsCount,
+            toile: hcToileNeeded,
+            materiales: hcMaterialsCost,
+            extra: hcExtraCost
+        };
+        const customOnly = hcTemplates.filter(t => t.id.startsWith('custom_'));
+        const updated = [...customOnly, newTpl];
+        localStorage.setItem('elena_hc_custom_templates', JSON.stringify(updated));
+        setHcTemplates([...DEFAULT_HC_TEMPLATES, ...updated]);
+        setNewTemplateName('');
+        alert(`¡Plantilla "${tplName}" guardada con éxito!`);
+    };
+
+    // Haute Couture hours computation
+    const hcComputedHours = React.useMemo(() => {
+        const MOLD_H: any = { existing: 4, custom: 12, draping: 18 };
+        const TELA_MULT: any = { easy: 1.0, medium: 1.15, hard: 1.35, haute: 1.6 };
+        let h = MOLD_H[hcPatternType] || 12;
+        h += hcPatternPieces * 0.75;
+        h *= TELA_MULT[hcTextileDifficulty] || 1.0;
+        if (hcInternalArchitecture.canvas) h += 6;
+        if (hcInternalArchitecture.lining) h += 3;
+        if (hcInternalArchitecture.cups) h += 2;
+        if (hcInternalArchitecture.bones) h += 4;
+        if (hcInternalArchitecture.pads) h += 1.5;
+        if (hcHandcraft.handHem) h += 2;
+        h += hcHandcraft.handButtonholes * 0.5;
+        if (hcHandcraft.handDraping) h += 4;
+        h += hcHandcraft.handEmbroideryHours;
+        h += hcFittingsCount * 1.5;
+        if (hcToileNeeded) h += 6;
+        return Math.round(h * 10) / 10;
+    }, [hcPatternType, hcPatternPieces, hcTextileDifficulty, hcInternalArchitecture, hcHandcraft, hcFittingsCount, hcToileNeeded]);
+
+    const hcTotalCost = React.useMemo(() => {
+        const laborCost = hcComputedHours * hourlyRate;
+        return Math.round(laborCost + hcMaterialsCost + hcExtraCost);
+    }, [hcComputedHours, hourlyRate, hcMaterialsCost, hcExtraCost]);
+
+    // Populate AI calculator when analysis result arrives
+    useEffect(() => {
+        if (aiAnalysisResult) {
+            setHcPatternType(aiAnalysisResult.molderia || 'custom');
+            setHcPatternPieces(aiAnalysisResult.pieces || 10);
+            setHcTextileDifficulty(aiAnalysisResult.tela || 'medium');
+            setHcInternalArchitecture({
+                canvas: !!aiAnalysisResult.estructura?.canvas,
+                lining: !!aiAnalysisResult.estructura?.lining,
+                cups: !!aiAnalysisResult.estructura?.cups,
+                bones: !!aiAnalysisResult.estructura?.bones,
+                pads: !!aiAnalysisResult.estructura?.pads,
+            });
+            setHcHandcraft({
+                handHem: !!aiAnalysisResult.acabados?.handHem,
+                handButtonholes: aiAnalysisResult.acabados?.handButtonholes || 0,
+                handDraping: !!aiAnalysisResult.acabados?.handDraping,
+                handEmbroideryHours: aiAnalysisResult.acabados?.handEmbroideryHours || 0,
+            });
+            setHcFittingsCount(aiAnalysisResult.pruebas || 2);
+            setHcToileNeeded(!!aiAnalysisResult.toile);
+            setHcMaterialsCost(aiAnalysisResult.materiales || 50000);
+            setIsHauteCoutureModalOpen(true);
+        }
+    }, [aiAnalysisResult]);
+
     // Adjusted dates working backward from manual deadline if needed
     const adjustedDates = React.useMemo(() => {
         if (!estimatedDates) return null;
@@ -332,7 +598,8 @@ export default function POSPage() {
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);    // Picker helpers
+    }, []);
+    // Picker helpers
     const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
     const DAY_NAMES = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
     const getDaysInMonth = (m: number, y: number) => new Date(y, m + 1, 0).getDate();
@@ -949,10 +1216,44 @@ export default function POSPage() {
         <div className={`min-h-screen bg-gray-50 flex flex-col lg:flex-row font-sans ${isBudgetModalOpen ? 'print:hidden' : ''}`}>
             {/* Product Selection Area */}
             <div className="flex-1 p-4 md:p-8 pt-20 space-y-8 overflow-y-auto">
-                <h1 className="font-serif text-3xl text-brand-charcoal mb-8 flex items-center gap-3">
-                    <ClipboardList className="w-8 h-8 text-brand-terracotta" />
-                    Ingreso de Orden de Trabajo
-                </h1>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                    <h1 className="font-serif text-3xl text-brand-charcoal flex items-center gap-3">
+                        <ClipboardList className="w-8 h-8 text-brand-terracotta" />
+                        Ingreso de Orden de Trabajo
+                    </h1>
+                    <button
+                        onClick={async () => {
+                            if (orderImages.length > 0) {
+                                setIsAnalyzing(true);
+                                try {
+                                    const res = await analyzeDesignWithGeminiAction(orderImages[0].url);
+                                    if (res.success && res.data) {
+                                        setAiAnalysisResult(res.data);
+                                        setHcPrendaName(customOrderName || 'Diseño Personalizado');
+                                    } else {
+                                        alert('Error analizando diseño: ' + (res.error || 'Intente nuevamente'));
+                                    }
+                                } catch (err: any) {
+                                    alert('Error en el análisis: ' + err.message);
+                                } finally {
+                                    setIsAnalyzing(false);
+                                    setIsHauteCoutureModalOpen(true);
+                                }
+                            } else {
+                                setHcPrendaName(customOrderName || '');
+                                setIsHauteCoutureModalOpen(true);
+                            }
+                        }}
+                        disabled={isAnalyzing}
+                        className="px-5 py-2.5 bg-brand-charcoal text-white hover:bg-brand-terracotta text-[10px] uppercase tracking-widest font-bold rounded-sm shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50"
+                    >
+                        {isAnalyzing ? (
+                            <><Loader2 className="w-4 h-4 animate-spin" /> Analizando...</>
+                        ) : (
+                            <span>✨ Calculadora Alta Costura</span>
+                        )}
+                    </button>
+                </div>
 
                 {/* Section 1: Client */}
                 <div className="bg-white p-6 md:p-8 rounded-sm border border-gray-100 shadow-sm space-y-4">
@@ -1146,7 +1447,7 @@ export default function POSPage() {
                 </div>
 
                 {/* Section 3: Detalle del Trabajo */}
-                <div className={`bg-white p-6 md:p-8 rounded-sm border border-gray-100 shadow-sm space-y-6 transition-all ${(!selectedCustomer || assignedOperatorId === '') ? 'opacity-50 pointer-events-none' : ''}`}>
+                <div className="bg-white p-6 md:p-8 rounded-sm border border-gray-100 shadow-sm space-y-6 transition-all">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta border-b border-gray-100 pb-2 flex items-center gap-2 mb-6">
                         <Tag className="w-4 h-4" /> 3. Detalle del Trabajo
                     </h3>
@@ -1170,6 +1471,8 @@ export default function POSPage() {
                                     <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Horas Taller Estimadas</label>
                                     <input type="number" min="0" value={hoursEstimated || ''} onChange={(e) => setHoursEstimated(Number(e.target.value))} className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta" placeholder="0" />
                                 </div>
+
+
                             </>
                         )}
                     </div>
@@ -1223,6 +1526,8 @@ export default function POSPage() {
                                     </select>
                                 </div>
                             </div>
+
+
 
                             {/* Beautiful visual feedback box when a service is selected */}
                             {selectedCatalogProduct && (
@@ -1369,6 +1674,7 @@ export default function POSPage() {
                         </div>
                     ) : (
                         <div className="space-y-6 pt-4 border-t border-gray-50 animate-in fade-in duration-500">
+                            {/* Calculator CTA removed as requested, using top right button instead */}
                             {/* Notes and Photo attachment for Custom Order */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-1">
@@ -2528,6 +2834,255 @@ export default function POSPage() {
                             >
                                 Forzar Asignación (Exclusivo)
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Haute Couture Calculator Modal */}
+            {isHauteCoutureModalOpen && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-2 md:p-4 overflow-y-auto animate-in fade-in duration-300">
+                    <div className="bg-white text-brand-charcoal rounded-sm border border-gray-200 shadow-2xl w-full max-w-5xl flex flex-col overflow-hidden max-h-[95vh]">
+                        {/* Header */}
+                        <div className="p-4 md:p-6 border-b border-gray-100 flex justify-between items-center bg-brand-sand/10 shrink-0">
+                            <div>
+                                <h2 className="font-serif text-xl md:text-2xl text-brand-charcoal tracking-wide">Calculadora Alta Costura</h2>
+                                <p className="text-xs text-gray-500 mt-1">Desglose técnico de costos y tiempos{customOrderName ? `: ${customOrderName}` : ''}</p>
+                            </div>
+                            <button onClick={() => setIsHauteCoutureModalOpen(false)} className="text-gray-400 hover:text-brand-charcoal bg-gray-100 hover:bg-gray-200 p-2 rounded-full transition-all">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Templates Carousel */}
+                        <div className="bg-brand-sand/5 border-b border-gray-100 p-4 shrink-0">
+                            <span className="block text-[10px] uppercase tracking-wider text-brand-terracotta mb-3 font-semibold">Siluetas Base del Taller</span>
+                            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+                                {hcTemplates.map((tpl) => (
+                                    <div
+                                        key={tpl.id}
+                                        onClick={() => handleApplyTemplate(tpl)}
+                                        className={`relative bg-white border rounded-md p-3 min-w-[120px] w-[120px] text-center cursor-pointer transition-all group flex flex-col items-center justify-between shadow-sm min-h-[110px] ${
+                                            hcPrendaName === tpl.name
+                                                ? 'border-brand-terracotta bg-brand-sand/25 ring-1 ring-brand-terracotta/40'
+                                                : 'border-gray-200 hover:border-brand-charcoal hover:bg-neutral-50'
+                                        }`}
+                                    >
+                                        <div 
+                                            className="h-16 w-full flex items-center justify-center mb-1.5 text-brand-charcoal hover:text-brand-terracotta transition-colors"
+                                            dangerouslySetInnerHTML={{ __html: tpl.svg || tpl.img || `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-8 h-8"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M21 15l-4-4-6 6" /><circle cx="9" cy="9" r="2" /></svg>` }}
+                                        />
+                                        <p className="text-[10px] md:text-xs text-brand-charcoal font-bold truncate w-full">{tpl.name}</p>
+                                        {tpl.id.startsWith('custom_') && (
+                                            <button onClick={(e) => handleDeleteTemplate(tpl.id, e)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Trash2 className="w-3 h-3" />
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Content - Scrollable */}
+                        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+                            <div className="flex flex-col lg:flex-row gap-8">
+                                {/* Left Column: Interactive Sketch */}
+                                <div className="lg:w-1/3 flex flex-col items-center justify-start bg-brand-sand/5 p-6 rounded-md border border-brand-sand/20 sticky top-0 h-fit">
+                                    {(() => {
+                                        const activeTpl = hcTemplates.find(t => t.name === hcPrendaName) || hcTemplates[0] || {};
+                                        const activeDetails = [];
+                                        if (hcInternalArchitecture.canvas) activeDetails.push('Entretela');
+                                        if (hcInternalArchitecture.lining) activeDetails.push('Forro');
+                                        if (hcInternalArchitecture.cups) activeDetails.push('Copas');
+                                        if (hcInternalArchitecture.bones) activeDetails.push('Ballenas');
+                                        if (hcInternalArchitecture.pads) activeDetails.push('Hombreras');
+                                        if (hcHandcraft.handHem) activeDetails.push('Dobladillo a mano');
+                                        if (hcHandcraft.handDraping) activeDetails.push('Drapeado');
+                                        if (hcHandcraft.handEmbroideryHours > 0) activeDetails.push(`Bordado ${hcHandcraft.handEmbroideryHours}h`);
+                                        if (hcHandcraft.handButtonholes > 0) activeDetails.push(`${hcHandcraft.handButtonholes} Ojales`);
+
+                                        return (
+                                            <div className="relative w-full flex flex-col items-center">
+                                                <div 
+                                                    className="w-full h-64 flex items-center justify-center text-brand-charcoal drop-shadow-xl"
+                                                    dangerouslySetInnerHTML={{ __html: activeTpl.svg || activeTpl.img || `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-16 h-16 text-gray-300"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M21 15l-4-4-6 6" /><circle cx="9" cy="9" r="2" /></svg>` }}
+                                                />
+                                                {activeDetails.length > 0 && (
+                                                    <div className="flex flex-wrap gap-1 mt-4 justify-center">
+                                                        {activeDetails.map((detail, idx) => (
+                                                            <span 
+                                                                key={idx} 
+                                                                className="text-[9px] uppercase tracking-wider bg-brand-charcoal text-white px-2 py-1 rounded font-bold shadow-sm"
+                                                            >
+                                                                {detail}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                                
+                                {/* Right Column: Configuration Form */}
+                                <div className="lg:w-2/3 space-y-6">
+                                    {/* Garment Name */}
+                                    <div>
+                                        <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1.5">Nombre de la Prenda</label>
+                                        <input type="text" value={hcPrendaName} onChange={(e) => setHcPrendaName(e.target.value)} placeholder="Ej: Vestido de noche con pedrería" className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                    </div>
+
+                            {/* Technical Parameters Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {/* Moldería */}
+                                <div>
+                                    <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1.5">Tipo de Moldería</label>
+                                    <select value={hcPatternType} onChange={(e) => setHcPatternType(e.target.value)} className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta">
+                                        <option value="existing">Base existente (más rápido)</option>
+                                        <option value="custom">Desde cero (patronaje propio)</option>
+                                        <option value="draping">Drapeado sobre maniquí</option>
+                                    </select>
+                                </div>
+                                {/* Piezas */}
+                                <div>
+                                    <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1.5">Piezas del Patrón: {hcPatternPieces}</label>
+                                    <input type="range" min="2" max="40" value={hcPatternPieces} onChange={(e) => setHcPatternPieces(Number(e.target.value))} className="w-full accent-brand-terracotta" />
+                                </div>
+                                {/* Tela */}
+                                <div>
+                                    <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1.5">Dificultad de Tela</label>
+                                    <select value={hcTextileDifficulty} onChange={(e) => setHcTextileDifficulty(e.target.value)} className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta">
+                                        <option value="easy">Fácil (algodón, lino)</option>
+                                        <option value="medium">Media (seda sintética, jersey)</option>
+                                        <option value="hard">Difícil (terciopelo, seda natural)</option>
+                                        <option value="haute">Haute (pedrería, encaje complejo)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Estructura Interna */}
+                            <div>
+                                <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-2">Estructura Interna</label>
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                                    {[
+                                        { key: 'canvas', label: 'Entretela' },
+                                        { key: 'lining', label: 'Forro' },
+                                        { key: 'cups', label: 'Copas' },
+                                        { key: 'bones', label: 'Ballenas' },
+                                        { key: 'pads', label: 'Hombreras' }
+                                    ].map(item => (
+                                        <button
+                                            key={item.key}
+                                            type="button"
+                                            onClick={() => setHcInternalArchitecture(prev => ({ ...prev, [item.key]: !(prev as any)[item.key] }))}
+                                            className={`py-3 px-2 text-xs font-bold rounded-sm border transition-all ${
+                                                (hcInternalArchitecture as any)[item.key]
+                                                    ? 'bg-brand-charcoal text-white border-brand-charcoal'
+                                                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-brand-charcoal'
+                                            }`}
+                                        >
+                                            {item.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Acabados Artesanales */}
+                            <div>
+                                <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-2">Acabados Artesanales</label>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <button type="button" onClick={() => setHcHandcraft(prev => ({ ...prev, handHem: !prev.handHem }))} className={`py-3 px-2 text-xs font-bold rounded-sm border transition-all ${hcHandcraft.handHem ? 'bg-brand-charcoal text-white border-brand-charcoal' : 'bg-gray-50 text-gray-600 border-gray-200'}`}>Dobladillo a mano</button>
+                                    <button type="button" onClick={() => setHcHandcraft(prev => ({ ...prev, handDraping: !prev.handDraping }))} className={`py-3 px-2 text-xs font-bold rounded-sm border transition-all ${hcHandcraft.handDraping ? 'bg-brand-charcoal text-white border-brand-charcoal' : 'bg-gray-50 text-gray-600 border-gray-200'}`}>Drapeado</button>
+                                    <div>
+                                        <label className="block text-[9px] text-gray-400 mb-1">Ojales a mano</label>
+                                        <input type="number" min="0" max="20" value={hcHandcraft.handButtonholes} onChange={(e) => setHcHandcraft(prev => ({ ...prev, handButtonholes: Number(e.target.value) }))} className="w-full p-2.5 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[9px] text-gray-400 mb-1">Horas de bordado</label>
+                                        <input type="number" min="0" max="100" value={hcHandcraft.handEmbroideryHours} onChange={(e) => setHcHandcraft(prev => ({ ...prev, handEmbroideryHours: Number(e.target.value) }))} className="w-full p-2.5 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Pruebas y Toile */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1.5">Sesiones de Calce: {hcFittingsCount}</label>
+                                    <input type="range" min="1" max="4" value={hcFittingsCount} onChange={(e) => setHcFittingsCount(Number(e.target.value))} className="w-full accent-brand-terracotta" />
+                                </div>
+                                <div className="flex items-end">
+                                    <button type="button" onClick={() => setHcToileNeeded(!hcToileNeeded)} className={`w-full py-3 text-xs font-bold rounded-sm border transition-all ${hcToileNeeded ? 'bg-brand-charcoal text-white border-brand-charcoal' : 'bg-gray-50 text-gray-600 border-gray-200'}`}>
+                                        {hcToileNeeded ? '✓ Toile/Prueba Requerida' : 'Sin Toile'}
+                                    </button>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1.5">Costo Materiales (CLP)</label>
+                                    <input type="number" min="0" step="5000" value={hcMaterialsCost} onChange={(e) => setHcMaterialsCost(Number(e.target.value))} className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                </div>
+                            </div>
+
+                            {/* Extra Cost */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1.5">Costos Extra (aviamentos, etc.)</label>
+                                    <input type="number" min="0" step="1000" value={hcExtraCost} onChange={(e) => setHcExtraCost(Number(e.target.value))} className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                </div>
+                                {/* Save as template */}
+                                <div className="flex items-end gap-2">
+                                    <input type="text" value={newTemplateName} onChange={(e) => setNewTemplateName(e.target.value)} placeholder="Nombre para guardar como plantilla..." className="flex-1 p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                    <button type="button" onClick={() => handleSaveAsTemplateInline()} className="px-4 py-3 bg-brand-charcoal text-white text-xs font-bold rounded-sm hover:bg-brand-terracotta transition-colors whitespace-nowrap">
+                                        <Sparkles className="w-4 h-4 inline mr-1" /> Guardar
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* AI Justification */}
+                            {aiAnalysisResult?.justificacion && (
+                                <div className="bg-brand-sand/10 border border-brand-sand/30 rounded-sm p-4">
+                                    <p className="text-[10px] uppercase tracking-widest text-brand-terracotta font-bold mb-1">Justificación IA</p>
+                                    <p className="text-xs text-gray-700 leading-relaxed">{aiAnalysisResult.justificacion}</p>
+                                </div>
+                            )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer - Fixed with totals */}
+                        <div className="p-4 md:p-6 border-t border-gray-100 bg-brand-sand/5 shrink-0">
+                            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                                <div className="flex gap-6 text-center md:text-left">
+                                    <div>
+                                        <p className="text-[9px] uppercase tracking-widest text-gray-400">Horas Estimadas</p>
+                                        <p className="text-2xl font-bold text-brand-charcoal">{hcComputedHours}h</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] uppercase tracking-widest text-gray-400">Mano de Obra</p>
+                                        <p className="text-2xl font-bold text-brand-charcoal">${(hcComputedHours * hourlyRate).toLocaleString('es-CL')}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] uppercase tracking-widest text-gray-400">Total Estimado</p>
+                                        <p className="text-2xl font-bold text-brand-terracotta">${hcTotalCost.toLocaleString('es-CL')}</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-3 w-full md:w-auto">
+                                    <button type="button" onClick={() => setIsHauteCoutureModalOpen(false)} className="flex-1 md:flex-none px-6 py-3 border border-gray-200 text-gray-600 text-[10px] uppercase tracking-widest font-bold hover:bg-gray-50 transition-all rounded-sm">
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setHoursEstimated(hcComputedHours);
+                                            setMaterialsCost(hcMaterialsCost);
+                                            setExtraCost(hcExtraCost);
+                                            if (hcPrendaName && !customOrderName) setCustomOrderName(hcPrendaName);
+                                            setIsHauteCoutureModalOpen(false);
+                                        }}
+                                        className="flex-1 md:flex-none px-6 py-3 bg-brand-terracotta text-white text-[10px] uppercase tracking-widest font-bold hover:bg-brand-charcoal transition-all rounded-sm shadow-md"
+                                    >
+                                        Aplicar al Pedido
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
