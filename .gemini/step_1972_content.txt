@@ -1,0 +1,68 @@
+Created At: 2026-06-16T08:25:49Z
+Completed At: 2026-06-16T08:25:49Z
+File Path: `file:///C:/Users/ADMIN/.gemini/antigravity-ide/brain/49a57965-300a-4f63-b733-628097259e92/scratch/step_915_view.txt`
+Total Lines: 73
+Total Bytes: 4120
+Showing lines 1 to 73
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: Created At: 2026-06-16T05:29:27Z
+2: Completed At: 2026-06-16T05:29:28Z
+3: File Path: `file:///c:/Users/ADMIN/Downloads/IA%20trabajaos/Elena%20Atalier/src/app/admin/pos/page.tsx`
+4: Total Lines: 3600
+5: Total Bytes: 243252
+6: Showing lines 80 to 200
+7: The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+8: 80:     if (category.toLowerCase().includes('bastas')) return 1.0;
+9: 81:     return 1.0; // Default fallback
+10: 82: };
+11: 83: 
+12: 84: const DEFAULT_HC_TEMPLATES = [
+13: 85:   {
+14: 86:     id: 'vestido_gala',
+15: 87:     name: 'Vestido Gala',
+16: 88:     svg: `<svg viewBox="0 0 100 150" fill="none" stroke="currentColor" stroke-width="1.2" class="w-12 h-16"><path d="M40,25 C45,20 55,20 60,25 L65,40 C60,50 40,50 35,40 Z" /><path d="M35,40 C42,48 58,48 65,40 L75,130 C65,140 35,140 25,130 Z" /><path d="M38,45 C48,60 52,70 34,100 M62,45 C52,65 48,85 66,110" stroke-width="0.7" /></svg>`,
+17: 89:     molderia: 'draping',
+18: 90:     pieces: 8,
+19: 91:     tela: 'hard',
+20: 92:     estructura: { canvas: false, lining: true, cups: true, bones: true, pads: false },
+21: 93:     acabados: { handHem: true, handButtonholes: 0, handDraping: true, handEmbroideryHours: 6 },
+22: 94:     pruebas: 3,
+23: 95:     toile: true,
+24: 96:     materiales: 120000,
+25: 97:     extra: 40000
+26: 98:   },
+27: 99:   {
+28: 100:     id: 'chaqueta_s
+<truncated 885 bytes>
+dth="1.2" class="w-12 h-16"><path d="M35,35 C42,32 58,32 65,35 L68,75 L32,75 Z" /><path d="M38,35 L40,75 M44,34 L46,75 M50,33 L50,75 M56,34 L54,75 M62,35 L60,75" stroke-width="0.8" /></svg>`,
+44: 173:     molderia: 'custom',
+45: 174:     pieces: 10,
+46: 175:     tela: 'hard',
+47: 176:     estructura: { canvas: false, lining: true, cups: true, bones: true, pads: false },
+48: 177:     acabados: { handHem: true, handButtonholes: 12, handDraping: false, handEmbroideryHours: 4 },
+49: 178:     pruebas: 3,
+50: 179:     toile: true,
+51: 180:     materiales: 75000,
+52: 181:     extra: 15000
+53: 182:   }
+54: 183: ];
+55: 184: 
+56: 185: export default function POSPage() {
+57: 186:     const [cart, setCart] = useState<any[]>([]);
+58: 187:     const [products, setProducts] = useState<any[]>([]);
+59: 188:     const [loadBalancerModal, setLoadBalancerModal] = useState<{ show: boolean, targetOpId: string, itemIndex: number | null, estimatedHours: number, targetName: string, targetLoadDays: string, alternatives: any[] } | null>(null);
+60: 189:     const [loading, setLoading] = useState(true);
+61: 190:     const [searchTerm, setSearchTerm] = useState('');
+62: 191:     const [paymentMethod, setPaymentMethod] = useState<'mercadopago_point' | 'transbank' | 'cash' | null>(null);
+63: 192:     const [isProcessing, setIsProcessing] = useState(false);
+64: 193:     const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+65: 194:     
+66: 195:     // Gobernanza de Capacidad y Algoritmo de Fechas
+67: 196:     const [estimatedDates, setEstimatedDates] = useState<{
+68: 197:         productionStartDate: string;
+69: 198:         productionEndDate: string;
+70: 199:         finalDeliveryDate: string;
+71: 200:         backlogHours: number;
+72: The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
+73: 
+The above content shows the entire, complete file contents of the requested file.

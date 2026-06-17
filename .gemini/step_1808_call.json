@@ -1,0 +1,15 @@
+{
+  "name": "replace_file_content",
+  "args": {
+    "AllowMultiple": "false",
+    "Description": "\"Adding AI calculator detail states and computed values\"",
+    "EndLine": "164",
+    "Instruction": "\"Insert state variables for the specific technical selections of the AI calculator and the calculated hours hook\"",
+    "ReplacementContent": "\"    // AI Haute Couture Calculator states\\n    const [isAnalyzing, setIsAnalyzing] = useState(false);\\n    const [aiAnalysisResult, setAiAnalysisResult] = useState<any>(null);\\n    const [isAiCalculatorModalOpen, setIsAiCalculatorModalOpen] = useState(false);\\n\\n    const [aiMold, setAiMold] = useState('custom');\\n    const [aiPcs, setAiPcs] = useState(10);\\n    const [aiFabric, setAiFabric] = useState('medium');\\n    const [aiCanvas, setAiCanvas] = useState(false);\\n    const [aiLining, setAiLining] = useState(false);\\n    const [aiCups, setAiCups] = useState(false);\\n    const [aiBones, setAiBones] = useState(false);\\n    const [aiPads, setAiPads] = useState(false);\\n    const [aiHandHem, setAiHandHem] = useState(false);\\n    const [aiHandButtonholes, setAiHandButtonholes] = useState(0);\\n    const [aiHandDraping, setAiHandDraping] = useState(false);\\n    const [aiHandEmbroideryHours, setAiHandEmbroideryHours] = useState(0);\\n    const [aiSessions, setAiSessions] = useState(2);\\n    const [aiToile, setAiToile] = useState(false);\\n    const [aiMaterials, setAiMaterials] = useState(50000);\\n    const [aiJustification, setAiJustification] = useState('');\\n\\n    useEffect(() => {\\n        if (aiAnalysisResult) {\\n            setAiMold(aiAnalysisResult.molderia || 'custom');\\n            setAiPcs(aiAnalysisResult.pieces || 10);\\n            setAiFabric(aiAnalysisResult.tela || 'medium');\\n            setAiCanvas(!!aiAnalysisResult.estructura?.canvas);\\n            setAiLining(!!aiAnalysisResult.estructura?.lining);\\n            setAiCups(!!aiAnalysisResult.estructura?.cups);\\n            setAiBones(!!aiAnalysisResult.estructura?.bones);\\n            setAiPads(!!aiAnalysisResult.estructura?.pads);\\n            setAiHandHem(!!aiAnalysisResult.acabados?.handHem);\\n            setAiHandButtonholes(aiAnalysisResult.acabados?.handButtonholes || 0);\\n            setAiHandDraping(!!aiAnalysisResult.acabados?.handDraping);\\n            setAiHandEmbroideryHours(aiAnalysisResult.acabados?.handEmbroideryHours || 0);\\n         \n<truncated 1294 bytes>",
+    "StartLine": "160",
+    "TargetContent": "\"    // AI Haute Couture Calculator states\\n    const [isAnalyzing, setIsAnalyzing] = useState(false);\\n    const [aiAnalysisResult, setAiAnalysisResult] = useState<any>(null);\\n    const [isAiCalculatorModalOpen, setIsAiCalculatorModalOpen] = useState(false);\"",
+    "TargetFile": "\"c:\\\\Users\\\\ADMIN\\\\Downloads\\\\IA trabajaos\\\\Elena Atalier\\\\src\\\\app\\\\admin\\\\pos\\\\page.tsx\"",
+    "toolAction": "\"Adding states and helper function\"",
+    "toolSummary": "\"States and function addition\""
+  }
+}

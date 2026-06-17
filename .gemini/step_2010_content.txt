@@ -1,0 +1,72 @@
+Created At: 2026-06-16T08:27:12Z
+Completed At: 2026-06-16T08:27:13Z
+File Path: `file:///c:/Users/ADMIN/Downloads/IA%20trabajaos/Elena%20Atalier/src/app/admin/pos/page.tsx`
+Total Lines: 3084
+Total Bytes: 215733
+Showing lines 70 to 250
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+70: };
+71: 
+72: const getDefaultProductionHours = (name: string, category: string): number => {
+73:     const n = name.toLowerCase();
+74:     if (n.includes('basta máquina') || n.includes('basta maquina')) return 0.5;
+75:     if (n.includes('basta postizo')) return 1.0;
+76:     if (n.includes('basta a mano')) return 1.5;
+77:     if (n.includes('basta sesgo')) return 1.5;
+78:     if (n.includes('basta vestido con cola')) return 3.0;
+79:     if (n.includes('basta vestido s/cola')) return 2.0;
+80:     if (category.toLowerCase().includes('bastas')) return 1.0;
+81:     return 1.0; // Default fallback
+82: };
+83: 
+84: export default function POSPage() {
+85:     const [cart, setCart] = useState<any[]>([]);
+86:     const [products, setProducts] = useState<any[]>([]);
+87:     const [loadBalancerModal, setLoadBalancerModal] = useState<{ show: boolean, targetOpId: string, itemIndex: number | null, estimatedHours: number, targetName: string, targetLoadDays: string, alternatives: any[] } | null>(null);
+88:     const [loading, setLoading] = useState(true);
+89:     const [searchTerm, setSearchTerm] = useState('');
+90:     const [paymentMethod, setPaymentMethod] = useState<'mercadopago_point' | 'transbank' | 'cash' | null>(null);
+91:     const [isProcessing, setIsProcessing] = useState(false);
+92:     const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+93:     
+94:     // Gobernanza de Capacidad y Algoritmo de Fechas
+95:     const [estimatedDates, setEstimatedDates] = useState<{
+96:         productionStartDate: string;
+97:
+<truncated 6785 bytes>
+  if (aiCanvas) h += 8;
+217:         if (aiLining) h += 4;
+218:         if (aiCups) h += 2;
+219:         if (aiBones) h += 6;
+220:         if (aiPads) h += 2;
+221: 
+222:         if (aiHandHem) h += 3;
+223:         h += aiHandButtonholes * 0.5;
+224:         if (aiHandDraping) h += 6;
+225:         h += Number(aiHandEmbroideryHours);
+226: 
+227:         h += aiSessions * 1.5;
+228:         if (aiToile) h += 5;
+229: 
+230:         return Math.round(h * 10) / 10;
+231:     }, [aiMold, aiPcs, aiFabric, aiCanvas, aiLining, aiCups, aiBones, aiPads, aiHandHem, aiHandButtonholes, aiHandDraping, aiHandEmbroideryHours, aiSessions, aiToile]);
+232:     // Adjusted dates working backward from manual deadline if needed
+233:     const adjustedDates = React.useMemo(() => {
+234:         if (!estimatedDates) return null;
+235:         
+236:         let productionStartDate = estimatedDates.productionStartDate;
+237:         let productionEndDate = estimatedDates.productionEndDate;
+238:         let finalDeliveryDate = estimatedDates.finalDeliveryDate;
+239:         
+240:         if (adminOverride && deadline) {
+241:             const deadlineDate = new Date(deadline);
+242:             if (!isNaN(deadlineDate.getTime())) {
+243:                 finalDeliveryDate = deadline;
+244:                 
+245:                 // Get current time in Chile timezone and align to working hours
+246:                 const now = new Date();
+247:                 const nowInChile = new Date(now.toLocaleString("en-US", { timeZone: "America/Santiago" }));
+248:                 const workingDays = atelierConfig?.workshop_working_days || [1, 2, 3, 4, 5, 6];
+249:                 const startHourStr = atelierConfig?.workshop_working_hour_start || '09:00:00';
+250:                 const endHourStr = atelierConfig?.workshop_working_hour_end || '18:00:00';
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

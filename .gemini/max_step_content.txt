@@ -1,0 +1,64 @@
+Created At: 2026-06-16T08:27:30Z
+Completed At: 2026-06-16T08:27:30Z
+File Path: `file:///C:/Users/ADMIN/.gemini/antigravity-ide/brain/49a57965-300a-4f63-b733-628097259e92/scratch/apply_changes.js`
+Total Lines: 659
+Total Bytes: 34169
+Showing lines 1 to 659
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: const fs = require('fs');
+2: const filePath = "c:/Users/ADMIN/Downloads/IA trabajaos/Elena Atalier/src/app/admin/pos/page.tsx";
+3: 
+4: let content = fs.readFileSync(filePath, 'utf8');
+5: 
+6: // 1. Replace DEFAULT_HC_TEMPLATES
+7: const oldTemplatesBlock = `const DEFAULT_HC_TEMPLATES = [
+8:   {
+9:     id: 'vestido_gala',
+10:     name: 'Vestido Gala',
+11:     svg: \`<svg viewBox="0 0 100 150" fill="none" stroke="currentColor" stroke-width="1.2" class="w-12 h-16"><path d="M35,20 C35,20 40,15 50,22 C60,15 65,20 65,20 L68,40 C65,55 68,70 75,120 L25,120 C32,70 35,55 32,40 Z" /><path d="M36,23 C36,23 41,18 50,24 C59,18 64,23 64,23 L66,41 C63,55 66,70 72,117 L28,117 C34,70 37,55 34,41 Z" stroke-dasharray="2 2" stroke-width="0.8" /></svg>\`,
+12:     molderia: 'draping',
+13:     pieces: 8,
+14:     tela: 'hard',
+15:     estructura: { canvas: false, lining: true, cups: true, bones: true, pads: false },
+16:     acabados: { handHem: true, handButtonholes: 0, handDraping: true, handEmbroideryHours: 6 },
+17:     pruebas: 3,
+18:     toile: true,
+19:     materiales: 120000,
+20:     extra: 40000
+21:   },
+22:   {
+23:     id: 'chaqueta_sastre',
+24:     name: 'Chaqueta Sastre',
+25:     svg: \`<svg viewBox="0 0 100 150" fill="none" stroke="currentColor" stroke-width="1.2" class="w-12 h-16"><path d="M30,20 L40,15 L50,25 L60,15 L70,20 L75,60 L70,105 L30,105 L25,60 Z" /><path d="M40,15 L45,40 L50,25 L55,40 L60,15" /><path d="M30,20 L22,65 L26,95 L30,95 L28,60" /><path d="M70,20 L78,65 L74,95 L70,95 L72,60" /></svg>\`,
+26:     molderia: 'custom',
+27:
+<truncated 33840 bytes>
+             <Package className="w-5 h-5" />
+633:                                                         </div>
+634:                                                     )}
+635:                                                 </div>
+636:                                                 <p className="text-xs md:text-sm text-brand-charcoal font-extrabold truncate w-full">{tpl.name}</p>`;
+637: 
+638: content = content.replace(oldCarouselItem, newCarouselItem);
+639: 
+640: // 4. Update the header logo box (remove black box)
+641: const oldHeaderLogo = `                        {/* Header (Sticky top) - Compact & Elegant */}
+642:                         <div className="py-4 px-5 border-b border-[#C6C2BA] flex justify-between items-center bg-white shrink-0">
+643:                             <div className="flex items-center gap-4">
+644:                                 <div className="bg-black p-1 rounded">
+645:                                     <img src="/logotipo.png" alt="Elena La Costurera" className="h-8 md:h-9 w-auto object-contain brightness-0 invert" />
+646:                                 </div>
+647:                                 <div className="h-7 w-[1px] bg-[#C6C2BA] hidden md:block"></div>`;
+648: 
+649: const newHeaderLogo = `                        {/* Header (Sticky top) - Compact & Elegant */}
+650:                         <div className="py-4 px-5 border-b border-[#C6C2BA] flex justify-between items-center bg-white shrink-0">
+651:                             <div className="flex items-center gap-4">
+652:                                 <img src="/logotipo.png" alt="Elena La Costurera" className="h-9 md:h-10 w-auto object-contain" />
+653:                                 <div className="h-7 w-[1px] bg-[#C6C2BA] hidden md:block"></div>`;
+654: 
+655: content = content.replace(oldHeaderLogo, newHeaderLogo);
+656: 
+657: fs.writeFileSync(filePath, content, 'utf8');
+658: console.log("UTF-8 clean upgrades applied successfully!");
+659: 
+The above content shows the entire, complete file contents of the requested file.

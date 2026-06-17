@@ -1658,3 +1658,98 @@ export async function getPOSOrderAmountAction(posOrderId: string) {
     }
     return { success: true, amount: data[0].total_price || 0 };
 }
+
+export async function analyzeDesignWithGeminiAction(base64Image: string) {
+    try {
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            return { success: false, error: 'Gemini API Key no configurada en el servidor.' };
+        }
+
+        let mimeType = 'image/jpeg';
+        let cleanBase64 = base64Image;
+        if (base64Image.includes(';base64,')) {
+            const parts = base64Image.split(';base64,');
+            mimeType = parts[0].replace('data:', '');
+            cleanBase64 = parts[1];
+        }
+
+        const systemPrompt = `Actúa como una jefa de taller experta en Sastrería de Lujo y Alta Costura para el Atelier "Elena La Costurera".
+Analiza la foto del vestido/diseño y responde estrictamente con un objeto JSON válido con los parámetros técnicos de confección más óptimos.
+Campos JSON requeridos:
+{
+  "molderia": "existing" (para base existente), "custom" (desde cero), "draping" (modelado directo sobre maniquí),
+  "pieces": número estimado de piezas en el patrón (entre 2 y 40),
+  "tela": "easy" (telas fáciles/estables), "medium" (telas deslizantes o elásticas), "hard" (seda natural, terciopelo), "haute" (pedrería pesada, encajes complejos),
+  "estructura": {
+    "canvas": true si requiere entretela sastrera picada a mano, false en caso contrario,
+    "lining": true si requiere forro completo, false en caso contrario,
+    "cups": true si requiere copas integradas, false en caso contrario,
+    "bones": true si requiere barbas/varillas de corsé, false en caso contrario,
+    "pads": true si requiere hombreras a medida, false en caso contrario
+  },
+  "acabados": {
+    "handHem": true si requiere basta invisible hecha a mano, false en caso contrario,
+    "handButtonholes": número de ojales hechos a mano (entre 0 y 20),
+    "handDraping": true si requiere drapeado artesanal localizado en la prenda, false en caso contrario,
+    "handEmbroideryHours": estimación de horas dedicadas a bordar pedrería o aplicaciones (entre 0 y 100)
+  },
+  "pruebas": número estimado de sesiones de calce requeridas (de 1 a 4),
+  "toile": true si es indispensable realizar un lienzo/borrador de prueba, false en caso contrario,
+  "materiales": costo estimado de tejidos e insumos en pesos chilenos CLP (entre 20000 y 500000),
+  "justificacion": "Explicación técnica en español de por qué elegiste estos parámetros (máx 3 líneas)."
+}`;
+
+        const payload = {
+            contents: [
+                {
+                    parts: [
+                        { text: "Analiza técnicamente el diseño de la imagen y determina sus parámetros de confección." },
+                        {
+                            inlineData: {
+                                mimeType,
+                                data: cleanBase64
+                            }
+                        }
+                    ]
+                }
+            ],
+            generationConfig: {
+                responseMimeType: "application/json"
+            },
+            systemInstruction: {
+                parts: [{ text: systemPrompt }]
+            }
+        };
+
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            }
+        );
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Error en API de Gemini: ${errorText}`);
+        }
+
+        const resData = await response.json();
+        const responseText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (!responseText) {
+            throw new Error('No se recibió respuesta estructurada del modelo.');
+        }
+
+        const parsed = JSON.parse(responseText);
+        return { success: true, data: parsed };
+
+    } catch (err: any) {
+        console.error('Error in analyzeDesignWithGeminiAction:', err);
+        return { success: false, error: err.message };
+    }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "replace_file_content",
+  "args": {
+    "AllowMultiple": "false",
+    "Description": "\"Adding AI calculator state variables\"",
+    "EndLine": "159",
+    "Instruction": "\"Add state variables for isAnalyzing, aiAnalysisResult, and isAiCalculatorModalOpen\"",
+    "ReplacementContent": "\"    const [isAuthorizing, setIsAuthorizing] = useState(false);\\n    \\n    // AI Haute Couture Calculator states\\n    const [isAnalyzing, setIsAnalyzing] = useState(false);\\n    const [aiAnalysisResult, setAiAnalysisResult] = useState<any>(null);\\n    const [isAiCalculatorModalOpen, setIsAiCalculatorModalOpen] = useState(false);\"",
+    "StartLine": "157",
+    "TargetContent": "\"    const [isAuthorizing, setIsAuthorizing] = useState(false);\"",
+    "TargetFile": "\"c:\\\\Users\\\\ADMIN\\\\Downloads\\\\IA trabajaos\\\\Elena Atalier\\\\src\\\\app\\\\admin\\\\pos\\\\page.tsx\"",
+    "toolAction": "\"Adding state variables\"",
+    "toolSummary": "\"State variables addition\""
+  }
+}

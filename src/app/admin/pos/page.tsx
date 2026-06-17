@@ -916,7 +916,7 @@ export default function POSPage() {
 
     const handleCheckout = async () => {
         if (cart.length === 0 || !paymentMethod || !selectedCustomer) return;
-        if (paymentMethod === 'split' && (splitCardAmount + splitCashAmount !== total)) {
+        if (paymentMethod === 'cash' && splitCardAmount > 0 && (splitCardAmount + splitCashAmount !== total)) {
             alert('La suma de pago dividido no coincide con el total.');
             return;
         }
@@ -928,8 +928,12 @@ export default function POSPage() {
             const dateStr = new Date().toLocaleDateString();
 
             let finalPaymentMethodStr = paymentMethod;
-            if (paymentMethod === 'split') {
-                finalPaymentMethodStr = `Mixto (Máquina: $${splitCardAmount}, Efectivo: $${splitCashAmount})`;
+            if (paymentMethod === 'cash') {
+                if (splitCardAmount > 0) {
+                    finalPaymentMethodStr = `Mixto (Máquina: $${splitCardAmount}, Efectivo: $${splitCashAmount})`;
+                } else {
+                    finalPaymentMethodStr = 'Efectivo / Transferencia';
+                }
             }
 
             const res = await createPOSOrdersAction({
@@ -2311,7 +2315,7 @@ export default function POSPage() {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+                    <div className="grid grid-cols-3 gap-3 mt-6">
                         <button 
                             type="button"
                             disabled={hasUnassignedItems}
@@ -2343,7 +2347,11 @@ export default function POSPage() {
                         <button 
                             type="button"
                             disabled={hasUnassignedItems}
-                            onClick={() => setPaymentMethod('cash')}
+                            onClick={() => {
+                                setPaymentMethod('cash');
+                                setSplitCashAmount(total);
+                                setSplitCardAmount(0);
+                            }}
                             className={`flex flex-col items-center justify-center gap-2 py-3.5 text-[9px] uppercase tracking-widest transition-all rounded-sm border ${
                                 hasUnassignedItems
                                     ? 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed opacity-50'
@@ -2351,32 +2359,14 @@ export default function POSPage() {
                                         ? 'bg-brand-charcoal text-white border-brand-charcoal shadow-sm font-bold'
                                         : 'border-gray-200 hover:border-brand-charcoal text-brand-charcoal bg-white cursor-pointer font-bold'
                             }`}>
-                            <span className="text-sm leading-none">💵</span>
-                            Efectivo / Transf
-                        </button>
-                        <button 
-                            type="button"
-                            disabled={hasUnassignedItems}
-                            onClick={() => {
-                                setPaymentMethod('split');
-                                setSplitCardAmount(Math.ceil(total / 2));
-                                setSplitCashAmount(total - Math.ceil(total / 2));
-                            }}
-                            className={`flex flex-col items-center justify-center gap-2 py-3.5 text-[9px] uppercase tracking-widest transition-all rounded-sm border ${
-                                hasUnassignedItems
-                                    ? 'bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed opacity-50'
-                                    : paymentMethod === 'split'
-                                        ? 'bg-brand-charcoal text-white border-brand-charcoal shadow-sm font-bold'
-                                        : 'border-gray-200 hover:border-brand-charcoal text-brand-charcoal bg-white cursor-pointer font-bold'
-                            }`}>
-                            <span className="text-sm leading-none flex gap-1">💳 💵</span>
-                            Pago Mixto
+                            <span className="text-[14px] leading-none flex gap-1 justify-center w-full">💵 💳</span>
+                            <span className="text-center px-1">Efectivo / Mixto</span>
                         </button>
                     </div>
 
-                    {paymentMethod === 'split' && (
+                    {paymentMethod === 'cash' && (
                         <div className="mt-4 p-4 border border-brand-terracotta/20 bg-brand-terracotta/5 rounded-sm space-y-4">
-                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-brand-charcoal text-center mb-2">Detalle de Pago Dividido</h4>
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-brand-charcoal text-center mb-2">Detalle de Pago</h4>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-[9px] uppercase tracking-widest text-gray-500 font-bold mb-1">Monto Tarjeta (Máquina)</label>
@@ -2589,7 +2579,7 @@ export default function POSPage() {
                                             <p className="text-sm font-bold">{checkoutResult.deliveryDate}</p>
                                         </div>
                                     )}
-                                    <p className="text-[10px] text-brand-terracotta font-bold uppercase mt-3">Metodo: {checkoutResult.method === 'mercadopago_point' ? 'Mercado Pago Point' : checkoutResult.method === 'transbank' ? 'Webpay Plus' : 'Efectivo'}</p>
+                                    <p className="text-[10px] text-brand-terracotta font-bold uppercase mt-3">Metodo: {checkoutResult.method === 'mercadopago_point' ? 'Mercado Pago Point' : checkoutResult.method === 'transbank' ? 'Webpay Plus' : checkoutResult.method === 'cash' ? 'Efectivo / Transferencia' : checkoutResult.method}</p>
                                 </div>
                             </div>
 
