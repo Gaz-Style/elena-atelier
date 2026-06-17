@@ -1067,7 +1067,10 @@ export default function POSPage() {
             const posOrderId = `budget_${orderId}`;
 
             const budgetData = {
-                cart: cart,
+                cart: cart.map(item => ({
+                    ...item,
+                    images: undefined // Strip File objects to prevent serialization error
+                })),
                 total: total,
                 date: new Date().toISOString(),
                 customerId: selectedCustomer ? selectedCustomer.id : null,
