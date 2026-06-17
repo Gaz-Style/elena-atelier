@@ -1064,35 +1064,7 @@ export default function POSPage() {
         setIsProcessing(true);
         try {
             const orderId = Math.floor(Math.random() * 90000) + 10000;
-            const posOrderId = `order_${orderId}`;
-
-            const orderRes = await createPOSOrdersAction({
-                customerId: selectedCustomer ? selectedCustomer.id : 'unassigned',
-                posOrderId: posOrderId,
-                paymentMethod: '',
-                paymentStatus: 'pending',
-                status: 'scheduled',
-                items: cart.map(item => ({
-                    name: item.name,
-                    price: item.price,
-                    category: item.category,
-                    hours: Number(item.details?.hours || getDefaultProductionHours(item.name, item.category)),
-                    notes: item.details?.notes || '',
-                    isCustom: !!item.isCustom,
-                    assignedOperatorId: item.assignedOperatorId || 'unassigned',
-                    scheduledStartDate: item.scheduledStartDate || undefined
-                })),
-                deadline: null,
-                productionStartDate: adjustedDates?.productionStartDate || null,
-                productionEndDate: adjustedDates?.productionEndDate || null,
-                finalDeliveryDate: null
-            });
-
-            if (!orderRes.success) {
-                alert("Error al registrar el presupuesto en producción: " + orderRes.error);
-                setIsProcessing(false);
-                return;
-            }
+            const posOrderId = `budget_${orderId}`;
 
             const budgetData = {
                 cart: cart,
@@ -1102,7 +1074,8 @@ export default function POSPage() {
                 customerName: selectedCustomer ? selectedCustomer.full_name : null,
                 customerEmail: selectedCustomer ? selectedCustomer.email : null,
                 customerPhone: selectedCustomer ? selectedCustomer.phone : null,
-                posOrderId: posOrderId
+                posOrderId: posOrderId,
+                adjustedDates: adjustedDates // To reconstruct the order later
             };
             const result = await saveBudgetAction(budgetData);
             

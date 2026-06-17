@@ -180,8 +180,10 @@ function BudgetContent() {
         setPaymentMethod(method);
         setStatus('paying');
         try {
+            const budgetId = searchParams.get('id') || '';
             const orderId = Date.now().toString();
-            const buyOrder = `order_${orderId}`;
+            // If it's a presencial payment, we generate a new order ID. If it's online, we use the budget ID so we can convert it AFTER payment.
+            const buyOrder = method === 'presencial' ? `order_${orderId}` : `budget_${budgetId}`;
             
             const orderPayload = {
                 customerId: data.customerId || 'unassigned',
@@ -203,9 +205,7 @@ function BudgetContent() {
                 productionEndDate: null,
                 finalDeliveryDate: null
             };
-            
-            const budgetId = searchParams.get('id') || '';
-            
+            // budgetId already declared above
             const res = await confirmPresencialBookingAction({
                 budgetId,
                 dateStr: selectedDate,

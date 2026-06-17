@@ -1075,7 +1075,47 @@ export async function getBudgetAction(id: string) {
 export async function updateOrderStatusToPaidAction(posOrderId: string) {
     const supabase = await createClient();
     
-    // El buyOrder de Transbank viene con el formato "order_123"
+    // Intercept budgets and convert them to real orders BEFORE updating
+    if (posOrderId.startsWith('budget_')) {
+        const budgetId = posOrderId.replace('budget_', '');
+        const { data: budget } = await supabase.from('budgets').select('payload').eq('id', budgetId).single();
+        
+        if (budget && budget.payload) {
+            const { data: existing } = await supabase.from('sales_ledger').select('id').eq('internal_id', posOrderId).single();
+            if (!existing) {
+                const payload = budget.payload;
+                const orderPayload = {
+                    customerId: payload.customerId || 'unassigned',
+                    posOrderId: posOrderId,
+                    paymentMethod: 'online', // Initial generic method, the webhook will update this shortly
+                    paymentStatus: 'paid',
+                    status: 'scheduled',
+                    items: payload.cart.map((item: any) => ({
+                        name: item.name,
+                        price: item.price,
+                        category: item.category,
+                        notes: item.notes || '',
+                        isCustom: !!item.isCustom,
+                        hours: item.details?.hours || 0,
+                        assignedOperatorId: item.assignedOperatorId || 'unassigned'
+                    })),
+                    deadline: null,
+                    productionStartDate: payload.adjustedDates?.productionStartDate || null,
+                    productionEndDate: payload.adjustedDates?.productionEndDate || null,
+                    finalDeliveryDate: null
+                };
+                
+                const res = await createPOSOrdersAction(orderPayload);
+                if (!res.success) {
+                    console.error('Failed to convert budget to order', res.error);
+                } else {
+                    await updateBudgetStatusAction(budgetId, 'accepted');
+                }
+            }
+        }
+    }
+
+    // El buyOrder de Transbank viene con el formato "order_123" o "budget_123"
     // Pero en production_orders el pos_order_id es "order_123" completo, así que actualizamos usando eso.
     const { error: prodError } = await supabase
         .from('production_orders')
@@ -1488,34 +1528,36 @@ export async function confirmPresencialBookingAction(payload: {
         const supabase = getAdminClient();
         const fechaHoraIso = `${dateStr}T${timeStr.padStart(5, '0')}:00-04:00`;
 
-        // 1. Manage POS order
-        if (orderPayload.posOrderId) {
-            const { data: existingSale } = await supabase.from('sales_ledger').select('id').eq('internal_id', orderPayload.posOrderId).single();
-            if (existingSale) {
-                // Update production_orders
-                await supabase.from('production_orders')
-                    .update({ 
-                        deadline: fechaHoraIso,
-                        final_delivery_date: fechaHoraIso,
-                        payment_method: orderPayload.paymentMethod,
-                        payment_status: orderPayload.paymentStatus
-                    })
-                    .eq('pos_order_id', orderPayload.posOrderId);
-                
-                // Update sales_ledger
-                await supabase.from('sales_ledger')
-                    .update({
-                        payment_method: orderPayload.paymentMethod,
-                        status: orderPayload.paymentStatus === 'completed' || orderPayload.paymentStatus === 'paid' ? 'completed' : 'pending'
-                    })
-                    .eq('internal_id', orderPayload.posOrderId);
+        // 1. Manage POS order (ONLY if payment method is local/presencial)
+        if (orderPayload.paymentMethod === 'local') {
+            if (orderPayload.posOrderId) {
+                const { data: existingSale } = await supabase.from('sales_ledger').select('id').eq('internal_id', orderPayload.posOrderId).single();
+                if (existingSale) {
+                    // Update production_orders
+                    await supabase.from('production_orders')
+                        .update({ 
+                            deadline: fechaHoraIso,
+                            final_delivery_date: fechaHoraIso,
+                            payment_method: orderPayload.paymentMethod,
+                            payment_status: orderPayload.paymentStatus
+                        })
+                        .eq('pos_order_id', orderPayload.posOrderId);
+                    
+                    // Update sales_ledger
+                    await supabase.from('sales_ledger')
+                        .update({
+                            payment_method: orderPayload.paymentMethod,
+                            status: orderPayload.paymentStatus === 'completed' || orderPayload.paymentStatus === 'paid' ? 'completed' : 'pending'
+                        })
+                        .eq('internal_id', orderPayload.posOrderId);
+                } else {
+                    const orderRes = await createPOSOrdersAction(orderPayload);
+                    if (!orderRes.success) throw new Error(orderRes.error || 'No se pudo crear la orden');
+                }
             } else {
                 const orderRes = await createPOSOrdersAction(orderPayload);
                 if (!orderRes.success) throw new Error(orderRes.error || 'No se pudo crear la orden');
             }
-        } else {
-            const orderRes = await createPOSOrdersAction(orderPayload);
-            if (!orderRes.success) throw new Error(orderRes.error || 'No se pudo crear la orden');
         }
         
         // 2. Update budget status
