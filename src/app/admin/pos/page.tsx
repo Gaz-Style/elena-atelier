@@ -927,7 +927,7 @@ export default function POSPage() {
             const orderId = Math.floor(Math.random() * 90000) + 10000;
             const dateStr = new Date().toLocaleDateString();
 
-            let finalPaymentMethodStr = paymentMethod;
+            let finalPaymentMethodStr: string | null = paymentMethod;
             if (paymentMethod === 'cash') {
                 if (splitCardAmount > 0) {
                     finalPaymentMethodStr = `Mixto (Máquina: $${splitCardAmount}, Efectivo: $${splitCashAmount})`;
