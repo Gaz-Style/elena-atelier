@@ -966,11 +966,11 @@ export default function POSPage() {
             let paymentUrl = '';
             if (paymentMethod === 'transbank') {
                 paymentUrl = `${window.location.origin}/pagar/order_${orderId}`;
-            } else if (paymentMethod === 'mercadopago_point' || (paymentMethod === 'split' && splitCardAmount > 0)) {
+            } else if (paymentMethod === 'mercadopago_point' || (paymentMethod === 'cash' && splitCardAmount > 0)) {
                 // Wake up the physical terminal
                 try {
                     const mpDesc = `Orden de Trabajo #${orderId}`;
-                    const amountToCharge = paymentMethod === 'split' ? splitCardAmount : total;
+                    const amountToCharge = (paymentMethod === 'cash' && splitCardAmount > 0) ? splitCardAmount : total;
                     const mpRes = await wakeUpMercadoPagoTerminalAction(amountToCharge, mpDesc, `order_${orderId}`);
                     if (!mpRes.success) {
                         console.error('Error despertando terminal Mercado Pago:', mpRes.error);
