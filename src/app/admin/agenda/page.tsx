@@ -69,7 +69,15 @@ export default async function AgendaPage({
         .order('fecha_hora', { ascending: true });
 
     const dayOfWeek = selectedDate.getDay();
-    const { data: dbDayConfig, error: configError } = await supabase
+    
+    // Fetch using Admin Client to bypass RLS for configuracion_horarios
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js');
+    const supabaseAdmin = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data: dbDayConfig, error: configError } = await supabaseAdmin
         .from('configuracion_horarios')
         .select('*')
         .eq('dia_semana', dayOfWeek)
