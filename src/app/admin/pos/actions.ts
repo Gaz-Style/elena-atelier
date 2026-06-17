@@ -1753,3 +1753,13 @@ Campos JSON requeridos:
         return { success: false, error: err.message };
     }
 }
+export async function deleteBudgetAction(id: string) {
+    const supabase = getAdminClient();
+    const { error } = await supabase
+        .from('budgets')
+        .delete()
+        .eq('id', id);
+    if (error) return { success: false, error: error.message };
+    revalidatePath('/admin/quotes');
+    return { success: true };
+}

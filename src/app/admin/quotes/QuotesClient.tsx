@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import { updateBudgetStatusAction } from '@/app/admin/pos/actions';
+import { updateBudgetStatusAction, deleteBudgetAction } from '@/app/admin/pos/actions';
 import { Clock, CheckCircle2, XCircle, Copy, ExternalLink, RefreshCw, ArrowRight, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -92,6 +92,19 @@ export default function QuotesClient({ budgets }: { budgets: Budget[] }) {
             const res = await updateBudgetStatusAction(id, status);
             if (res && !res.success) {
                 alert("Error al actualizar el estado: " + res.error);
+            }
+            setActionLoading(null);
+            router.refresh();
+        });
+    };
+
+    const deleteBudget = async (id: string) => {
+        if (!window.confirm('¿Estás seguro de que deseas eliminar este presupuesto de forma permanente?')) return;
+        setActionLoading(id + 'delete');
+        startTransition(async () => {
+            const res = await deleteBudgetAction(id);
+            if (res && !res.success) {
+                alert("Error al eliminar: " + res.error);
             }
             setActionLoading(null);
             router.refresh();
@@ -310,6 +323,19 @@ export default function QuotesClient({ budgets }: { budgets: Budget[] }) {
                                                             <span className="hidden md:inline">Reactivar</span>
                                                         </button>
                                                     )}
+
+                                                    {/* Delete Budget */}
+                                                    <button
+                                                        onClick={() => deleteBudget(budget.id)}
+                                                        disabled={actionLoading === budget.id + 'delete'}
+                                                        className="p-2 rounded-sm border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 disabled:opacity-50"
+                                                        title="Eliminar presupuesto"
+                                                    >
+                                                        {actionLoading === budget.id + 'delete'
+                                                            ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                                            : <XCircle className="w-3.5 h-3.5" />}
+                                                        <span className="hidden md:inline">Eliminar</span>
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
