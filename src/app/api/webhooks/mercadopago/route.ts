@@ -28,7 +28,7 @@ async function updateDatabaseAndNotify(
     // Check if the order is already paid to prevent duplicate notifications (idempotency check)
     const { data: existingOrders } = await supabase
         .from('production_orders')
-        .select('payment_status')
+        .select('payment_status, payment_method')
         .eq('pos_order_id', externalRef)
         .limit(1);
 
@@ -38,12 +38,18 @@ async function updateDatabaseAndNotify(
         return true;
     }
 
+    // Preserve "Mixto" payment method if it exists
+    let finalPaymentMethodLabel = paymentMethodLabel;
+    if (existingOrders && existingOrders.length > 0 && existingOrders[0].payment_method && existingOrders[0].payment_method.startsWith('Mixto')) {
+        finalPaymentMethodLabel = existingOrders[0].payment_method;
+    }
+
     // 1. Actualizar todas las filas de la orden en producción
     const { data, error } = await supabase
         .from('production_orders')
         .update({ 
             payment_status: 'PAGADO',
-            payment_method: paymentMethodLabel
+            payment_method: finalPaymentMethodLabel
         })
         .eq('pos_order_id', externalRef);
         
@@ -61,7 +67,7 @@ async function updateDatabaseAndNotify(
         .update({ 
             status: 'completed',
             external_transaction_id: paymentId,
-            payment_method: paymentMethodLabel
+            payment_method: finalPaymentMethodLabel
         })
         .eq('internal_id', externalRef);
 
