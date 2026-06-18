@@ -24,6 +24,26 @@ export default function FinanceDashboard() {
     const [inventoryItems, setInventoryItems] = useState<any[]>([]);
     const [loadToInventory, setLoadToInventory] = useState(false);
     const [purchaseLines, setPurchaseLines] = useState<any[]>([{ inventory_item_id: '', quantity: 1, price_unit: 0 }]);
+    const [providerRut, setProviderRut] = useState('');
+
+    const formatRUT = (value: string) => {
+        let rut = value.replace(/[^0-9kK]/g, '').toUpperCase();
+        if (rut.length === 0) return '';
+        if (rut.length <= 1) return rut;
+        
+        let result = '-' + rut.charAt(rut.length - 1);
+        let digitCount = 0;
+        
+        for (let i = rut.length - 2; i >= 0; i--) {
+            result = rut.charAt(i) + result;
+            digitCount++;
+            if (digitCount === 3 && i !== 0) {
+                result = '.' + result;
+                digitCount = 0;
+            }
+        }
+        return result;
+    };
 
     useEffect(() => {
         getCostSettings().then(data => {
@@ -95,6 +115,7 @@ export default function FinanceDashboard() {
         setIsRegistering(false);
         if (result.success) {
             form.reset();
+            setProviderRut('');
             setLoadToInventory(false);
             setPurchaseLines([{ inventory_item_id: '', quantity: 1, price_unit: 0 }]);
             
@@ -188,7 +209,15 @@ export default function FinanceDashboard() {
                             <form onSubmit={handleRegisterDoc} className="grid grid-cols-1 md:grid-cols-6 gap-6">
                                 <div className="md:col-span-2 space-y-2">
                                     <label className="text-[10px] uppercase font-bold text-gray-400 flex items-center gap-2"><User className="w-3 h-3" /> RUT Proveedor</label>
-                                    <input name="provider_rut" required type="text" placeholder="Ej: 76.123.456-7" className="w-full bg-gray-50 p-4 text-sm outline-none focus:ring-1 focus:ring-brand-terracotta rounded-sm font-mono" />
+                                    <input 
+                                        name="provider_rut" 
+                                        required 
+                                        type="text" 
+                                        placeholder="Ej: 76.123.456-7" 
+                                        value={providerRut}
+                                        onChange={(e) => setProviderRut(formatRUT(e.target.value))}
+                                        className="w-full bg-gray-50 p-4 text-sm outline-none focus:ring-1 focus:ring-brand-terracotta rounded-sm font-mono" 
+                                    />
                                 </div>
                                 <div className="md:col-span-4 space-y-2">
                                     <label className="text-[10px] uppercase font-bold text-gray-400">Razón Social / Nombre Comercio</label>
