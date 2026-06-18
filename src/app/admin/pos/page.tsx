@@ -9,6 +9,7 @@ import { getCustomers, createCustomer } from '../crm/actions';
 import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction, saveBudgetAction, wakeUpMercadoPagoTerminalAction, requestDiscountAuthorizationAction, getOperatorsDailyLoadAction, analyzeDesignWithGeminiAction } from './actions';
 import { createPaymentPreference } from '@/lib/payments';
 import { createWebpayTransaction } from '@/lib/transbank';
+import { getCurrentCashRegisterAction } from '../caja/actions';
 
 const getLocalDateString = (dateObj: Date) => {
     const y = dateObj.getFullYear();
@@ -237,6 +238,15 @@ export default function POSPage() {
     const [operators, setOperators] = useState<any[]>([]);
     const [atelierConfig, setAtelierConfig] = useState<any>(null);
     const [assignedOperatorId, setAssignedOperatorId] = useState<string>('');
+    const [isCajaOpen, setIsCajaOpen] = useState<boolean | null>(null);
+
+    useEffect(() => {
+        getCurrentCashRegisterAction().then(res => {
+            if (res.success) {
+                setIsCajaOpen(!!res.register);
+            }
+        });
+    }, []);
 
     const addToCart = (p: any) => setCart([...cart, p]);
     const removeFromCart = (index: number) => {
@@ -920,6 +930,12 @@ export default function POSPage() {
             alert('La suma de pago dividido no coincide con el total.');
             return;
         }
+
+        if (!isCajaOpen && paymentMethod === 'cash') {
+            if (!confirm('⚠️ La caja diaria está CERRADA. Si cobras en efectivo o mixto, este ingreso no cuadrará correctamente al momento del cierre. ¿Deseas continuar de todas formas?')) {
+                return;
+            }
+        }
         
         setIsProcessing(true);
         
@@ -1209,6 +1225,27 @@ export default function POSPage() {
         <div className={`min-h-screen bg-gray-50 flex flex-col lg:flex-row font-sans ${isBudgetModalOpen ? 'print:hidden' : ''}`}>
             {/* Product Selection Area */}
             <div className="flex-1 p-4 md:p-8 pt-20 space-y-8 overflow-y-auto">
+                <div className="mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+                    <div>
+                        <h2 className="text-3xl sm:text-4xl font-serif text-brand-charcoal mb-2">Crear Nueva Orden</h2>
+                        <p className="text-gray-500 font-sans text-[10px] uppercase tracking-widest flex items-center gap-2">
+                            Punto de Venta · Nueva Venta o Presupuesto
+                        </p>
+                    </div>
+                    {isCajaOpen !== null && (
+                        <Link 
+                            href="/admin/caja" 
+                            className={`px-5 py-2.5 rounded-full shadow-md flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 ${
+                                isCajaOpen 
+                                    ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100' 
+                                    : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
+                            }`}
+                        >
+                            <span className={`w-2.5 h-2.5 rounded-full ${isCajaOpen ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></span>
+                            {isCajaOpen ? 'Caja Diaria Abierta' : 'Caja Diaria Cerrada'}
+                        </Link>
+                    )}
+                </div>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                     <h1 className="font-serif text-3xl text-brand-charcoal flex items-center gap-3">
                         <ClipboardList className="w-8 h-8 text-brand-terracotta" />

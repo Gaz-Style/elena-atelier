@@ -15,7 +15,8 @@ import {
     Receipt,
     Activity,
     FileText,
-    Calendar
+    Calendar,
+    Wallet
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 
@@ -27,6 +28,13 @@ export default function AdminDashboard() {
             href: '/admin/pos',
             icon: ShoppingBag,
             color: 'bg-orange-100 text-orange-700'
+        },
+        {
+            title: 'Caja Diaria',
+            desc: 'Control de apertura, cierre y cuadratura de ingresos físicos y digitales.',
+            href: '/admin/caja',
+            icon: Wallet,
+            color: 'bg-emerald-100 text-emerald-700'
         },
         {
             title: 'Agenda de Citas',
