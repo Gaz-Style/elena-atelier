@@ -5,7 +5,12 @@ import Link from 'next/link';
 import { ArrowLeft, ChevronLeft, ChevronRight, Printer, RefreshCw } from 'lucide-react';
 import { getOperatorsAction } from '../pos/actions';
 import { getProductionOrders } from '../production/actions';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
