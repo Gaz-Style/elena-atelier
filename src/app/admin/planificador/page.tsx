@@ -2,10 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import {
-    ArrowLeft, ChevronLeft, ChevronRight, Plus, X,
-    Printer, RefreshCw, Lock, Trash2, Scissors, User, Coffee, CalendarDays
-} from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Printer, RefreshCw } from 'lucide-react';
 import { getOperatorsAction } from '../pos/actions';
 import { getProductionOrders } from '../production/actions';
 import { supabase } from '@/lib/supabase';
@@ -13,476 +10,703 @@ import { supabase } from '@/lib/supabase';
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
 // ─────────────────────────────────────────────────────────────────────────────
-type TaskType = 'orden' | 'cita' | 'bloqueado' | 'pausa';
+type TaskType = 'costura' | 'cita' | 'entrega' | 'bloqueo';
 
 type Task = {
     id: string;
-    time: string;        // "10:00"
+    time: string;
     label: string;
     type: TaskType;
     orderId?: string;
 };
 
-type DayOperatorData = {
+type DayCell = {
     tasks: Task[];
     blocked: boolean;
-    blockedReason?: string;
 };
 
-// operatorId → { 'YYYY-MM-DD' → DayOperatorData }
-type PlannerData = Record<string, Record<string, DayOperatorData>>;
+type PlannerData = Record<string, Record<string, DayCell>>; // opId → dateStr → DayCell
 
 type Operator = {
     id: string;
     name: string;
     status: string;
     daily_hours_capacity: number;
-    working_days: number[]; // 0=Dom,1=Lun...
+    working_days: number[];
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HELPERS
+// CONSTANTS
 // ─────────────────────────────────────────────────────────────────────────────
-const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-const DAY_NAMES_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const TASK_TYPES: { key: TaskType; label: string; emoji: string; color: string; bg: string; border: string }[] = [
+    { key: 'costura',  label: 'Costura',  emoji: '✂️',  color: '#1e293b', bg: '#1e293b', border: '#1e293b' },
+    { key: 'cita',     label: 'Cita',     emoji: '📅',  color: '#2563eb', bg: '#dbeafe', border: '#93c5fd' },
+    { key: 'entrega',  label: 'Entrega',  emoji: '🎁',  color: '#d97706', bg: '#fef3c7', border: '#fcd34d' },
+    { key: 'bloqueo',  label: 'Bloqueo',  emoji: '🚫',  color: '#dc2626', bg: '#fee2e2', border: '#fca5a5' },
+];
 
-const TYPE_LABELS: Record<TaskType, string> = {
-    orden: 'Confección',
-    cita: 'Cita Cliente',
-    bloqueado: 'Bloqueado',
-    pausa: 'Pausa / Colación',
+const TASK_ROW_STYLE: Record<TaskType, { background: string; borderLeft: string; timeColor: string }> = {
+    costura:  { background: '#f8fafc', borderLeft: '3px solid #334155', timeColor: '#000' },
+    cita:     { background: '#eff6ff', borderLeft: '3px solid #3b82f6', timeColor: '#1d4ed8' },
+    entrega:  { background: '#fffbeb', borderLeft: '3px solid #f59e0b', timeColor: '#b45309' },
+    bloqueo:  { background: '#fef2f2', borderLeft: '3px solid #ef4444', timeColor: '#991b1b' },
 };
 
-const TYPE_COLORS: Record<TaskType, string> = {
-    orden:     '#B56240',  // terracotta
-    cita:      '#2563EB',  // blue
-    bloqueado: '#6B7280',  // gray
-    pausa:     '#D97706',  // amber
-};
+const DAY_NAMES = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 
-function dateStr(d: Date): string {
-    return d.toISOString().split('T')[0];
-}
+function dateStr(d: Date) { return d.toISOString().split('T')[0]; }
+function uid() { return `t${Date.now()}${Math.random().toString(36).slice(2,6)}`; }
 
 function getWeekDays(anchor: Date): Date[] {
-    const day = anchor.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    const monday = new Date(anchor);
-    monday.setDate(anchor.getDate() + diff);
-    // Lunes a Sábado (6 días)
+    const dow = anchor.getDay();
+    const diff = dow === 0 ? -6 : 1 - dow;
+    const mon = new Date(anchor);
+    mon.setDate(anchor.getDate() + diff);
     return Array.from({ length: 6 }, (_, i) => {
-        const d = new Date(monday);
-        d.setDate(monday.getDate() + i);
+        const d = new Date(mon);
+        d.setDate(mon.getDate() + i);
         return d;
     });
 }
 
-function generateId(): string {
-    return `t-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
-// COMPONENT
+// MAIN
 // ─────────────────────────────────────────────────────────────────────────────
 export default function PlanificadorPage() {
-    const [operators, setOperators] = useState<Operator[]>([]);
-    const [orders, setOrders] = useState<any[]>([]);
-    const [planner, setPlanner] = useState<PlannerData>({});
-    const [loading, setLoading] = useState(true);
-    const [anchor, setAnchor] = useState<Date>(new Date());
+    const [operators, setOperators]   = useState<Operator[]>([]);
+    const [orders, setOrders]         = useState<any[]>([]);
+    const [planner, setPlanner]       = useState<PlannerData>({});
+    const [loading, setLoading]       = useState(true);
+    const [anchor, setAnchor]         = useState(new Date());
     const weekDays = getWeekDays(anchor);
-    const today = dateStr(new Date());
+    const todayStr = dateStr(new Date());
 
-    // Modal state
-    const [modal, setModal] = useState<{
-        opId: string;
-        day: string;
-        task?: Task; // if editing
-    } | null>(null);
-    const [form, setForm] = useState({ time: '10:00', label: '', type: 'orden' as TaskType, orderId: '' });
+    // Modal
+    const [modal, setModal]   = useState<{ opId: string; day: string; task?: Task } | null>(null);
+    const [mType, setMType]   = useState<TaskType>('costura');
+    const [mTime, setMTime]   = useState('');
+    const [mLabel, setMLabel] = useState('');
 
-    // ── Load ──────────────────────────────────────────────────────────────────
+    // ── Load ─────────────────────────────────────────────────────────────────
     const load = useCallback(async () => {
         setLoading(true);
-        const [ops, ords] = await Promise.all([
-            getOperatorsAction(),
-            getProductionOrders(),
-        ]);
+        const [ops, ords] = await Promise.all([getOperatorsAction(), getProductionOrders()]);
         const activeOps: Operator[] = (ops || []).filter((o: Operator) => o.status === 'active');
-        const activeOrds = (ords || []).filter((o: any) => !['delivered', 'scheduled'].includes(o.status));
+        const activeOrds = (ords || []).filter((o: any) => !['delivered','scheduled'].includes(o.status));
         setOperators(activeOps);
         setOrders(activeOrds);
 
-        // Fetch agendamientos for this week
         const startStr = dateStr(weekDays[0]);
-        const endStr = dateStr(weekDays[weekDays.length - 1]);
+        const endStr   = dateStr(weekDays[5]);
         const { data: agenda } = await supabase
-            .from('agendamientos')
-            .select('*')
+            .from('agendamientos').select('*')
             .gte('fecha_hora', `${startStr}T00:00:00`)
             .lte('fecha_hora', `${endStr}T23:59:59`)
             .neq('estado', 'cancelado');
 
-        // Build initial planner state
-        const newPlanner: PlannerData = {};
-
+        // Build planner
+        const p: PlannerData = {};
         activeOps.forEach((op: Operator) => {
-            newPlanner[op.id] = {};
+            p[op.id] = {};
             weekDays.forEach(d => {
-                const ds = dateStr(d);
-                const dow = d.getDay(); // 0=Dom
-                // Check if operator works this day
-                const worksThisDay = op.working_days?.includes(dow === 0 ? 7 : dow);
-                newPlanner[op.id][ds] = {
-                    tasks: [],
-                    blocked: !worksThisDay,
-                    blockedReason: !worksThisDay ? 'Sin atención' : undefined,
-                };
+                const ds  = dateStr(d);
+                const dow = d.getDay();
+                const works = op.working_days?.includes(dow === 0 ? 7 : dow);
+                p[op.id][ds] = { tasks: [], blocked: !works };
             });
         });
 
         // Inject production orders
         activeOrds.forEach((order: any) => {
-            const targetDs = order.production_start_date
-                ? order.production_start_date.split('T')[0]
-                : null;
-            if (!targetDs) return;
+            const ds   = order.production_start_date?.split('T')[0] ?? null;
             const opId = order.assigned_operator_id;
-            if (!opId || !newPlanner[opId]?.[targetDs]) return;
-            if (newPlanner[opId][targetDs].blocked) return;
-
-            // Estimate hour based on existing tasks
-            const existing = newPlanner[opId][targetDs].tasks.length;
-            const startH = 9 + existing;
-            const timeLabel = `${String(startH).padStart(2, '0')}:00`;
-
-            newPlanner[opId][targetDs].tasks.push({
+            if (!ds || !opId || !p[opId]?.[ds] || p[opId][ds].blocked) return;
+            const n = p[opId][ds].tasks.length;
+            p[opId][ds].tasks.push({
                 id: `order-${order.id}`,
-                time: timeLabel,
+                time: `${String(9 + n).padStart(2,'0')}:00`,
                 label: order.description || 'Orden sin nombre',
-                type: 'orden',
+                type: 'costura',
                 orderId: order.id,
             });
         });
 
-        // Inject agendamientos → assign to first operator (Elena)
+        // Inject agendamientos → first operator
         const firstOpId = activeOps[0]?.id;
         (agenda || []).forEach((ag: any) => {
             const agDate = new Date(ag.fecha_hora);
-            const ds = dateStr(agDate);
-            const hour = agDate.getHours();
-            const mins = agDate.getMinutes();
-            const timeLabel = `${String(hour).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
-            if (!firstOpId || !newPlanner[firstOpId]?.[ds]) return;
-            if (newPlanner[firstOpId][ds].blocked) return;
-
-            newPlanner[firstOpId][ds].tasks.push({
+            const ds     = dateStr(agDate);
+            if (!firstOpId || !p[firstOpId]?.[ds] || p[firstOpId][ds].blocked) return;
+            const h = agDate.getHours(), m = agDate.getMinutes();
+            p[firstOpId][ds].tasks.push({
                 id: `agenda-${ag.id}`,
-                time: timeLabel,
+                time: `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`,
                 label: ag.tipo_evento === 'tarea_interna'
                     ? (ag.notas || 'Bloqueo')
-                    : `Cita: ${ag.nombre} ${ag.apellido || ''}`.trim(),
-                type: ag.tipo_evento === 'tarea_interna' ? 'bloqueado' : 'cita',
+                    : `Cita: ${ag.nombre} ${ag.apellido||''}`.trim(),
+                type: ag.tipo_evento === 'tarea_interna' ? 'bloqueo' : 'cita',
             });
         });
 
-        // Sort tasks by time
-        Object.values(newPlanner).forEach(opDays => {
-            Object.values(opDays).forEach(dayData => {
-                dayData.tasks.sort((a, b) => a.time.localeCompare(b.time));
-            });
-        });
+        // Sort by time
+        Object.values(p).forEach(opDays =>
+            Object.values(opDays).forEach(cell =>
+                cell.tasks.sort((a,b) => a.time.localeCompare(b.time))
+            )
+        );
 
-        setPlanner(newPlanner);
+        setPlanner(p);
         setLoading(false);
     }, [anchor]);
 
     useEffect(() => { load(); }, [load]);
 
-    // ── Toggle block ──────────────────────────────────────────────────────────
-    function toggleBlock(opId: string, day: string) {
-        setPlanner(prev => {
-            const cell = prev[opId]?.[day];
-            if (!cell) return prev;
-            return {
-                ...prev,
-                [opId]: {
-                    ...prev[opId],
-                    [day]: { ...cell, blocked: !cell.blocked, blockedReason: !cell.blocked ? 'Sin atención / Bloqueado' : undefined }
-                }
-            };
-        });
-    }
-
-    // ── Open modal ─────────────────────────────────────────────────────────────
+    // ── Modal helpers ─────────────────────────────────────────────────────────
     function openAdd(opId: string, day: string) {
-        setForm({ time: '10:00', label: '', type: 'orden', orderId: '' });
+        setMType('costura'); setMTime(''); setMLabel('');
         setModal({ opId, day });
     }
-
     function openEdit(opId: string, day: string, task: Task) {
-        setForm({ time: task.time, label: task.label, type: task.type, orderId: task.orderId || '' });
+        setMType(task.type); setMTime(task.time); setMLabel(task.label);
         setModal({ opId, day, task });
     }
-
-    // ── Save task ─────────────────────────────────────────────────────────────
     function saveTask() {
-        if (!modal || !form.label.trim()) return;
+        if (!modal || !mLabel.trim()) return;
         const { opId, day, task } = modal;
         setPlanner(prev => {
             const cell = prev[opId]?.[day];
             if (!cell) return prev;
             let tasks: Task[];
             if (task) {
-                // Edit existing
-                tasks = cell.tasks.map(t =>
-                    t.id === task.id
-                        ? { ...t, time: form.time, label: form.label, type: form.type, orderId: form.orderId || undefined }
-                        : t
-                );
+                tasks = cell.tasks.map(t => t.id === task.id ? { ...t, type: mType, time: mTime, label: mLabel } : t);
             } else {
-                // Add new
-                tasks = [...cell.tasks, {
-                    id: generateId(),
-                    time: form.time,
-                    label: form.label,
-                    type: form.type,
-                    orderId: form.orderId || undefined,
-                }];
+                tasks = [...cell.tasks, { id: uid(), type: mType, time: mTime, label: mLabel }];
             }
-            tasks.sort((a, b) => a.time.localeCompare(b.time));
+            tasks.sort((a,b) => a.time.localeCompare(b.time));
             return { ...prev, [opId]: { ...prev[opId], [day]: { ...cell, tasks } } };
         });
         setModal(null);
     }
-
-    // ── Delete task ───────────────────────────────────────────────────────────
     function deleteTask(opId: string, day: string, taskId: string) {
         setPlanner(prev => {
             const cell = prev[opId]?.[day];
             if (!cell) return prev;
-            return {
-                ...prev,
-                [opId]: {
-                    ...prev[opId],
-                    [day]: { ...cell, tasks: cell.tasks.filter(t => t.id !== taskId) }
-                }
-            };
+            return { ...prev, [opId]: { ...prev[opId], [day]: { ...cell, tasks: cell.tasks.filter(t => t.id !== taskId) } } };
+        });
+    }
+    function toggleBlock(opId: string, day: string) {
+        setPlanner(prev => {
+            const cell = prev[opId]?.[day];
+            if (!cell) return prev;
+            return { ...prev, [opId]: { ...prev[opId], [day]: { ...cell, blocked: !cell.blocked } } };
         });
     }
 
-    // ── Week nav ──────────────────────────────────────────────────────────────
-    function prevWeek() { const d = new Date(anchor); d.setDate(d.getDate() - 7); setAnchor(d); }
-    function nextWeek() { const d = new Date(anchor); d.setDate(d.getDate() + 7); setAnchor(d); }
+    // Week nav
+    function prevWeek() { const d = new Date(anchor); d.setDate(d.getDate()-7); setAnchor(d); }
+    function nextWeek() { const d = new Date(anchor); d.setDate(d.getDate()+7); setAnchor(d); }
 
-    const weekLabel = `${weekDays[0].getDate()} ${weekDays[0].toLocaleDateString('es-CL', { month: 'long' })} — ${weekDays[5].getDate()} ${weekDays[5].toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}`;
+    const weekLabel = `${weekDays[0].getDate()} ${weekDays[0].toLocaleDateString('es-CL',{month:'long'})} — ${weekDays[5].getDate()} ${weekDays[5].toLocaleDateString('es-CL',{month:'long',year:'numeric'})}`;
+
+    const modalOp   = operators.find(o => o.id === modal?.opId);
+    const modalDay  = weekDays.find(d => dateStr(d) === modal?.day);
 
     // ─────────────────────────────────────────────────────────────────────────
+    // RENDER
+    // ─────────────────────────────────────────────────────────────────────────
     return (
-        <div className="min-h-screen bg-white text-gray-800 font-sans print:bg-white">
+        <>
+        {/* ─── GLOBAL STYLES (matching your original HTML exactly) ──────────── */}
+        <style>{`
+            @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700&display=swap');
 
-            {/* ── HEADER ─────────────────────────────────────────────────────── */}
-            <header className="sticky top-0 z-40 bg-white border-b-2 border-gray-800 print:hidden">
-                <div className="max-w-[1400px] mx-auto px-6 py-3 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <Link href="/admin" className="p-2 rounded-full text-gray-400 hover:bg-gray-100 transition-colors">
-                            <ArrowLeft className="w-4 h-4" />
-                        </Link>
-                        <div>
-                            <p className="text-[9px] uppercase tracking-[0.2em] text-gray-400 font-bold">Elena Atelier · Taller Tabancura</p>
-                            <h1 className="text-xl font-bold tracking-wide uppercase">Planificación Semanal de Taller</h1>
-                        </div>
-                    </div>
+            .planner-root {
+                font-family: 'Segoe UI', Arial, sans-serif;
+                margin: 0; padding: 0;
+                color: #333;
+                background: #fff;
+                min-height: 100vh;
+            }
 
-                    <div className="flex items-center gap-3">
-                        {/* Week nav */}
-                        <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                            <button onClick={prevWeek} className="p-1 hover:text-gray-900 text-gray-400 transition-colors">
-                                <ChevronLeft className="w-4 h-4" />
-                            </button>
-                            <span className="text-sm font-bold px-2 whitespace-nowrap capitalize">{weekLabel}</span>
-                            <button onClick={nextWeek} className="p-1 hover:text-gray-900 text-gray-400 transition-colors">
-                                <ChevronRight className="w-4 h-4" />
-                            </button>
-                        </div>
+            /* ── NAV BAR ── */
+            .planner-nav {
+                background: #fff;
+                border-bottom: 2px solid #111;
+                padding: 12px 24px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 16px;
+                position: sticky;
+                top: 0;
+                z-index: 40;
+            }
+            .planner-nav h1 {
+                margin: 0;
+                font-size: 20px;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                color: #111;
+                font-weight: 700;
+            }
+            .planner-nav .week-nav {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                color: #111;
+            }
+            .planner-nav .week-nav button {
+                border: 1px solid #ccc;
+                background: #f9f9f9;
+                cursor: pointer;
+                border-radius: 4px;
+                padding: 4px 8px;
+                font-size: 14px;
+                line-height: 1;
+            }
+            .planner-nav .week-nav button:hover { background: #e5e5e5; }
+            .planner-nav .nav-actions { display: flex; gap: 8px; }
+            .planner-nav .nav-btn {
+                border: 1px solid #ccc;
+                background: #f9f9f9;
+                cursor: pointer;
+                border-radius: 4px;
+                padding: 6px 14px;
+                font-size: 12px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                display: flex; align-items: center; gap: 6px;
+            }
+            .planner-nav .nav-btn:hover { background: #e5e5e5; }
+            .planner-nav .nav-btn.back { color: #555; }
 
-                        <button onClick={load} className="p-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-400 hover:text-gray-700 transition-colors" title="Recargar">
-                            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                        </button>
-                        <button onClick={() => window.print()} className="px-4 py-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600 font-medium text-sm flex items-center gap-2 transition-colors">
-                            <Printer className="w-4 h-4" />
-                            Imprimir
-                        </button>
-                    </div>
+            /* ── TABLE ── */
+            .planner-wrap { padding: 20px 24px; }
+            .planner-table {
+                width: 100%;
+                border-collapse: collapse;
+                table-layout: fixed;
+            }
+            .planner-table th, .planner-table td {
+                border: 2px solid #111;
+                padding: 10px;
+                vertical-align: top;
+                font-size: 13px;
+                line-height: 1.4;
+            }
+            .planner-table th {
+                background: #f2f2f2;
+                text-align: center;
+                font-size: 15px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+            .col-day {
+                width: 110px;
+                font-weight: 700;
+                background: #f9f9f9;
+                text-align: center;
+                vertical-align: middle;
+                font-size: 13px;
+                text-transform: uppercase;
+            }
+            .col-day .day-name { font-size: 14px; font-weight: 800; color: #111; letter-spacing: 1px; }
+            .col-day .day-num  { font-size: 22px; font-weight: 300; color: #555; line-height: 1.2; }
+            .col-day .day-month{ font-size: 10px; color: #999; text-transform: uppercase; font-weight: 600; }
+            .col-day.is-today  { background: #fffbe6; }
+            .col-day.is-today .day-name { color: #b45309; }
+            .col-day.is-today .day-num  { color: #b45309; }
+            .col-day .today-badge {
+                display: inline-block;
+                margin-top: 4px;
+                font-size: 8px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                background: #f59e0b;
+                color: #fff;
+                padding: 2px 6px;
+                border-radius: 3px;
+            }
+
+            /* ── BLOCKED CELL ── */
+            .cell-blocked {
+                background-color: #e0e0e0;
+                background-image: repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(0,0,0,0.05) 10px,rgba(0,0,0,0.05) 20px);
+                color: #777;
+                text-align: center;
+                vertical-align: middle;
+                font-style: italic;
+                font-size: 12px;
+                cursor: pointer;
+                user-select: none;
+            }
+            .cell-blocked:hover { background-color: #d0d0d0; }
+
+            /* ── TASK SLOT ── */
+            .time-slot {
+                margin-bottom: 6px;
+                padding-bottom: 5px;
+                border-bottom: 1px dashed #ccc;
+                display: flex;
+                align-items: flex-start;
+                gap: 6px;
+                border-radius: 3px;
+                padding: 4px 6px 5px 6px;
+                cursor: pointer;
+                transition: opacity .15s;
+                position: relative;
+            }
+            .time-slot:last-child { border-bottom: none; }
+            .time-slot:hover { opacity: .85; }
+            .time-slot:hover .slot-del { opacity: 1; }
+
+            .slot-time {
+                font-weight: 700;
+                font-size: 11px;
+                font-family: monospace;
+                white-space: nowrap;
+                min-width: 38px;
+                padding-top: 1px;
+            }
+            .slot-label { font-size: 12px; line-height: 1.45; flex: 1; }
+            .slot-del {
+                opacity: 0;
+                cursor: pointer;
+                font-size: 14px;
+                color: #dc2626;
+                line-height: 1;
+                padding: 0 2px;
+                transition: opacity .15s;
+                position: absolute;
+                right: 4px;
+                top: 4px;
+            }
+            .slot-del:hover { color: #7f1d1d; }
+
+            /* Add button inside cell */
+            .add-slot-btn {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                font-size: 11px;
+                color: #aaa;
+                cursor: pointer;
+                padding: 4px 6px;
+                border: 1px dashed #ddd;
+                border-radius: 4px;
+                margin-top: 4px;
+                background: transparent;
+                width: 100%;
+                text-align: left;
+                transition: all .15s;
+                font-family: inherit;
+            }
+            .add-slot-btn:hover { border-color: #999; color: #555; background: #fafafa; }
+
+            /* Block toggle btn */
+            .block-btn {
+                display: block;
+                font-size: 10px;
+                color: #bbb;
+                cursor: pointer;
+                margin-top: 3px;
+                padding: 2px 6px;
+                background: transparent;
+                border: none;
+                width: 100%;
+                text-align: center;
+                font-family: inherit;
+                transition: color .15s;
+            }
+            .block-btn:hover { color: #ef4444; }
+
+            /* ── MODAL OVERLAY ── */
+            .modal-overlay {
+                position: fixed; inset: 0; z-index: 999;
+                background: rgba(0,0,0,.45);
+                display: flex; align-items: center; justify-content: center;
+                padding: 16px;
+                backdrop-filter: blur(3px);
+            }
+            .modal-box {
+                background: #fff;
+                border-radius: 12px;
+                box-shadow: 0 20px 60px rgba(0,0,0,.3);
+                width: 100%;
+                max-width: 500px;
+                overflow: hidden;
+                font-family: 'Segoe UI', Arial, sans-serif;
+            }
+            .modal-header {
+                background: #1e293b;
+                color: #fff;
+                padding: 16px 20px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .modal-header h3 { margin: 0; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+            .modal-header .day-badge {
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+                background: rgba(255,255,255,.15);
+                padding: 3px 10px;
+                border-radius: 20px;
+            }
+            .modal-body { padding: 20px; }
+
+            /* Type pills */
+            .type-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+            .type-pill {
+                display: flex; align-items: center; gap: 6px;
+                padding: 7px 14px;
+                border-radius: 20px;
+                border: 2px solid #e5e7eb;
+                background: #fff;
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 600;
+                transition: all .15s;
+                font-family: inherit;
+            }
+            .type-pill:hover { border-color: #9ca3af; }
+            .type-pill.active-costura { background: #1e293b; color: #fff; border-color: #1e293b; }
+            .type-pill.active-cita    { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+            .type-pill.active-entrega { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+            .type-pill.active-bloqueo { background: #ef4444; color: #fff; border-color: #ef4444; }
+
+            .modal-label {
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+                color: #6b7280;
+                margin-bottom: 6px;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+            .modal-input, .modal-textarea {
+                width: 100%;
+                border: 1.5px solid #e5e7eb;
+                border-radius: 6px;
+                padding: 10px 12px;
+                font-size: 13px;
+                font-family: inherit;
+                outline: none;
+                transition: border-color .15s;
+                color: #111;
+                box-sizing: border-box;
+            }
+            .modal-input:focus, .modal-textarea:focus { border-color: #1e293b; }
+            .modal-textarea { resize: vertical; min-height: 80px; }
+            .modal-field { margin-bottom: 16px; }
+
+            /* Order selector */
+            .order-select {
+                width: 100%;
+                border: 1.5px solid #e5e7eb;
+                border-radius: 6px;
+                padding: 10px 12px;
+                font-size: 13px;
+                font-family: inherit;
+                outline: none;
+                color: #111;
+                box-sizing: border-box;
+                cursor: pointer;
+            }
+            .order-select:focus { border-color: #1e293b; }
+
+            /* Modal footer */
+            .modal-footer {
+                border-top: 1px solid #f3f4f6;
+                padding: 14px 20px;
+                display: flex;
+                gap: 10px;
+                justify-content: flex-end;
+                align-items: center;
+            }
+            .btn-cancel {
+                padding: 10px 22px;
+                border: 1.5px solid #e5e7eb;
+                border-radius: 8px;
+                background: #fff;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                font-family: inherit;
+                color: #374151;
+                transition: all .15s;
+            }
+            .btn-cancel:hover { background: #f9fafb; border-color: #9ca3af; }
+            .btn-add {
+                padding: 10px 28px;
+                border: none;
+                border-radius: 8px;
+                background: #1e293b;
+                color: #fff;
+                font-size: 13px;
+                font-weight: 700;
+                cursor: pointer;
+                font-family: inherit;
+                transition: background .15s;
+            }
+            .btn-add:hover { background: #334155; }
+            .btn-add:disabled { opacity: .4; cursor: not-allowed; }
+            .btn-delete {
+                padding: 10px 18px;
+                border: 1.5px solid #fecaca;
+                border-radius: 8px;
+                background: #fff5f5;
+                color: #dc2626;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                font-family: inherit;
+                margin-right: auto;
+                transition: all .15s;
+            }
+            .btn-delete:hover { background: #fee2e2; }
+
+            /* ── PRINT ── */
+            @media print {
+                @page { size: A4 landscape; margin: 10mm; }
+                .planner-nav, .add-slot-btn, .block-btn, .slot-del { display: none !important; }
+                .planner-wrap { padding: 0; }
+                .planner-table th, .planner-table td { font-size: 11px; padding: 7px; }
+            }
+        `}</style>
+
+        <div className="planner-root">
+
+            {/* ── NAV ───────────────────────────────────────────────────────── */}
+            <nav className="planner-nav">
+                <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                    <Link href="/admin" style={{ color:'#555', display:'flex', alignItems:'center', gap:4, textDecoration:'none', fontSize:12 }}>
+                        <ArrowLeft style={{ width:14, height:14 }} /> Volver
+                    </Link>
+                    <h1>Planificación Semanal de Taller</h1>
                 </div>
-            </header>
 
-            {/* ── PRINT HEADER ───────────────────────────────────────────────── */}
-            <div className="hidden print:block text-center py-4 mb-2">
-                <h1 className="text-2xl font-bold uppercase tracking-widest">Planificación Semanal de Taller</h1>
-                <p className="text-sm text-gray-500 mt-1 capitalize">{weekLabel}</p>
+                <div className="week-nav">
+                    <button onClick={prevWeek}><ChevronLeft style={{width:14,height:14}} /></button>
+                    <span style={{ textTransform:'capitalize' }}>{weekLabel}</span>
+                    <button onClick={nextWeek}><ChevronRight style={{width:14,height:14}} /></button>
+                </div>
+
+                <div className="nav-actions">
+                    <button className="nav-btn" onClick={load} title="Recargar">
+                        <RefreshCw style={{ width:13, height:13, ...(loading ? { animation:'spin 1s linear infinite' } : {}) }} />
+                        {loading ? 'Cargando...' : 'Recargar'}
+                    </button>
+                    <button className="nav-btn" onClick={() => window.print()}>
+                        <Printer style={{ width:13, height:13 }} /> Imprimir
+                    </button>
+                </div>
+            </nav>
+
+            {/* ── PRINT HEADER ─────────────────────────────────────────────── */}
+            <div style={{ display:'none' }} className="print-header">
+                <h1 style={{ textAlign:'center', fontSize:20, textTransform:'uppercase', letterSpacing:2, margin:'0 0 4px' }}>Planificación Semanal de Taller</h1>
+                <p style={{ textAlign:'center', fontSize:12, color:'#666', marginBottom:16, textTransform:'capitalize' }}>{weekLabel}</p>
             </div>
 
-            {/* ── LOADING ────────────────────────────────────────────────────── */}
-            {loading && (
-                <div className="flex items-center justify-center h-64">
-                    <div className="flex flex-col items-center gap-3 text-gray-400">
-                        <RefreshCw className="w-7 h-7 animate-spin" />
-                        <span className="text-sm uppercase tracking-widest">Cargando...</span>
+            {/* ── TABLE ─────────────────────────────────────────────────────── */}
+            <div className="planner-wrap">
+                {loading ? (
+                    <div style={{ textAlign:'center', padding:'60px 0', color:'#aaa', fontSize:13, textTransform:'uppercase', letterSpacing:2 }}>
+                        Cargando planificación...
                     </div>
-                </div>
-            )}
-
-            {/* ── LEGEND (above table) ────────────────────────────────────────── */}
-            {!loading && (
-                <div className="max-w-[1400px] mx-auto px-6 pt-4 pb-2 flex flex-wrap items-center gap-4 print:px-0">
-                    {(Object.keys(TYPE_LABELS) as TaskType[]).map(t => (
-                        <div key={t} className="flex items-center gap-1.5 text-xs text-gray-500">
-                            <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: TYPE_COLORS[t] + '33', border: `2px solid ${TYPE_COLORS[t]}` }} />
-                            {TYPE_LABELS[t]}
-                        </div>
-                    ))}
-                    <div className="flex items-center gap-1.5 text-xs text-gray-500 ml-2">
-                        <span className="inline-block w-3 h-3 rounded-sm bg-gray-200 border-2 border-gray-400" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 6px)' }} />
-                        Bloqueado / Descanso
-                    </div>
-                    <span className="text-[11px] text-gray-400 ml-auto print:hidden">Haz clic en una celda para añadir · Haz clic en una tarea para editar</span>
-                </div>
-            )}
-
-            {/* ── MAIN TABLE ─────────────────────────────────────────────────── */}
-            {!loading && operators.length > 0 && (
-                <div className="max-w-[1400px] mx-auto px-6 pb-16 print:px-0 print:pb-0">
-                    <table className="w-full border-collapse border-2 border-gray-900 text-sm mt-2">
+                ) : (
+                    <table className="planner-table">
                         <thead>
                             <tr>
-                                <th
-                                    className="border-2 border-gray-900 bg-gray-100 px-4 py-3 text-center text-base font-bold uppercase tracking-wide"
-                                    style={{ width: '10%' }}
-                                >
-                                    Día
-                                </th>
+                                <th style={{ width:'110px' }}>Día</th>
                                 {operators.map(op => (
-                                    <th
-                                        key={op.id}
-                                        className="border-2 border-gray-900 bg-gray-100 px-4 py-3 text-center text-base font-bold uppercase tracking-wide"
-                                        style={{ width: `${90 / operators.length}%` }}
-                                    >
+                                    <th key={op.id}>
                                         {op.name}
-                                        <span className="block text-[9px] font-normal text-gray-500 normal-case tracking-normal mt-0.5">
+                                        <span style={{ display:'block', fontSize:9, fontWeight:400, textTransform:'none', letterSpacing:0, color:'#888', marginTop:2 }}>
                                             {op.daily_hours_capacity || 8}h/día
                                         </span>
                                     </th>
                                 ))}
+                                {operators.length === 0 && (
+                                    <th style={{ color:'#aaa', fontStyle:'italic', fontWeight:400 }}>
+                                        Sin costureras activas
+                                    </th>
+                                )}
                             </tr>
                         </thead>
                         <tbody>
                             {weekDays.map(day => {
-                                const ds = dateStr(day);
-                                const dow = day.getDay();
-                                const isToday = ds === today;
-                                const dayName = DAY_NAMES[dow];
-
+                                const ds      = dateStr(day);
+                                const dow     = day.getDay();
+                                const isToday = ds === todayStr;
                                 return (
                                     <tr key={ds}>
-                                        {/* Day column */}
-                                        <td
-                                            className={`border-2 border-gray-900 text-center font-bold text-sm uppercase tracking-wide align-middle px-2 py-4 ${isToday ? 'bg-amber-50' : 'bg-gray-50'}`}
-                                        >
-                                            <div className={`font-black text-base ${isToday ? 'text-amber-700' : 'text-gray-800'}`}>
-                                                {dayName}
-                                            </div>
-                                            <div className={`text-lg font-serif ${isToday ? 'text-amber-700' : 'text-gray-600'}`}>
-                                                {day.getDate()}
-                                            </div>
-                                            <div className="text-[9px] text-gray-400 font-normal normal-case tracking-normal">
-                                                {day.toLocaleDateString('es-CL', { month: 'short' })}
-                                            </div>
-                                            {isToday && (
-                                                <div className="mt-1 text-[8px] font-bold uppercase tracking-widest text-amber-600 bg-amber-100 rounded px-1 py-0.5 inline-block">
-                                                    Hoy
-                                                </div>
-                                            )}
+                                        {/* Day cell */}
+                                        <td className={`col-day${isToday ? ' is-today' : ''}`}>
+                                            <div className="day-name">{DAY_NAMES[dow]}</div>
+                                            <div className="day-num">{day.getDate()}</div>
+                                            <div className="day-month">{day.toLocaleDateString('es-CL',{month:'short'})}</div>
+                                            {isToday && <div className="today-badge">Hoy</div>}
                                         </td>
 
-                                        {/* Operator columns */}
+                                        {/* Operator cells */}
                                         {operators.map(op => {
                                             const cell = planner[op.id]?.[ds];
-                                            if (!cell) return <td key={op.id} className="border-2 border-gray-900 p-3" />;
+                                            if (!cell) return <td key={op.id} />;
 
                                             if (cell.blocked) {
                                                 return (
                                                     <td
                                                         key={op.id}
-                                                        className="border-2 border-gray-900 px-4 py-6 text-center text-gray-500 italic text-sm align-middle cursor-pointer group"
-                                                        style={{
-                                                            backgroundColor: '#e5e7eb',
-                                                            backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.04) 10px, rgba(0,0,0,0.04) 20px)'
-                                                        }}
+                                                        className="cell-blocked"
                                                         onClick={() => toggleBlock(op.id, ds)}
                                                         title="Clic para desbloquear"
                                                     >
-                                                        <Lock className="w-4 h-4 mx-auto mb-1 text-gray-400 group-hover:text-gray-600 transition-colors" />
-                                                        <span className="text-xs">{cell.blockedReason || 'Sin atención'}</span>
+                                                        🔒 Sin atención / Bloqueado
                                                     </td>
                                                 );
                                             }
 
+                                            const taskStyle = (t: Task) => TASK_ROW_STYLE[t.type];
+
                                             return (
-                                                <td
-                                                    key={op.id}
-                                                    className="border-2 border-gray-900 px-3 py-2 align-top"
-                                                >
-                                                    {/* Tasks list */}
-                                                    {cell.tasks.length > 0 && (
-                                                        <div className="space-y-1.5 mb-2">
-                                                            {cell.tasks.map(task => (
-                                                                <div
-                                                                    key={task.id}
-                                                                    className="group flex items-start gap-2 cursor-pointer rounded px-2 py-1.5 transition-all hover:shadow-sm"
-                                                                    style={{
-                                                                        backgroundColor: TYPE_COLORS[task.type] + '18',
-                                                                        borderLeft: `3px solid ${TYPE_COLORS[task.type]}`
-                                                                    }}
-                                                                    onClick={() => openEdit(op.id, ds, task)}
-                                                                >
-                                                                    <span
-                                                                        className="font-bold text-gray-900 whitespace-nowrap text-[11px] leading-5 shrink-0 font-mono"
-                                                                    >
-                                                                        {task.time}
-                                                                    </span>
-                                                                    <span className="text-[12px] leading-5 flex-1 text-gray-800">
-                                                                        {task.label}
-                                                                    </span>
-                                                                    <button
-                                                                        className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all shrink-0 print:hidden"
-                                                                        onClick={e => { e.stopPropagation(); deleteTask(op.id, ds, task.id); }}
-                                                                        title="Eliminar"
-                                                                    >
-                                                                        <X className="w-3 h-3" />
-                                                                    </button>
-                                                                </div>
-                                                            ))}
+                                                <td key={op.id}>
+                                                    {/* Task slots */}
+                                                    {cell.tasks.map(task => (
+                                                        <div
+                                                            key={task.id}
+                                                            className="time-slot"
+                                                            style={{ ...taskStyle(task) }}
+                                                            onClick={() => openEdit(op.id, ds, task)}
+                                                        >
+                                                            <span className="slot-time" style={{ color: taskStyle(task).timeColor }}>
+                                                                {task.time}
+                                                            </span>
+                                                            <span className="slot-label">{task.label}</span>
+                                                            <span
+                                                                className="slot-del"
+                                                                onClick={e => { e.stopPropagation(); deleteTask(op.id, ds, task.id); }}
+                                                                title="Eliminar"
+                                                            >×</span>
                                                         </div>
-                                                    )}
+                                                    ))}
 
-                                                    {/* Add task button */}
-                                                    <button
-                                                        onClick={() => openAdd(op.id, ds)}
-                                                        className="w-full flex items-center justify-center gap-1 text-[11px] text-gray-300 hover:text-gray-500 py-1.5 border border-dashed border-gray-200 hover:border-gray-400 rounded transition-all group print:hidden"
-                                                    >
-                                                        <Plus className="w-3 h-3" />
-                                                        <span>Añadir</span>
+                                                    {/* Add button */}
+                                                    <button className="add-slot-btn" onClick={() => openAdd(op.id, ds)}>
+                                                        ＋ Añadir tarea / cita
                                                     </button>
-
-                                                    {/* Block day button */}
-                                                    <button
-                                                        onClick={() => toggleBlock(op.id, ds)}
-                                                        className="w-full flex items-center justify-center gap-1 text-[10px] text-gray-200 hover:text-gray-400 py-1 mt-0.5 transition-all print:hidden"
-                                                        title="Bloquear día"
-                                                    >
-                                                        <Lock className="w-2.5 h-2.5" />
-                                                        <span>Bloquear</span>
+                                                    <button className="block-btn" onClick={() => toggleBlock(op.id, ds)}>
+                                                        🔒 Bloquear día
                                                     </button>
                                                 </td>
                                             );
@@ -492,113 +716,81 @@ export default function PlanificadorPage() {
                             })}
                         </tbody>
                     </table>
+                )}
+            </div>
 
-                    {/* Footer note for print */}
-                    <div className="hidden print:block text-center text-[9px] text-gray-400 mt-4 border-t border-gray-300 pt-2">
-                        Generado por Elena Atelier OS · {new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                </div>
-            )}
-
-            {operators.length === 0 && !loading && (
-                <div className="max-w-[1400px] mx-auto px-6 py-24 text-center text-gray-400">
-                    <User className="w-10 h-10 mx-auto mb-3 text-gray-200" />
-                    <p>No hay costureras activas. Añade operarias desde el{' '}
-                        <Link href="/admin/production-board" className="underline text-blue-500">Live Board</Link>.
-                    </p>
-                </div>
-            )}
-
-            {/* ── ADD / EDIT MODAL ────────────────────────────────────────────── */}
+            {/* ── MODAL ─────────────────────────────────────────────────────── */}
             {modal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm print:hidden">
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md border border-gray-200 overflow-hidden">
-                        {/* Modal header */}
-                        <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                            <div>
-                                <h3 className="font-bold text-gray-900">{modal.task ? 'Editar tarea' : 'Agregar tarea'}</h3>
-                                <p className="text-xs text-gray-500 mt-0.5">
-                                    <strong>{operators.find(o => o.id === modal.opId)?.name}</strong>
-                                    {' · '}
-                                    {DAY_NAMES[weekDays.find(d => dateStr(d) === modal.day)?.getDay() || 1]}
-                                    {' '}
-                                    {weekDays.find(d => dateStr(d) === modal.day)?.getDate()}
-                                </p>
-                            </div>
-                            <button onClick={() => setModal(null)} className="p-2 rounded-full hover:bg-gray-200 text-gray-400 transition-colors">
-                                <X className="w-4 h-4" />
-                            </button>
+                <div className="modal-overlay" onClick={() => setModal(null)}>
+                    <div className="modal-box" onClick={e => e.stopPropagation()}>
+
+                        {/* Header */}
+                        <div className="modal-header">
+                            <h3>
+                                📅 {modal.task ? 'Editar Tarea' : 'Nueva Tarea / Cita'}
+                            </h3>
+                            {modalDay && modalOp && (
+                                <span className="day-badge">
+                                    {DAY_NAMES[modalDay.getDay()].toUpperCase()} · {modalOp.name.toUpperCase()}
+                                </span>
+                            )}
                         </div>
 
-                        <div className="p-6 space-y-5">
-                            {/* Type selector */}
-                            <div>
-                                <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 block mb-2">Tipo de bloque</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {(Object.entries(TYPE_LABELS) as [TaskType, string][]).map(([t, label]) => (
-                                        <button
-                                            key={t}
-                                            onClick={() => setForm(p => ({ ...p, type: t }))}
-                                            className={`px-3 py-2.5 rounded-lg border text-xs font-bold flex items-center gap-2 transition-all ${form.type === t ? 'text-white border-transparent' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
-                                            style={form.type === t ? { backgroundColor: TYPE_COLORS[t], borderColor: TYPE_COLORS[t] } : {}}
-                                        >
-                                            {t === 'orden' && <Scissors className="w-3.5 h-3.5" />}
-                                            {t === 'cita' && <User className="w-3.5 h-3.5" />}
-                                            {t === 'bloqueado' && <Lock className="w-3.5 h-3.5" />}
-                                            {t === 'pausa' && <Coffee className="w-3.5 h-3.5" />}
-                                            {label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                        <div className="modal-body">
 
-                            {/* Time + Label */}
-                            <div className="grid grid-cols-3 gap-3">
-                                <div>
-                                    <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 block mb-1">Hora</label>
-                                    <input
-                                        type="time"
-                                        value={form.time}
-                                        onChange={e => setForm(p => ({ ...p, time: e.target.value }))}
-                                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-700 focus:ring-1 focus:ring-gray-700/20 font-mono"
-                                    />
-                                </div>
-                                <div className="col-span-2">
-                                    <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 block mb-1">Descripción</label>
-                                    <input
-                                        type="text"
-                                        value={form.label}
-                                        onChange={e => setForm(p => ({ ...p, label: e.target.value }))}
-                                        placeholder="Ej: Vestido Amanda, Cita Clarita..."
-                                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-700 focus:ring-1 focus:ring-gray-700/20"
-                                        onKeyDown={e => e.key === 'Enter' && saveTask()}
-                                        autoFocus
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Link to order */}
-                            {form.type === 'orden' && (
-                                <div>
-                                    <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 block mb-1">Vincular a orden del sistema</label>
-                                    <select
-                                        value={form.orderId}
-                                        onChange={e => {
-                                            const order = orders.find(o => o.id === e.target.value);
-                                            setForm(p => ({
-                                                ...p,
-                                                orderId: e.target.value,
-                                                label: order ? (order.description || p.label) : p.label,
-                                            }));
-                                        }}
-                                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-700"
+                            {/* Type pills */}
+                            <div className="modal-label">Tipo de Actividad</div>
+                            <div className="type-group">
+                                {TASK_TYPES.map(t => (
+                                    <button
+                                        key={t.key}
+                                        className={`type-pill${mType === t.key ? ` active-${t.key}` : ''}`}
+                                        onClick={() => setMType(t.key)}
                                     >
-                                        <option value="">Sin vincular (entrada manual)</option>
+                                        <span>{t.emoji}</span> {t.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Time */}
+                            <div className="modal-field">
+                                <div className="modal-label">🕐 Hora / Bloque Horario</div>
+                                <input
+                                    className="modal-input"
+                                    type="text"
+                                    placeholder="Ej: 10:00, Tarde, 12:30"
+                                    value={mTime}
+                                    onChange={e => setMTime(e.target.value)}
+                                />
+                            </div>
+
+                            {/* Label / description */}
+                            <div className="modal-field">
+                                <div className="modal-label">📋 Descripción del Trabajo / Cliente</div>
+                                <textarea
+                                    className="modal-textarea"
+                                    placeholder="Ej: Blusa Amanda o Margarita: Vestido Negro, Bastas"
+                                    value={mLabel}
+                                    onChange={e => setMLabel(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && e.ctrlKey && saveTask()}
+                                />
+                            </div>
+
+                            {/* Link to order (only for costura) */}
+                            {mType === 'costura' && orders.length > 0 && (
+                                <div className="modal-field">
+                                    <div className="modal-label">🔗 Vincular a Orden del Sistema (opcional)</div>
+                                    <select
+                                        className="order-select"
+                                        onChange={e => {
+                                            const o = orders.find(o => o.id === e.target.value);
+                                            if (o) setMLabel(o.description || '');
+                                        }}
+                                    >
+                                        <option value="">— Sin vincular (entrada manual) —</option>
                                         {orders.map(o => (
                                             <option key={o.id} value={o.id}>
-                                                {o.description}
-                                                {o.customers?.full_name ? ` — ${o.customers.full_name}` : ''}
-                                                {o.estimated_hours ? ` (${o.estimated_hours}h)` : ''}
+                                                {o.description}{o.customers?.full_name ? ` — ${o.customers.full_name}` : ''}{o.estimated_hours ? ` (${o.estimated_hours}h)` : ''}
                                             </option>
                                         ))}
                                     </select>
@@ -606,43 +798,33 @@ export default function PlanificadorPage() {
                             )}
                         </div>
 
-                        {/* Actions */}
-                        <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-between gap-3 bg-gray-50">
+                        {/* Footer */}
+                        <div className="modal-footer">
                             {modal.task && (
                                 <button
+                                    className="btn-delete"
                                     onClick={() => { deleteTask(modal.opId, modal.day, modal.task!.id); setModal(null); }}
-                                    className="flex items-center gap-1.5 text-sm text-red-500 hover:text-red-700 transition-colors"
                                 >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                    Eliminar
+                                    🗑 Eliminar
                                 </button>
                             )}
-                            <div className="flex gap-3 ml-auto">
-                                <button onClick={() => setModal(null)} className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-500 hover:bg-gray-100 transition-colors">
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={saveTask}
-                                    disabled={!form.label.trim()}
-                                    className="px-6 py-2 rounded-lg bg-gray-900 text-white text-sm font-bold hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                                >
-                                    {modal.task ? 'Guardar cambios' : 'Añadir'}
-                                </button>
-                            </div>
+                            <button className="btn-cancel" onClick={() => setModal(null)}>Cancelar</button>
+                            <button
+                                className="btn-add"
+                                onClick={saveTask}
+                                disabled={!mLabel.trim()}
+                            >
+                                {modal.task ? 'Guardar cambios' : 'Añadir'}
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
-
-            {/* Print styles */}
-            <style jsx global>{`
-                @media print {
-                    @page { size: A4 landscape; margin: 10mm; }
-                    body { font-size: 11px; color: #111; }
-                    table { border-collapse: collapse; width: 100%; }
-                    th, td { border: 2px solid #111 !important; }
-                }
-            `}</style>
         </div>
+
+        <style>{`
+            @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        `}</style>
+        </>
     );
 }
