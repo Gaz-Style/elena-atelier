@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { CheckCircle, Clock, CreditCard, ArrowLeft, Download, FileText, User } from 'lucide-react';
+import CobrarEnCajaButton from './CobrarEnCajaButton';
 
 export const revalidate = 0; // Disable caching
 
@@ -162,6 +163,15 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
 
                         <section className="bg-white border border-gray-200 rounded-sm shadow-sm p-6 space-y-4">
                             <h2 className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-4">Acciones de Venta</h2>
+                            
+                            {sale.status === 'pending' && (
+                                <CobrarEnCajaButton
+                                    saleId={sale.id}
+                                    internalId={sale.internal_id}
+                                    totalAmount={sale.total_amount}
+                                    currentStatus={sale.status}
+                                />
+                            )}
                             
                             <button disabled className="w-full flex items-center justify-center gap-2 py-3 bg-gray-50 text-gray-400 border border-gray-200 rounded-sm text-[10px] uppercase tracking-widest font-bold cursor-not-allowed transition-all">
                                 <Download className="w-3 h-3" /> Descargar Recibo

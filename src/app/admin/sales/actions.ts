@@ -263,5 +263,69 @@ export async function requestSaleStatusAuthorizationAction(payload: {
 
     return { success: true, pin };
 }
+/**
+ * cobrarEnCajaAction
+ * ─────────────────────────────────────────────────────────────────────────
+ * Convierte una venta pendiente (Transbank fallido u otro) en un cobro
+ * presencial en caja. Hace tres cosas atómicamente:
+ *   1. Actualiza sales_ledger: status = 'completed', payment_method = metodo elegido
+ *   2. Si hay una caja abierta, registra un cash_movement de tipo 'in'
+ *   3. Revalida las rutas relevantes
+ */
+export async function cobrarEnCajaAction(payload: {
+    saleId: string;
+    internalId: string;
+    totalAmount: number;
+    paymentMethod: 'efectivo' | 'transferencia' | 'debito' | 'credito';
+}) {
+    const { saleId, internalId, totalAmount, paymentMethod } = payload;
 
+    const { createClient: createAdminClient } = await import('@supabase/supabase-js');
+    const supabase = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
+    // 1. Marcar la venta como completada y actualizar método de pago
+    const { error: saleError } = await supabase
+        .from('sales_ledger')
+        .update({
+            status: 'completed',
+            payment_method: paymentMethod,
+        })
+        .eq('id', saleId);
+
+    if (saleError) {
+        return { success: false, error: 'Error al actualizar la venta: ' + saleError.message };
+    }
+
+    // 2. Buscar caja abierta y registrar ingreso
+    const { data: openRegister } = await supabase
+        .from('cash_registers')
+        .select('id')
+        .eq('status', 'open')
+        .order('opened_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (openRegister) {
+        const methodLabel: Record<string, string> = {
+            efectivo: 'Efectivo',
+            transferencia: 'Transferencia',
+            debito: 'Débito',
+            credito: 'Crédito',
+        };
+        await supabase.from('cash_movements').insert([{
+            register_id: openRegister.id,
+            type: 'in',
+            amount: totalAmount,
+            reason: `Cobro presencial en caja — Venta ${internalId} (antes pendiente online)`,
+            created_by: 'Admin',
+        }]);
+    }
+
+    revalidatePath('/admin/sales');
+    revalidatePath(`/admin/sales/${saleId}`);
+    revalidatePath('/admin/caja');
+    return { success: true };
+}
