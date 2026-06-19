@@ -72,6 +72,13 @@ export default function AdminDashboard() {
             color: 'bg-emerald-100 text-emerald-700'
         },
         {
+            title: 'Planificador Semanal',
+            desc: 'Vista semanal del taller por costurera: confecciones, citas y bloqueos horarios.',
+            href: '/admin/planificador',
+            icon: Calendar,
+            color: 'bg-brand-terracotta/20 text-brand-terracotta'
+        },
+        {
             title: 'Catálogo de Servicios',
             desc: 'Administración de productos, precios y oferta comercial.',
             href: '/admin/catalog',
