@@ -430,156 +430,6 @@ export default function PlanificadorPage() {
             }
             .block-btn:hover { color: #ef4444; }
 
-            /* ── MODAL OVERLAY ── */
-            .modal-overlay {
-                position: fixed; inset: 0; z-index: 999;
-                background: rgba(0,0,0,.45);
-                display: flex; align-items: center; justify-content: center;
-                padding: 16px;
-                backdrop-filter: blur(3px);
-            }
-            .modal-box {
-                background: #fff;
-                border-radius: 12px;
-                box-shadow: 0 20px 60px rgba(0,0,0,.3);
-                width: 100%;
-                max-width: 500px;
-                overflow: hidden;
-                font-family: 'Segoe UI', Arial, sans-serif;
-            }
-            .modal-header {
-                background: #1e293b;
-                color: #fff;
-                padding: 16px 20px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-            }
-            .modal-header h3 { margin: 0; font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-            .modal-header .day-badge {
-                font-size: 10px;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 1.5px;
-                background: rgba(255,255,255,.15);
-                padding: 3px 10px;
-                border-radius: 20px;
-            }
-            .modal-body { padding: 20px; }
-
-            /* Type pills */
-            .type-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
-            .type-pill {
-                display: flex; align-items: center; gap: 6px;
-                padding: 7px 14px;
-                border-radius: 20px;
-                border: 2px solid #e5e7eb;
-                background: #fff;
-                cursor: pointer;
-                font-size: 12px;
-                font-weight: 600;
-                transition: all .15s;
-                font-family: inherit;
-            }
-            .type-pill:hover { border-color: #9ca3af; }
-            .type-pill.active-costura { background: #1e293b; color: #fff; border-color: #1e293b; }
-            .type-pill.active-cita    { background: #3b82f6; color: #fff; border-color: #3b82f6; }
-            .type-pill.active-entrega { background: #f59e0b; color: #fff; border-color: #f59e0b; }
-            .type-pill.active-bloqueo { background: #ef4444; color: #fff; border-color: #ef4444; }
-
-            .modal-label {
-                font-size: 10px;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 1.5px;
-                color: #6b7280;
-                margin-bottom: 6px;
-                display: flex;
-                align-items: center;
-                gap: 5px;
-            }
-            .modal-input, .modal-textarea {
-                width: 100%;
-                border: 1.5px solid #e5e7eb;
-                border-radius: 6px;
-                padding: 10px 12px;
-                font-size: 13px;
-                font-family: inherit;
-                outline: none;
-                transition: border-color .15s;
-                color: #111;
-                box-sizing: border-box;
-            }
-            .modal-input:focus, .modal-textarea:focus { border-color: #1e293b; }
-            .modal-textarea { resize: vertical; min-height: 80px; }
-            .modal-field { margin-bottom: 16px; }
-
-            /* Order selector */
-            .order-select {
-                width: 100%;
-                border: 1.5px solid #e5e7eb;
-                border-radius: 6px;
-                padding: 10px 12px;
-                font-size: 13px;
-                font-family: inherit;
-                outline: none;
-                color: #111;
-                box-sizing: border-box;
-                cursor: pointer;
-            }
-            .order-select:focus { border-color: #1e293b; }
-
-            /* Modal footer */
-            .modal-footer {
-                border-top: 1px solid #f3f4f6;
-                padding: 14px 20px;
-                display: flex;
-                gap: 10px;
-                justify-content: flex-end;
-                align-items: center;
-            }
-            .btn-cancel {
-                padding: 10px 22px;
-                border: 1.5px solid #e5e7eb;
-                border-radius: 8px;
-                background: #fff;
-                font-size: 13px;
-                font-weight: 600;
-                cursor: pointer;
-                font-family: inherit;
-                color: #374151;
-                transition: all .15s;
-            }
-            .btn-cancel:hover { background: #f9fafb; border-color: #9ca3af; }
-            .btn-add {
-                padding: 10px 28px;
-                border: none;
-                border-radius: 8px;
-                background: #1e293b;
-                color: #fff;
-                font-size: 13px;
-                font-weight: 700;
-                cursor: pointer;
-                font-family: inherit;
-                transition: background .15s;
-            }
-            .btn-add:hover { background: #334155; }
-            .btn-add:disabled { opacity: .4; cursor: not-allowed; }
-            .btn-delete {
-                padding: 10px 18px;
-                border: 1.5px solid #fecaca;
-                border-radius: 8px;
-                background: #fff5f5;
-                color: #dc2626;
-                font-size: 13px;
-                font-weight: 600;
-                cursor: pointer;
-                font-family: inherit;
-                margin-right: auto;
-                transition: all .15s;
-            }
-            .btn-delete:hover { background: #fee2e2; }
-
             /* ── PRINT ── */
             @media print {
                 @page { size: A4 landscape; margin: 10mm; }
@@ -724,69 +574,94 @@ export default function PlanificadorPage() {
                 )}
             </div>
 
-            {/* ── MODAL ─────────────────────────────────────────────────────── */}
+            {/* ── MODAL (Tailwind) ─────────────────────────────────────────────────── */}
             {modal && (
-                <div className="modal-overlay" onClick={() => setModal(null)}>
-                    <div className="modal-box" onClick={e => e.stopPropagation()}>
-
+                <div className="fixed inset-0 z-[999] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setModal(null)}>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[500px] overflow-hidden flex flex-col font-sans animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                        
                         {/* Header */}
-                        <div className="modal-header">
-                            <h3>
-                                📅 {modal.task ? 'Editar Tarea' : 'Nueva Tarea / Cita'}
+                        <div className="bg-[#0f172a] text-white px-6 py-5 flex items-center justify-between">
+                            <h3 className="text-lg font-bold flex items-center gap-3 m-0">
+                                <span className="text-orange-400">📅</span>
+                                {modal.task ? 'Editar Tarea' : 'Nueva Tarea / Cita'}
                             </h3>
                             {modalDay && modalOp && (
-                                <span className="day-badge">
-                                    {DAY_NAMES[modalDay.getDay()].toUpperCase()} · {modalOp.name.toUpperCase()}
+                                <span className="bg-slate-700/60 text-slate-200 text-[10px] font-bold tracking-wider px-3 py-1.5 rounded uppercase">
+                                    {DAY_NAMES[modalDay.getDay()]} - {modalOp.name.split(' ')[0]}
                                 </span>
                             )}
                         </div>
 
-                        <div className="modal-body">
+                        {/* Body */}
+                        <div className="p-6 flex flex-col gap-5">
+                            
+                            {/* Type */}
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">
+                                    Tipo de Actividad
+                                </label>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {TASK_TYPES.map(t => {
+                                        const isActive = mType === t.key;
+                                        let activeClasses = '';
+                                        if (isActive) {
+                                            if (t.key === 'costura') activeClasses = 'bg-[#0f172a] border-[#0f172a] text-white';
+                                            else if (t.key === 'cita') activeClasses = 'bg-blue-600 border-blue-600 text-white';
+                                            else if (t.key === 'entrega') activeClasses = 'bg-amber-500 border-amber-500 text-white';
+                                            else if (t.key === 'bloqueo') activeClasses = 'bg-red-500 border-red-500 text-white';
+                                        } else {
+                                            activeClasses = 'bg-white border-slate-200 text-slate-600 hover:border-slate-300';
+                                        }
 
-                            {/* Type pills */}
-                            <div className="modal-label">Tipo de Actividad</div>
-                            <div className="type-group">
-                                {TASK_TYPES.map(t => (
-                                    <button
-                                        key={t.key}
-                                        className={`type-pill${mType === t.key ? ` active-${t.key}` : ''}`}
-                                        onClick={() => setMType(t.key)}
-                                    >
-                                        <span>{t.emoji}</span> {t.label}
-                                    </button>
-                                ))}
+                                        return (
+                                            <button
+                                                key={t.key}
+                                                className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl border-2 text-xs font-semibold transition-all ${activeClasses}`}
+                                                onClick={() => setMType(t.key)}
+                                            >
+                                                <span>{t.emoji}</span> <span className="hidden sm:inline">{t.label}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
 
                             {/* Time */}
-                            <div className="modal-field">
-                                <div className="modal-label">🕐 Hora / Bloque Horario</div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                    <span className="text-slate-400">🕒</span> Hora / Bloque Horario
+                                </label>
                                 <input
-                                    className="modal-input"
                                     type="text"
                                     placeholder="Ej: 10:00, Tarde, 12:30"
                                     value={mTime}
                                     onChange={e => setMTime(e.target.value)}
+                                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-[#0f172a] transition-colors"
                                 />
                             </div>
 
-                            {/* Label / description */}
-                            <div className="modal-field">
-                                <div className="modal-label">📋 Descripción del Trabajo / Cliente</div>
+                            {/* Label */}
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                                    Descripción del Trabajo / Cliente
+                                </label>
                                 <textarea
-                                    className="modal-textarea"
                                     placeholder="Ej: Blusa Amanda o Margarita: Vestido Negro, Bastas"
                                     value={mLabel}
                                     onChange={e => setMLabel(e.target.value)}
                                     onKeyDown={e => e.key === 'Enter' && e.ctrlKey && saveTask()}
+                                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-[#0f172a] transition-colors resize-y min-h-[90px]"
                                 />
                             </div>
 
-                            {/* Link to order (only for costura) */}
+                            {/* Link Order */}
                             {mType === 'costura' && orders.length > 0 && (
-                                <div className="modal-field">
-                                    <div className="modal-label">🔗 Vincular a Orden del Sistema (opcional)</div>
+                                <div>
+                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                                        🔗 Vincular a Orden del Sistema (opcional)
+                                    </label>
                                     <select
-                                        className="order-select"
+                                        className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-[#0f172a] transition-colors appearance-none bg-white cursor-pointer"
                                         onChange={e => {
                                             const o = orders.find(o => o.id === e.target.value);
                                             if (o) setMLabel(o.description || '');
@@ -801,27 +676,34 @@ export default function PlanificadorPage() {
                                     </select>
                                 </div>
                             )}
+
                         </div>
 
                         {/* Footer */}
-                        <div className="modal-footer">
+                        <div className="px-6 pb-6 flex gap-3 mt-auto">
                             {modal.task && (
                                 <button
-                                    className="btn-delete"
+                                    className="flex-1 py-3.5 rounded-xl bg-red-50 text-red-600 border-2 border-red-100 font-bold hover:bg-red-100 transition-colors text-sm"
                                     onClick={() => { deleteTask(modal.opId, modal.day, modal.task!.id); setModal(null); }}
                                 >
-                                    🗑 Eliminar
+                                    Eliminar
                                 </button>
                             )}
-                            <button className="btn-cancel" onClick={() => setModal(null)}>Cancelar</button>
                             <button
-                                className="btn-add"
+                                className="flex-1 py-3.5 rounded-xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-colors text-sm"
+                                onClick={() => setModal(null)}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                className="flex-1 py-3.5 rounded-xl bg-[#0f172a] text-white font-bold hover:bg-slate-800 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                 onClick={saveTask}
                                 disabled={!mLabel.trim()}
                             >
-                                {modal.task ? 'Guardar cambios' : 'Añadir'}
+                                {modal.task ? 'Guardar' : 'Añadir'}
                             </button>
                         </div>
+
                     </div>
                 </div>
             )}
