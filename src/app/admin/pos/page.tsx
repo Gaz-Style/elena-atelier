@@ -1465,7 +1465,6 @@ export default function POSPage() {
                                 className="w-full p-3 text-sm font-medium bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta transition-colors"
                             >
                                 <option value="" disabled>-- Selecciona Costurera o Taller General --</option>
-                                <option value="unassigned">Sin asignar (Enviar al Taller General)</option>
                                 {operators.map((op: any) => (
                                     <option key={op.id} value={op.id}>
                                         {op.name} ({op.daily_hours_capacity}h por día)
