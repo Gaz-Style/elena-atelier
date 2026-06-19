@@ -277,8 +277,13 @@ export async function cobrarEnCajaAction(payload: {
     internalId: string;
     totalAmount: number;
     paymentMethod: 'mercadopago_point' | 'cash';
+    splitCardAmount?: number;
+    splitCashAmount?: number;
 }) {
-    const { saleId, internalId, totalAmount, paymentMethod } = payload;
+    const { saleId, internalId, totalAmount, paymentMethod, splitCardAmount = 0, splitCashAmount = 0 } = payload;
+    
+    // Import MP action
+    const { wakeUpMercadoPagoTerminalAction } = await import('../pos/actions');
 
     const { createClient: createAdminClient } = await import('@supabase/supabase-js');
     const supabase = createAdminClient(
@@ -286,12 +291,31 @@ export async function cobrarEnCajaAction(payload: {
         process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    let finalPaymentMethodStr = paymentMethod as string;
+    if (paymentMethod === 'cash') {
+        if (splitCardAmount > 0) {
+            finalPaymentMethodStr = `Mixto (Máquina: $${splitCardAmount}, Efectivo: $${splitCashAmount})`;
+        } else {
+            finalPaymentMethodStr = 'Efectivo / Transferencia';
+        }
+    }
+
+    // Wake up MP if needed
+    if (paymentMethod === 'mercadopago_point' || (paymentMethod === 'cash' && splitCardAmount > 0)) {
+        const mpDesc = `Cobro Caja — Venta ${internalId}`;
+        const amountToCharge = (paymentMethod === 'cash' && splitCardAmount > 0) ? splitCardAmount : totalAmount;
+        const mpRes = await wakeUpMercadoPagoTerminalAction(amountToCharge, mpDesc, internalId);
+        if (!mpRes.success) {
+            return { success: false, error: 'Error enviando señal a maquinita: ' + mpRes.error };
+        }
+    }
+
     // 1. Marcar la venta como completada y actualizar método de pago
     const { error: saleError } = await supabase
         .from('sales_ledger')
         .update({
             status: 'completed',
-            payment_method: paymentMethod,
+            payment_method: finalPaymentMethodStr,
         })
         .eq('id', saleId);
 

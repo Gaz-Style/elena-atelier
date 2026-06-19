@@ -23,6 +23,8 @@ interface Props {
 export default function CobrarEnCajaButton({ saleId, internalId, totalAmount, currentStatus }: Props) {
     const [open, setOpen] = useState(false);
     const [method, setMethod] = useState<PayMethod>('mercadopago_point');
+    const [splitCardAmount, setSplitCardAmount] = useState(0);
+    const [splitCashAmount, setSplitCashAmount] = useState(totalAmount);
     const [result, setResult] = useState<'success' | 'error' | null>(null);
     const [errorMsg, setErrorMsg] = useState('');
     const [isPending, startTransition] = useTransition();
@@ -32,12 +34,20 @@ export default function CobrarEnCajaButton({ saleId, internalId, totalAmount, cu
     if (currentStatus !== 'pending') return null;
 
     function handleCobrar() {
+        if (method === 'cash' && splitCardAmount > 0 && (splitCardAmount + splitCashAmount !== totalAmount)) {
+            setResult('error');
+            setErrorMsg('La suma del pago mixto no coincide con el total.');
+            return;
+        }
+
         startTransition(async () => {
             const res = await cobrarEnCajaAction({
                 saleId,
                 internalId,
                 totalAmount,
                 paymentMethod: method,
+                splitCardAmount,
+                splitCashAmount,
             });
             if (res.success) {
                 setResult('success');
@@ -109,6 +119,48 @@ export default function CobrarEnCajaButton({ saleId, internalId, totalAmount, cu
                                     </button>
                                 ))}
                             </div>
+
+                            {/* Split payment inputs */}
+                            {method === 'cash' && (
+                                <div className="mt-4 p-4 border border-emerald-700/20 bg-emerald-700/5 rounded-sm space-y-4 mb-5">
+                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-emerald-800 text-center mb-2">Detalle de Pago</h4>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-[9px] uppercase tracking-widest text-gray-500 font-bold mb-1">Monto Tarjeta (Máquina)</label>
+                                            <input 
+                                                type="text" 
+                                                inputMode="numeric"
+                                                value={splitCardAmount || ''} 
+                                                placeholder="0"
+                                                onChange={(e) => {
+                                                    const val = Number(e.target.value.replace(/[^0-9]/g, '')) || 0;
+                                                    setSplitCardAmount(val);
+                                                    setSplitCashAmount(totalAmount - val);
+                                                }}
+                                                className="w-full border-b border-gray-300 py-2 text-sm bg-transparent outline-none focus:border-emerald-700 font-mono"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[9px] uppercase tracking-widest text-gray-500 font-bold mb-1">Monto Efectivo / Transf</label>
+                                            <input 
+                                                type="text" 
+                                                inputMode="numeric"
+                                                value={splitCashAmount || ''} 
+                                                placeholder="0"
+                                                onChange={(e) => {
+                                                    const val = Number(e.target.value.replace(/[^0-9]/g, '')) || 0;
+                                                    setSplitCashAmount(val);
+                                                    setSplitCardAmount(totalAmount - val);
+                                                }}
+                                                className="w-full border-b border-gray-300 py-2 text-sm bg-transparent outline-none focus:border-emerald-700 font-mono"
+                                            />
+                                        </div>
+                                    </div>
+                                    {splitCardAmount + splitCashAmount !== totalAmount && (
+                                        <p className="text-[10px] text-red-500 font-bold text-center mt-2">⚠ La suma debe ser exactamente {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(totalAmount)}</p>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Info note */}
                             <p className="text-[11px] text-gray-400 bg-gray-50 rounded-lg p-3 leading-relaxed mb-4">
