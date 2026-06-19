@@ -3,9 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
-    ArrowLeft, ChevronLeft, ChevronRight, Clock, Lock, Plus, X,
-    Printer, RefreshCw, User, CalendarDays, AlertTriangle, Check,
-    GripVertical, Scissors, Zap, Coffee
+    ArrowLeft, ChevronLeft, ChevronRight, Plus, X,
+    Printer, RefreshCw, Lock, Trash2, Scissors, User, Coffee, CalendarDays
 } from 'lucide-react';
 import { getOperatorsAction } from '../pos/actions';
 import { getProductionOrders } from '../production/actions';
@@ -14,52 +13,63 @@ import { supabase } from '@/lib/supabase';
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
 // ─────────────────────────────────────────────────────────────────────────────
-type TimeBlock = {
+type TaskType = 'orden' | 'cita' | 'bloqueado' | 'pausa';
+
+type Task = {
     id: string;
-    operatorId: string;
-    day: string; // 'YYYY-MM-DD'
-    startHour: number;
-    durationHours: number;
+    time: string;        // "10:00"
     label: string;
-    type: 'order' | 'appointment' | 'blocked' | 'break';
+    type: TaskType;
     orderId?: string;
-    color?: string;
 };
+
+type DayOperatorData = {
+    tasks: Task[];
+    blocked: boolean;
+    blockedReason?: string;
+};
+
+// operatorId → { 'YYYY-MM-DD' → DayOperatorData }
+type PlannerData = Record<string, Record<string, DayOperatorData>>;
 
 type Operator = {
     id: string;
     name: string;
     status: string;
     daily_hours_capacity: number;
-    working_days: number[];
+    working_days: number[]; // 0=Dom,1=Lun...
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
-const HOURS = Array.from({ length: 13 }, (_, i) => i + 9); // 9:00 to 21:00
-const DAY_NAMES_FULL = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const DAY_NAMES_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
-const BLOCK_COLORS: Record<string, string> = {
-    order:       'bg-brand-terracotta/20 border-brand-terracotta/50 text-brand-charcoal',
-    appointment: 'bg-blue-500/15 border-blue-400/50 text-blue-900',
-    blocked:     'bg-gray-300/40 border-gray-400/60 text-gray-600',
-    break:       'bg-amber-400/20 border-amber-400/50 text-amber-900',
+const TYPE_LABELS: Record<TaskType, string> = {
+    orden: 'Confección',
+    cita: 'Cita Cliente',
+    bloqueado: 'Bloqueado',
+    pausa: 'Pausa / Colación',
 };
 
-const BLOCK_ICONS: Record<string, React.ReactNode> = {
-    order:       <Scissors className="w-3 h-3" />,
-    appointment: <User className="w-3 h-3" />,
-    blocked:     <Lock className="w-3 h-3" />,
-    break:       <Coffee className="w-3 h-3" />,
+const TYPE_COLORS: Record<TaskType, string> = {
+    orden:     '#B56240',  // terracotta
+    cita:      '#2563EB',  // blue
+    bloqueado: '#6B7280',  // gray
+    pausa:     '#D97706',  // amber
 };
+
+function dateStr(d: Date): string {
+    return d.toISOString().split('T')[0];
+}
 
 function getWeekDays(anchor: Date): Date[] {
-    const day = anchor.getDay(); // 0 = Sun
+    const day = anchor.getDay();
     const diff = day === 0 ? -6 : 1 - day;
     const monday = new Date(anchor);
     monday.setDate(anchor.getDate() + diff);
+    // Lunes a Sábado (6 días)
     return Array.from({ length: 6 }, (_, i) => {
         const d = new Date(monday);
         d.setDate(monday.getDate() + i);
@@ -67,40 +77,41 @@ function getWeekDays(anchor: Date): Date[] {
     });
 }
 
-function dateStr(d: Date): string {
-    return d.toISOString().split('T')[0];
-}
-
-function formatHour(h: number): string {
-    return `${h.toString().padStart(2, '0')}:00`;
+function generateId(): string {
+    return `t-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MAIN COMPONENT
+// COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 export default function PlanificadorPage() {
     const [operators, setOperators] = useState<Operator[]>([]);
     const [orders, setOrders] = useState<any[]>([]);
-    const [agendamientos, setAgendamientos] = useState<any[]>([]);
-    const [blocks, setBlocks] = useState<TimeBlock[]>([]);
+    const [planner, setPlanner] = useState<PlannerData>({});
     const [loading, setLoading] = useState(true);
     const [anchor, setAnchor] = useState<Date>(new Date());
-    const [isAddingBlock, setIsAddingBlock] = useState(false);
-    const [selectedCell, setSelectedCell] = useState<{ opId: string; day: string; hour: number } | null>(null);
-    const [newBlock, setNewBlock] = useState({ label: '', type: 'order' as TimeBlock['type'], durationHours: 1, orderId: '' });
-
     const weekDays = getWeekDays(anchor);
     const today = dateStr(new Date());
 
-    // ── Load data ─────────────────────────────────────────────────────────────
-    const loadData = useCallback(async () => {
+    // Modal state
+    const [modal, setModal] = useState<{
+        opId: string;
+        day: string;
+        task?: Task; // if editing
+    } | null>(null);
+    const [form, setForm] = useState({ time: '10:00', label: '', type: 'orden' as TaskType, orderId: '' });
+
+    // ── Load ──────────────────────────────────────────────────────────────────
+    const load = useCallback(async () => {
         setLoading(true);
         const [ops, ords] = await Promise.all([
             getOperatorsAction(),
             getProductionOrders(),
         ]);
-        setOperators(ops.filter((o: Operator) => o.status === 'active'));
-        setOrders(ords?.filter((o: any) => !['delivered', 'scheduled'].includes(o.status)) || []);
+        const activeOps: Operator[] = (ops || []).filter((o: Operator) => o.status === 'active');
+        const activeOrds = (ords || []).filter((o: any) => !['delivered', 'scheduled'].includes(o.status));
+        setOperators(activeOps);
+        setOrders(activeOrds);
 
         // Fetch agendamientos for this week
         const startStr = dateStr(weekDays[0]);
@@ -111,499 +122,513 @@ export default function PlanificadorPage() {
             .gte('fecha_hora', `${startStr}T00:00:00`)
             .lte('fecha_hora', `${endStr}T23:59:59`)
             .neq('estado', 'cancelado');
-        setAgendamientos(agenda || []);
 
-        setLoading(false);
-    }, [anchor]);
+        // Build initial planner state
+        const newPlanner: PlannerData = {};
 
-    useEffect(() => { loadData(); }, [loadData]);
+        activeOps.forEach((op: Operator) => {
+            newPlanner[op.id] = {};
+            weekDays.forEach(d => {
+                const ds = dateStr(d);
+                const dow = d.getDay(); // 0=Dom
+                // Check if operator works this day
+                const worksThisDay = op.working_days?.includes(dow === 0 ? 7 : dow);
+                newPlanner[op.id][ds] = {
+                    tasks: [],
+                    blocked: !worksThisDay,
+                    blockedReason: !worksThisDay ? 'Sin atención' : undefined,
+                };
+            });
+        });
 
-    // ── Auto-generate blocks from orders and agendamientos ────────────────────
-    useEffect(() => {
-        const generated: TimeBlock[] = [];
+        // Inject production orders
+        activeOrds.forEach((order: any) => {
+            const targetDs = order.production_start_date
+                ? order.production_start_date.split('T')[0]
+                : null;
+            if (!targetDs) return;
+            const opId = order.assigned_operator_id;
+            if (!opId || !newPlanner[opId]?.[targetDs]) return;
+            if (newPlanner[opId][targetDs].blocked) return;
 
-        // From production orders - place them on their production_start_date
-        orders.forEach(order => {
-            const targetDateStr = order.production_start_date || order.deadline;
-            if (!targetDateStr) return;
-            const targetDate = new Date(targetDateStr);
-            const ds = dateStr(targetDate);
-            if (!weekDays.find(d => dateStr(d) === ds)) return;
+            // Estimate hour based on existing tasks
+            const existing = newPlanner[opId][targetDs].tasks.length;
+            const startH = 9 + existing;
+            const timeLabel = `${String(startH).padStart(2, '0')}:00`;
 
-            const opId = order.assigned_operator_id || 'unassigned';
-            const existingForOp = generated.filter(b => b.operatorId === opId && b.day === ds && b.type === 'order');
-            const startH = 9 + existingForOp.reduce((sum, b) => sum + b.durationHours, 0);
-
-            generated.push({
+            newPlanner[opId][targetDs].tasks.push({
                 id: `order-${order.id}`,
-                operatorId: opId,
-                day: ds,
-                startHour: Math.min(startH, 19),
-                durationHours: Math.min(Number(order.estimated_hours) || 2, 4),
+                time: timeLabel,
                 label: order.description || 'Orden sin nombre',
-                type: 'order',
+                type: 'orden',
                 orderId: order.id,
             });
         });
 
-        // From agendamientos - assign to Elena (first operator) by default
-        agendamientos.forEach(ag => {
+        // Inject agendamientos → assign to first operator (Elena)
+        const firstOpId = activeOps[0]?.id;
+        (agenda || []).forEach((ag: any) => {
             const agDate = new Date(ag.fecha_hora);
             const ds = dateStr(agDate);
             const hour = agDate.getHours();
-            const opId = operators[0]?.id || 'unassigned';
-            generated.push({
+            const mins = agDate.getMinutes();
+            const timeLabel = `${String(hour).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+            if (!firstOpId || !newPlanner[firstOpId]?.[ds]) return;
+            if (newPlanner[firstOpId][ds].blocked) return;
+
+            newPlanner[firstOpId][ds].tasks.push({
                 id: `agenda-${ag.id}`,
-                operatorId: opId,
-                day: ds,
-                startHour: hour,
-                durationHours: 1,
-                label: ag.tipo_evento === 'tarea_interna' ? (ag.notas || 'Bloqueo') : `Cita: ${ag.nombre}`,
-                type: ag.tipo_evento === 'tarea_interna' ? 'blocked' : 'appointment',
+                time: timeLabel,
+                label: ag.tipo_evento === 'tarea_interna'
+                    ? (ag.notas || 'Bloqueo')
+                    : `Cita: ${ag.nombre} ${ag.apellido || ''}`.trim(),
+                type: ag.tipo_evento === 'tarea_interna' ? 'bloqueado' : 'cita',
             });
         });
 
-        setBlocks(prev => {
-            // Keep manually-added blocks (not from orders/agenda)
-            const manual = prev.filter(b => !b.id.startsWith('order-') && !b.id.startsWith('agenda-'));
-            return [...manual, ...generated];
+        // Sort tasks by time
+        Object.values(newPlanner).forEach(opDays => {
+            Object.values(opDays).forEach(dayData => {
+                dayData.tasks.sort((a, b) => a.time.localeCompare(b.time));
+            });
         });
-    }, [orders, agendamientos, operators, anchor]);
 
-    // ── Add manual block ───────────────────────────────────────────────────────
-    function handleAddBlock() {
-        if (!selectedCell || !newBlock.label.trim()) return;
-        const block: TimeBlock = {
-            id: `manual-${Date.now()}`,
-            operatorId: selectedCell.opId,
-            day: selectedCell.day,
-            startHour: selectedCell.hour,
-            durationHours: newBlock.durationHours,
-            label: newBlock.label,
-            type: newBlock.type,
-            orderId: newBlock.orderId || undefined,
-        };
-        setBlocks(prev => [...prev, block]);
-        setIsAddingBlock(false);
-        setSelectedCell(null);
-        setNewBlock({ label: '', type: 'order', durationHours: 1, orderId: '' });
+        setPlanner(newPlanner);
+        setLoading(false);
+    }, [anchor]);
+
+    useEffect(() => { load(); }, [load]);
+
+    // ── Toggle block ──────────────────────────────────────────────────────────
+    function toggleBlock(opId: string, day: string) {
+        setPlanner(prev => {
+            const cell = prev[opId]?.[day];
+            if (!cell) return prev;
+            return {
+                ...prev,
+                [opId]: {
+                    ...prev[opId],
+                    [day]: { ...cell, blocked: !cell.blocked, blockedReason: !cell.blocked ? 'Sin atención / Bloqueado' : undefined }
+                }
+            };
+        });
     }
 
-    function handleRemoveBlock(id: string) {
-        setBlocks(prev => prev.filter(b => b.id !== id));
+    // ── Open modal ─────────────────────────────────────────────────────────────
+    function openAdd(opId: string, day: string) {
+        setForm({ time: '10:00', label: '', type: 'orden', orderId: '' });
+        setModal({ opId, day });
     }
 
-    function openAddBlock(opId: string, day: string, hour: number) {
-        setSelectedCell({ opId, day, hour });
-        setIsAddingBlock(true);
+    function openEdit(opId: string, day: string, task: Task) {
+        setForm({ time: task.time, label: task.label, type: task.type, orderId: task.orderId || '' });
+        setModal({ opId, day, task });
     }
 
-    // ── Navigation ─────────────────────────────────────────────────────────────
-    function prevWeek() {
-        const d = new Date(anchor);
-        d.setDate(d.getDate() - 7);
-        setAnchor(d);
-    }
-    function nextWeek() {
-        const d = new Date(anchor);
-        d.setDate(d.getDate() + 7);
-        setAnchor(d);
-    }
-    function goToday() {
-        setAnchor(new Date());
+    // ── Save task ─────────────────────────────────────────────────────────────
+    function saveTask() {
+        if (!modal || !form.label.trim()) return;
+        const { opId, day, task } = modal;
+        setPlanner(prev => {
+            const cell = prev[opId]?.[day];
+            if (!cell) return prev;
+            let tasks: Task[];
+            if (task) {
+                // Edit existing
+                tasks = cell.tasks.map(t =>
+                    t.id === task.id
+                        ? { ...t, time: form.time, label: form.label, type: form.type, orderId: form.orderId || undefined }
+                        : t
+                );
+            } else {
+                // Add new
+                tasks = [...cell.tasks, {
+                    id: generateId(),
+                    time: form.time,
+                    label: form.label,
+                    type: form.type,
+                    orderId: form.orderId || undefined,
+                }];
+            }
+            tasks.sort((a, b) => a.time.localeCompare(b.time));
+            return { ...prev, [opId]: { ...prev[opId], [day]: { ...cell, tasks } } };
+        });
+        setModal(null);
     }
 
-    // ── Compute daily load ─────────────────────────────────────────────────────
-    function getDayLoad(opId: string, day: string) {
-        return blocks
-            .filter(b => b.operatorId === opId && b.day === day && b.type === 'order')
-            .reduce((sum, b) => sum + b.durationHours, 0);
+    // ── Delete task ───────────────────────────────────────────────────────────
+    function deleteTask(opId: string, day: string, taskId: string) {
+        setPlanner(prev => {
+            const cell = prev[opId]?.[day];
+            if (!cell) return prev;
+            return {
+                ...prev,
+                [opId]: {
+                    ...prev[opId],
+                    [day]: { ...cell, tasks: cell.tasks.filter(t => t.id !== taskId) }
+                }
+            };
+        });
     }
 
-    const opDailyCapacity = (op: Operator) => op.daily_hours_capacity || 8;
+    // ── Week nav ──────────────────────────────────────────────────────────────
+    function prevWeek() { const d = new Date(anchor); d.setDate(d.getDate() - 7); setAnchor(d); }
+    function nextWeek() { const d = new Date(anchor); d.setDate(d.getDate() + 7); setAnchor(d); }
 
-    // ── Unassigned orders sidebar ──────────────────────────────────────────────
-    const unassignedOrders = orders.filter(o => !o.assigned_operator_id);
+    const weekLabel = `${weekDays[0].getDate()} ${weekDays[0].toLocaleDateString('es-CL', { month: 'long' })} — ${weekDays[5].getDate()} ${weekDays[5].toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}`;
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // RENDER
     // ─────────────────────────────────────────────────────────────────────────
     return (
-        <div className="min-h-screen bg-[#FAFAF9] font-sans text-brand-charcoal">
+        <div className="min-h-screen bg-white text-gray-800 font-sans print:bg-white">
 
-            {/* ── HEADER ──────────────────────────────────────────────────── */}
-            <header className="sticky top-0 z-40 bg-white border-b border-gray-100 shadow-sm px-4 md:px-8 py-3 flex items-center justify-between gap-4 print:hidden">
-                <div className="flex items-center gap-3">
-                    <Link href="/admin" className="p-2 rounded-full text-gray-400 hover:bg-gray-100 transition-colors">
-                        <ArrowLeft className="w-4 h-4" />
-                    </Link>
-                    <div>
-                        <p className="text-[9px] uppercase tracking-widest text-gray-400 font-bold">Taller Elena Atelier</p>
-                        <h1 className="font-serif text-xl leading-tight">Planificación Semanal</h1>
+            {/* ── HEADER ─────────────────────────────────────────────────────── */}
+            <header className="sticky top-0 z-40 bg-white border-b-2 border-gray-800 print:hidden">
+                <div className="max-w-[1400px] mx-auto px-6 py-3 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <Link href="/admin" className="p-2 rounded-full text-gray-400 hover:bg-gray-100 transition-colors">
+                            <ArrowLeft className="w-4 h-4" />
+                        </Link>
+                        <div>
+                            <p className="text-[9px] uppercase tracking-[0.2em] text-gray-400 font-bold">Elena Atelier · Taller Tabancura</p>
+                            <h1 className="text-xl font-bold tracking-wide uppercase">Planificación Semanal de Taller</h1>
+                        </div>
                     </div>
-                </div>
 
-                {/* Week navigator */}
-                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-3 py-1.5">
-                    <button onClick={prevWeek} className="p-1 hover:text-brand-terracotta transition-colors">
-                        <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <button onClick={goToday} className="text-xs font-bold text-brand-charcoal hover:text-brand-terracotta transition-colors px-2">
-                        {weekDays[0].getDate()} {weekDays[0].toLocaleDateString('es-CL', { month: 'short' })} — {weekDays[weekDays.length - 1].getDate()} {weekDays[weekDays.length - 1].toLocaleDateString('es-CL', { month: 'short', year: 'numeric' })}
-                    </button>
-                    <button onClick={nextWeek} className="p-1 hover:text-brand-terracotta transition-colors">
-                        <ChevronRight className="w-4 h-4" />
-                    </button>
-                </div>
+                    <div className="flex items-center gap-3">
+                        {/* Week nav */}
+                        <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                            <button onClick={prevWeek} className="p-1 hover:text-gray-900 text-gray-400 transition-colors">
+                                <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            <span className="text-sm font-bold px-2 whitespace-nowrap capitalize">{weekLabel}</span>
+                            <button onClick={nextWeek} className="p-1 hover:text-gray-900 text-gray-400 transition-colors">
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
+                        </div>
 
-                <div className="flex items-center gap-2">
-                    <button onClick={loadData} className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-brand-charcoal transition-colors" title="Recargar">
-                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                    </button>
-                    <button onClick={() => window.print()} className="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-brand-charcoal transition-colors" title="Imprimir">
-                        <Printer className="w-4 h-4" />
-                    </button>
+                        <button onClick={load} className="p-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-400 hover:text-gray-700 transition-colors" title="Recargar">
+                            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                        </button>
+                        <button onClick={() => window.print()} className="px-4 py-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600 font-medium text-sm flex items-center gap-2 transition-colors">
+                            <Printer className="w-4 h-4" />
+                            Imprimir
+                        </button>
+                    </div>
                 </div>
             </header>
 
-            {/* ── PRINT HEADER ────────────────────────────────────────────── */}
-            <div className="hidden print:block text-center py-4 border-b border-gray-300 mb-4">
-                <h1 className="text-2xl font-bold uppercase tracking-widest">Elena Atelier — Planificación Semanal de Taller</h1>
-                <p className="text-sm text-gray-500 mt-1">
-                    Semana del {weekDays[0].toLocaleDateString('es-CL', { day: 'numeric', month: 'long' })} al {weekDays[weekDays.length - 1].toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </p>
+            {/* ── PRINT HEADER ───────────────────────────────────────────────── */}
+            <div className="hidden print:block text-center py-4 mb-2">
+                <h1 className="text-2xl font-bold uppercase tracking-widest">Planificación Semanal de Taller</h1>
+                <p className="text-sm text-gray-500 mt-1 capitalize">{weekLabel}</p>
             </div>
 
-            <div className="flex h-[calc(100vh-65px)] overflow-hidden print:block print:h-auto">
-
-                {/* ── LEFT SIDEBAR: Unassigned + Legend ─────────────────────── */}
-                <aside className="w-64 shrink-0 border-r border-gray-100 bg-white flex flex-col overflow-hidden print:hidden">
-                    <div className="p-4 border-b border-gray-100">
-                        <p className="text-[9px] uppercase tracking-widest text-gray-400 font-bold mb-3">Sin asignar ({unassignedOrders.length})</p>
-                        <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                            {unassignedOrders.length === 0 ? (
-                                <div className="text-center py-4 text-gray-300">
-                                    <Check className="w-5 h-5 mx-auto mb-1" />
-                                    <p className="text-[10px]">Todo asignado</p>
-                                </div>
-                            ) : (
-                                unassignedOrders.map(order => (
-                                    <div key={order.id} className="bg-red-50 border border-red-200 rounded-md p-2.5 text-[11px] animate-pulse-once">
-                                        <p className="font-bold text-red-800 truncate">{order.description}</p>
-                                        <p className="text-red-500 flex items-center gap-1 mt-0.5">
-                                            <AlertTriangle className="w-2.5 h-2.5" />
-                                            Sin costurera
-                                        </p>
-                                        {order.estimated_hours > 0 && (
-                                            <p className="text-red-400 text-[9px] mt-0.5">{order.estimated_hours}h estimadas</p>
-                                        )}
-                                    </div>
-                                ))
-                            )}
-                        </div>
+            {/* ── LOADING ────────────────────────────────────────────────────── */}
+            {loading && (
+                <div className="flex items-center justify-center h-64">
+                    <div className="flex flex-col items-center gap-3 text-gray-400">
+                        <RefreshCw className="w-7 h-7 animate-spin" />
+                        <span className="text-sm uppercase tracking-widest">Cargando...</span>
                     </div>
+                </div>
+            )}
 
-                    {/* Operators summary */}
-                    <div className="p-4 border-b border-gray-100">
-                        <p className="text-[9px] uppercase tracking-widest text-gray-400 font-bold mb-3">Equipo Activo</p>
-                        <div className="space-y-3">
-                            {operators.map(op => {
-                                const totalThisWeek = weekDays.reduce((sum, d) => sum + getDayLoad(op.id, dateStr(d)), 0);
-                                const capacity = opDailyCapacity(op) * weekDays.filter(d => {
-                                    const dow = d.getDay();
-                                    return op.working_days?.includes(dow === 0 ? 7 : dow);
-                                }).length;
-                                const pct = capacity > 0 ? Math.round((totalThisWeek / capacity) * 100) : 0;
+            {/* ── LEGEND (above table) ────────────────────────────────────────── */}
+            {!loading && (
+                <div className="max-w-[1400px] mx-auto px-6 pt-4 pb-2 flex flex-wrap items-center gap-4 print:px-0">
+                    {(Object.keys(TYPE_LABELS) as TaskType[]).map(t => (
+                        <div key={t} className="flex items-center gap-1.5 text-xs text-gray-500">
+                            <span className="inline-block w-3 h-3 rounded-sm" style={{ backgroundColor: TYPE_COLORS[t] + '33', border: `2px solid ${TYPE_COLORS[t]}` }} />
+                            {TYPE_LABELS[t]}
+                        </div>
+                    ))}
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 ml-2">
+                        <span className="inline-block w-3 h-3 rounded-sm bg-gray-200 border-2 border-gray-400" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 6px)' }} />
+                        Bloqueado / Descanso
+                    </div>
+                    <span className="text-[11px] text-gray-400 ml-auto print:hidden">Haz clic en una celda para añadir · Haz clic en una tarea para editar</span>
+                </div>
+            )}
+
+            {/* ── MAIN TABLE ─────────────────────────────────────────────────── */}
+            {!loading && operators.length > 0 && (
+                <div className="max-w-[1400px] mx-auto px-6 pb-16 print:px-0 print:pb-0">
+                    <table className="w-full border-collapse border-2 border-gray-900 text-sm mt-2">
+                        <thead>
+                            <tr>
+                                <th
+                                    className="border-2 border-gray-900 bg-gray-100 px-4 py-3 text-center text-base font-bold uppercase tracking-wide"
+                                    style={{ width: '10%' }}
+                                >
+                                    Día
+                                </th>
+                                {operators.map(op => (
+                                    <th
+                                        key={op.id}
+                                        className="border-2 border-gray-900 bg-gray-100 px-4 py-3 text-center text-base font-bold uppercase tracking-wide"
+                                        style={{ width: `${90 / operators.length}%` }}
+                                    >
+                                        {op.name}
+                                        <span className="block text-[9px] font-normal text-gray-500 normal-case tracking-normal mt-0.5">
+                                            {op.daily_hours_capacity || 8}h/día
+                                        </span>
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {weekDays.map(day => {
+                                const ds = dateStr(day);
+                                const dow = day.getDay();
+                                const isToday = ds === today;
+                                const dayName = DAY_NAMES[dow];
+
                                 return (
-                                    <div key={op.id}>
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className="text-[11px] font-bold text-brand-charcoal">{op.name}</span>
-                                            <span className={`text-[9px] font-bold ${pct > 90 ? 'text-red-500' : pct > 60 ? 'text-amber-600' : 'text-emerald-600'}`}>{pct}%</span>
-                                        </div>
-                                        <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                                            <div
-                                                className={`h-full rounded-full transition-all ${pct > 90 ? 'bg-red-400' : pct > 60 ? 'bg-amber-400' : 'bg-emerald-400'}`}
-                                                style={{ width: `${Math.min(100, pct)}%` }}
-                                            />
-                                        </div>
-                                        <p className="text-[9px] text-gray-400 mt-0.5">{totalThisWeek}h / {capacity}h semana</p>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* Legend */}
-                    <div className="p-4">
-                        <p className="text-[9px] uppercase tracking-widest text-gray-400 font-bold mb-3">Leyenda</p>
-                        <div className="space-y-2">
-                            {(['order', 'appointment', 'blocked', 'break'] as const).map(type => (
-                                <div key={type} className="flex items-center gap-2">
-                                    <div className={`w-3 h-3 rounded-sm border ${BLOCK_COLORS[type].split(' ').slice(0, 2).join(' ')}`} />
-                                    <span className="text-[10px] text-gray-600 capitalize">
-                                        {type === 'order' ? 'Confección' : type === 'appointment' ? 'Cita cliente' : type === 'blocked' ? 'Bloqueado' : 'Pausa'}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </aside>
-
-                {/* ── MAIN GRID ───────────────────────────────────────────── */}
-                <main className="flex-1 overflow-auto bg-[#FAFAF9]">
-                    {loading ? (
-                        <div className="flex items-center justify-center h-full">
-                            <div className="text-center space-y-3">
-                                <RefreshCw className="w-8 h-8 animate-spin text-brand-terracotta mx-auto" />
-                                <p className="text-sm text-gray-400 uppercase tracking-widest">Cargando planificador...</p>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="min-w-[900px]">
-
-                            {/* Day headers */}
-                            <div className={`grid sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm print:static`}
-                                style={{ gridTemplateColumns: `60px repeat(${weekDays.length}, 1fr)` }}>
-                                <div className="p-3 border-r border-gray-100" /> {/* hour gutter */}
-                                {weekDays.map(day => {
-                                    const ds = dateStr(day);
-                                    const isToday = ds === today;
-                                    const dow = day.getDay();
-                                    const isWorking = operators.some(op => op.working_days?.includes(dow === 0 ? 7 : dow));
-                                    return (
-                                        <div key={ds} className={`p-3 text-center border-r border-gray-100 last:border-r-0 transition-colors ${isToday ? 'bg-brand-terracotta/5' : isWorking ? 'bg-white' : 'bg-gray-50'}`}>
-                                            <p className={`text-[9px] uppercase tracking-widest font-bold ${isToday ? 'text-brand-terracotta' : 'text-gray-400'}`}>
-                                                {DAY_NAMES_SHORT[dow]}
-                                            </p>
-                                            <p className={`text-xl font-serif mt-0.5 ${isToday ? 'text-brand-terracotta' : 'text-brand-charcoal'}`}>
-                                                {day.getDate()}
-                                            </p>
-                                            {isToday && <div className="w-1.5 h-1.5 bg-brand-terracotta rounded-full mx-auto mt-1" />}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Operator rows */}
-                            {operators.map((op, opIdx) => (
-                                <div key={op.id}>
-                                    {/* Operator label row */}
-                                    <div className={`grid border-b border-brand-terracotta/30 ${opIdx > 0 ? 'border-t-2 border-t-gray-200 mt-4' : ''}`}
-                                        style={{ gridTemplateColumns: `60px repeat(${weekDays.length}, 1fr)` }}>
-                                        <div className="bg-brand-charcoal/5 border-r border-gray-200 flex items-center justify-center py-3">
-                                            <div className="rotate-[-90deg] whitespace-nowrap">
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-brand-charcoal">{op.name}</span>
+                                    <tr key={ds}>
+                                        {/* Day column */}
+                                        <td
+                                            className={`border-2 border-gray-900 text-center font-bold text-sm uppercase tracking-wide align-middle px-2 py-4 ${isToday ? 'bg-amber-50' : 'bg-gray-50'}`}
+                                        >
+                                            <div className={`font-black text-base ${isToday ? 'text-amber-700' : 'text-gray-800'}`}>
+                                                {dayName}
                                             </div>
-                                        </div>
-                                        {weekDays.map(day => {
-                                            const ds = dateStr(day);
-                                            const dow = day.getDay();
-                                            const worksToday = op.working_days?.includes(dow === 0 ? 7 : dow);
-                                            const dayLoad = getDayLoad(op.id, ds);
-                                            const cap = opDailyCapacity(op);
-                                            const pct = cap > 0 ? Math.round((dayLoad / cap) * 100) : 0;
-                                            return (
-                                                <div key={ds} className={`border-r border-gray-100 last:border-r-0 p-2 flex items-center justify-between ${!worksToday ? 'bg-gray-100/60' : ''}`}>
-                                                    {worksToday ? (
-                                                        <>
-                                                            <div className="flex items-center gap-1.5">
-                                                                <Zap className={`w-3 h-3 ${pct > 90 ? 'text-red-400' : pct > 60 ? 'text-amber-400' : 'text-emerald-400'}`} />
-                                                                <span className="text-[9px] font-bold text-gray-500">{dayLoad}h / {cap}h</span>
-                                                            </div>
-                                                            <div className="w-12 bg-gray-200 rounded-full h-1 overflow-hidden">
-                                                                <div
-                                                                    className={`h-full rounded-full ${pct > 90 ? 'bg-red-400' : pct > 60 ? 'bg-amber-400' : 'bg-emerald-400'}`}
-                                                                    style={{ width: `${Math.min(100, pct)}%` }}
-                                                                />
-                                                            </div>
-                                                        </>
-                                                    ) : (
-                                                        <span className="text-[9px] text-gray-400 italic mx-auto">Descanso</span>
-                                                    )}
+                                            <div className={`text-lg font-serif ${isToday ? 'text-amber-700' : 'text-gray-600'}`}>
+                                                {day.getDate()}
+                                            </div>
+                                            <div className="text-[9px] text-gray-400 font-normal normal-case tracking-normal">
+                                                {day.toLocaleDateString('es-CL', { month: 'short' })}
+                                            </div>
+                                            {isToday && (
+                                                <div className="mt-1 text-[8px] font-bold uppercase tracking-widest text-amber-600 bg-amber-100 rounded px-1 py-0.5 inline-block">
+                                                    Hoy
                                                 </div>
+                                            )}
+                                        </td>
+
+                                        {/* Operator columns */}
+                                        {operators.map(op => {
+                                            const cell = planner[op.id]?.[ds];
+                                            if (!cell) return <td key={op.id} className="border-2 border-gray-900 p-3" />;
+
+                                            if (cell.blocked) {
+                                                return (
+                                                    <td
+                                                        key={op.id}
+                                                        className="border-2 border-gray-900 px-4 py-6 text-center text-gray-500 italic text-sm align-middle cursor-pointer group"
+                                                        style={{
+                                                            backgroundColor: '#e5e7eb',
+                                                            backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.04) 10px, rgba(0,0,0,0.04) 20px)'
+                                                        }}
+                                                        onClick={() => toggleBlock(op.id, ds)}
+                                                        title="Clic para desbloquear"
+                                                    >
+                                                        <Lock className="w-4 h-4 mx-auto mb-1 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                                                        <span className="text-xs">{cell.blockedReason || 'Sin atención'}</span>
+                                                    </td>
+                                                );
+                                            }
+
+                                            return (
+                                                <td
+                                                    key={op.id}
+                                                    className="border-2 border-gray-900 px-3 py-2 align-top"
+                                                >
+                                                    {/* Tasks list */}
+                                                    {cell.tasks.length > 0 && (
+                                                        <div className="space-y-1.5 mb-2">
+                                                            {cell.tasks.map(task => (
+                                                                <div
+                                                                    key={task.id}
+                                                                    className="group flex items-start gap-2 cursor-pointer rounded px-2 py-1.5 transition-all hover:shadow-sm"
+                                                                    style={{
+                                                                        backgroundColor: TYPE_COLORS[task.type] + '18',
+                                                                        borderLeft: `3px solid ${TYPE_COLORS[task.type]}`
+                                                                    }}
+                                                                    onClick={() => openEdit(op.id, ds, task)}
+                                                                >
+                                                                    <span
+                                                                        className="font-bold text-gray-900 whitespace-nowrap text-[11px] leading-5 shrink-0 font-mono"
+                                                                    >
+                                                                        {task.time}
+                                                                    </span>
+                                                                    <span className="text-[12px] leading-5 flex-1 text-gray-800">
+                                                                        {task.label}
+                                                                    </span>
+                                                                    <button
+                                                                        className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all shrink-0 print:hidden"
+                                                                        onClick={e => { e.stopPropagation(); deleteTask(op.id, ds, task.id); }}
+                                                                        title="Eliminar"
+                                                                    >
+                                                                        <X className="w-3 h-3" />
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Add task button */}
+                                                    <button
+                                                        onClick={() => openAdd(op.id, ds)}
+                                                        className="w-full flex items-center justify-center gap-1 text-[11px] text-gray-300 hover:text-gray-500 py-1.5 border border-dashed border-gray-200 hover:border-gray-400 rounded transition-all group print:hidden"
+                                                    >
+                                                        <Plus className="w-3 h-3" />
+                                                        <span>Añadir</span>
+                                                    </button>
+
+                                                    {/* Block day button */}
+                                                    <button
+                                                        onClick={() => toggleBlock(op.id, ds)}
+                                                        className="w-full flex items-center justify-center gap-1 text-[10px] text-gray-200 hover:text-gray-400 py-1 mt-0.5 transition-all print:hidden"
+                                                        title="Bloquear día"
+                                                    >
+                                                        <Lock className="w-2.5 h-2.5" />
+                                                        <span>Bloquear</span>
+                                                    </button>
+                                                </td>
                                             );
                                         })}
-                                    </div>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
 
-                                    {/* Hour rows for this operator */}
-                                    {HOURS.map(hour => (
-                                        <div key={hour} className="grid border-b border-gray-100"
-                                            style={{ gridTemplateColumns: `60px repeat(${weekDays.length}, 1fr)` }}>
-                                            {/* Hour gutter */}
-                                            <div className="border-r border-gray-100 bg-white flex items-center justify-center py-2">
-                                                <span className="text-[9px] text-gray-300 font-mono">{formatHour(hour)}</span>
-                                            </div>
+                    {/* Footer note for print */}
+                    <div className="hidden print:block text-center text-[9px] text-gray-400 mt-4 border-t border-gray-300 pt-2">
+                        Generado por Elena Atelier OS · {new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                </div>
+            )}
 
-                                            {weekDays.map(day => {
-                                                const ds = dateStr(day);
-                                                const dow = day.getDay();
-                                                const worksToday = op.working_days?.includes(dow === 0 ? 7 : dow);
-                                                const cellBlocks = blocks.filter(b =>
-                                                    b.operatorId === op.id && b.day === ds && b.startHour === hour
-                                                );
-                                                const isToday = ds === today;
+            {operators.length === 0 && !loading && (
+                <div className="max-w-[1400px] mx-auto px-6 py-24 text-center text-gray-400">
+                    <User className="w-10 h-10 mx-auto mb-3 text-gray-200" />
+                    <p>No hay costureras activas. Añade operarias desde el{' '}
+                        <Link href="/admin/production-board" className="underline text-blue-500">Live Board</Link>.
+                    </p>
+                </div>
+            )}
 
-                                                return (
-                                                    <div
-                                                        key={ds}
-                                                        className={`border-r border-gray-100 last:border-r-0 relative min-h-[48px] group ${
-                                                            isToday ? 'bg-brand-terracotta/[0.02]' : ''
-                                                        } ${!worksToday ? 'bg-gray-50/60 bg-[repeating-linear-gradient(45deg,transparent,transparent_8px,rgba(0,0,0,0.02)_8px,rgba(0,0,0,0.02)_16px)]' : 'hover:bg-gray-50/50 cursor-pointer'}`}
-                                                        onClick={() => worksToday && openAddBlock(op.id, ds, hour)}
-                                                    >
-                                                        {/* Blocks */}
-                                                        {cellBlocks.map(block => (
-                                                            <div
-                                                                key={block.id}
-                                                                className={`absolute inset-x-1 top-0.5 rounded border text-[9px] px-2 py-1 flex items-start gap-1 shadow-sm ${BLOCK_COLORS[block.type]} z-10 overflow-hidden`}
-                                                                style={{ minHeight: `${block.durationHours * 46 - 4}px` }}
-                                                                onClick={e => e.stopPropagation()}
-                                                            >
-                                                                <span className="mt-0.5 shrink-0">{BLOCK_ICONS[block.type]}</span>
-                                                                <span className="font-medium leading-tight truncate flex-1">{block.label}</span>
-                                                                <button
-                                                                    className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500 ml-auto"
-                                                                    onClick={() => handleRemoveBlock(block.id)}
-                                                                    title="Eliminar"
-                                                                >
-                                                                    <X className="w-2.5 h-2.5" />
-                                                                </button>
-                                                            </div>
-                                                        ))}
-
-                                                        {/* Add hint */}
-                                                        {worksToday && cellBlocks.length === 0 && (
-                                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <Plus className="w-3.5 h-3.5 text-gray-300" />
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    ))}
-                                </div>
-                            ))}
-
-                            {operators.length === 0 && !loading && (
-                                <div className="text-center py-24 text-gray-400">
-                                    <User className="w-10 h-10 mx-auto mb-3 text-gray-200" />
-                                    <p className="text-sm">No hay operarias activas. Añade costureras desde el <Link href="/admin/production-board" className="underline text-brand-terracotta">Live Board</Link>.</p>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </main>
-            </div>
-
-            {/* ── ADD BLOCK MODAL ─────────────────────────────────────────── */}
-            {isAddingBlock && selectedCell && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-150">
-                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 border border-gray-100">
-                        <div className="flex items-center justify-between mb-5">
-                            <h3 className="font-serif text-lg">Añadir Bloque</h3>
-                            <button onClick={() => setIsAddingBlock(false)} className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400">
+            {/* ── ADD / EDIT MODAL ────────────────────────────────────────────── */}
+            {modal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm print:hidden">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md border border-gray-200 overflow-hidden">
+                        {/* Modal header */}
+                        <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                            <div>
+                                <h3 className="font-bold text-gray-900">{modal.task ? 'Editar tarea' : 'Agregar tarea'}</h3>
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                    <strong>{operators.find(o => o.id === modal.opId)?.name}</strong>
+                                    {' · '}
+                                    {DAY_NAMES[weekDays.find(d => dateStr(d) === modal.day)?.getDay() || 1]}
+                                    {' '}
+                                    {weekDays.find(d => dateStr(d) === modal.day)?.getDate()}
+                                </p>
+                            </div>
+                            <button onClick={() => setModal(null)} className="p-2 rounded-full hover:bg-gray-200 text-gray-400 transition-colors">
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
 
-                        <div className="text-xs text-gray-500 bg-gray-50 rounded-lg p-3 mb-5 flex items-center gap-2">
-                            <CalendarDays className="w-3.5 h-3.5 text-brand-terracotta" />
-                            <span>
-                                <strong>{operators.find(o => o.id === selectedCell.opId)?.name}</strong>
-                                {' · '}
-                                {DAY_NAMES_FULL[weekDays.find(d => dateStr(d) === selectedCell.day)?.getDay() || 1]}
-                                {' · '}
-                                {formatHour(selectedCell.hour)}
-                            </span>
-                        </div>
-
-                        <div className="space-y-4">
+                        <div className="p-6 space-y-5">
+                            {/* Type selector */}
                             <div>
-                                <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 block mb-1">Tipo</label>
+                                <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 block mb-2">Tipo de bloque</label>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {(['order', 'appointment', 'blocked', 'break'] as const).map(t => (
+                                    {(Object.entries(TYPE_LABELS) as [TaskType, string][]).map(([t, label]) => (
                                         <button
                                             key={t}
-                                            onClick={() => setNewBlock(p => ({ ...p, type: t }))}
-                                            className={`flex items-center gap-2 p-2.5 rounded-lg border text-xs font-medium transition-all ${
-                                                newBlock.type === t
-                                                    ? 'border-brand-charcoal bg-brand-charcoal text-white'
-                                                    : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                                            }`}
+                                            onClick={() => setForm(p => ({ ...p, type: t }))}
+                                            className={`px-3 py-2.5 rounded-lg border text-xs font-bold flex items-center gap-2 transition-all ${form.type === t ? 'text-white border-transparent' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
+                                            style={form.type === t ? { backgroundColor: TYPE_COLORS[t], borderColor: TYPE_COLORS[t] } : {}}
                                         >
-                                            {BLOCK_ICONS[t]}
-                                            {t === 'order' ? 'Confección' : t === 'appointment' ? 'Cita' : t === 'blocked' ? 'Bloqueo' : 'Pausa'}
+                                            {t === 'orden' && <Scissors className="w-3.5 h-3.5" />}
+                                            {t === 'cita' && <User className="w-3.5 h-3.5" />}
+                                            {t === 'bloqueado' && <Lock className="w-3.5 h-3.5" />}
+                                            {t === 'pausa' && <Coffee className="w-3.5 h-3.5" />}
+                                            {label}
                                         </button>
                                     ))}
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 block mb-1">Descripción</label>
-                                <input
-                                    type="text"
-                                    value={newBlock.label}
-                                    onChange={e => setNewBlock(p => ({ ...p, label: e.target.value }))}
-                                    placeholder="Ej: Vestido Amanda, Cita Clarita..."
-                                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-brand-terracotta focus:ring-1 focus:ring-brand-terracotta/20"
-                                    onKeyDown={e => e.key === 'Enter' && handleAddBlock()}
-                                    autoFocus
-                                />
+                            {/* Time + Label */}
+                            <div className="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 block mb-1">Hora</label>
+                                    <input
+                                        type="time"
+                                        value={form.time}
+                                        onChange={e => setForm(p => ({ ...p, time: e.target.value }))}
+                                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-700 focus:ring-1 focus:ring-gray-700/20 font-mono"
+                                    />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 block mb-1">Descripción</label>
+                                    <input
+                                        type="text"
+                                        value={form.label}
+                                        onChange={e => setForm(p => ({ ...p, label: e.target.value }))}
+                                        placeholder="Ej: Vestido Amanda, Cita Clarita..."
+                                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-700 focus:ring-1 focus:ring-gray-700/20"
+                                        onKeyDown={e => e.key === 'Enter' && saveTask()}
+                                        autoFocus
+                                    />
+                                </div>
                             </div>
 
-                            {newBlock.type === 'order' && (
+                            {/* Link to order */}
+                            {form.type === 'orden' && (
                                 <div>
-                                    <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 block mb-1">Vincular a orden (opcional)</label>
+                                    <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 block mb-1">Vincular a orden del sistema</label>
                                     <select
-                                        value={newBlock.orderId}
+                                        value={form.orderId}
                                         onChange={e => {
                                             const order = orders.find(o => o.id === e.target.value);
-                                            setNewBlock(p => ({
+                                            setForm(p => ({
                                                 ...p,
                                                 orderId: e.target.value,
-                                                label: order ? order.description : p.label,
-                                                durationHours: order ? Math.min(Number(order.estimated_hours) || 2, 8) : p.durationHours
+                                                label: order ? (order.description || p.label) : p.label,
                                             }));
                                         }}
-                                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-brand-terracotta"
+                                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-gray-700"
                                     >
-                                        <option value="">Sin vincular</option>
+                                        <option value="">Sin vincular (entrada manual)</option>
                                         {orders.map(o => (
                                             <option key={o.id} value={o.id}>
-                                                {o.description} ({o.estimated_hours}h)
+                                                {o.description}
+                                                {o.customers?.full_name ? ` — ${o.customers.full_name}` : ''}
+                                                {o.estimated_hours ? ` (${o.estimated_hours}h)` : ''}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
                             )}
-
-                            <div>
-                                <label className="text-[10px] uppercase tracking-widest font-bold text-gray-500 block mb-1">Duración</label>
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="range" min={0.5} max={8} step={0.5}
-                                        value={newBlock.durationHours}
-                                        onChange={e => setNewBlock(p => ({ ...p, durationHours: Number(e.target.value) }))}
-                                        className="flex-1 accent-brand-terracotta"
-                                    />
-                                    <span className="text-sm font-bold text-brand-charcoal w-10 text-right">{newBlock.durationHours}h</span>
-                                </div>
-                            </div>
                         </div>
 
-                        <div className="flex gap-3 mt-6">
-                            <button onClick={() => setIsAddingBlock(false)} className="flex-1 border border-gray-200 rounded-lg py-2.5 text-sm text-gray-500 hover:bg-gray-50 transition-colors">
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleAddBlock}
-                                disabled={!newBlock.label.trim()}
-                                className="flex-1 bg-brand-charcoal text-white rounded-lg py-2.5 text-sm font-bold hover:bg-brand-terracotta transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                            >
-                                <Check className="w-3.5 h-3.5" />
-                                Agregar
-                            </button>
+                        {/* Actions */}
+                        <div className="border-t border-gray-100 px-6 py-4 flex items-center justify-between gap-3 bg-gray-50">
+                            {modal.task && (
+                                <button
+                                    onClick={() => { deleteTask(modal.opId, modal.day, modal.task!.id); setModal(null); }}
+                                    className="flex items-center gap-1.5 text-sm text-red-500 hover:text-red-700 transition-colors"
+                                >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    Eliminar
+                                </button>
+                            )}
+                            <div className="flex gap-3 ml-auto">
+                                <button onClick={() => setModal(null)} className="px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-500 hover:bg-gray-100 transition-colors">
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={saveTask}
+                                    disabled={!form.label.trim()}
+                                    className="px-6 py-2 rounded-lg bg-gray-900 text-white text-sm font-bold hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                >
+                                    {modal.task ? 'Guardar cambios' : 'Añadir'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -613,10 +638,9 @@ export default function PlanificadorPage() {
             <style jsx global>{`
                 @media print {
                     @page { size: A4 landscape; margin: 10mm; }
-                    body { font-size: 11px; }
-                    .print\\:hidden { display: none !important; }
-                    .print\\:block { display: block !important; }
-                    .print\\:static { position: static !important; }
+                    body { font-size: 11px; color: #111; }
+                    table { border-collapse: collapse; width: 100%; }
+                    th, td { border: 2px solid #111 !important; }
                 }
             `}</style>
         </div>
