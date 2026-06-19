@@ -5,14 +5,13 @@ import { cobrarEnCajaAction } from '../actions';
 import { useRouter } from 'next/navigation';
 import { Banknote, ArrowRight, Loader2, CheckCircle, AlertCircle, X } from 'lucide-react';
 
-type PayMethod = 'efectivo' | 'transferencia' | 'debito' | 'credito';
+type PayMethod = 'mercadopago_point' | 'cash';
 
 const METHODS: { key: PayMethod; label: string; icon: string }[] = [
-    { key: 'efectivo',      label: 'Efectivo',       icon: '💵' },
-    { key: 'transferencia', label: 'Transferencia',  icon: '🏦' },
-    { key: 'debito',        label: 'Débito',         icon: '💳' },
-    { key: 'credito',       label: 'Crédito',        icon: '💰' },
+    { key: 'mercadopago_point', label: 'Pago Máquina',   icon: '💳' },
+    { key: 'cash',              label: 'Efectivo / Mixto', icon: '💵 💳' },
 ];
+
 
 interface Props {
     saleId: string;
@@ -23,7 +22,7 @@ interface Props {
 
 export default function CobrarEnCajaButton({ saleId, internalId, totalAmount, currentStatus }: Props) {
     const [open, setOpen] = useState(false);
-    const [method, setMethod] = useState<PayMethod>('efectivo');
+    const [method, setMethod] = useState<PayMethod>('mercadopago_point');
     const [result, setResult] = useState<'success' | 'error' | null>(null);
     const [errorMsg, setErrorMsg] = useState('');
     const [isPending, startTransition] = useTransition();
@@ -57,7 +56,7 @@ export default function CobrarEnCajaButton({ saleId, internalId, totalAmount, cu
         <>
             {/* ── TRIGGER BUTTON ─────────────────────────────────────────── */}
             <button
-                onClick={() => { setOpen(true); setResult(null); setMethod('efectivo'); }}
+                onClick={() => { setOpen(true); setResult(null); setMethod('mercadopago_point'); }}
                 className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-sm text-[10px] uppercase tracking-widest font-bold transition-all shadow-sm hover:shadow-md group"
             >
                 <Banknote className="w-3.5 h-3.5" />

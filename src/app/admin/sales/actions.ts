@@ -276,7 +276,7 @@ export async function cobrarEnCajaAction(payload: {
     saleId: string;
     internalId: string;
     totalAmount: number;
-    paymentMethod: 'efectivo' | 'transferencia' | 'debito' | 'credito';
+    paymentMethod: 'mercadopago_point' | 'cash';
 }) {
     const { saleId, internalId, totalAmount, paymentMethod } = payload;
 
@@ -310,10 +310,8 @@ export async function cobrarEnCajaAction(payload: {
 
     if (openRegister) {
         const methodLabel: Record<string, string> = {
-            efectivo: 'Efectivo',
-            transferencia: 'Transferencia',
-            debito: 'Débito',
-            credito: 'Crédito',
+            mercadopago_point: 'Pago Máquina',
+            cash: 'Efectivo / Mixto',
         };
         await supabase.from('cash_movements').insert([{
             register_id: openRegister.id,
