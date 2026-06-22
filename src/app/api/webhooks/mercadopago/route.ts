@@ -25,16 +25,22 @@ async function updateDatabaseAndNotify(
     console.log(`Procesando pago aprobado para external_reference: ${externalRef}`);
     await logSystemEvent(supabase, 'INFO', `Procesando pago aprobado MP`, { paymentId, externalRef });
 
-    // Check if the order is already paid to prevent duplicate notifications (idempotency check)
+    // Check idempotency with external_transaction_id in sales_ledger
+    const { data: existingLedger } = await supabase
+        .from('sales_ledger')
+        .select('external_transaction_id, paid_amount, total_amount')
+        .eq('internal_id', externalRef)
+        .single();
+        
     const { data: existingOrders } = await supabase
         .from('production_orders')
-        .select('payment_status, payment_method')
+        .select('payment_status, payment_method, paid_amount, total_price')
         .eq('pos_order_id', externalRef)
         .limit(1);
 
-    if (existingOrders && existingOrders.length > 0 && existingOrders[0].payment_status === 'PAGADO') {
-        console.log(`La orden ${externalRef} ya estaba marcada como PAGADA. Evitando notificación duplicada.`);
-        await logSystemEvent(supabase, 'INFO', `Orden ya estaba pagada, ignorando webhook duplicado`, { externalRef });
+    if (existingLedger && existingLedger.external_transaction_id === paymentId) {
+        console.log(`Pago ${paymentId} ya fue procesado para orden ${externalRef}. Evitando duplicados.`);
+        await logSystemEvent(supabase, 'INFO', `Orden ya estaba pagada con este ID, ignorando webhook duplicado`, { externalRef, paymentId });
         return true;
     }
 
@@ -44,12 +50,19 @@ async function updateDatabaseAndNotify(
         finalPaymentMethodLabel = existingOrders[0].payment_method;
     }
 
+    const safeAmount = Number(amount || 0);
+
     // 1. Actualizar todas las filas de la orden en producción
-    const { data, error } = await supabase
+    const newProdPaidAmount = Number(existingOrders?.[0]?.paid_amount || 0) + safeAmount;
+    const isFullyPaidProd = newProdPaidAmount >= Number(existingOrders?.[0]?.total_price || existingLedger?.total_amount || 0);
+    const newProdStatus = isFullyPaidProd ? 'PAGADO' : 'partial';
+
+    const { error } = await supabase
         .from('production_orders')
         .update({ 
-            payment_status: 'PAGADO',
-            payment_method: finalPaymentMethodLabel
+            payment_status: newProdStatus,
+            payment_method: finalPaymentMethodLabel,
+            paid_amount: newProdPaidAmount
         })
         .eq('pos_order_id', externalRef);
         
@@ -59,17 +72,40 @@ async function updateDatabaseAndNotify(
         return false;
     }
 
-    console.log('Ordenes actualizadas correctamente a PAGADO');
+    console.log(`Ordenes actualizadas correctamente a ${newProdStatus} con nuevo monto pagado ${newProdPaidAmount}`);
     
     // 2. Actualizar el registro de ventas (sales_ledger)
+    const newLedgerPaidAmount = Number(existingLedger?.paid_amount || 0) + safeAmount;
+    const isFullyPaidLedger = newLedgerPaidAmount >= Number(existingLedger?.total_amount || 0);
+    
     await supabase
         .from('sales_ledger')
         .update({ 
-            status: 'completed',
+            status: isFullyPaidLedger ? 'completed' : 'partial',
+            paid_amount: newLedgerPaidAmount,
             external_transaction_id: paymentId,
             payment_method: finalPaymentMethodLabel
         })
         .eq('internal_id', externalRef);
+
+    // 3. Update pending balance row if exists (para pagos de saldo con maquina)
+    const { data: pendingBalanceRow } = await supabase
+        .from('sales_ledger')
+        .select('id')
+        .like('internal_id', `${externalRef}_balance_%`)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+        
+    if (pendingBalanceRow) {
+        await supabase.from('sales_ledger')
+            .update({
+                status: 'completed',
+                paid_amount: safeAmount,
+                external_transaction_id: paymentId
+            }).eq('id', pendingBalanceRow.id);
+    }
 
     // 3. Notificaciones automáticas por WhatsApp
     const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;

@@ -13,9 +13,10 @@ interface AdminHeaderProps {
 export default function AdminHeader({ hasUser }: AdminHeaderProps) {
   const pathname = usePathname();
   const isSubpage = pathname !== '/admin';
+  const isPlanificador = pathname?.startsWith('/admin/planificador');
 
   return (
-    <header className="fixed top-0 left-0 w-full h-20 bg-brand-charcoal border-b border-white/10 z-50 flex items-center justify-between px-6 md:px-8 shadow-md">
+    <header className={`fixed top-0 left-0 w-full h-20 bg-brand-charcoal border-b border-white/10 z-50 ${isPlanificador ? 'hidden' : 'flex'} items-center justify-between px-6 md:px-8 shadow-md`}>
       <div className="flex items-center gap-6">
         {/* Logo ELENA */}
         <Link href="/admin" className="flex flex-col items-stretch justify-center w-max transition-opacity hover:opacity-80">

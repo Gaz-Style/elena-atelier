@@ -204,3 +204,107 @@ export async function getCashRegisterHistoryAction() {
     
     return { success: true, history: data || [] };
 }
+
+export async function getAllPendingOrdersAction() {
+    const supabase = await createClient();
+    
+    // Instead of querying production_orders only, we need to ensure the sale is pending.
+    // However, the UI relies on production_order structure, so we query production_orders
+    // and join sales_ledger.
+    let query = supabase
+        .from('production_orders')
+        .select(`
+            *,
+            customers:customer_id(full_name, phone, email),
+            sales_ledger:sale_id(total_amount, paid_amount, status)
+        `)
+        .not('pos_order_id', 'is', null);
+        
+    const { data, error } = await query;
+    
+    if (error) {
+        console.error('Error fetching pending orders:', error);
+        return { success: false, error: error.message };
+    }
+    
+    const uniqueOrders = new Map();
+    
+    (data || []).forEach(order => {
+        if (!order.sales_ledger || !order.pos_order_id) return;
+        
+        // Exclude if already completed, cancelled, refunded or annulled in sales ledger
+        if (order.sales_ledger.status === 'completed' || order.sales_ledger.status === 'paid' || order.sales_ledger.status === 'cancelled' || order.sales_ledger.status === 'refunded' || order.sales_ledger.status === 'anulado') return;
+        
+        const total = order.sales_ledger.total_amount || 0;
+        const paid = order.sales_ledger.paid_amount || 0;
+        
+        if (total > paid) {
+            // Override the local paid_amount with the accurate sales_ledger paid_amount
+            order.paid_amount = paid;
+            if (!uniqueOrders.has(order.pos_order_id)) {
+                uniqueOrders.set(order.pos_order_id, order);
+            }
+        }
+    });
+    
+    return { success: true, orders: Array.from(uniqueOrders.values()) };
+}
+
+export async function payOrderBalanceAction(posOrderId: string, amountToPay: number, method: string, isPendingTerminal: boolean = false) {
+    const supabase = await createClient();
+    
+    // Always read the balance from sales_ledger since it is the single source of truth for payments
+    const { data: sale, error: saleError } = await supabase
+        .from('sales_ledger')
+        .select('*')
+        .eq('internal_id', posOrderId)
+        .single();
+        
+    if (saleError || !sale) {
+        return { success: false, error: saleError?.message || 'Venta no encontrada en registros' };
+    }
+    
+    const newPaidAmount = isPendingTerminal ? Number(sale.paid_amount || 0) : (Number(sale.paid_amount || 0) + amountToPay);
+    const isFullyPaid = isPendingTerminal ? false : (newPaidAmount >= Number(sale.total_amount));
+    
+    // Update Production Orders (all items belonging to this order)
+    const { error: updateError } = await supabase
+        .from('production_orders')
+        .update({
+            paid_amount: newPaidAmount,
+            payment_status: isPendingTerminal ? 'pending' : (isFullyPaid ? 'paid' : 'partial')
+        })
+        .eq('pos_order_id', posOrderId);
+        
+    if (updateError) return { success: false, error: updateError.message };
+    
+    // Update Sales Ledger (the main transaction)
+    const { error: salesError } = await supabase
+        .from('sales_ledger')
+        .update({
+            paid_amount: newPaidAmount,
+            status: isPendingTerminal ? 'pending' : (isFullyPaid ? 'completed' : 'partial')
+        })
+        .eq('internal_id', posOrderId);
+        
+    if (salesError) console.error('Error updating sales ledger:', salesError);
+    
+    // Insert new record in Sales Ledger for the balance payment to track cash properly for today
+    const { error: newSaleError } = await supabase
+        .from('sales_ledger')
+        .insert([{
+            internal_id: `${posOrderId}_balance_${Date.now()}`,
+            type: 'pos',
+            status: isPendingTerminal ? 'pending' : 'completed',
+            total_amount: amountToPay,
+            paid_amount: isPendingTerminal ? 0 : amountToPay,
+            payment_method: method,
+            description: `Pago de Saldo - ${posOrderId}`
+        }]);
+        
+    if (newSaleError) console.error('Error inserting balance payment in sales ledger:', newSaleError);
+    
+    revalidatePath('/admin/caja');
+    revalidatePath('/admin/pos');
+    return { success: true, isFullyPaid, newPaidAmount };
+}

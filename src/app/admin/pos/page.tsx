@@ -6,10 +6,10 @@ import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, 
 import { getCostSettings } from '../finance/actions';
 import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
-import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction, saveBudgetAction, wakeUpMercadoPagoTerminalAction, requestDiscountAuthorizationAction, getOperatorsDailyLoadAction, analyzeDesignWithGeminiAction } from './actions';
+import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction, saveBudgetAction, wakeUpMercadoPagoTerminalAction, requestDiscountAuthorizationAction, getOperatorsDailyLoadAction, analyzeDesignWithGeminiAction, cancelPendingOrderAction } from './actions';
 import { createPaymentPreference } from '@/lib/payments';
 import { createWebpayTransaction } from '@/lib/transbank';
-import { getCurrentCashRegisterAction } from '../caja/actions';
+import { getCurrentCashRegisterAction, getAllPendingOrdersAction, payOrderBalanceAction } from '../caja/actions';
 
 const getLocalDateString = (dateObj: Date) => {
     const y = dateObj.getFullYear();
@@ -219,6 +219,7 @@ export default function POSPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [paymentMethod, setPaymentMethod] = useState<'mercadopago_point' | 'transbank' | 'cash' | 'split' | null>(null);
+    const [initialPaymentType, setInitialPaymentType] = useState<'total' | '50percent' | 'zero'>('total');
     const [splitCardAmount, setSplitCardAmount] = useState<number>(0);
     const [splitCashAmount, setSplitCashAmount] = useState<number>(0);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -240,13 +241,25 @@ export default function POSPage() {
     const [assignedOperatorId, setAssignedOperatorId] = useState<string>('');
     const [isCajaOpen, setIsCajaOpen] = useState<boolean | null>(null);
 
+    const [posMode, setPosMode] = useState<'new_sale' | 'pay_balance'>('new_sale');
+    const [allPendingOrders, setAllPendingOrders] = useState<any[]>([]);
+    // const [pendingSearchTerm, setPendingSearchTerm] = useState('');
+    const [filteredPendingOrders, setFilteredPendingOrders] = useState<any[]>([]);
+    const [pendingOrderToPay, setPendingOrderToPay] = useState<any>(null);
+
     useEffect(() => {
         getCurrentCashRegisterAction().then(res => {
             if (res.success) {
                 setIsCajaOpen(!!res.register);
             }
         });
+        getAllPendingOrdersAction().then(res => {
+            if (res.success) {
+                setAllPendingOrders(res.orders || []);
+            }
+        });
     }, []);
+
 
     const addToCart = (p: any) => setCart([...cart, p]);
     const removeFromCart = (index: number) => {
@@ -256,7 +269,7 @@ export default function POSPage() {
     };
 
     const total = cart.reduce((sum, item) => sum + item.price, 0);
-    const hasUnassignedItems = cart.length > 0 && cart.some(item => !item.assignedOperatorId || item.assignedOperatorId === 'unassigned');
+    const hasUnassignedItems = posMode === 'new_sale' && cart.length > 0 && cart.some(item => !item.assignedOperatorId || item.assignedOperatorId === 'unassigned');
 
 
 
@@ -286,6 +299,21 @@ export default function POSPage() {
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
     const [isClientModalOpen, setIsClientModalOpen] = useState(false);
     const [clientSearch, setClientSearch] = useState('');
+
+    useEffect(() => {
+        if (!clientSearch.trim()) {
+            setFilteredPendingOrders([]);
+            return;
+        }
+        const term = clientSearch.toLowerCase();
+        const filtered = allPendingOrders.filter(o => 
+            (o.pos_order_id && o.pos_order_id.toLowerCase().includes(term)) ||
+            (o.customers?.full_name && o.customers.full_name.toLowerCase().includes(term)) ||
+            (o.customers?.email && o.customers.email.toLowerCase().includes(term)) ||
+            (o.customers?.phone && o.customers.phone.toLowerCase().includes(term))
+        );
+        setFilteredPendingOrders(filtered);
+    }, [clientSearch, allPendingOrders]);
     const [isRegisteringClient, setIsRegisteringClient] = useState(false);
     const [newClientData, setNewClientData] = useState({ name: '', phone: '56', email: '' });
     const [checkoutResult, setCheckoutResult] = useState<any>(null);
@@ -925,13 +953,19 @@ export default function POSPage() {
     };
 
     const handleCheckout = async () => {
-        if (cart.length === 0 || !paymentMethod || !selectedCustomer) return;
-        if (paymentMethod === 'cash' && splitCardAmount > 0 && (splitCardAmount + splitCashAmount !== total)) {
-            alert('La suma de pago dividido no coincide con el total.');
+        if (cart.length === 0 || !selectedCustomer) return;
+        if (initialPaymentType !== 'zero' && !paymentMethod) return;
+
+        let amountToCharge = total;
+        if (initialPaymentType === '50percent') amountToCharge = Math.round(total / 2);
+        else if (initialPaymentType === 'zero') amountToCharge = 0;
+
+        if (initialPaymentType !== 'zero' && paymentMethod === 'cash' && splitCardAmount > 0 && (splitCardAmount + splitCashAmount !== amountToCharge)) {
+            alert(`La suma de pago dividido no coincide con el abono a pagar (${amountToCharge}).`);
             return;
         }
 
-        if (!isCajaOpen && paymentMethod === 'cash') {
+        if (!isCajaOpen && initialPaymentType !== 'zero' && paymentMethod === 'cash') {
             if (!confirm('⚠️ La caja diaria está CERRADA. Si cobras en efectivo o mixto, este ingreso no cuadrará correctamente al momento del cierre. ¿Deseas continuar de todas formas?')) {
                 return;
             }
@@ -940,11 +974,13 @@ export default function POSPage() {
         setIsProcessing(true);
         
         try {
-            const orderId = Math.floor(Math.random() * 90000) + 10000;
+            const newOrderIdNumber = Math.floor(Math.random() * 90000) + 10000;
             const dateStr = new Date().toLocaleDateString();
 
             let finalPaymentMethodStr: string | null = paymentMethod;
-            if (paymentMethod === 'cash') {
+            if (initialPaymentType === 'zero') {
+                finalPaymentMethodStr = 'Pago Contra Entrega';
+            } else if (paymentMethod === 'cash') {
                 if (splitCardAmount > 0) {
                     finalPaymentMethodStr = `Mixto (Máquina: $${splitCardAmount}, Efectivo: $${splitCashAmount})`;
                 } else {
@@ -952,47 +988,99 @@ export default function POSPage() {
                 }
             }
 
-            const res = await createPOSOrdersAction({
-                customerId: selectedCustomer.id,
-                posOrderId: `order_${orderId}`,
-                paymentMethod: finalPaymentMethodStr,
-                paymentStatus: 'pending',
-                items: cart.map(item => ({
-                    name: item.name,
-                    price: item.price,
-                    category: item.category,
-                    hours: Number(item.details?.hours || getDefaultProductionHours(item.name, item.category)),
-                    notes: item.details?.notes || '',
-                    isCustom: !!item.isCustom,
-                    assignedOperatorId: item.assignedOperatorId || 'unassigned',
-                    scheduledStartDate: item.scheduledStartDate || undefined
-                })),
-                deadline: deadline || null,
-                productionStartDate: adjustedDates?.productionStartDate || null,
-                productionEndDate: adjustedDates?.productionEndDate || null,
-                finalDeliveryDate: deadline || adjustedDates?.finalDeliveryDate || null
-            });
+            let finalOrderIdStr = '';
+            let finalDeliveryDateStr = deadline || (adjustedDates?.finalDeliveryDate ? new Date(adjustedDates.finalDeliveryDate).toLocaleDateString('es-CL') : 'A coordinar');
 
-            if (!res.success) {
-                alert("Error al registrar la orden en producción: " + res.error);
-                setIsProcessing(false);
-                return;
+            const isDigitalTerminal = paymentMethod === 'mercadopago_point' || paymentMethod === 'transbank';
+            const isMixedTerminal = paymentMethod === 'cash' && splitCardAmount > 0;
+            const isPendingTerminal = isDigitalTerminal || isMixedTerminal;
+
+            let finalPaidAmount = amountToCharge;
+            let finalPaymentStatus = initialPaymentType === 'total' ? 'completed' : initialPaymentType === '50percent' ? 'partial' : 'pending';
+
+            if (isPendingTerminal) {
+                finalPaymentStatus = 'pending_terminal';
+                finalPaidAmount = isMixedTerminal ? splitCashAmount : 0;
+            }
+
+            if (posMode === 'pay_balance' && pendingOrderToPay) {
+                finalOrderIdStr = pendingOrderToPay.pos_order_id;
+                const res = await payOrderBalanceAction(
+                    finalOrderIdStr, 
+                    amountToCharge, 
+                    finalPaymentMethodStr || 'Desconocido',
+                    isPendingTerminal
+                );
+
+                if (!res.success) {
+                    alert("Error al saldar la deuda en caja: " + res.error);
+                    setIsProcessing(false);
+                    return;
+                }
+                finalDeliveryDateStr = 'Entrega Coordinada (Saldo Pagado)';
+            } else {
+                finalOrderIdStr = `order_${newOrderIdNumber}`;
+                const res = await createPOSOrdersAction({
+                    customerId: selectedCustomer.id,
+                    posOrderId: finalOrderIdStr,
+                    paymentMethod: finalPaymentMethodStr || undefined,
+                    paymentStatus: finalPaymentStatus,
+                    paidAmount: finalPaidAmount,
+                    items: cart.map(item => ({
+                        name: item.name,
+                        price: item.price,
+                        category: item.category,
+                        hours: Number(item.details?.hours || getDefaultProductionHours(item.name, item.category)),
+                        notes: item.details?.notes || '',
+                        isCustom: !!item.isCustom,
+                        assignedOperatorId: item.assignedOperatorId || 'unassigned',
+                        scheduledStartDate: item.scheduledStartDate || undefined
+                    })),
+                    deadline: deadline || null,
+                    productionStartDate: adjustedDates?.productionStartDate || null,
+                    productionEndDate: adjustedDates?.productionEndDate || null,
+                    finalDeliveryDate: deadline || adjustedDates?.finalDeliveryDate || null
+                });
+
+                if (!res.success) {
+                    alert("Error al registrar la orden en producción: " + res.error);
+                    setIsProcessing(false);
+                    return;
+                }
             }
 
             let paymentUrl = '';
-            if (paymentMethod === 'transbank') {
-                paymentUrl = `${window.location.origin}/pagar/order_${orderId}`;
+            if (initialPaymentType === 'zero') {
+                setCheckoutResult({
+                    orderId: finalOrderIdStr.replace('order_', ''),
+                    customer: selectedCustomer,
+                    total: total,
+                    paidAmount: amountToCharge,
+                    items: cart,
+                    method: 'Pago Contra Entrega',
+                    date: dateStr,
+                    deliveryDate: deadline ? new Date(deadline).toLocaleDateString() : null
+                });
+                setPaymentConfirmed(true);
+                setIsProcessing(false);
+                return;
+            } else if (paymentMethod === 'transbank') {
+                paymentUrl = `${window.location.origin}/pagar/${finalOrderIdStr}?amount=${amountToCharge}`;
             } else if (paymentMethod === 'mercadopago_point' || (paymentMethod === 'cash' && splitCardAmount > 0)) {
-                // Wake up the physical terminal
                 try {
-                    const mpDesc = `Orden de Trabajo #${orderId}`;
-                    const amountToCharge = (paymentMethod === 'cash' && splitCardAmount > 0) ? splitCardAmount : total;
-                    const mpRes = await wakeUpMercadoPagoTerminalAction(amountToCharge, mpDesc, `order_${orderId}`);
+                    const mpDesc = posMode === 'pay_balance' ? `Pago Saldo - ${finalOrderIdStr}` : `Orden de Trabajo #${newOrderIdNumber}`;
+                    const amountForTerminal = (paymentMethod === 'cash' && splitCardAmount > 0) ? splitCardAmount : amountToCharge;
+                    
+                    if (amountForTerminal < 100) {
+                        alert('El monto a cobrar con tarjeta (Mercado Pago Point) debe ser al menos de $100 CLP.');
+                        setIsProcessing(false);
+                        return;
+                    }
+                    
+                    const mpRes = await wakeUpMercadoPagoTerminalAction(amountForTerminal, mpDesc, finalOrderIdStr);
                     if (!mpRes.success) {
                         console.error('Error despertando terminal Mercado Pago:', mpRes.error);
                         alert(`Error al enviar el cobro a la maquinita física: ${mpRes.error}`);
-                    } else {
-                        console.log('Terminal despertada exitosamente', mpRes.data);
                     }
                 } catch (mpErr) {
                     console.error('Excepción al despertar terminal MP:', mpErr);
@@ -1000,25 +1088,28 @@ export default function POSPage() {
             }
             
             setCheckoutResult({
-                orderId: orderId,
+                orderId: finalOrderIdStr.replace('order_', ''),
                 customer: selectedCustomer,
                 items: [...cart],
-                total: total,
+                total: amountToCharge, // In pay_balance, total amount being paid is amountToCharge
                 method: finalPaymentMethodStr,
                 date: dateStr,
-                deliveryDate: deadline || (adjustedDates?.finalDeliveryDate ? new Date(adjustedDates.finalDeliveryDate).toLocaleDateString('es-CL') : 'A coordinar'),
+                deliveryDate: finalDeliveryDateStr,
                 paymentUrl: paymentUrl
             });
             
             // Reset payment confirmed state for physical terminal polling
             setPaymentConfirmed(false);
+            if (paymentMethod === 'cash' && splitCardAmount === 0) {
+                setPaymentConfirmed(true);
+            }
 
-            // Enviar automáticamente el correo de confirmación de orden si el cliente tiene correo
-            if (selectedCustomer.email) {
+            // Enviar automáticamente el correo de confirmación si no es un pago de saldo
+            if (selectedCustomer.email && posMode === 'new_sale') {
                 sendOrderConfirmationEmailAction({
                     customerEmail: selectedCustomer.email,
                     customerName: selectedCustomer.full_name,
-                    orderId: orderId,
+                    orderId: newOrderIdNumber,
                     items: cart.map(item => ({
                         name: item.name,
                         price: item.price,
@@ -1027,7 +1118,7 @@ export default function POSPage() {
                         images: item.images || []
                     })),
                     total: total,
-                    paymentMethod: finalPaymentMethodStr,
+                    paymentMethod: finalPaymentMethodStr || '',
                     date: dateStr,
                     deliveryDate: deadline || adjustedDates?.finalDeliveryDate || '',
                     deliveryWindowStart: adjustedDates?.config?.windowStart?.slice(0, 5) || '15:00',
@@ -1042,6 +1133,13 @@ export default function POSPage() {
             setPaymentMethod(null);
             setDeadline('');
             setDailyWorkload(null);
+            if (posMode === 'pay_balance') {
+                setPendingOrderToPay(null);
+                setPosMode('new_sale'); // Return to new sale after paying
+                getAllPendingOrdersAction().then(res => {
+                    if (res.success) setAllPendingOrders(res.orders || []);
+                });
+            }
         } catch (error: any) {
             console.error('Error during checkout processing:', error);
             alert("Ocurrió un error inesperado al procesar el cobro: " + (error.message || String(error)));
@@ -1285,7 +1383,9 @@ export default function POSPage() {
                     </button>
                 </div>
 
-                {/* Section 1: Client */}
+                {/* Unified Search Bar implemented below inside the main customer area */}
+
+                {/* Section 1: Client (Always show for searching either client or pending order) */}
                 <div className="bg-white p-6 md:p-8 rounded-sm border border-gray-100 shadow-sm space-y-4">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta border-b border-gray-100 pb-2 flex items-center gap-2 mb-6">
                         <User className="w-4 h-4" /> 1. Identificación de Cliente
@@ -1297,7 +1397,12 @@ export default function POSPage() {
                                 <p className="font-serif text-lg text-brand-charcoal">{selectedCustomer.full_name}</p>
                                 <p className="text-xs text-gray-500">{selectedCustomer.phone || selectedCustomer.email}</p>
                             </div>
-                            <button onClick={() => setSelectedCustomer(null)} className="text-xs uppercase tracking-widest text-gray-400 hover:text-red-500 font-bold">Cambiar Cliente</button>
+                            <button onClick={() => {
+                                setSelectedCustomer(null);
+                                setPosMode('new_sale');
+                                setPendingOrderToPay(null);
+                                if (posMode === 'pay_balance') setCart([]);
+                            }} className="text-xs uppercase tracking-widest text-gray-400 hover:text-red-500 font-bold">Cambiar Cliente / Limpiar</button>
                         </div>
                     ) : (
                         <div className="space-y-6">
@@ -1312,6 +1417,84 @@ export default function POSPage() {
                                         onChange={(e) => setClientSearch(e.target.value)}
                                         className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta text-sm"
                                     />
+                                    
+                                    {/* Search Results Dropdown */}
+                                    {clientSearch && (
+                                        <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-white border border-gray-100 shadow-xl rounded-sm max-h-96 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
+                                            {/* 1. Pendientes Prioritarios */}
+                                            {filteredPendingOrders.length > 0 && (
+                                                <div className="bg-brand-terracotta/5">
+                                                    <div className="px-4 py-2 text-[9px] font-bold uppercase tracking-widest text-brand-terracotta border-b border-brand-terracotta/10">Saldos Pendientes</div>
+                                                    {filteredPendingOrders.map((order, i) => {
+                                                        const total = order.sales_ledger?.total_amount || 0;
+                                                        const paid = order.paid_amount || 0;
+                                                        const pendingAmount = total - paid;
+                                                        return (
+                                                            <div 
+                                                                key={`pending-${i}`} 
+                                                                onClick={() => {
+                                                                    setPosMode('pay_balance');
+                                                                    setPendingOrderToPay(order);
+                                                                    setClientSearch('');
+                                                                    setCart([{
+                                                                        name: `Pago Saldo Orden ${order.pos_order_id}`,
+                                                                        price: pendingAmount,
+                                                                        category: 'pago_saldo',
+                                                                        notes: `Saldo pendiente de orden total $${total}`
+                                                                    }]);
+                                                                    setSelectedCustomer({
+                                                                        id: order.customer_id,
+                                                                        full_name: order.customers?.full_name,
+                                                                        email: order.customers?.email,
+                                                                        phone: order.customers?.phone
+                                                                    });
+                                                                    setInitialPaymentType('total'); // Force full payment
+                                                                }}
+                                                                className="p-4 hover:bg-brand-terracotta/10 cursor-pointer border-b border-brand-terracotta/10 last:border-0 flex justify-between items-center group transition-colors"
+                                                            >
+                                                                <div>
+                                                                    <p className="font-bold text-sm text-brand-charcoal">{order.customers?.full_name}</p>
+                                                                    <p className="text-[10px] font-mono text-gray-500 uppercase tracking-tighter">
+                                                                        PAGAR SALDO ORDEN #{order.pos_order_id}
+                                                                    </p>
+                                                                </div>
+                                                                <div className="text-right flex items-center gap-4">
+                                                                    <div>
+                                                                        <p className="text-[9px] text-brand-terracotta uppercase tracking-widest font-bold mb-0.5">Por Pagar</p>
+                                                                        <p className="text-sm font-bold text-brand-terracotta">${pendingAmount.toLocaleString('es-CL')}</p>
+                                                                    </div>
+                                                                    <ArrowRight className="w-4 h-4 text-brand-terracotta opacity-50 group-hover:opacity-100 transition-opacity" />
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+
+                                            {/* 2. Clientes Regulares */}
+                                            <div className="px-4 py-2 text-[9px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100 bg-gray-50">Clientes Registrados (Nueva Venta)</div>
+                                            {allCustomers.filter(c => c.full_name.toLowerCase().includes(clientSearch.toLowerCase()) || (c.email && c.email.toLowerCase().includes(clientSearch.toLowerCase()))).map(c => (
+                                                <div key={c.id} onClick={() => { 
+                                                    setSelectedCustomer(c); 
+                                                    setClientSearch(''); 
+                                                    setPosMode('new_sale');
+                                                    setPendingOrderToPay(null);
+                                                }} className="p-4 hover:bg-brand-sand/10 cursor-pointer border-b border-gray-50 last:border-0 flex justify-between items-center group">
+                                                    <div>
+                                                        <p className="text-sm font-medium text-brand-charcoal">{c.full_name}</p>
+                                                        <p className="text-[10px] text-gray-400 font-mono tracking-tighter uppercase">{c.email} | {c.phone}</p>
+                                                    </div>
+                                                    <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-brand-terracotta transition-all" />
+                                                </div>
+                                            ))}
+                                            {allCustomers.filter(c => c.full_name.toLowerCase().includes(clientSearch.toLowerCase()) || (c.email && c.email.toLowerCase().includes(clientSearch.toLowerCase()))).length === 0 && (
+                                                <div className="p-6 text-center">
+                                                    <p className="text-xs text-gray-500 italic mb-2">No se encontró cliente con "{clientSearch}"</p>
+                                                    <button onClick={() => { setIsRegisteringClient(true); setClientSearch(''); }} className="text-[10px] uppercase tracking-widest font-bold text-brand-terracotta hover:underline">+ Crear ficha de cliente nuevo</button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                                 <button 
                                     onClick={() => {
@@ -1325,26 +1508,7 @@ export default function POSPage() {
                                 </button>
                             </div>
 
-                            {/* Search Results Dropdown */}
-                            {clientSearch && (
-                                <div className="bg-white border border-gray-100 shadow-lg rounded-sm max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
-                                    {allCustomers.filter(c => c.full_name.toLowerCase().includes(clientSearch.toLowerCase()) || (c.email && c.email.toLowerCase().includes(clientSearch.toLowerCase()))).map(c => (
-                                        <div key={c.id} onClick={() => { setSelectedCustomer(c); setClientSearch(''); }} className="p-4 hover:bg-brand-sand/10 cursor-pointer border-b border-gray-50 last:border-0 flex justify-between items-center group">
-                                            <div>
-                                                <p className="text-sm font-medium text-brand-charcoal">{c.full_name}</p>
-                                                <p className="text-[10px] text-gray-400 font-mono tracking-tighter uppercase">{c.email} | {c.phone}</p>
-                                            </div>
-                                            <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-brand-terracotta transition-all" />
-                                        </div>
-                                    ))}
-                                    {allCustomers.filter(c => c.full_name.toLowerCase().includes(clientSearch.toLowerCase()) || (c.email && c.email.toLowerCase().includes(clientSearch.toLowerCase()))).length === 0 && (
-                                        <div className="p-6 text-center">
-                                            <p className="text-xs text-gray-500 italic mb-2">No se encontró cliente con "{clientSearch}"</p>
-                                            <button onClick={() => { setIsRegisteringClient(true); setClientSearch(''); }} className="text-[10px] uppercase tracking-widest font-bold text-brand-terracotta hover:underline">+ Crear ficha de cliente nuevo</button>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                            {/* Search Results Dropdown Moved up into relative wrapper */}
 
                             {/* Quick Registration Form (Expandable) */}
                             {isRegisteringClient && (
@@ -1446,122 +1610,267 @@ export default function POSPage() {
                         </div>
                     )}
                 </div>
-
-                {/* Section 2: Asignar Costurera */}
-                <div className={`bg-white p-6 md:p-8 rounded-sm border border-gray-100 shadow-sm space-y-6 transition-all ${!selectedCustomer ? 'opacity-50 pointer-events-none' : ''}`}>
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta border-b border-gray-100 pb-2 flex items-center gap-2 mb-6">
-                        <Tag className="w-4 h-4" /> 2. Asignar Costurera
-                    </h3>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="col-span-2">
-                            <label className="block text-[10px] uppercase tracking-widest text-brand-charcoal font-bold mb-1 flex items-center gap-1.5">
-                                👤 Costurera / Operaria Asignada
-                            </label>
-                            <p className="text-[10px] text-gray-500 leading-normal mb-2">Selecciona la costurera para calcular la agenda y tiempos de entrega automáticamente.</p>
-                            <select
-                                value={assignedOperatorId}
-                                onChange={(e) => handleOperatorSelection(e.target.value, null, selectedCatalogProduct ? Number(selectedCatalogProduct.estimated_hours || 2) : (Number(hoursEstimated) || 2))}
-                                className="w-full p-3 text-sm font-medium bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta transition-colors"
-                            >
-                                <option value="" disabled>-- Selecciona Costurera o Taller General --</option>
-                                {operators.map((op: any) => (
-                                    <option key={op.id} value={op.id}>
-                                        {op.name} ({op.daily_hours_capacity}h por día)
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Section 3: Detalle del Trabajo */}
-                <div className="bg-white p-6 md:p-8 rounded-sm border border-gray-100 shadow-sm space-y-6 transition-all">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta border-b border-gray-100 pb-2 flex items-center gap-2 mb-6">
-                        <Tag className="w-4 h-4" /> 3. Detalle del Trabajo
-                    </h3>
-                    
-                    <div className={`grid grid-cols-1 ${customOrderCategory !== 'Catálogo de servicios' ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4`}>
-                        <div className="col-span-1">
-                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Categoría Principal</label>
-                            <select value={customOrderCategory} onChange={(e) => setCustomOrderCategory(e.target.value)} className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta">
-                                <option value="Diseño y confección">Diseño y confección</option>
-                                <option value="Arreglos especializados">Arreglos especializados</option>
-                                <option value="Catálogo de servicios">Catálogo de servicios</option>
-                            </select>
-                        </div>
-                        {customOrderCategory !== 'Catálogo de servicios' && (
-                            <>
-                                <div className="col-span-1">
-                                    <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Prenda / Artículo *</label>
-                                    <input spellCheck={true} autoCorrect="on" type="text" value={customOrderName} onChange={(e) => setCustomOrderName(e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1))} placeholder="Ej. Pantalón, vestido de novia, chaqueta, etc." className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
-                                </div>
-                                <div className="col-span-1">
-                                    <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Horas Taller Estimadas</label>
-                                    <input type="number" min="0" value={hoursEstimated || ''} onChange={(e) => setHoursEstimated(Number(e.target.value))} className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta" placeholder="0" />
-                                </div>
-
-
-                            </>
-                        )}
-                    </div>
-
-                    {customOrderCategory === 'Catálogo de servicios' ? (
-                        <div className="space-y-6 pt-4 border-t border-gray-50 animate-in fade-in duration-500">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-1">
-                                    <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Tipo de Prenda / Subcategoría</label>
-                                    <select 
-                                        value={selectedCatalogCategory} 
-                                        onChange={(e) => {
-                                            setSelectedCatalogCategory(e.target.value);
-                                            setSelectedCatalogProduct(null);
-                                        }} 
-                                        className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta cursor-pointer font-medium transition-all"
+                {/* Sections 2, 3, 4 only visible for new sales */}
+                {posMode === 'new_sale' && (
+                    <>
+                        {/* Section 2: Asignar Costurera */}
+                        <div className={`bg-white p-6 md:p-8 rounded-sm border border-gray-100 shadow-sm space-y-6 transition-all ${!selectedCustomer ? 'opacity-50 pointer-events-none' : ''}`}>
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta border-b border-gray-100 pb-2 flex items-center gap-2 mb-6">
+                                <Tag className="w-4 h-4" /> 2. Asignar Costurera
+                            </h3>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="col-span-2">
+                                    <label className="block text-[10px] uppercase tracking-widest text-brand-charcoal font-bold mb-1 flex items-center gap-1.5">
+                                        👤 Costurera / Operaria Asignada
+                                    </label>
+                                    <p className="text-[10px] text-gray-500 leading-normal mb-2">Selecciona la costurera para calcular la agenda y tiempos de entrega automáticamente.</p>
+                                    <select
+                                        value={assignedOperatorId}
+                                        onChange={(e) => handleOperatorSelection(e.target.value, null, selectedCatalogProduct ? Number(selectedCatalogProduct.estimated_hours || 2) : (Number(hoursEstimated) || 2))}
+                                        className="w-full p-3 text-sm font-medium bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta transition-colors"
                                     >
-                                        <option value="">-- Seleccionar Subcategoría --</option>
-                                        {Array.from(new Set(products.map(p => p.category))).sort().map(cat => (
-                                            <option key={cat} value={cat}>{cat}</option>
+                                        <option value="" disabled>-- Selecciona Costurera o Taller General --</option>
+                                        {operators.map((op: any) => (
+                                            <option key={op.id} value={op.id}>
+                                                {op.name} ({op.daily_hours_capacity}h por día)
+                                            </option>
                                         ))}
                                     </select>
                                 </div>
+                            </div>
+                        </div>
 
-                                <div className="space-y-1">
-                                    <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Servicio / Operación</label>
-                                    <select 
-                                        disabled={!selectedCatalogCategory}
-                                        value={selectedCatalogProduct ? selectedCatalogProduct.id : ''} 
-                                        onChange={(e) => {
-                                            const prodId = e.target.value;
-                                            const found = products.find(p => p.id.toString() === prodId.toString() || p.id === Number(prodId));
-                                            setSelectedCatalogProduct(found || null);
-                                        }} 
-                                        className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-medium transition-all"
-                                    >
-                                        <option value="">
-                                            {!selectedCatalogCategory 
-                                                ? 'Primero seleccione una subcategoría...' 
-                                                : '-- Seleccionar Servicio --'}
-                                        </option>
-                                        {products
-                                            .filter(p => p.category === selectedCatalogCategory)
-                                            .sort((a, b) => a.name.localeCompare(b.name))
-                                            .map(p => (
-                                                <option key={p.id} value={p.id}>
-                                                    {p.name} ({formatCurrency(p.price)})
-                                                </option>
-                                            ))
-                                        }
+                        {/* Section 3: Detalle del Trabajo */}
+                        <div className="bg-white p-6 md:p-8 rounded-sm border border-gray-100 shadow-sm space-y-6 transition-all">
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta border-b border-gray-100 pb-2 flex items-center gap-2 mb-6">
+                                <Tag className="w-4 h-4" /> 3. Detalle del Trabajo
+                            </h3>
+                            
+                            <div className={`grid grid-cols-1 ${customOrderCategory !== 'Catálogo de servicios' ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4`}>
+                                <div className="col-span-1">
+                                    <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Categoría Principal</label>
+                                    <select value={customOrderCategory} onChange={(e) => setCustomOrderCategory(e.target.value)} className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta">
+                                        <option value="Diseño y confección">Diseño y confección</option>
+                                        <option value="Arreglos especializados">Arreglos especializados</option>
+                                        <option value="Catálogo de servicios">Catálogo de servicios</option>
                                     </select>
                                 </div>
+                                {customOrderCategory !== 'Catálogo de servicios' && (
+                                    <>
+                                        <div className="col-span-1">
+                                            <label className="block text-[10px] uppercase tracking-widest text-gray-500 mb-1">Prenda / Artículo *</label>
+                                            <input spellCheck={true} autoCorrect="on" type="text" value={customOrderName} onChange={(e) => setCustomOrderName(e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1))} placeholder="Ej. Pantalón, vestido de novia, chaqueta, etc." className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta" />
+                                        </div>
+                                        <div className="col-span-1">
+                                            <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Horas Taller Estimadas</label>
+                                            <input type="number" min="0" value={hoursEstimated || ''} onChange={(e) => setHoursEstimated(Number(e.target.value))} className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:ring-1 focus:ring-brand-terracotta" placeholder="0" />
+                                        </div>
+
+
+                                    </>
+                                )}
                             </div>
 
+                            {customOrderCategory === 'Catálogo de servicios' ? (
+                                <div className="space-y-6 pt-4 border-t border-gray-50 animate-in fade-in duration-500">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-1">
+                                            <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Tipo de Prenda / Subcategoría</label>
+                                            <select 
+                                                value={selectedCatalogCategory} 
+                                                onChange={(e) => {
+                                                    setSelectedCatalogCategory(e.target.value);
+                                                    setSelectedCatalogProduct(null);
+                                                }} 
+                                                className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta cursor-pointer font-medium transition-all"
+                                            >
+                                                <option value="">-- Seleccionar Subcategoría --</option>
+                                                {Array.from(new Set(products.map(p => p.category))).sort().map(cat => (
+                                                    <option key={cat} value={cat}>{cat}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="space-y-1">
+                                            <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Servicio / Operación</label>
+                                            <select 
+                                                disabled={!selectedCatalogCategory}
+                                                value={selectedCatalogProduct ? selectedCatalogProduct.id : ''} 
+                                                onChange={(e) => {
+                                                    const prodId = e.target.value;
+                                                    const found = products.find(p => p.id.toString() === prodId.toString() || p.id === Number(prodId));
+                                                    setSelectedCatalogProduct(found || null);
+                                                }} 
+                                                className="w-full p-3 text-sm bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer font-medium transition-all"
+                                            >
+                                                <option value="">
+                                                    {!selectedCatalogCategory 
+                                                        ? 'Primero seleccione una subcategoría...' 
+                                                        : '-- Seleccionar Servicio --'}
+                                                </option>
+                                                {products
+                                                    .filter(p => p.category === selectedCatalogCategory)
+                                                    .sort((a, b) => a.name.localeCompare(b.name))
+                                                    .map(p => (
+                                                        <option key={p.id} value={p.id}>
+                                                            {p.name} ({formatCurrency(p.price)})
+                                                        </option>
+                                                    ))
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
 
 
-                            {/* Beautiful visual feedback box when a service is selected */}
-                            {selectedCatalogProduct && (
-                                <div className="bg-brand-sand/5 p-6 rounded-sm border border-brand-sand/30 animate-in fade-in slide-in-from-bottom-2 duration-300 space-y-6 mt-6">
-                                    {/* Item-specific Notes and Image inside Catalog view */}
+
+                                    {/* Beautiful visual feedback box when a service is selected */}
+                                    {selectedCatalogProduct && (
+                                        <div className="bg-brand-sand/5 p-6 rounded-sm border border-brand-sand/30 animate-in fade-in slide-in-from-bottom-2 duration-300 space-y-6 mt-6">
+                                            {/* Item-specific Notes and Image inside Catalog view */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="space-y-1">
+                                                    <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Descripción del Arreglo / Notas Especiales</label>
+                                                    <textarea 
+                                                        spellCheck={true} autoCorrect="on"
+                                                        value={orderNotes}
+                                                        onChange={(e) => setOrderNotes(e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1))}
+                                                        placeholder="Ej. Ajuste de hombros vestido seda, arreglar dobladillo, etc."
+                                                        className="w-full h-[120px] p-3 text-xs bg-white border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta resize-none transition-all"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Fotos de Referencia (Hasta 4)</label>
+                                                    {orderImages.length > 0 ? (
+                                                        <div className="space-y-2 h-[120px] flex flex-col justify-between">
+                                                            <div className="flex flex-wrap items-center gap-2">
+                                                                {orderImages.map((img, idx) => (
+                                                                    <div 
+                                                                        key={idx}
+                                                                        onClick={() => setActiveImageIndex(idx)}
+                                                                        className={`relative w-[50px] h-[50px] border rounded-sm overflow-hidden flex items-center justify-center cursor-pointer bg-white transition-all ${
+                                                                            idx === activeImageIndex 
+                                                                                ? 'border-brand-terracotta ring-1 ring-brand-terracotta' 
+                                                                                : 'border-gray-200 hover:border-gray-300'
+                                                                        }`}
+                                                                    >
+                                                                        <img src={img.url} alt={`Prenda ${idx + 1}`} className="w-full h-full object-contain" />
+                                                                        <button 
+                                                                            type="button"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                const filtered = orderImages.filter((_, i) => i !== idx);
+                                                                                setOrderImages(filtered);
+                                                                                setActiveImageIndex(Math.max(0, filtered.length - 1));
+                                                                            }}
+                                                                            className="absolute top-0.5 right-0.5 bg-red-500 text-white p-0.5 rounded-full shadow hover:bg-red-600 transition-colors z-20"
+                                                                        >
+                                                                            <X className="w-2.5 h-2.5" />
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                                
+                                                                {orderImages.length < 4 && (
+                                                                    <div className="border border-dashed border-gray-300 hover:border-brand-terracotta rounded-sm w-[50px] h-[50px] bg-white transition-colors flex flex-col items-center justify-center cursor-pointer relative group">
+                                                                        <input 
+                                                                            type="file" 
+                                                                            accept="image/*"
+                                                                            onChange={async (e) => {
+                                                                                const file = e.target.files?.[0];
+                                                                                if (file) {
+                                                                                    const compressedUrl = await compressImage(file);
+                                                                                    const newImages = [...orderImages, { url: compressedUrl, notes: '' }];
+                                                                                    setOrderImages(newImages);
+                                                                                    setActiveImageIndex(newImages.length - 1);
+                                                                                }
+                                                                            }}
+                                                                            className="absolute inset-0 cursor-pointer w-full h-full z-10"
+                                                                            style={{ opacity: 0 }}
+                                                                        />
+                                                                        <Camera className="w-4 h-4 text-gray-400 group-hover:text-brand-terracotta transition-colors" />
+                                                                        <span className="text-[7px] uppercase font-bold text-gray-400 mt-0.5">+ Foto</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            
+                                                            {orderImages[activeImageIndex] && (
+                                                                <input 
+                                                                    type="text"
+                                                                    value={orderImages[activeImageIndex].notes}
+                                                                    onChange={(e) => {
+                                                                        const val = e.target.value;
+                                                                        setOrderImages(prev => prev.map((img, i) => i === activeImageIndex ? { ...img, notes: val } : img));
+                                                                    }}
+                                                                    placeholder={`Indicaciones para foto ${activeImageIndex + 1}...`}
+                                                                    className="w-full p-2 text-xs bg-white border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta transition-all"
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="border border-dashed border-gray-200 rounded-sm h-[120px] bg-white hover:bg-gray-50 transition-colors flex flex-col items-center justify-center cursor-pointer relative group">
+                                                            <input 
+                                                                type="file" 
+                                                                accept="image/*"
+                                                                onChange={async (e) => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (file) {
+                                                                        const compressedUrl = await compressImage(file);
+                                                                        setOrderImages([{ url: compressedUrl, notes: '' }]);
+                                                                        setActiveImageIndex(0);
+                                                                    }
+                                                                }}
+                                                                className="absolute inset-0 cursor-pointer w-full h-full z-10"
+                                                                style={{ opacity: 0 }}
+                                                            />
+                                                            <Camera className="w-5 h-5 text-gray-400 group-hover:text-brand-terracotta transition-colors mb-1" />
+                                                            <span className="text-[9px] uppercase tracking-wider font-bold text-gray-400 group-hover:text-brand-charcoal transition-colors">Adjuntar Fotos</span>
+                                                            <span className="text-[8px] text-gray-400 mt-0.5">Soporta múltiples imágenes (Máx 4)</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Section 4: Detalle Precio Orden (Catálogo) */}
+                                            <div className={`transition-all mt-6 ${(!selectedCustomer || assignedOperatorId === '' || !selectedCatalogProduct) ? 'opacity-50 pointer-events-none' : ''}`}>
+                                                <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta pb-2 flex items-center gap-2 mb-2 ml-1">
+                                                    <Tag className="w-4 h-4" /> 4. Detalle de Precio Orden
+                                                </h3>
+                                                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-brand-charcoal text-white p-6 rounded-sm shadow-lg">
+                                                    <div className="text-center sm:text-left">
+                                                    <span className="bg-brand-terracotta text-white px-2 py-0.5 rounded-[2px] text-[8px] uppercase tracking-widest font-bold mb-1.5 inline-block">
+                                                        {selectedCatalogProduct.category}
+                                                    </span>
+                                                    <h4 className="font-serif text-lg text-brand-sand">{selectedCatalogProduct.name}</h4>
+                                                    <p className="text-2xl font-serif text-white mt-0.5">{formatCurrency(selectedCatalogProduct.price)}</p>
+                                                </div>
+                                                <button 
+                                                    onClick={() => {
+                                                        addToCart({
+                                                            ...selectedCatalogProduct,
+                                                            notes: orderNotes,
+                                                            images: orderImages,
+                                                            assignedOperatorId: assignedOperatorId
+                                                        });
+                                                        setSelectedCatalogProduct(null);
+                                                        setSelectedCatalogCategory('');
+                                                        setOrderNotes('');
+                                                        setOrderImages([]);
+                                                        setActiveImageIndex(0);
+                                                        setAssignedOperatorId('');
+                                                    }}
+                                                    className="w-full sm:w-auto bg-brand-terracotta text-white px-10 py-4 text-[10px] uppercase tracking-widest font-bold rounded-sm hover:bg-white hover:text-brand-terracotta transition-all shadow-md active:scale-95 text-center"
+                                                >
+                                                    Añadir a la Orden
+                                                </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="space-y-6 pt-4 border-t border-gray-50 animate-in fade-in duration-500">
+                                    {/* Calculator CTA removed as requested, using top right button instead */}
+                                    {/* Notes and Photo attachment for Custom Order */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-1">
                                             <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Descripción del Arreglo / Notas Especiales</label>
@@ -1570,11 +1879,11 @@ export default function POSPage() {
                                                 value={orderNotes}
                                                 onChange={(e) => setOrderNotes(e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1))}
                                                 placeholder="Ej. Ajuste de hombros vestido seda, arreglar dobladillo, etc."
-                                                className="w-full h-[120px] p-3 text-xs bg-white border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta resize-none transition-all"
+                                                className="w-full h-[120px] p-3 text-xs bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta resize-none transition-all focus:bg-white"
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Fotos de Referencia (Hasta 4)</label>
+                                            <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Foto de Referencia (Prenda - Hasta 4)</label>
                                             {orderImages.length > 0 ? (
                                                 <div className="space-y-2 h-[120px] flex flex-col justify-between">
                                                     <div className="flex flex-wrap items-center gap-2">
@@ -1588,7 +1897,7 @@ export default function POSPage() {
                                                                         : 'border-gray-200 hover:border-gray-300'
                                                                 }`}
                                                             >
-                                                                <img src={img.url} alt={`Prenda ${idx + 1}`} className="w-full h-full object-contain" />
+                                                                <img src={img.url} alt={`Prenda Custom ${idx + 1}`} className="w-full h-full object-contain" />
                                                                 <button 
                                                                     type="button"
                                                                     onClick={(e) => {
@@ -1664,212 +1973,71 @@ export default function POSPage() {
                                         </div>
                                     </div>
 
-                                    {/* Section 4: Detalle Precio Orden (Catálogo) */}
-                                    <div className={`transition-all mt-6 ${(!selectedCustomer || assignedOperatorId === '' || !selectedCatalogProduct) ? 'opacity-50 pointer-events-none' : ''}`}>
-                                        <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta pb-2 flex items-center gap-2 mb-2 ml-1">
-                                            <Tag className="w-4 h-4" /> 4. Detalle de Precio Orden
-                                        </h3>
-                                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-brand-charcoal text-white p-6 rounded-sm shadow-lg">
-                                            <div className="text-center sm:text-left">
-                                            <span className="bg-brand-terracotta text-white px-2 py-0.5 rounded-[2px] text-[8px] uppercase tracking-widest font-bold mb-1.5 inline-block">
-                                                {selectedCatalogProduct.category}
-                                            </span>
-                                            <h4 className="font-serif text-lg text-brand-sand">{selectedCatalogProduct.name}</h4>
-                                            <p className="text-2xl font-serif text-white mt-0.5">{formatCurrency(selectedCatalogProduct.price)}</p>
+                        {/* Section 4: Detalle Precio Orden (A Medida) */}
+                        <div className={`transition-all mt-6 ${(!selectedCustomer || assignedOperatorId === '' || !customOrderName.trim()) ? 'opacity-50 pointer-events-none' : ''}`}>
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta pb-2 flex items-center gap-2 mb-2 ml-1">
+                                <Tag className="w-4 h-4" /> 4. Detalle de Precio Orden
+                            </h3>
+                            <div className="flex flex-col md:flex-row justify-between items-center bg-brand-charcoal text-white p-6 rounded-sm shadow-lg gap-6">
+                                        <div className="text-center md:text-left">
+                                            <p className="text-[10px] uppercase tracking-widest text-brand-sand font-bold mb-1">Precio Sugerido (Con Margen {marginPercentage}%)</p>
+                                            <p className="text-3xl font-serif text-white">{formatCurrency(calculatedPrice)}</p>
                                         </div>
+                                        <div className="flex flex-col items-center md:items-start gap-2">
+                                            <label className="text-[10px] uppercase tracking-widest text-brand-sand font-bold">Precio Cobrado Real (CLP)</label>
+                                            <div className="flex items-center gap-2">
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">$</span>
+                                                    <input 
+                                                        type="text" 
+                                                        value={customPrice} 
+                                                        onChange={(e) => {
+                                                            const val = e.target.value.replace(/\D/g, '');
+                                                            setCustomPrice(val ? new Intl.NumberFormat('es-CL').format(Number(val)) : '');
+                                                        }} 
+                                                        placeholder={new Intl.NumberFormat('es-CL').format(Math.round(calculatedPrice))} 
+                                                        className="pl-7 pr-3 py-2.5 w-36 bg-white/10 border border-white/20 rounded-sm text-white text-sm font-bold outline-none focus:border-brand-sand focus:bg-white/15 transition-all"
+                                                    />
+                                                </div>
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => setCustomPrice(new Intl.NumberFormat('es-CL').format(Math.round(calculatedPrice)))}
+                                                    className="px-3.5 py-2.5 bg-white/5 border border-white/20 hover:border-brand-sand rounded-sm text-[9px] uppercase tracking-widest font-bold text-white transition-all active:scale-95 cursor-pointer"
+                                                    title="Copiar precio sugerido"
+                                                >
+                                                    Copiar Sugerido
+                                                </button>
+                                            </div>
+                                            {/* Mostrar porcentaje de descuento */}
+                                            {(() => {
+                                                const finalPrice = customPrice ? Number(customPrice.replace(/\D/g, '')) : calculatedPrice;
+                                                if (finalPrice > 0 && finalPrice < calculatedPrice) {
+                                                    const discountPct = Math.round(((calculatedPrice - finalPrice) / calculatedPrice) * 100);
+                                                    if (discountPct > 0) {
+                                                        return (
+                                                            <span className="text-[9px] bg-green-500/20 text-green-400 border border-green-500/30 px-2.5 py-1 rounded-sm font-bold uppercase tracking-widest animate-pulse">
+                                                                Descuento Realizado: {discountPct}%
+                                                            </span>
+                                                        );
+                                                    }
+                                                }
+                                                return null;
+                                            })()}
+                                        </div>
+
                                         <button 
-                                            onClick={() => {
-                                                addToCart({
-                                                    ...selectedCatalogProduct,
-                                                    notes: orderNotes,
-                                                    images: orderImages,
-                                                    assignedOperatorId: assignedOperatorId
-                                                });
-                                                setSelectedCatalogProduct(null);
-                                                setSelectedCatalogCategory('');
-                                                setOrderNotes('');
-                                                setOrderImages([]);
-                                                setActiveImageIndex(0);
-                                                setAssignedOperatorId('');
-                                            }}
-                                            className="w-full sm:w-auto bg-brand-terracotta text-white px-10 py-4 text-[10px] uppercase tracking-widest font-bold rounded-sm hover:bg-white hover:text-brand-terracotta transition-all shadow-md active:scale-95 text-center"
-                                        >
+                                            onClick={(e) => handleAddCustomOrder(e)}
+                                            disabled={!customOrderName || !hoursEstimated || !customPrice}
+                                            className="w-full md:w-auto bg-brand-terracotta text-white px-10 py-4 text-[10px] uppercase tracking-widest font-bold rounded-sm hover:bg-white hover:text-brand-terracotta transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md">
                                             Añadir a la Orden
                                         </button>
-                                        </div>
                                     </div>
                                 </div>
+                            </div>
                             )}
                         </div>
-                    ) : (
-                        <div className="space-y-6 pt-4 border-t border-gray-50 animate-in fade-in duration-500">
-                            {/* Calculator CTA removed as requested, using top right button instead */}
-                            {/* Notes and Photo attachment for Custom Order */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-1">
-                                    <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Descripción del Arreglo / Notas Especiales</label>
-                                    <textarea 
-                                        spellCheck={true} autoCorrect="on"
-                                        value={orderNotes}
-                                        onChange={(e) => setOrderNotes(e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1))}
-                                        placeholder="Ej. Ajuste de hombros vestido seda, arreglar dobladillo, etc."
-                                        className="w-full h-[120px] p-3 text-xs bg-gray-50 border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta resize-none transition-all focus:bg-white"
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="block text-[10px] uppercase tracking-widest font-bold text-gray-500 mb-1">Foto de Referencia (Prenda - Hasta 4)</label>
-                                    {orderImages.length > 0 ? (
-                                        <div className="space-y-2 h-[120px] flex flex-col justify-between">
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                {orderImages.map((img, idx) => (
-                                                    <div 
-                                                        key={idx}
-                                                        onClick={() => setActiveImageIndex(idx)}
-                                                        className={`relative w-[50px] h-[50px] border rounded-sm overflow-hidden flex items-center justify-center cursor-pointer bg-white transition-all ${
-                                                            idx === activeImageIndex 
-                                                                ? 'border-brand-terracotta ring-1 ring-brand-terracotta' 
-                                                                : 'border-gray-200 hover:border-gray-300'
-                                                        }`}
-                                                    >
-                                                        <img src={img.url} alt={`Prenda Custom ${idx + 1}`} className="w-full h-full object-contain" />
-                                                        <button 
-                                                            type="button"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                const filtered = orderImages.filter((_, i) => i !== idx);
-                                                                setOrderImages(filtered);
-                                                                setActiveImageIndex(Math.max(0, filtered.length - 1));
-                                                            }}
-                                                            className="absolute top-0.5 right-0.5 bg-red-500 text-white p-0.5 rounded-full shadow hover:bg-red-600 transition-colors z-20"
-                                                        >
-                                                            <X className="w-2.5 h-2.5" />
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                                
-                                                {orderImages.length < 4 && (
-                                                    <div className="border border-dashed border-gray-300 hover:border-brand-terracotta rounded-sm w-[50px] h-[50px] bg-white transition-colors flex flex-col items-center justify-center cursor-pointer relative group">
-                                                        <input 
-                                                            type="file" 
-                                                            accept="image/*"
-                                                            onChange={async (e) => {
-                                                                const file = e.target.files?.[0];
-                                                                if (file) {
-                                                                    const compressedUrl = await compressImage(file);
-                                                                    const newImages = [...orderImages, { url: compressedUrl, notes: '' }];
-                                                                    setOrderImages(newImages);
-                                                                    setActiveImageIndex(newImages.length - 1);
-                                                                }
-                                                            }}
-                                                            className="absolute inset-0 cursor-pointer w-full h-full z-10"
-                                                            style={{ opacity: 0 }}
-                                                        />
-                                                        <Camera className="w-4 h-4 text-gray-400 group-hover:text-brand-terracotta transition-colors" />
-                                                        <span className="text-[7px] uppercase font-bold text-gray-400 mt-0.5">+ Foto</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            
-                                            {orderImages[activeImageIndex] && (
-                                                <input 
-                                                    type="text"
-                                                    value={orderImages[activeImageIndex].notes}
-                                                    onChange={(e) => {
-                                                        const val = e.target.value;
-                                                        setOrderImages(prev => prev.map((img, i) => i === activeImageIndex ? { ...img, notes: val } : img));
-                                                    }}
-                                                    placeholder={`Indicaciones para foto ${activeImageIndex + 1}...`}
-                                                    className="w-full p-2 text-xs bg-white border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta transition-all"
-                                                />
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div className="border border-dashed border-gray-200 rounded-sm h-[120px] bg-white hover:bg-gray-50 transition-colors flex flex-col items-center justify-center cursor-pointer relative group">
-                                            <input 
-                                                type="file" 
-                                                accept="image/*"
-                                                onChange={async (e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        const compressedUrl = await compressImage(file);
-                                                        setOrderImages([{ url: compressedUrl, notes: '' }]);
-                                                        setActiveImageIndex(0);
-                                                    }
-                                                }}
-                                                className="absolute inset-0 cursor-pointer w-full h-full z-10"
-                                                style={{ opacity: 0 }}
-                                            />
-                                            <Camera className="w-5 h-5 text-gray-400 group-hover:text-brand-terracotta transition-colors mb-1" />
-                                            <span className="text-[9px] uppercase tracking-wider font-bold text-gray-400 group-hover:text-brand-charcoal transition-colors">Adjuntar Fotos</span>
-                                            <span className="text-[8px] text-gray-400 mt-0.5">Soporta múltiples imágenes (Máx 4)</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                {/* Section 4: Detalle Precio Orden (A Medida) */}
-                <div className={`transition-all mt-6 ${(!selectedCustomer || assignedOperatorId === '' || !customOrderName.trim()) ? 'opacity-50 pointer-events-none' : ''}`}>
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-brand-terracotta pb-2 flex items-center gap-2 mb-2 ml-1">
-                        <Tag className="w-4 h-4" /> 4. Detalle de Precio Orden
-                    </h3>
-                    <div className="flex flex-col md:flex-row justify-between items-center bg-brand-charcoal text-white p-6 rounded-sm shadow-lg gap-6">
-                                <div className="text-center md:text-left">
-                                    <p className="text-[10px] uppercase tracking-widest text-brand-sand font-bold mb-1">Precio Sugerido (Con Margen {marginPercentage}%)</p>
-                                    <p className="text-3xl font-serif text-white">{formatCurrency(calculatedPrice)}</p>
-                                </div>
-                                <div className="flex flex-col items-center md:items-start gap-2">
-                                    <label className="text-[10px] uppercase tracking-widest text-brand-sand font-bold">Precio Cobrado Real (CLP)</label>
-                                    <div className="flex items-center gap-2">
-                                        <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-bold">$</span>
-                                            <input 
-                                                type="text" 
-                                                value={customPrice} 
-                                                onChange={(e) => {
-                                                    const val = e.target.value.replace(/\D/g, '');
-                                                    setCustomPrice(val ? new Intl.NumberFormat('es-CL').format(Number(val)) : '');
-                                                }} 
-                                                placeholder={new Intl.NumberFormat('es-CL').format(Math.round(calculatedPrice))} 
-                                                className="pl-7 pr-3 py-2.5 w-36 bg-white/10 border border-white/20 rounded-sm text-white text-sm font-bold outline-none focus:border-brand-sand focus:bg-white/15 transition-all"
-                                            />
-                                        </div>
-                                        <button 
-                                            type="button"
-                                            onClick={() => setCustomPrice(new Intl.NumberFormat('es-CL').format(Math.round(calculatedPrice)))}
-                                            className="px-3.5 py-2.5 bg-white/5 border border-white/20 hover:border-brand-sand rounded-sm text-[9px] uppercase tracking-widest font-bold text-white transition-all active:scale-95 cursor-pointer"
-                                            title="Copiar precio sugerido"
-                                        >
-                                            Copiar Sugerido
-                                        </button>
-                                    </div>
-                                    {/* Mostrar porcentaje de descuento */}
-                                    {(() => {
-                                        const finalPrice = customPrice ? Number(customPrice.replace(/\D/g, '')) : calculatedPrice;
-                                        if (finalPrice > 0 && finalPrice < calculatedPrice) {
-                                            const discountPct = Math.round(((calculatedPrice - finalPrice) / calculatedPrice) * 100);
-                                            if (discountPct > 0) {
-                                                return (
-                                                    <span className="text-[9px] bg-green-500/20 text-green-400 border border-green-500/30 px-2.5 py-1 rounded-sm font-bold uppercase tracking-widest animate-pulse">
-                                                        Descuento Realizado: {discountPct}%
-                                                    </span>
-                                                );
-                                            }
-                                        }
-                                        return null;
-                                    })()}
-                                </div>
-
-                                <button 
-                                    onClick={(e) => handleAddCustomOrder(e)}
-                                    disabled={!customOrderName || !hoursEstimated || !customPrice}
-                                    className="w-full md:w-auto bg-brand-terracotta text-white px-10 py-4 text-[10px] uppercase tracking-widest font-bold rounded-sm hover:bg-white hover:text-brand-terracotta transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md">
-                                    Añadir a la Orden
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    )}
-                </div>
+                    </>
+                )}
             </div>
 
             {/* Cart Summary & Checkout */}
@@ -2004,6 +2172,7 @@ export default function POSPage() {
                     </div>
 
                     {/* Time Blocking & Delivery Date Selector */}
+                    {posMode === 'new_sale' && (
                     <div className="border-t border-gray-100 pt-6 mt-6 space-y-4">
                         <div className="flex items-center justify-between">
                             <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">Fecha de Entrega</h4>
@@ -2316,6 +2485,7 @@ export default function POSPage() {
                             </div>
                         )}
                     </div>
+                    )}
 
                     {hasUnassignedItems && (
                         <div className="bg-red-50 border border-red-200 text-red-700 text-xs p-3.5 rounded-sm flex items-start gap-2 mt-6">
@@ -2327,7 +2497,54 @@ export default function POSPage() {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-3 gap-3 mt-6">
+                    {posMode === 'new_sale' && (
+                    <div className="mt-6">
+                        <label className="block text-[10px] uppercase tracking-widest font-bold text-brand-charcoal mb-3">Abono Inicial</label>
+                        <div className="grid grid-cols-3 gap-3">
+                            <button 
+                                type="button"
+                                disabled={hasUnassignedItems}
+                                onClick={() => setInitialPaymentType('total')}
+                                className={`py-3 text-[10px] uppercase tracking-widest font-bold transition-all rounded-sm border ${
+                                    hasUnassignedItems ? 'bg-gray-50 text-gray-300 border-gray-200 opacity-50 cursor-not-allowed' :
+                                    initialPaymentType === 'total' ? 'bg-brand-terracotta text-white border-brand-terracotta shadow-sm' : 'bg-white text-gray-500 border-gray-200 hover:border-brand-terracotta'
+                                }`}
+                            >
+                                Pago Total
+                            </button>
+                            <button 
+                                type="button"
+                                disabled={hasUnassignedItems}
+                                onClick={() => setInitialPaymentType('50percent')}
+                                className={`py-3 text-[10px] uppercase tracking-widest font-bold transition-all rounded-sm border ${
+                                    hasUnassignedItems ? 'bg-gray-50 text-gray-300 border-gray-200 opacity-50 cursor-not-allowed' :
+                                    initialPaymentType === '50percent' ? 'bg-brand-terracotta text-white border-brand-terracotta shadow-sm' : 'bg-white text-gray-500 border-gray-200 hover:border-brand-terracotta'
+                                }`}
+                            >
+                                Abono 50%
+                            </button>
+                            <button 
+                                type="button"
+                                disabled={hasUnassignedItems}
+                                onClick={() => {
+                                    setInitialPaymentType('zero');
+                                    setPaymentMethod(null);
+                                }}
+                                className={`py-3 text-[10px] uppercase tracking-widest font-bold transition-all rounded-sm border ${
+                                    hasUnassignedItems ? 'bg-gray-50 text-gray-300 border-gray-200 opacity-50 cursor-not-allowed' :
+                                    initialPaymentType === 'zero' ? 'bg-brand-terracotta text-white border-brand-terracotta shadow-sm' : 'bg-white text-gray-500 border-gray-200 hover:border-brand-terracotta'
+                                }`}
+                            >
+                                Contra Entrega
+                            </button>
+                        </div>
+                    </div>
+                    )}
+
+                    {initialPaymentType !== 'zero' && (
+                    <div className="mt-6">
+                    <label className="block text-[10px] uppercase tracking-widest font-bold text-brand-charcoal mb-3">Método de Pago</label>
+                    <div className="grid grid-cols-3 gap-3">
                         <button 
                             type="button"
                             disabled={hasUnassignedItems}
@@ -2360,8 +2577,9 @@ export default function POSPage() {
                             type="button"
                             disabled={hasUnassignedItems}
                             onClick={() => {
+                                const charge = initialPaymentType === '50percent' ? Math.round(total / 2) : total;
                                 setPaymentMethod('cash');
-                                setSplitCashAmount(total);
+                                setSplitCashAmount(charge);
                                 setSplitCardAmount(0);
                             }}
                             className={`flex flex-col items-center justify-center gap-2 py-3.5 text-[9px] uppercase tracking-widest transition-all rounded-sm border ${
@@ -2375,8 +2593,10 @@ export default function POSPage() {
                             <span className="text-center px-1">Efectivo / Mixto</span>
                         </button>
                     </div>
+                    </div>
+                    )}
 
-                    {paymentMethod === 'cash' && (
+                    {paymentMethod === 'cash' && initialPaymentType !== 'zero' && (
                         <div className="mt-4 p-4 border border-brand-terracotta/20 bg-brand-terracotta/5 rounded-sm space-y-4">
                             <h4 className="text-[10px] font-bold uppercase tracking-widest text-brand-charcoal text-center mb-2">Detalle de Pago</h4>
                             <div className="grid grid-cols-2 gap-4">
@@ -2389,8 +2609,9 @@ export default function POSPage() {
                                         placeholder="0"
                                         onChange={(e) => {
                                             const val = Number(e.target.value.replace(/[^0-9]/g, '')) || 0;
+                                            const charge = initialPaymentType === '50percent' ? Math.round(total / 2) : total;
                                             setSplitCardAmount(val);
-                                            setSplitCashAmount(total - val);
+                                            setSplitCashAmount(charge - val);
                                         }}
                                         className="w-full border-b border-gray-300 py-2 text-sm bg-transparent outline-none focus:border-brand-charcoal font-mono"
                                     />
@@ -2404,34 +2625,37 @@ export default function POSPage() {
                                         placeholder="0"
                                         onChange={(e) => {
                                             const val = Number(e.target.value.replace(/[^0-9]/g, '')) || 0;
+                                            const charge = initialPaymentType === '50percent' ? Math.round(total / 2) : total;
                                             setSplitCashAmount(val);
-                                            setSplitCardAmount(total - val);
+                                            setSplitCardAmount(charge - val);
                                         }}
                                         className="w-full border-b border-gray-300 py-2 text-sm bg-transparent outline-none focus:border-brand-charcoal font-mono"
                                     />
                                 </div>
                             </div>
-                            {splitCardAmount + splitCashAmount !== total && (
-                                <p className="text-[10px] text-red-500 font-bold text-center">⚠ La suma debe ser exactamente {formatCurrency(total)}</p>
+                            {splitCardAmount + splitCashAmount !== (initialPaymentType === '50percent' ? Math.round(total / 2) : total) && (
+                                <p className="text-[10px] text-red-500 font-bold text-center">⚠ La suma debe ser exactamente {formatCurrency(initialPaymentType === '50percent' ? Math.round(total / 2) : total)}</p>
                             )}
                         </div>
                     )}
 
 
-                    <div className="grid grid-cols-1 gap-2 mt-4">
-                        <button 
-                            type="button"
-                            onClick={generateBudgetLink}
-                            disabled={cart.length === 0}
-                            className="w-full border border-brand-charcoal text-brand-charcoal py-4 text-[10px] uppercase tracking-widest font-bold hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                            Generar Presupuesto Web (Link)
-                        </button>
+                    <div className="flex flex-col gap-2 mt-4">
+                        {posMode === 'new_sale' && (
+                            <button 
+                                type="button"
+                                onClick={generateBudgetLink}
+                                disabled={cart.length === 0}
+                                className="w-full border border-brand-charcoal text-brand-charcoal py-4 text-[10px] uppercase tracking-widest font-bold hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                Generar Presupuesto Web (Link)
+                            </button>
+                        )}
                         <button 
                             type="button"
                             onClick={handleCheckout}
-                            disabled={cart.length === 0 || !paymentMethod || !selectedCustomer || !deadline || isProcessing || hasUnassignedItems || (paymentMethod === 'split' && splitCardAmount + splitCashAmount !== total)}
+                            disabled={cart.length === 0 || !selectedCustomer || (posMode === 'new_sale' && !deadline) || isProcessing || hasUnassignedItems || (initialPaymentType !== 'zero' && (!paymentMethod || (paymentMethod === 'split' && splitCardAmount + splitCashAmount !== (initialPaymentType === '50percent' ? Math.round(total / 2) : total))))}
                             className={`w-full py-4 text-[10px] uppercase tracking-widest font-bold transition-all ${
-                                cart.length === 0 || !paymentMethod || !selectedCustomer || !deadline || isProcessing || hasUnassignedItems || (paymentMethod === 'split' && splitCardAmount + splitCashAmount !== total)
+                                cart.length === 0 || !selectedCustomer || (posMode === 'new_sale' && !deadline) || isProcessing || hasUnassignedItems || (initialPaymentType !== 'zero' && (!paymentMethod || (paymentMethod === 'split' && splitCardAmount + splitCashAmount !== (initialPaymentType === '50percent' ? Math.round(total / 2) : total))))
                                     ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
                                     : 'bg-green-600 text-white hover:bg-green-700 shadow-md'
                             }`}>
@@ -2441,15 +2665,34 @@ export default function POSPage() {
                                     ? '⚠ Falta Asignar Costurera'
                                     : !selectedCustomer
                                         ? 'Falta Identificar Cliente'
-                                        : !deadline
+                                        : (posMode === 'new_sale' && !deadline)
                                             ? '⚠ Falta Fecha y Hora de Entrega'
-                                            : paymentMethod === 'mercadopago_point'
-                                                ? 'Enviar a Terminal Físico'
-                                                : paymentMethod === 'transbank'
-                                                    ? 'Generar Link de Pago'
-                                                    : 'Cobrar y Emitir Boleta'
+                                            : initialPaymentType === 'zero'
+                                                ? 'Registrar Orden sin Pago Inicial'
+                                                : paymentMethod === 'mercadopago_point'
+                                                    ? 'Enviar a Terminal Físico'
+                                                    : paymentMethod === 'transbank'
+                                                        ? 'Generar Link de Pago'
+                                                        : 'Cobrar y Emitir Boleta'
                             }
                         </button>
+
+                        {cart.length > 0 && (
+                            <button 
+                                type="button"
+                                onClick={() => {
+                                    setCart([]);
+                                    setPosMode('new_sale');
+                                    setPendingOrderToPay(null);
+                                    setInitialPaymentType('total');
+                                    setPaymentMethod(null);
+                                    setSplitCardAmount(0);
+                                    setSplitCashAmount(0);
+                                }}
+                                className="w-full border border-red-200 text-red-500 py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-red-50 hover:border-red-500 transition-all mt-2">
+                                {posMode === 'pay_balance' ? 'Cancelar Pago de Saldo' : 'Cancelar Venta y Vaciar Carrito'}
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -2751,6 +2994,22 @@ export default function POSPage() {
                                         className="flex-1 py-3 bg-brand-terracotta text-white text-[10px] uppercase tracking-widest font-bold hover:bg-brand-charcoal transition-all rounded-sm shadow-md"
                                     >
                                         Validar Manualmente
+                                    </button>
+                                    <button 
+                                        onClick={async () => {
+                                            if (confirm('¿Estás seguro de que deseas anular la operación? Se borrarán los registros creados.')) {
+                                                const res = await cancelPendingOrderAction(checkoutResult.orderId, posMode === 'pay_balance');
+                                                if (res.success) {
+                                                    alert('Operación anulada exitosamente.');
+                                                    handleCloseCheckout();
+                                                } else {
+                                                    alert('Error al anular la operación: ' + res.error);
+                                                }
+                                            }
+                                        }}
+                                        className="flex-1 py-3 bg-red-100 text-red-600 border border-red-300 text-[10px] uppercase tracking-widest font-bold hover:bg-red-200 transition-all rounded-sm shadow-md"
+                                    >
+                                        Anular Operación Fallida
                                     </button>
                                 </div>
                             ) : (

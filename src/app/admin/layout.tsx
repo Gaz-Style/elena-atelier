@@ -1,6 +1,7 @@
 import React from 'react';
 import { createClient } from '@/lib/supabase/server';
 import AdminHeader from '@/components/AdminHeader';
+import AdminLayoutClient from '@/components/AdminLayoutClient';
 
 export default async function AdminLayout({
   children,
@@ -11,14 +12,14 @@ export default async function AdminLayout({
   const { data: { user } } = await supabase.auth.getUser();
 
   return (
-    <div className="flex flex-col min-h-screen w-full max-w-full overflow-x-hidden relative bg-white text-brand-charcoal">
+    <AdminLayoutClient>
       {/* Admin Topbar */}
       <AdminHeader hasUser={!!user} />
       
       <div className="flex-grow w-full max-w-full overflow-x-hidden">
         {children}
       </div>
-    </div>
+    </AdminLayoutClient>
   );
 }
 

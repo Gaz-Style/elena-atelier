@@ -64,6 +64,24 @@ export async function saveCostSettings(formData: FormData) {
   return { success: true };
 }
 
+export async function getHcTimeSettings() {
+  const supabase = await createClient();
+  const { data } = await supabase.from('company_settings').select('value').eq('key', 'hc_time_settings').maybeSingle();
+  return data?.value || null;
+}
+
+export async function saveHcTimeSettings(settings: any) {
+  const supabase = await createClient();
+  const { error } = await supabase.from('company_settings')
+    .upsert(
+      { key: 'hc_time_settings', value: settings },
+      { onConflict: 'key' }
+    );
+  if (error) return { error: error.message };
+  revalidatePath('/admin/pos');
+  return { success: true };
+}
+
 // PROVIDERS
 export async function getProviders() {
   const supabase = await createClient();

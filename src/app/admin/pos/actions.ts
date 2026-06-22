@@ -4,6 +4,7 @@ import nodemailer from 'nodemailer';
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { getCurrentCashRegisterAction } from '../caja/actions';
 
 const getAdminClient = () => {
     return createSupabaseClient(
@@ -500,8 +501,9 @@ export async function createPOSOrdersAction(payload: {
     productionStartDate?: string | null;
     productionEndDate?: string | null;
     finalDeliveryDate?: string | null;
+    paidAmount?: number;
 }) {
-    const { customerId, posOrderId, paymentMethod, paymentStatus, status, items, deadline, productionStartDate, productionEndDate, finalDeliveryDate } = payload;
+    const { customerId, posOrderId, paymentMethod, paymentStatus, status, items, deadline, productionStartDate, productionEndDate, finalDeliveryDate, paidAmount = 0 } = payload;
     const supabase = await createClient();
 
     const totalAmount = items.reduce((sum, item) => sum + item.price, 0);
@@ -509,6 +511,17 @@ export async function createPOSOrdersAction(payload: {
     const taxAmount = totalAmount - subtotal;
     const internalId = posOrderId || `ERP-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
     const finalCustomerId = customerId === 'unassigned' ? null : customerId;
+
+    let derivedStatus = 'pending';
+    if (paymentStatus === 'pending_terminal') {
+        derivedStatus = 'pending';
+    } else if (paidAmount >= totalAmount) {
+        derivedStatus = 'paid';
+    } else if (paidAmount > 0) {
+        derivedStatus = 'partial';
+    } else if (paymentStatus === 'paid' || paymentStatus === 'completed') {
+        derivedStatus = 'paid';
+    }
 
     // 1. Insert Sales Ledger record
     const { data: saleData, error: saleError } = await supabase
@@ -519,7 +532,8 @@ export async function createPOSOrdersAction(payload: {
             net_amount: subtotal,
             tax_amount: taxAmount,
             total_amount: totalAmount,
-            status: paymentStatus === 'paid' || paymentStatus === 'completed' ? 'completed' : 'pending',
+            paid_amount: paidAmount,
+            status: derivedStatus === 'paid' ? 'completed' : 'pending',
             payment_method: paymentMethod || null,
             external_transaction_id: null
         }])
@@ -553,7 +567,8 @@ export async function createPOSOrdersAction(payload: {
                 assigned_operator_id: item.assignedOperatorId && item.assignedOperatorId !== 'unassigned' ? item.assignedOperatorId : null,
                 pos_order_id: posOrderId || null,
                 payment_method: paymentMethod || null,
-                payment_status: paymentStatus || 'pending'
+                payment_status: derivedStatus,
+                paid_amount: paidAmount
             }])
             .select('id')
             .single();
@@ -581,6 +596,20 @@ export async function createPOSOrdersAction(payload: {
     if (errors.length > 0) {
         console.error('Errors inserting POS production orders:', errors.map(e => e.error?.message));
         return { success: false, error: errors[0].error?.message };
+    }
+
+    // 3. Insert Cash Movement if paidAmount > 0 and payment method is manual (cash, card, transfer)
+    if (paidAmount > 0 && paymentMethod && paymentMethod !== 'webpay') {
+        const { register: activeRegister } = await getCurrentCashRegisterAction();
+        if (activeRegister) {
+            await supabase.from('cash_movements').insert([{
+                register_id: activeRegister.id,
+                type: 'in',
+                amount: paidAmount,
+                reason: `Abono orden ${internalId} (${paymentMethod})`,
+                created_by: 'POS'
+            }]);
+        }
     }
 
     // 3. Si hay finalDeliveryDate, sincronizar con la Agenda como "Retiro de Prenda"
@@ -962,6 +991,26 @@ export async function updateAtelierConfigAction(config: {
     return { success: true };
 }
 
+export async function updateAtelierTemplatesAction(templates: any[]) {
+    const supabase = await createClient();
+    
+    // We only update the templates column of the single configuration row
+    const { error } = await supabase
+        .from('atelier_config')
+        .update({
+            hc_templates: templates,
+            updated_at: new Date().toISOString()
+        })
+        .eq('id', 'c0ffee88-8888-8888-8888-888888888888');
+        
+    if (error) {
+        console.error('Error updating atelier templates:', error);
+        return { success: false, error: error.message };
+    }
+    
+    return { success: true };
+}
+
 export async function getOperatorsAction() {
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -1117,22 +1166,33 @@ export async function updateOrderStatusToPaidAction(posOrderId: string) {
 
     // El buyOrder de Transbank viene con el formato "order_123" o "budget_123"
     // Pero en production_orders el pos_order_id es "order_123" completo, así que actualizamos usando eso.
+    // Actualizar Planilla de Ventas
+    const internalId = posOrderId; // O si guardamos un ID distinto
+    
+    // Obtener total_amount
+    const { data: salesData } = await supabase
+        .from('sales_ledger')
+        .select('total_amount')
+        .eq('internal_id', internalId)
+        .single();
+        
+    const finalTotal = salesData?.total_amount || 0;
+
+    const { error: salesError } = await supabase
+        .from('sales_ledger')
+        .update({ status: 'completed', paid_amount: finalTotal })
+        .eq('internal_id', internalId);
+        
+    // Actualizar production_orders con el paid_amount también
     const { error: prodError } = await supabase
         .from('production_orders')
-        .update({ payment_status: 'paid', status: 'pending' }) // Pasamos status a pending ya que estaba en draft
+        .update({ payment_status: 'paid', status: 'pending', paid_amount: finalTotal }) // Pasamos status a pending ya que estaba en draft
         .eq('pos_order_id', posOrderId);
         
     if (prodError) {
         console.error('Error updating order to paid:', prodError);
         return { success: false, error: prodError.message };
     }
-    
-    // Actualizar Planilla de Ventas
-    const internalId = posOrderId; // O si guardamos un ID distinto
-    const { error: salesError } = await supabase
-        .from('sales_ledger')
-        .update({ status: 'completed' })
-        .eq('internal_id', internalId);
         
     if (salesError) {
         console.error('Error updating sales ledger:', salesError);
@@ -1804,4 +1864,36 @@ export async function deleteBudgetAction(id: string) {
     if (error) return { success: false, error: error.message };
     revalidatePath('/admin/quotes');
     return { success: true };
+}
+
+export async function cancelPendingOrderAction(orderId: string, isBalancePayment: boolean) {
+    try {
+        const supabase = await createClient();
+        
+        if (isBalancePayment) {
+            const { data: pendingBalanceRows } = await supabase
+                .from('sales_ledger')
+                .select('*')
+                .like('internal_id', `${orderId}_balance_%`)
+                .eq('status', 'pending');
+                
+            if (pendingBalanceRows && pendingBalanceRows.length > 0) {
+                for (const row of pendingBalanceRows) {
+                    await supabase.from('sales_ledger').delete().eq('id', row.id);
+                }
+            }
+            
+            await supabase.from('production_orders').update({ payment_status: 'partial' }).eq('pos_order_id', orderId);
+            await supabase.from('sales_ledger').update({ status: 'partial' }).eq('internal_id', orderId);
+        } else {
+            await supabase.from('production_orders').delete().eq('pos_order_id', orderId);
+            await supabase.from('sales_ledger').delete().eq('internal_id', orderId);
+        }
+        
+        revalidatePath('/admin/pos');
+        revalidatePath('/admin/caja');
+        return { success: true, error: null };
+    } catch (err: any) {
+        return { success: false, error: err.message };
+    }
 }
