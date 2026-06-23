@@ -210,12 +210,15 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
                                             className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider outline-none border border-transparent cursor-pointer transition-all ${
                                                 sale.status === 'completed' 
                                                     ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                                                    : sale.status === 'pending' 
+                                                    : sale.status === 'pending' || sale.status === 'pending_terminal'
                                                         ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' 
-                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                        : sale.status === 'partial'
+                                                            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                             }`}
                                         >
                                             <option value="pending" className="bg-white text-orange-700 font-bold">Pendiente</option>
+                                            <option value="partial" className="bg-white text-blue-700 font-bold">Abono</option>
                                             <option value="completed" className="bg-white text-green-700 font-bold">Pagado</option>
                                             <option value="cancelled" className="bg-white text-gray-600 font-bold">Cancelada</option>
                                         </select>

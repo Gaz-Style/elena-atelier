@@ -137,17 +137,54 @@ export async function deleteSaleAction(saleId: string) {
 
 export async function updateSaleStatusAction(saleId: string, status: string) {
     const supabase = await createClient();
+    
+    // 1. Obtener la venta original
+    const { data: saleData } = await supabase
+        .from('sales_ledger')
+        .select('total_amount, internal_id')
+        .eq('id', saleId)
+        .single();
+        
+    if (!saleData) {
+        return { success: false, error: 'Venta no encontrada' };
+    }
+
+    let updateData: any = { status };
+    let newPaymentStatus = 'pending';
+    
+    if (status === 'completed') {
+        updateData.paid_amount = saleData.total_amount;
+        newPaymentStatus = 'paid';
+    } else if (status === 'pending') {
+        updateData.paid_amount = 0;
+        newPaymentStatus = 'pending';
+    }
+
+    // 2. Actualizar sales_ledger
     const { error } = await supabase
         .from('sales_ledger')
-        .update({ status })
+        .update(updateData)
         .eq('id', saleId);
 
     if (error) {
         return { success: false, error: error.message };
     }
+    
+    // 3. Sincronizar en cascada production_orders (Producción)
+    if (status === 'completed' || status === 'pending') {
+         await supabase
+            .from('production_orders')
+            .update({
+                payment_status: newPaymentStatus,
+                paid_amount: updateData.paid_amount
+            })
+            .eq('pos_order_id', saleData.internal_id);
+    }
 
     revalidatePath('/admin/sales');
     revalidatePath(`/admin/sales/${saleId}`);
+    revalidatePath('/admin/production');
+    revalidatePath('/admin/production-board');
     return { success: true };
 }
 
@@ -323,7 +360,7 @@ export async function cobrarEnCajaAction(payload: {
         return { success: false, error: 'Error al actualizar la venta: ' + saleError.message };
     }
 
-    // 2. Buscar caja abierta y registrar ingreso
+    // 2. Buscar caja abierta y registrar ingreso en efectivo
     const { data: openRegister } = await supabase
         .from('cash_registers')
         .select('id')
@@ -333,17 +370,23 @@ export async function cobrarEnCajaAction(payload: {
         .maybeSingle();
 
     if (openRegister) {
-        const methodLabel: Record<string, string> = {
-            mercadopago_point: 'Pago Máquina',
-            cash: 'Efectivo / Mixto',
-        };
-        await supabase.from('cash_movements').insert([{
-            register_id: openRegister.id,
-            type: 'in',
-            amount: totalAmount,
-            reason: `Cobro presencial en caja — Venta ${internalId} (antes pendiente online)`,
-            created_by: 'Admin',
-        }]);
+        const cashNum = Math.round(Number(splitCashAmount));
+        const cardNum = Math.round(Number(splitCardAmount));
+        const cashAmount = paymentMethod === 'cash'
+            ? (cardNum > 0 ? cashNum : totalAmount)
+            : 0;
+
+        if (cashAmount > 0) {
+            await supabase.from('cash_movements').insert([{
+                register_id: openRegister.id,
+                type: 'in',
+                amount: cashAmount,
+                reason: cardNum > 0
+                    ? `Cobro presencial en caja — Venta ${internalId} (Efectivo/Transf. de Pago Mixto)`
+                    : `Cobro presencial en caja — Venta ${internalId} (Efectivo / Transferencia)`,
+                created_by: 'Admin',
+            }]);
+        }
     }
 
     revalidatePath('/admin/sales');

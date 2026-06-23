@@ -40,8 +40,13 @@ export async function createCustomer(formData: FormData) {
   const typical_occasion = formData.get('typical_occasion') as string;
   const marketing_opt_in = formData.get('marketing_opt_in') === 'on';
 
-  const supabase = await createClient();
-  const { data, error } = await supabase
+  const { createClient: createAdminClient } = await import('@supabase/supabase-js');
+  const supabaseAdmin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { data, error } = await supabaseAdmin
     .from('customers')
     .insert([{
       full_name,

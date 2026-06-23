@@ -41,6 +41,9 @@ CREATE TABLE IF NOT EXISTS public.ai_agent_tasks (
     result JSONB, -- Respuesta o acción generada por el agente
     error_log TEXT,
     
+    prompt_tokens INTEGER DEFAULT 0,
+    completion_tokens INTEGER DEFAULT 0,
+    
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     processed_at TIMESTAMP WITH TIME ZONE
 );

@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, 
 import { getCostSettings } from '../finance/actions';
 import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
-import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction, saveBudgetAction, wakeUpMercadoPagoTerminalAction, requestDiscountAuthorizationAction, getOperatorsDailyLoadAction, analyzeDesignWithGeminiAction, cancelPendingOrderAction } from './actions';
+import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction, saveBudgetAction, wakeUpMercadoPagoTerminalAction, requestDiscountAuthorizationAction, getOperatorsDailyLoadAction, analyzeDesignWithGeminiAction, cancelPendingOrderAction, getLatestWebhookLogsAction, sendWhatsAppPaymentConfirmationAction } from './actions';
 import { createPaymentPreference } from '@/lib/payments';
 import { createWebpayTransaction } from '@/lib/transbank';
 import { getCurrentCashRegisterAction, getAllPendingOrdersAction, payOrderBalanceAction } from '../caja/actions';
@@ -1039,7 +1039,9 @@ export default function POSPage() {
                     deadline: deadline || null,
                     productionStartDate: adjustedDates?.productionStartDate || null,
                     productionEndDate: adjustedDates?.productionEndDate || null,
-                    finalDeliveryDate: deadline || adjustedDates?.finalDeliveryDate || null
+                    finalDeliveryDate: adjustedDates?.finalDeliveryDate || deadline || null,
+                    splitCashAmount: (paymentMethod === 'cash' && splitCardAmount > 0) ? splitCashAmount : undefined,
+                    splitCardAmount: (paymentMethod === 'cash' && splitCardAmount > 0) ? splitCardAmount : undefined
                 });
 
                 if (!res.success) {
@@ -1051,6 +1053,9 @@ export default function POSPage() {
 
             let paymentUrl = '';
             if (initialPaymentType === 'zero') {
+                const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.elenalacosturera.cl';
+                paymentUrl = `${siteUrl}/pagar/${finalOrderIdStr}?amount=${total}`;
+                
                 setCheckoutResult({
                     orderId: finalOrderIdStr.replace('order_', ''),
                     customer: selectedCustomer,
@@ -1059,13 +1064,43 @@ export default function POSPage() {
                     items: cart,
                     method: 'Pago Contra Entrega',
                     date: dateStr,
-                    deliveryDate: deadline ? new Date(deadline).toLocaleDateString() : null
+                    deliveryDate: deadline ? new Date(deadline).toLocaleDateString() : null,
+                    paymentUrl: paymentUrl
                 });
                 setPaymentConfirmed(true);
+
+                if (selectedCustomer.email && posMode === 'new_sale') {
+                    sendOrderConfirmationEmailAction({
+                        customerEmail: selectedCustomer.email,
+                        customerName: selectedCustomer.full_name,
+                        orderId: Number(finalOrderIdStr.replace('order_', '')) || 0,
+                        items: cart.map(item => ({
+                            name: item.name,
+                            price: item.price,
+                            category: item.category,
+                            notes: item.notes || ''
+                        })),
+                        total: total,
+                        paymentMethod: 'Pago Contra Entrega',
+                        date: dateStr,
+                        deliveryDate: deadline || adjustedDates?.finalDeliveryDate || '',
+                        deliveryWindowStart: adjustedDates?.config?.windowStart ? adjustedDates.config.windowStart.slice(0, 5) : '15:00',
+                        deliveryWindowEnd: adjustedDates?.config?.windowEnd ? adjustedDates.config.windowEnd.slice(0, 5) : '18:00',
+                        paymentUrl: paymentUrl
+                    }).catch(err => {
+                        console.error('Error al enviar correo automático de Pago Contra Entrega:', err);
+                    });
+                }
+
+                setCart([]);
+                setPaymentMethod(null);
+                setDeadline('');
+                setDailyWorkload(null);
                 setIsProcessing(false);
                 return;
             } else if (paymentMethod === 'transbank') {
-                paymentUrl = `${window.location.origin}/pagar/${finalOrderIdStr}?amount=${amountToCharge}`;
+                const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.elenalacosturera.cl';
+                paymentUrl = `${siteUrl}/pagar/${finalOrderIdStr}?amount=${amountToCharge}`;
             } else if (paymentMethod === 'mercadopago_point' || (paymentMethod === 'cash' && splitCardAmount > 0)) {
                 try {
                     const mpDesc = posMode === 'pay_balance' ? `Pago Saldo - ${finalOrderIdStr}` : `Orden de Trabajo #${newOrderIdNumber}`;
@@ -1091,25 +1126,25 @@ export default function POSPage() {
                 orderId: finalOrderIdStr.replace('order_', ''),
                 customer: selectedCustomer,
                 items: [...cart],
-                total: amountToCharge, // In pay_balance, total amount being paid is amountToCharge
+                total: amountToCharge,
                 method: finalPaymentMethodStr,
                 date: dateStr,
                 deliveryDate: finalDeliveryDateStr,
-                paymentUrl: paymentUrl
+                paymentUrl: paymentUrl,
+                splitCashAmount: (paymentMethod === 'cash' && splitCardAmount > 0) ? splitCashAmount : undefined,
+                splitCardAmount: (paymentMethod === 'cash' && splitCardAmount > 0) ? splitCardAmount : undefined
             });
             
-            // Reset payment confirmed state for physical terminal polling
             setPaymentConfirmed(false);
             if (paymentMethod === 'cash' && splitCardAmount === 0) {
                 setPaymentConfirmed(true);
             }
 
-            // Enviar automáticamente el correo de confirmación si no es un pago de saldo
-            if (selectedCustomer.email && posMode === 'new_sale') {
+            if (selectedCustomer.email && (posMode === 'new_sale' || paymentMethod === 'transbank' || initialPaymentType === 'zero')) {
                 sendOrderConfirmationEmailAction({
                     customerEmail: selectedCustomer.email,
                     customerName: selectedCustomer.full_name,
-                    orderId: newOrderIdNumber,
+                    orderId: posMode === 'new_sale' ? newOrderIdNumber : Number(finalOrderIdStr.replace('order_', '')),
                     items: cart.map(item => ({
                         name: item.name,
                         price: item.price,
@@ -1117,16 +1152,26 @@ export default function POSPage() {
                         notes: item.notes || '',
                         images: item.images || []
                     })),
-                    total: total,
+                    total: amountToCharge,
                     paymentMethod: finalPaymentMethodStr || '',
                     date: dateStr,
                     deliveryDate: deadline || adjustedDates?.finalDeliveryDate || '',
                     deliveryWindowStart: adjustedDates?.config?.windowStart?.slice(0, 5) || '15:00',
                     deliveryWindowEnd: adjustedDates?.config?.windowEnd?.slice(0, 5) || '18:00',
-                    paymentUrl: paymentUrl
+                    paymentUrl: paymentUrl,
+                    splitCashAmount: (paymentMethod === 'cash' && splitCardAmount > 0) ? splitCashAmount : undefined,
+                    splitCardAmount: (paymentMethod === 'cash' && splitCardAmount > 0) ? splitCardAmount : undefined,
+                    subject: posMode === 'pay_balance' ? 'Link de Pago - Saldo de Orden — ELENA La Costurera' : undefined
                 }).catch(err => {
                     console.error('Error al enviar correo automático de confirmación:', err);
                 });
+            }
+            
+            // NUEVO: Enviar WhatsApp si el pago es en efectivo/transferencia
+            if (paymentMethod === 'cash' && posMode === 'new_sale' && amountToCharge > 0) {
+                const paidNow = splitCardAmount > 0 ? (splitCashAmount + splitCardAmount) : amountToCharge;
+                sendWhatsAppPaymentConfirmationAction(finalOrderIdStr.replace('order_', ''), paidNow, finalPaymentMethodStr || 'Efectivo/Transferencia')
+                    .catch(err => console.error('Error enviando WhatsApp de confirmacion de efectivo:', err));
             }
             
             setCart([]);
@@ -1135,7 +1180,7 @@ export default function POSPage() {
             setDailyWorkload(null);
             if (posMode === 'pay_balance') {
                 setPendingOrderToPay(null);
-                setPosMode('new_sale'); // Return to new sale after paying
+                setPosMode('new_sale'); 
                 getAllPendingOrdersAction().then(res => {
                     if (res.success) setAllPendingOrders(res.orders || []);
                 });
@@ -1183,7 +1228,7 @@ export default function POSPage() {
             const budgetData = {
                 cart: cart.map(item => ({
                     ...item,
-                    images: undefined // Strip File objects to prevent serialization error
+                    images: undefined
                 })),
                 total: total,
                 date: new Date().toISOString(),
@@ -1192,7 +1237,7 @@ export default function POSPage() {
                 customerEmail: selectedCustomer ? selectedCustomer.email : null,
                 customerPhone: selectedCustomer ? selectedCustomer.phone : null,
                 posOrderId: posOrderId,
-                adjustedDates: adjustedDates // To reconstruct the order later
+                adjustedDates: adjustedDates 
             };
             const result = await saveBudgetAction(budgetData);
             
@@ -1204,7 +1249,6 @@ export default function POSPage() {
                     setClientPhone(selectedCustomer.phone || '');
                     setClientEmail(selectedCustomer.email || '');
                     
-                    // Auto-send email if customer has email
                     if (selectedCustomer.email) {
                         setIsSendingEmail(true);
                         sendBudgetEmailAction({
@@ -1223,7 +1267,6 @@ export default function POSPage() {
                         }).catch(err => console.error('Unexpected error auto-sending budget email:', err))
                           .finally(() => setIsSendingEmail(false));
                     }
-                    // Auto-send WhatsApp if customer has phone
                     if (selectedCustomer.phone) {
                         const WHATSAPP_API_TOKEN = process.env.NEXT_PUBLIC_WHATSAPP_API_TOKEN || process.env.WHATSAPP_API_TOKEN;
                         const PHONE_NUMBER_ID = process.env.NEXT_PUBLIC_WHATSAPP_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_NUMBER_ID;
@@ -2893,6 +2936,13 @@ export default function POSPage() {
                                 <p className="text-3xl font-serif text-brand-terracotta">{formatCurrency(checkoutResult.total)}</p>
                             </div>
 
+                            {((checkoutResult.method === 'mercadopago_point' || checkoutResult.method?.startsWith('Mixto')) && !paymentConfirmed) && (
+                                <WebhookSupervisorPanel 
+                                    checkoutResult={checkoutResult} 
+                                    paymentConfirmed={paymentConfirmed} 
+                                />
+                            )}
+
                             {!((checkoutResult.method === 'mercadopago_point' || checkoutResult.method?.startsWith('Mixto')) && !paymentConfirmed) && (
                             <div className="border-t border-gray-100 pt-6 space-y-4 print:hidden">
                                 <div className="bg-gray-50 p-4 rounded-sm border border-gray-200/60 flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -2924,7 +2974,9 @@ export default function POSPage() {
                                                             paymentMethod: checkoutResult.method,
                                                             date: checkoutResult.date,
                                                             deliveryDate: checkoutResult.deliveryDate || '',
-                                                            paymentUrl: checkoutResult.paymentUrl
+                                                            paymentUrl: checkoutResult.paymentUrl,
+                                                            splitCashAmount: checkoutResult.splitCashAmount,
+                                                            splitCardAmount: checkoutResult.splitCardAmount
                                                         });
                                                         if (res.success) {
                                                             alert('¡Comprobante enviado por correo con éxito! ✨');
@@ -3426,6 +3478,81 @@ export default function POSPage() {
     );
 }
 
+function WebhookSupervisorPanel({ checkoutResult, paymentConfirmed }: any) {
+    const [logs, setLogs] = useState<any[]>([]);
+    const [isOpen, setIsOpen] = useState(true);
+
+    useEffect(() => {
+        if (paymentConfirmed) return;
+        
+        let interval: NodeJS.Timeout;
+        
+        const fetchLogs = async () => {
+            try {
+                const res = await getLatestWebhookLogsAction();
+                if (res.success && res.logs) {
+                    setLogs(res.logs);
+                }
+            } catch (err) {
+                console.error("Error fetching webhook logs:", err);
+            }
+        };
+
+        fetchLogs();
+        interval = setInterval(fetchLogs, 3000);
+        return () => clearInterval(interval);
+    }, [paymentConfirmed]);
+
+    if (paymentConfirmed) return null;
+
+    return (
+        <div className="border border-gray-200 rounded-sm overflow-hidden bg-white mt-4">
+            <button 
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full bg-gray-50 px-4 py-3 flex justify-between items-center text-[10px] uppercase tracking-widest font-bold text-gray-500 hover:bg-gray-100 transition-all border-b border-gray-100"
+            >
+                <span className="flex items-center gap-2">🔍 Supervisión del Webhook (Tiempo Real)</span>
+                <span>{isOpen ? '▲' : '▼'}</span>
+            </button>
+            
+            {isOpen && (
+                <div className="p-4 space-y-2 max-h-[220px] overflow-y-auto font-mono text-[9px] text-gray-600 bg-gray-50/50">
+                    {logs.length === 0 ? (
+                        <p className="text-gray-400 italic text-center py-2">No se encontraron logs recientes de Mercado Pago.</p>
+                    ) : (
+                        logs.map((log: any, idx: number) => {
+                            const date = new Date(log.created_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                            let badgeColor = 'bg-blue-100 text-blue-800';
+                            if (log.level === 'ERROR') badgeColor = 'bg-red-100 text-red-800';
+                            if (log.level === 'WARN') badgeColor = 'bg-yellow-100 text-yellow-800';
+
+                            return (
+                                <div key={log.id || idx} className="p-2 border-b border-gray-150 last:border-0 flex flex-col gap-1 hover:bg-white rounded-sm transition-all text-left">
+                                    <div className="flex items-center justify-between">
+                                        <span className="flex items-center gap-1.5">
+                                            <span className={`px-1.5 py-0.2 rounded-[2px] font-bold text-[8px] uppercase ${badgeColor}`}>{log.level}</span>
+                                            <span className="font-bold text-gray-800">{log.message}</span>
+                                        </span>
+                                        <span className="text-gray-400 text-[8px]">{date}</span>
+                                    </div>
+                                    {log.payload && (
+                                        <details className="mt-1">
+                                            <summary className="cursor-pointer text-brand-terracotta font-semibold hover:underline text-[8px]">Ver Detalles del Payload</summary>
+                                            <pre className="mt-1 bg-white p-2 border border-gray-200 rounded-[1px] max-w-full overflow-x-auto whitespace-pre-wrap leading-tight text-gray-700">
+                                                {JSON.stringify(log.payload, null, 2)}
+                                            </pre>
+                                        </details>
+                                    )}
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
 // Helper component for polling so we can use useEffect cleanly inside the conditionally rendered block
 function PollingComponent({ checkoutResult, paymentConfirmed, setPaymentConfirmed }: any) {
     useEffect(() => {
@@ -3437,7 +3564,7 @@ function PollingComponent({ checkoutResult, paymentConfirmed, setPaymentConfirme
             try {
                 const orderRef = `order_${checkoutResult.orderId}`;
                 const res = await checkOrderStatusAction(orderRef);
-                if (res.success && res.status === 'PAGADO') {
+                if (res.success && res.status === 'paid') {
                     setPaymentConfirmed(true);
                 }
             } catch (err) {

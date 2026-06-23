@@ -26,14 +26,14 @@ export default function Home() {
               </video>
             </div>
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <span className="text-[10px] uppercase tracking-[0.45em] font-medium text-brand-sand block">Elena Rojas Bustamante</span>
+              <span className="text-[10px] uppercase tracking-[0.45em] font-medium text-brand-sand block">ELENA LA COSTURERA</span>
               <h2 className="font-serif text-4xl md:text-5xl leading-tight mb-6 md:mb-8">El oficio detrás <br className="hidden md:block"/><span className="italic text-brand-sand">de ELENA</span></h2>
               <div className="space-y-4 text-white/80 text-sm md:text-base leading-relaxed max-w-2xl mx-auto lg:mx-0">
                   <p>
-                    Empecé en el living de mi casa, entre arreglos, pruebas y horas aprendiendo a escuchar lo que cada prenda necesitaba. Con el tiempo, esa dedicación y la precisión de mi trabajo me llevaron a colaborar desde Chile en proyectos vinculados a pasarela, vestuario y diseño contemporáneo, participando en experiencias que expandieron mi manera de entender el oficio textil.
+                    El oficio de la costura exige más que talento; requiere rigor, horas incalculables de práctica y un entendimiento estructural de cada tejido. Mi trayectoria se ha forjado en el taller, perfeccionando técnicas complejas, estudiando la arquitectura de las prendas y exigiendo siempre el estándar más alto en cada terminación.
                   </p>
                   <p>
-                    Hoy, desde mi atelier en Vitacura, sigo trabajando con la misma cercanía y dedicación de siempre. Cada ajuste, restauración o pieza a medida nace desde la idea de que la costura no solo transforma prendas, sino también la forma en que una persona se siente al habitarlas.
+                    Hoy, mi atelier en Vitacura opera bajo esa misma filosofía de excelencia. Cada restauración, ajuste de sastrería o pieza de alta costura que pasa por mis manos es tratada con una precisión casi matemática, porque entiendo que mi trabajo no solo consiste en unir telas, sino en construir prendas impecables que superen el paso del tiempo.
                   </p>
               </div>
             </div>

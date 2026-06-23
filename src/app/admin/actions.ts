@@ -83,3 +83,135 @@ export async function getDashboardData() {
         bestMarginProducts
     };
 }
+
+export async function getDetailedDashboardData() {
+    const supabase = await createClient();
+
+    // 1. Cash Register Status
+    const { data: activeRegister, error: registerError } = await supabase
+        .from('cash_registers')
+        .select('*')
+        .eq('status', 'open')
+        .order('opened_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    let cashRegisterStatus = {
+        id: activeRegister?.id || null,
+        isOpen: !!activeRegister,
+        openedAt: activeRegister?.opened_at || null,
+        openedBy: activeRegister?.opened_by || null,
+        openingAmount: activeRegister?.opening_amount || 0,
+        expectedCash: 0,
+        salesCount: 0
+    };
+
+    if (activeRegister) {
+        // Fetch sales since opening
+        const { data: sales } = await supabase
+            .from('sales_ledger')
+            .select('total_amount, payment_method')
+            .gte('created_at', activeRegister.opened_at)
+            .eq('status', 'completed');
+
+        // Fetch movements
+        const { data: movements } = await supabase
+            .from('cash_movements')
+            .select('amount, type')
+            .eq('register_id', activeRegister.id);
+
+        let expectedCash = Number(activeRegister.opening_amount);
+        if (sales) {
+            sales.forEach(sale => {
+                const method = sale.payment_method?.toLowerCase() || '';
+                if (method.includes('efectivo') || method.includes('transferencia')) {
+                    expectedCash += Number(sale.total_amount);
+                } else if (method.includes('mixto')) {
+                    const cashMatch = method.match(/efectivo:\s*\$(\d+)/i);
+                    if (cashMatch) expectedCash += Number(cashMatch[1]);
+                }
+            });
+        }
+        if (movements) {
+            movements.forEach(m => {
+                if (m.type === 'in') expectedCash += Number(m.amount);
+                else if (m.type === 'out') expectedCash -= Number(m.amount);
+            });
+        }
+        cashRegisterStatus.expectedCash = expectedCash;
+        cashRegisterStatus.salesCount = sales?.length || 0;
+    }
+
+    // 2. CRM Stats
+    const { count: totalChats } = await supabase
+        .from('crm_whatsapp_chats')
+        .select('*', { count: 'exact', head: true });
+
+    const { count: pendingHandoffs } = await supabase
+        .from('crm_whatsapp_chats')
+        .select('*', { count: 'exact', head: true })
+        .eq('session_status', 'human_handoff');
+
+    const { data: chatsWithScore } = await supabase
+        .from('crm_whatsapp_chats')
+        .select('lead_score')
+        .not('lead_score', 'is', null);
+
+    let avgLeadScore = 0;
+    if (chatsWithScore && chatsWithScore.length > 0) {
+        const sum = chatsWithScore.reduce((acc, c) => acc + Number(c.lead_score || 0), 0);
+        avgLeadScore = Math.round(sum / chatsWithScore.length);
+    }
+
+    // 3. AI Agent Tasks Stats
+    const { data: tasks } = await supabase
+        .from('ai_agent_tasks')
+        .select('status, prompt_tokens, completion_tokens, agent_role')
+        .order('created_at', { ascending: false });
+
+    let aiStats = {
+        pending: 0,
+        processing: 0,
+        completed: 0,
+        failed: 0,
+        totalTokens: 0,
+        activeAgents: new Set<string>()
+    };
+
+    if (tasks) {
+        tasks.forEach(t => {
+            if (t.status === 'pending') aiStats.pending++;
+            else if (t.status === 'processing') aiStats.processing++;
+            else if (t.status === 'completed') aiStats.completed++;
+            else if (t.status === 'failed') aiStats.failed++;
+
+            aiStats.totalTokens += (t.prompt_tokens || 0) + (t.completion_tokens || 0);
+            if (t.agent_role) aiStats.activeAgents.add(t.agent_role);
+        });
+    }
+
+    // 4. Recent notifications
+    const { data: recentNotifications } = await supabase
+        .from('system_notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+    return {
+        cashRegister: cashRegisterStatus,
+        crm: {
+            totalChats: totalChats || 0,
+            pendingHandoffs: pendingHandoffs || 0,
+            avgLeadScore
+        },
+        ai: {
+            pending: aiStats.pending,
+            processing: aiStats.processing,
+            completed: aiStats.completed,
+            failed: aiStats.failed,
+            totalTokens: aiStats.totalTokens,
+            activeAgentsCount: aiStats.activeAgents.size
+        },
+        notifications: recentNotifications || []
+    };
+}

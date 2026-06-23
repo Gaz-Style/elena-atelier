@@ -34,15 +34,9 @@ async function updateDatabaseAndNotify(
         
     const { data: existingOrders } = await supabase
         .from('production_orders')
-        .select('payment_status, payment_method, paid_amount, total_price')
+        .select('payment_status, payment_method, paid_amount')
         .eq('pos_order_id', externalRef)
         .limit(1);
-
-    if (existingLedger && existingLedger.external_transaction_id === paymentId) {
-        console.log(`Pago ${paymentId} ya fue procesado para orden ${externalRef}. Evitando duplicados.`);
-        await logSystemEvent(supabase, 'INFO', `Orden ya estaba pagada con este ID, ignorando webhook duplicado`, { externalRef, paymentId });
-        return true;
-    }
 
     // Preserve "Mixto" payment method if it exists
     let finalPaymentMethodLabel = paymentMethodLabel;
@@ -50,12 +44,46 @@ async function updateDatabaseAndNotify(
         finalPaymentMethodLabel = existingOrders[0].payment_method;
     }
 
+    if (existingLedger && existingLedger.external_transaction_id === paymentId) {
+        console.log(`Pago ${paymentId} ya fue procesado para orden ${externalRef}. Evitando duplicados.`);
+        
+        // Corregir proactivamente si quedó en un estado inconsistente en producción
+        const { data: currentOrders } = await supabase
+            .from('production_orders')
+            .select('payment_status, paid_amount')
+            .eq('pos_order_id', externalRef);
+            
+        const needsUpdate = currentOrders && currentOrders.some((o: any) => o.payment_status !== 'paid' || o.paid_amount !== existingLedger.paid_amount);
+        if (needsUpdate) {
+            console.log(`Sincronizando estado inconsistente en producción para ${externalRef}`);
+            await supabase
+                .from('production_orders')
+                .update({ 
+                    payment_status: 'paid',
+                    payment_method: finalPaymentMethodLabel,
+                    paid_amount: existingLedger.paid_amount
+                })
+                .eq('pos_order_id', externalRef);
+        }
+
+        await logSystemEvent(supabase, 'INFO', `Orden ya estaba pagada con este ID, ignorando webhook duplicado`, { externalRef, paymentId });
+        return true;
+    }
+
     const safeAmount = Number(amount || 0);
 
-    // 1. Actualizar todas las filas de la orden en producción
-    const newProdPaidAmount = Number(existingOrders?.[0]?.paid_amount || 0) + safeAmount;
-    const isFullyPaidProd = newProdPaidAmount >= Number(existingOrders?.[0]?.total_price || existingLedger?.total_amount || 0);
-    const newProdStatus = isFullyPaidProd ? 'PAGADO' : 'partial';
+    // 1. Actualizar todas las filas de la orden en producción (usando ledger como fuente principal)
+    const previousPaidAmount = existingLedger 
+        ? Number(existingLedger.paid_amount || 0)
+        : Number(existingOrders?.[0]?.paid_amount || 0);
+    const newProdPaidAmount = previousPaidAmount + safeAmount;
+    
+    const totalOrderAmount = existingLedger 
+        ? Number(existingLedger.total_amount || 0) 
+        : Number(existingOrders?.[0]?.paid_amount || 0);
+        
+    const isFullyPaidProd = newProdPaidAmount >= totalOrderAmount;
+    const newProdStatus = isFullyPaidProd ? 'paid' : 'partial';
 
     const { error } = await supabase
         .from('production_orders')
@@ -87,6 +115,15 @@ async function updateDatabaseAndNotify(
             payment_method: finalPaymentMethodLabel
         })
         .eq('internal_id', externalRef);
+
+    if (isFullyPaidLedger) {
+        try {
+            const { sendOrderConfirmationEmailByOrderIdAction } = await import('@/app/admin/pos/actions');
+            await sendOrderConfirmationEmailByOrderIdAction(externalRef);
+        } catch (emailErr) {
+            console.error('Error al enviar correo de confirmación de pago desde el webhook:', emailErr);
+        }
+    }
 
     // 3. Update pending balance row if exists (para pagos de saldo con maquina)
     const { data: pendingBalanceRow } = await supabase
@@ -138,20 +175,27 @@ async function updateDatabaseAndNotify(
             }
         };
 
-        // Obtener detalles de la orden para personalizar el mensaje
+        // Obtener detalles de la orden para personalizar el mensaje (corrigiendo columnas inexistentes)
         const { data: orders } = await supabase
             .from('production_orders')
-            .select('customer_name, customer_phone, item_name, total_price')
+            .select(`
+                description,
+                customers (
+                    full_name,
+                    phone
+                )
+            `)
             .eq('pos_order_id', externalRef)
             .limit(1);
 
         if (orders && orders.length > 0) {
             const order = orders[0];
-            const finalAmount = amount || order.total_price || 0;
+            const customerObj: any = Array.isArray(order.customers) ? order.customers[0] : order.customers;
+            const finalAmount = amount || existingLedger?.total_amount || 0;
             const monto = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(finalAmount);
-            const prenda = order.item_name || 'Servicio';
-            const clienteName = order.customer_name || 'Clienta';
-            const clientePhone = order.customer_phone?.replace(/[^0-9]/g, '');
+            const prenda = order.description || 'Servicio';
+            const clienteName = customerObj?.full_name || 'Clienta';
+            const clientePhone = customerObj?.phone?.replace(/[^0-9]/g, '');
 
             // Alerta a los dueños
             for (const ownerNum of ['56984021940', '56937667709']) {

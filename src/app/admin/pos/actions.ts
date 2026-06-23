@@ -247,18 +247,56 @@ export async function sendOrderConfirmationEmailAction(payload: {
     deliveryWindowStart?: string;
     deliveryWindowEnd?: string;
     paymentUrl?: string;
+    splitCashAmount?: number;
+    splitCardAmount?: number;
+    subject?: string;
 }) {
     try {
-        const { customerEmail, customerName, orderId, items, total, paymentMethod, date, deliveryDate, deliveryWindowStart, deliveryWindowEnd, paymentUrl: providedPaymentUrl } = payload;
+        const { customerEmail, customerName, orderId, items, total, paymentMethod, date, deliveryDate, deliveryWindowStart, deliveryWindowEnd, paymentUrl: providedPaymentUrl, splitCashAmount, splitCardAmount, subject } = payload;
+
+        let finalItems = items;
+        let originalTotal = total;
+        let isBalancePayment = subject?.toLowerCase().includes('saldo') || false;
+
+        // Detect if it's a balance payment by checking the cart items
+        if (items.length === 1 && (items[0].category === 'pago_saldo' || items[0].name.toLowerCase().includes('pago saldo'))) {
+            isBalancePayment = true;
+            const { createClient } = await import('@/lib/supabase/server');
+            const supabase = await createClient();
+            
+            // Get original sale total
+            const { data: sale } = await supabase.from('sales_ledger').select('total_amount').eq('internal_id', `order_${orderId}`).single();
+            if (sale) {
+                originalTotal = sale.total_amount;
+            }
+
+            // Get original items
+            const { data: prodOrders } = await supabase.from('production_orders').select('*').eq('pos_order_id', `order_${orderId}`);
+            if (prodOrders && prodOrders.length > 0) {
+                const itemCount = prodOrders.length;
+                const averagePrice = Math.round(originalTotal / itemCount);
+                finalItems = prodOrders.map((item, idx) => ({
+                    name: item.description || 'Prenda de Vestir',
+                    price: idx === itemCount - 1 ? (originalTotal - averagePrice * (itemCount - 1)) : averagePrice,
+                    category: item.order_type === 'bespoke' ? 'Alta Costura' : 'Prenda',
+                    notes: item.notes || ''
+                }));
+            }
+        }
 
         // Format delivery date for display
         const deliveryDateObj = new Date(deliveryDate);
-        const deliveryDateFormatted = deliveryDateObj.toLocaleDateString('es-CL', {
-            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-        });
-        const deliveryTimeFormatted = deliveryDateObj.toLocaleTimeString('es-CL', {
-            hour: '2-digit', minute: '2-digit', hour12: false
-        });
+        const isInvalidDate = isNaN(deliveryDateObj.getTime());
+        const deliveryDateFormatted = isInvalidDate
+            ? deliveryDate
+            : deliveryDateObj.toLocaleDateString('es-CL', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+        const deliveryTimeFormatted = isInvalidDate
+            ? ''
+            : deliveryDateObj.toLocaleTimeString('es-CL', {
+                hour: '2-digit', minute: '2-digit', hour12: false
+            });
 
         const smtpUser = process.env.SMTP_USER || '';
         const smtpPassword = process.env.SMTP_PASSWORD || '';
@@ -320,7 +358,7 @@ export async function sendOrderConfirmationEmailAction(payload: {
         const garmentsSectionHtml = `
             <div style="margin-bottom: 24px; text-align: left;">
               <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
-                ${items.map(item => `
+                ${finalItems.map(item => `
                   <tr style="border-bottom: 1px solid rgba(245, 242, 235, 0.08);">
                     <td style="padding: 10px 0; text-align: left; vertical-align: top; font-family: 'Inter', sans-serif;">
                       <p style="margin: 0; font-size: 11px; font-weight: 500; color: #FFFFFF; line-height: 1.3; letter-spacing: 0.5px;">${item.name}</p>
@@ -334,11 +372,33 @@ export async function sendOrderConfirmationEmailAction(payload: {
               </table>
               <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
                 <tr>
-                  <td style="padding: 4px 0; text-align: left; font-size: 8px; font-weight: 600; color: #8A857D; letter-spacing: 2px; text-transform: uppercase; font-family: 'Inter', sans-serif;">Total Pagado</td>
+                  <td style="padding: 4px 0; text-align: left; font-size: 8px; font-weight: 600; color: #8A857D; letter-spacing: 2px; text-transform: uppercase; font-family: 'Inter', sans-serif;">Total Orden</td>
                   <td style="padding: 4px 0; text-align: right; font-family: 'Playfair Display', Georgia, serif; font-size: 18px; font-weight: 300; color: #C17F5F;">
+                    ${formatCurrency(originalTotal)}
+                  </td>
+                </tr>
+                ${isBalancePayment ? `
+                <tr>
+                  <td style="padding: 4px 0; text-align: left; font-size: 8px; font-weight: 600; color: #C17F5F; letter-spacing: 2px; text-transform: uppercase; font-family: 'Inter', sans-serif;">Saldo a Pagar</td>
+                  <td style="padding: 4px 0; text-align: right; font-family: 'Playfair Display', Georgia, serif; font-size: 16px; font-weight: bold; color: #C17F5F;">
                     ${formatCurrency(total)}
                   </td>
                 </tr>
+                ` : ''}
+                ${splitCashAmount || splitCardAmount ? `
+                <tr>
+                  <td style="padding: 4px 0; text-align: left; font-size: 8px; font-weight: 600; color: #8A857D; letter-spacing: 2px; text-transform: uppercase; font-family: 'Inter', sans-serif;">Pagado en Efectivo / Transf.</td>
+                  <td style="padding: 4px 0; text-align: right; font-family: 'Playfair Display', Georgia, serif; font-size: 14px; font-weight: 300; color: #E5E0D8;">
+                    ${formatCurrency(splitCashAmount || 0)}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 4px 0; text-align: left; font-size: 8px; font-weight: 600; color: #8A857D; letter-spacing: 2px; text-transform: uppercase; font-family: 'Inter', sans-serif;">Pagado con Tarjeta</td>
+                  <td style="padding: 4px 0; text-align: right; font-family: 'Playfair Display', Georgia, serif; font-size: 14px; font-weight: 300; color: #E5E0D8;">
+                    ${formatCurrency(splitCardAmount || 0)}
+                  </td>
+                </tr>
+                ` : ''}
               </table>
             </div>
             `;
@@ -412,7 +472,7 @@ export async function sendOrderConfirmationEmailAction(payload: {
     
     <!-- Body -->
     <div style="padding: 36px 30px 40px 30px; text-align: center;">
-      <p style="font-size: 8px; font-weight: 600; color: #C17F5F; letter-spacing: 5px; text-transform: uppercase; margin: 0 0 4px 0; font-family: 'Inter', sans-serif;">Ingreso Atelier</p>
+      <p style="font-size: 8px; font-weight: 600; color: #C17F5F; letter-spacing: 5px; text-transform: uppercase; margin: 0 0 4px 0; font-family: 'Inter', sans-serif;">${isBalancePayment ? 'Pago de Saldo' : 'Ingreso Atelier'}</p>
       <h2 style="font-family: 'Playfair Display', Georgia, serif; font-size: 56px; font-weight: 300; color: #FFFFFF; margin: 0 0 28px 0; line-height: 1; letter-spacing: -2px;">#${orderId}</h2>
       
       <p style="font-family: 'Playfair Display', Georgia, serif; font-size: 20px; font-style: italic; font-weight: 400; color: #F5F5F0; margin: 0 0 36px 0; letter-spacing: 0.5px;">${customerName}</p>
@@ -432,7 +492,7 @@ export async function sendOrderConfirmationEmailAction(payload: {
           </p>
         </div>
 
-        ${paymentUrl && paymentMethod === 'transbank' ? `
+        ${paymentUrl && (paymentMethod === 'transbank' || paymentMethod.toLowerCase().includes('contra entrega')) ? `
         <!-- Botón de Pago -->
         <div style="margin: 12px 0 20px 0; text-align: center;">
           <a href="${paymentUrl}" target="_blank" style="display: block; background-color: #C17F5F; color: #FFFFFF !important; text-decoration: none; padding: 15px 24px; font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 2.5px; border-radius: 2px; border: 1px solid #C17F5F; font-family: 'Inter', sans-serif; box-shadow: 0 4px 12px rgba(193, 127, 95, 0.25);">
@@ -467,7 +527,7 @@ export async function sendOrderConfirmationEmailAction(payload: {
         const info = await transporter.sendMail({
             from: `"ELENA La Costurera" <${fromAddress}>`,
             to: customerEmail,
-            subject: `Tu pieza ya ingresó al atelier — ELENA La Costurera`,
+            subject: subject || `Tu pieza ya ingresó al atelier — ELENA La Costurera`,
             html: htmlContent,
             attachments: attachments,
         });
@@ -480,6 +540,212 @@ export async function sendOrderConfirmationEmailAction(payload: {
     }
 }
 
+export async function sendOrderConfirmationEmailByOrderIdAction(posOrderId: string) {
+    const supabase = await createClient();
+    try {
+        // 1. Obtener la venta
+        const { data: sale, error: saleErr } = await supabase
+            .from('sales_ledger')
+            .select('*')
+            .eq('internal_id', posOrderId)
+            .single();
+
+        if (saleErr || !sale) {
+            console.error('Error al buscar la venta para enviar correo:', saleErr);
+            return { success: false, error: 'Venta no encontrada en el sistema' };
+        }
+
+        // 2. Obtener datos del cliente
+        let customerEmail = '';
+        let customerName = 'Clienta';
+        if (sale.customer_id) {
+            const { data: customer } = await supabase
+                .from('customers')
+                .select('full_name, email')
+                .eq('id', sale.customer_id)
+                .single();
+            if (customer) {
+                customerEmail = customer.email || '';
+                customerName = customer.full_name || 'Clienta';
+            }
+        }
+
+        if (!customerEmail) {
+            console.log(`La orden ${posOrderId} no tiene un correo de cliente asociado. Omitiendo envío.`);
+            return { success: true, message: 'Cliente sin correo registrado' };
+        }
+
+        // 3. Obtener prendas asociadas a la orden
+        const { data: prodOrders } = await supabase
+            .from('production_orders')
+            .select('*')
+            .eq('pos_order_id', posOrderId);
+
+        const ordersList = prodOrders || [];
+        const itemCount = ordersList.length || 1;
+        const averagePrice = Math.round(sale.total_amount / itemCount);
+        
+        const mappedItems = ordersList.map((item, idx) => ({
+            name: item.description || 'Prenda de Vestir',
+            price: idx === itemCount - 1 ? (sale.total_amount - averagePrice * (itemCount - 1)) : averagePrice,
+            category: item.order_type === 'bespoke' ? 'Alta Costura' : 'Prenda',
+            notes: item.notes || ''
+        }));
+
+        // 4. Extraer desgloses mixtos si los hay
+        let splitCash: number | undefined = undefined;
+        let splitCard: number | undefined = undefined;
+        if (sale.payment_method && sale.payment_method.toLowerCase().includes('mixto')) {
+            const cashMatch = sale.payment_method.match(/efectivo:\s*\$?(\d+)/i);
+            const cardMatch = sale.payment_method.match(/m(?:á|a)quina:\s*\$?(\d+)/i);
+            if (cashMatch) splitCash = Number(cashMatch[1]);
+            if (cardMatch) splitCard = Number(cardMatch[1]);
+        }
+
+        const firstOrder = ordersList[0];
+        const deliveryDateStr = firstOrder?.deadline || firstOrder?.final_delivery_date || '';
+
+        // 5. Enviar el correo usando la plantilla existente
+        return await sendOrderConfirmationEmailAction({
+            customerEmail,
+            customerName,
+            orderId: parseInt(posOrderId.replace('order_', '')) || 0,
+            items: mappedItems,
+            total: sale.total_amount,
+            paymentMethod: sale.payment_method || '',
+            date: sale.created_at,
+            deliveryDate: deliveryDateStr,
+            splitCashAmount: splitCash,
+            splitCardAmount: splitCard,
+            subject: `Confirmación de Pago Recibido — ELENA La Costurera`
+        });
+    } catch (err: any) {
+        console.error('Error en sendOrderConfirmationEmailByOrderIdAction:', err);
+        return { success: false, error: err.message };
+    }
+}
+
+export async function sendWhatsAppPaymentConfirmationAction(posOrderId: string, amount: number, paymentMethod: string) {
+    const supabase = await createClient();
+    try {
+        // 1. Obtener los detalles de la venta
+        const { data: sale } = await supabase
+            .from('sales_ledger')
+            .select('*')
+            .eq('internal_id', posOrderId)
+            .single();
+
+        if (!sale) return { success: false, error: 'Venta no encontrada en registros' };
+
+        // 2. Obtener prendas para la descripción
+        const { data: prodOrders } = await supabase
+            .from('production_orders')
+            .select('description, customer_id')
+            .eq('pos_order_id', posOrderId)
+            .limit(1);
+
+        const prenda = prodOrders?.[0]?.description || 'Servicio';
+        const customerId = sale.customer_id || prodOrders?.[0]?.customer_id;
+
+        // 3. Obtener detalles del cliente
+        let clienteName = 'Clienta';
+        let clientePhone = '';
+        if (customerId) {
+            const { data: customer } = await supabase
+                .from('customers')
+                .select('full_name, phone')
+                .eq('id', customerId)
+                .single();
+            if (customer) {
+                clienteName = customer.full_name || 'Clienta';
+                clientePhone = customer.phone || '';
+            }
+        }
+
+        const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+        const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
+
+        if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
+            const sendWsp = async (to: string, templateName: string, params: string[], languageCode: string = 'es_CL') => {
+                try {
+                    const r = await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            messaging_product: 'whatsapp',
+                            to,
+                            type: 'template',
+                            template: {
+                                name: templateName,
+                                language: { code: languageCode },
+                                components: [{
+                                    type: 'body',
+                                    parameters: params.map(p => ({ type: 'text', text: p }))
+                                }]
+                            }
+                        })
+                    });
+                    const d = await r.json();
+                    console.log(`WhatsApp ${templateName} → ${to}:`, d);
+                } catch (e) {
+                    console.error(`Error WhatsApp ${templateName}:`, e);
+                }
+            };
+
+            const monto = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(amount);
+
+            // Alerta a los dueños
+            for (const ownerNum of ['56984021940', '56937667709']) {
+                await sendWsp(ownerNum, 'alerta_pago_recibido', [
+                    clienteName, prenda, monto, posOrderId, paymentMethod
+                ], 'en');
+            }
+
+            // Confirmación al cliente
+            const cleanPhone = clientePhone.replace(/[^0-9]/g, '');
+            if (cleanPhone && cleanPhone.length >= 9) {
+                const fullPhone = cleanPhone.startsWith('56') ? cleanPhone : `56${cleanPhone}`;
+                await sendWsp(fullPhone, 'confirmacion_pago_cliente', [
+                    clienteName
+                ], 'es_CL');
+
+                // Registrar en el Chat en Vivo (CRM)
+                try {
+                    let { data: chatData } = await supabase
+                        .from('crm_whatsapp_chats')
+                        .select('id')
+                        .eq('phone_number', fullPhone)
+                        .single();
+
+                    if (!chatData) {
+                        const { data: newChat } = await supabase
+                            .from('crm_whatsapp_chats')
+                            .insert([{ phone_number: fullPhone, session_status: 'bot' }])
+                            .select('id')
+                            .single();
+                        chatData = newChat;
+                    }
+
+                    if (chatData) {
+                        const readableMsg = `✅ *Confirmación de Pago Enviada*\n\nEstimada ${clienteName}, confirmamos el pago de tu prenda *${prenda}* por un valor de *${monto}* (ID Orden: ${posOrderId}) a través de *${paymentMethod}*. ¡Tu proyecto ya está en proceso!`;
+                        await supabase.from('crm_whatsapp_messages').insert([{
+                            chat_id: chatData.id,
+                            sender_type: 'system',
+                            message_type: 'text',
+                            content: readableMsg
+                        }]);
+                    }
+                } catch (dbErr) {
+                    console.error('Error logging confirmacion_pago to LiveChat:', dbErr);
+                }
+            }
+        }
+        return { success: true };
+    } catch (error: any) {
+        console.error('Error in sendWhatsAppPaymentConfirmationAction:', error);
+        return { success: false, error: error.message };
+    }
+}
 
 export async function createPOSOrdersAction(payload: {
     customerId: string;
@@ -502,9 +768,20 @@ export async function createPOSOrdersAction(payload: {
     productionEndDate?: string | null;
     finalDeliveryDate?: string | null;
     paidAmount?: number;
+    splitCashAmount?: number;
+    splitCardAmount?: number;
 }) {
-    const { customerId, posOrderId, paymentMethod, paymentStatus, status, items, deadline, productionStartDate, productionEndDate, finalDeliveryDate, paidAmount = 0 } = payload;
+    const { customerId, posOrderId, paymentMethod, paymentStatus, status, items, deadline, productionStartDate, productionEndDate, finalDeliveryDate, paidAmount = 0, splitCashAmount, splitCardAmount } = payload;
     const supabase = await createClient();
+
+    let finalPaymentMethod = paymentMethod;
+    if (splitCashAmount !== undefined && splitCardAmount !== undefined) {
+        const cashNum = Math.round(Number(splitCashAmount));
+        const cardNum = Math.round(Number(splitCardAmount));
+        if (cashNum > 0 && cardNum > 0) {
+            finalPaymentMethod = `Mixto (Máquina: $${cardNum}, Efectivo: $${cashNum})`;
+        }
+    }
 
     const totalAmount = items.reduce((sum, item) => sum + item.price, 0);
     const subtotal = Math.round(totalAmount / 1.19);
@@ -534,7 +811,7 @@ export async function createPOSOrdersAction(payload: {
             total_amount: totalAmount,
             paid_amount: paidAmount,
             status: derivedStatus === 'paid' ? 'completed' : 'pending',
-            payment_method: paymentMethod || null,
+            payment_method: finalPaymentMethod || null,
             external_transaction_id: null
         }])
         .select('id')
@@ -566,7 +843,7 @@ export async function createPOSOrdersAction(payload: {
                 final_delivery_date: finalDeliveryDate || null,
                 assigned_operator_id: item.assignedOperatorId && item.assignedOperatorId !== 'unassigned' ? item.assignedOperatorId : null,
                 pos_order_id: posOrderId || null,
-                payment_method: paymentMethod || null,
+                payment_method: finalPaymentMethod || null,
                 payment_status: derivedStatus,
                 paid_amount: paidAmount
             }])
@@ -599,16 +876,28 @@ export async function createPOSOrdersAction(payload: {
     }
 
     // 3. Insert Cash Movement if paidAmount > 0 and payment method is manual (cash, card, transfer)
-    if (paidAmount > 0 && paymentMethod && paymentMethod !== 'webpay') {
+    if (paidAmount > 0 && finalPaymentMethod && finalPaymentMethod !== 'webpay') {
         const { register: activeRegister } = await getCurrentCashRegisterAction();
         if (activeRegister) {
-            await supabase.from('cash_movements').insert([{
-                register_id: activeRegister.id,
-                type: 'in',
-                amount: paidAmount,
-                reason: `Abono orden ${internalId} (${paymentMethod})`,
-                created_by: 'POS'
-            }]);
+            const inserts = [];
+            if (splitCashAmount && splitCardAmount) {
+                inserts.push({
+                    register_id: activeRegister.id,
+                    type: 'in',
+                    amount: splitCashAmount,
+                    reason: `Abono orden ${internalId} (Efectivo/Transf.)`,
+                    created_by: 'POS'
+                });
+            } else {
+                inserts.push({
+                    register_id: activeRegister.id,
+                    type: 'in',
+                    amount: paidAmount,
+                    reason: `Abono orden ${internalId} (${finalPaymentMethod})`,
+                    created_by: 'POS'
+                });
+            }
+            await supabase.from('cash_movements').insert(inserts);
         }
     }
 
@@ -648,18 +937,37 @@ export async function createPOSOrdersAction(payload: {
 
 export async function checkOrderStatusAction(posOrderId: string) {
     const supabase = await createClient();
-    const { data, error } = await supabase
+    
+    // 1. Verificar production_orders
+    const { data: prodData } = await supabase
         .from('production_orders')
         .select('payment_status')
         .eq('pos_order_id', posOrderId)
         .limit(1)
         .single();
         
-    if (error) {
-        return { success: false, error: error.message };
+    if (prodData?.payment_status === 'paid') {
+        return { success: true, status: 'paid' };
     }
     
-    return { success: true, status: data?.payment_status };
+    // 2. Fallback: verificar sales_ledger (el webhook de producción actualiza sales_ledger con éxito)
+    const { data: ledgerData } = await supabase
+        .from('sales_ledger')
+        .select('status')
+        .eq('internal_id', posOrderId)
+        .single();
+        
+    if (ledgerData?.status === 'completed' || ledgerData?.status === 'paid') {
+        // Sincronizar localmente en production_orders para corregir el estado
+        await supabase
+            .from('production_orders')
+            .update({ payment_status: 'paid' })
+            .eq('pos_order_id', posOrderId);
+            
+        return { success: true, status: 'paid' };
+    }
+    
+    return { success: true, status: prodData?.payment_status || ledgerData?.status || 'pending' };
 }
 
 export async function getDailyWorkloadAction(dateStr: string) {
@@ -1251,11 +1559,50 @@ export async function updateOrderStatusToPaidAction(posOrderId: string) {
                             }]);
                         }
                     }
+                    
+                    // Alerta a los dueños
+                    for (const ownerNum of ['56984021940', '56937667709']) {
+                        try {
+                            const formattedMonto = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(finalTotal);
+                            await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
+                                method: 'POST',
+                                headers: { 'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    messaging_product: 'whatsapp',
+                                    to: ownerNum,
+                                    type: 'template',
+                                    template: {
+                                        name: 'alerta_pago_recibido',
+                                        language: { code: 'en' },
+                                        components: [{
+                                            type: 'body',
+                                            parameters: [
+                                                { type: 'text', text: custInfo.full_name || 'Clienta' },
+                                                { type: 'text', text: 'Orden Webpay' },
+                                                { type: 'text', text: formattedMonto },
+                                                { type: 'text', text: posOrderId },
+                                                { type: 'text', text: 'Transbank Webpay Plus' }
+                                            ]
+                                        }]
+                                    }
+                                })
+                            });
+                        } catch(err) {
+                            console.error('Error enviando alerta a dueño Webpay:', err);
+                        }
+                    }
                 }
             }
         }
     } catch (e) {
         console.error('Error enviando WhatsApp de confirmación de pago Webpay:', e);
+    }
+    
+    // --- Email Confirmation ---
+    try {
+        await sendOrderConfirmationEmailByOrderIdAction(posOrderId);
+    } catch (e) {
+        console.error('Error enviando correo de confirmación de pago Webpay:', e);
     }
     // ----------------------------
     
@@ -1749,16 +2096,16 @@ export async function getMonthAvailabilityAction(year: number, month: number) {
 export async function getPOSOrderAmountAction(posOrderId: string) {
     const supabase = await createClient();
     const { data, error } = await supabase
-        .from('production_orders')
-        .select('total_price')
-        .eq('pos_order_id', posOrderId)
-        .limit(1);
+        .from('sales_ledger')
+        .select('total_amount')
+        .eq('internal_id', posOrderId)
+        .single();
 
-    if (error || !data || data.length === 0) {
-        console.error('Error fetching order amount:', error);
+    if (error || !data) {
+        console.error('Error fetching order amount from sales_ledger:', error);
         return { success: false, amount: 0 };
     }
-    return { success: true, amount: data[0].total_price || 0 };
+    return { success: true, amount: Number(data.total_amount) || 0 };
 }
 
 export async function analyzeDesignWithGeminiAction(base64Image: string) {
@@ -1896,4 +2243,20 @@ export async function cancelPendingOrderAction(orderId: string, isBalancePayment
     } catch (err: any) {
         return { success: false, error: err.message };
     }
+}
+
+export async function getLatestWebhookLogsAction() {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('system_logs')
+        .select('*')
+        .eq('service', 'MercadoPago Webhook')
+        .order('created_at', { ascending: false })
+        .limit(10);
+        
+    if (error) {
+        console.error('Error fetching system logs:', error);
+        return { success: false, error: error.message };
+    }
+    return { success: true, logs: data || [] };
 }

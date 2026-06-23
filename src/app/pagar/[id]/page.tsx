@@ -2,6 +2,8 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
 import PaymentClient from './PaymentClient';
 
+export const dynamic = 'force-dynamic';
+
 const getAdminClient = () => {
     return createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,9 +11,11 @@ const getAdminClient = () => {
     );
 };
 
-export default async function PagarOrdenPage(props: { params: Promise<{ id: string }> }) {
+export default async function PagarOrdenPage(props: { params: Promise<{ id: string }>, searchParams: Promise<{ amount?: string }> }) {
     const params = await props.params;
     const { id } = params;
+    const searchParams = await props.searchParams;
+    const amountParam = searchParams?.amount;
 
     const supabase = getAdminClient();
     const { data: order, error } = await supabase
@@ -42,6 +46,8 @@ export default async function PagarOrdenPage(props: { params: Promise<{ id: stri
         );
     }
 
+    const amountToCharge = amountParam ? parseInt(amountParam, 10) : order.total_amount;
+
     return (
         <div className="min-h-screen bg-[#0B0C10] text-[#EAEAEA] font-sans antialiased selection:bg-[#C5A880] selection:text-[#12131C] relative overflow-hidden py-24 px-4 flex flex-col items-center justify-center">
             {/* Background elements for premium aesthetic */}
@@ -49,7 +55,7 @@ export default async function PagarOrdenPage(props: { params: Promise<{ id: stri
             <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[50%] rounded-full bg-[#C5A880]/5 blur-[120px] pointer-events-none" />
             
             <div className="relative z-10 w-full max-w-md">
-                <PaymentClient orderId={id} total={order.total_amount} />
+                <PaymentClient orderId={id} total={amountToCharge} />
             </div>
         </div>
     );

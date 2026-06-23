@@ -264,7 +264,17 @@ export async function payOrderBalanceAction(posOrderId: string, amountToPay: num
         return { success: false, error: saleError?.message || 'Venta no encontrada en registros' };
     }
     
-    const newPaidAmount = isPendingTerminal ? Number(sale.paid_amount || 0) : (Number(sale.paid_amount || 0) + amountToPay);
+    let cashImmediate = 0;
+    if (isPendingTerminal && method.toLowerCase().includes('mixto')) {
+        const cashMatch = method.match(/efectivo:\s*\$(\d+)/i);
+        if (cashMatch) {
+            cashImmediate = Number(cashMatch[1]);
+        }
+    }
+
+    const newPaidAmount = isPendingTerminal 
+        ? (Number(sale.paid_amount || 0) + cashImmediate) 
+        : (Number(sale.paid_amount || 0) + amountToPay);
     const isFullyPaid = isPendingTerminal ? false : (newPaidAmount >= Number(sale.total_amount));
     
     // Update Production Orders (all items belonging to this order)
@@ -306,5 +316,26 @@ export async function payOrderBalanceAction(posOrderId: string, amountToPay: num
     
     revalidatePath('/admin/caja');
     revalidatePath('/admin/pos');
+
+    if (isFullyPaid) {
+        try {
+            const { sendOrderConfirmationEmailByOrderIdAction } = await import('../pos/actions');
+            await sendOrderConfirmationEmailByOrderIdAction(posOrderId);
+        } catch (emailErr) {
+            console.error('Error al enviar correo de confirmación de saldo saldado:', emailErr);
+        }
+    }
+
+    // Enviar notificaciones de WhatsApp para la porción de pago inmediata
+    const actualPaidNow = isPendingTerminal ? cashImmediate : amountToPay;
+    if (actualPaidNow > 0) {
+        try {
+            const { sendWhatsAppPaymentConfirmationAction } = await import('../pos/actions');
+            await sendWhatsAppPaymentConfirmationAction(posOrderId, actualPaidNow, method);
+        } catch (wspErr) {
+            console.error('Error al enviar WhatsApp de confirmación de saldo saldado:', wspErr);
+        }
+    }
+
     return { success: true, isFullyPaid, newPaidAmount };
 }

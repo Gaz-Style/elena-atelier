@@ -60,7 +60,7 @@ export default function AgendaForm({
         setLoading(false);
     };
 
-    let availableHours = Array.from({length: 15}, (_, i) => i + 8); // fallback
+    let availableHours: string[] = [];
     let isClosed = false;
     if (currentDayConfig) {
         if (!currentDayConfig.activo || !currentDayConfig.hora_inicio || !currentDayConfig.hora_fin) {
@@ -68,9 +68,18 @@ export default function AgendaForm({
         } else {
             const startH = parseInt(currentDayConfig.hora_inicio.split(':')[0], 10);
             const endH = parseInt(currentDayConfig.hora_fin.split(':')[0], 10);
-            availableHours = [];
             for (let i = startH; i <= endH; i++) {
-                availableHours.push(i);
+                availableHours.push(`${i.toString().padStart(2, '0')}:00`);
+                if (i !== endH) {
+                    availableHours.push(`${i.toString().padStart(2, '0')}:30`);
+                }
+            }
+        }
+    } else {
+        for (let i = 8; i <= 22; i++) {
+            availableHours.push(`${i.toString().padStart(2, '0')}:00`);
+            if (i !== 22) {
+                availableHours.push(`${i.toString().padStart(2, '0')}:30`);
             }
         }
     }
@@ -112,10 +121,9 @@ export default function AgendaForm({
             <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Hora de Inicio</label>
                 <select name="hora" className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50" required>
-                    {availableHours.map(h => {
-                        const hora = h.toString().padStart(2, '0') + ':00';
-                        return <option key={hora} value={h.toString().padStart(2, '0')}>{hora}</option>
-                    })}
+                    {availableHours.map(hora => (
+                        <option key={hora} value={hora}>{hora}</option>
+                    ))}
                 </select>
             </div>
 
