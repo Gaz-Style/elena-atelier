@@ -177,17 +177,10 @@ function CallbackContent() {
                 </div>
 
                 {/* Acciones */}
-                <div className="pt-6 border-t border-gray-850 flex flex-col sm:flex-row gap-4 print:hidden">
-                    <button 
-                        onClick={handlePrint}
-                        className="flex-1 bg-[#1A1C28] hover:bg-white/5 border border-gray-800 text-gray-300 py-3.5 rounded-sm text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer"
-                    >
-                        <Printer className="w-4 h-4 text-[#C5A880]" />
-                        Imprimir Recibo
-                    </button>
+                <div className="pt-6 border-t border-gray-850 flex justify-center print:hidden">
                     <button 
                         onClick={() => router.push('/')}
-                        className="w-full sm:w-auto flex-1 bg-[#C5A880] hover:bg-[#D5B890] text-[#12131C] py-3 rounded-sm text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer"
+                        className="w-full max-w-sm bg-[#C5A880] hover:bg-[#D5B890] text-[#12131C] py-3 rounded-sm text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer"
                     >
                         <ShoppingBag className="w-4 h-4" />
                         Volver a Inicio

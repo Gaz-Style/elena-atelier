@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter, Geist } from "next/font/google";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import LayoutWrapper from "@/components/LayoutWrapper";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { ElenaAtelierSchema } from "@/lib/seo";
 import "./globals.css";
@@ -59,11 +58,9 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ElenaAtelierSchema) }}
         />
-        <Navbar />
-        <main className="pt-20 flex-grow">
+        <LayoutWrapper>
           {children}
-        </main>
-        <Footer />
+        </LayoutWrapper>
         <WhatsAppButton />
       </body>
     </html>
