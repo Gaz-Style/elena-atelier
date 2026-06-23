@@ -1140,7 +1140,7 @@ export default function POSPage() {
                 setPaymentConfirmed(true);
             }
 
-            if (selectedCustomer.email && (posMode === 'new_sale' || paymentMethod === 'transbank' || initialPaymentType === 'zero')) {
+            if (selectedCustomer.email && (posMode === 'new_sale' || paymentMethod === 'transbank')) {
                 sendOrderConfirmationEmailAction({
                     customerEmail: selectedCustomer.email,
                     customerName: selectedCustomer.full_name,
