@@ -1,5 +1,6 @@
 import Hero from "@/components/Hero";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
 export default function Home() {
@@ -58,9 +59,10 @@ export default function Home() {
               href="/sastreria" 
               className="group relative flex-[1.4] min-h-[500px] md:min-h-[560px] overflow-hidden rounded-sm flex flex-col justify-end p-8 md:p-12 shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700"
             >
-              <img 
+              <Image 
                 src="/trabajos/novia 2.jpeg" 
                 alt="Alta Costura Personal" 
+                fill
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]" 
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-95 group-hover:opacity-90 transition-opacity duration-700" />
@@ -86,9 +88,10 @@ export default function Home() {
                 href="/appointment" 
                 className="group relative flex-1 min-h-[350px] md:min-h-[260px] overflow-hidden rounded-sm flex flex-col justify-end p-8 shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700"
               >
-                <img 
+                <Image 
                   src="/Estudiante.png" 
                   alt="Aprender Haciendo" 
+                  fill
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] brightness-95 contrast-[1.02] saturate-[0.85] group-hover:saturate-[0.95]" 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-80 group-hover:opacity-70 transition-opacity duration-700" />
@@ -112,9 +115,10 @@ export default function Home() {
                 href="/b2b" 
                 className="group relative flex-1 min-h-[350px] md:min-h-[260px] overflow-hidden rounded-sm flex flex-col justify-end p-8 shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700"
               >
-                <img 
+                <Image 
                   src="/Desarrollo de marca 2.png" 
                   alt="Desarrollo para Marcas" 
+                  fill
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] brightness-95 contrast-[1.02] saturate-[0.85] group-hover:saturate-[0.95]" 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-80 group-hover:opacity-70 transition-opacity duration-700" />
@@ -249,9 +253,10 @@ export default function Home() {
 
           <div className="flex-1 w-full space-y-8">
             <div className="h-[300px] md:h-[500px] w-full rounded-sm overflow-hidden relative shadow-2xl">
-              <img
+              <Image
                 src="/elena-torso.jpeg"
                 alt="Elena La Costurera torso"
+                fill
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
