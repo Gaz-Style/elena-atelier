@@ -1179,8 +1179,6 @@ export default function POSPage() {
             setDeadline('');
             setDailyWorkload(null);
             if (posMode === 'pay_balance') {
-                setPendingOrderToPay(null);
-                setPosMode('new_sale'); 
                 getAllPendingOrdersAction().then(res => {
                     if (res.success) setAllPendingOrders(res.orders || []);
                 });
@@ -1201,6 +1199,8 @@ export default function POSPage() {
         setActiveImageIndex(0);
         setDeadline('');
         setDailyWorkload(null);
+        setPosMode('new_sale');
+        setPendingOrderToPay(null);
     };
 
     const handleCloseBudgetModal = () => {

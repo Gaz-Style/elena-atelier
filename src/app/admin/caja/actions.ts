@@ -327,8 +327,11 @@ export async function payOrderBalanceAction(posOrderId: string, amountToPay: num
     }
 
     // Enviar notificaciones de WhatsApp para la porción de pago inmediata
+    // OJO: Si es un pago Mixto y está pendiente la maquinita, NO enviar la notificación aún (lo hará el webhook).
+    const isMixedPending = isPendingTerminal && method.toLowerCase().includes('mixto');
     const actualPaidNow = isPendingTerminal ? cashImmediate : amountToPay;
-    if (actualPaidNow > 0) {
+    
+    if (actualPaidNow > 0 && !isMixedPending) {
         try {
             const { sendWhatsAppPaymentConfirmationAction } = await import('../pos/actions');
             await sendWhatsAppPaymentConfirmationAction(posOrderId, actualPaidNow, method);
