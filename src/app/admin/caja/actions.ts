@@ -304,12 +304,10 @@ export async function payOrderBalanceAction(posOrderId: string, amountToPay: num
         .from('sales_ledger')
         .insert([{
             internal_id: `${posOrderId}_balance_${Date.now()}`,
-            type: 'pos',
             status: isPendingTerminal ? 'pending' : 'completed',
             total_amount: amountToPay,
             paid_amount: isPendingTerminal ? 0 : amountToPay,
-            payment_method: method,
-            description: `Pago de Saldo - ${posOrderId}`
+            payment_method: method
         }]);
         
     if (newSaleError) console.error('Error inserting balance payment in sales ledger:', newSaleError);

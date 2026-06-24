@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createClient } from '@/lib/supabase/server';
+import { sendOrderConfirmationEmailByOrderIdAction } from '@/app/admin/pos/actions';
 
 async function logSystemEvent(supabase: any, level: string, message: string, payload: any = null) {
     try {
@@ -118,10 +119,10 @@ async function updateDatabaseAndNotify(
 
     if (isFullyPaidLedger) {
         try {
-            const { sendOrderConfirmationEmailByOrderIdAction } = await import('@/app/admin/pos/actions');
             await sendOrderConfirmationEmailByOrderIdAction(externalRef);
         } catch (emailErr) {
             console.error('Error al enviar correo de confirmación de pago desde el webhook:', emailErr);
+            await logSystemEvent(supabase, 'ERROR', 'Error enviando correo confirmacion webhook', { error: String(emailErr), externalRef });
         }
     }
 
