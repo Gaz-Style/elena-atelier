@@ -111,7 +111,7 @@ export async function getDetailedDashboardData() {
         // Fetch sales since opening
         const { data: sales } = await supabase
             .from('sales_ledger')
-            .select('total_amount, payment_method')
+            .select('id, internal_id, total_amount, paid_amount, payment_method')
             .gte('created_at', activeRegister.opened_at)
             .eq('status', 'completed');
 

@@ -513,7 +513,7 @@ export async function sendBridalContractEmailAction(projectId: string) {
         const customerEmail = project.customers.email;
         const customerName = project.customers.full_name?.split(' ')[0] || 'Clienta';
 
-        const htmlContent = \`<!DOCTYPE html>
+        const htmlContent = `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="utf-8" /></head>
 <body style="margin: 0; padding: 0; background-color: #F8F6F0; font-family: 'Inter', sans-serif;">
@@ -576,7 +576,7 @@ export async function sendBridalThankYouEmailAction(projectId: string) {
         const customerEmail = project.customers.email;
         const customerName = project.customers.full_name?.split(' ')[0] || 'Clienta';
 
-        const htmlContent = \`<!DOCTYPE html>
+        const htmlContent = `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="utf-8" /></head>
 <body style="margin: 0; padding: 0; background-color: #F8F6F0; font-family: 'Inter', sans-serif;">

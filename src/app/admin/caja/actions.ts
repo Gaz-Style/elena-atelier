@@ -28,7 +28,7 @@ export async function getCurrentCashRegisterAction() {
     // Solo tomamos en cuenta las órdenes pagadas de la planilla de ventas.
     const { data: sales, error: salesError } = await supabase
         .from('sales_ledger')
-        .select('payment_method, total_amount')
+        .select('id, internal_id, payment_method, total_amount, paid_amount')
         .gte('created_at', register.opened_at)
         .eq('status', 'completed');
         

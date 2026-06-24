@@ -17,7 +17,7 @@ export default async function CRMPage() {
 
   let customers = customersData?.map(c => {
       const sales = Array.isArray(c.sales_ledger) 
-          ? c.sales_ledger.filter(s => !s.internal_id?.includes('_balance_'))
+          ? c.sales_ledger.filter((s: any) => !s.internal_id?.includes('_balance_'))
           : [];
       const totalSpent = sales.reduce((acc: number, sale: any) => {
           return acc + (sale.total_amount || 0);
