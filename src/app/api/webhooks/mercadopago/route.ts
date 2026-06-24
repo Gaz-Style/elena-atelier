@@ -26,6 +26,32 @@ async function updateDatabaseAndNotify(
     console.log(`Procesando pago aprobado para external_reference: ${externalRef}`);
     await logSystemEvent(supabase, 'INFO', `Procesando pago aprobado MP`, { paymentId, externalRef });
 
+    // --- BRIDAL PROJECTS INTERCEPT ---
+    if (externalRef.startsWith('bridal_project_')) {
+        const parts = externalRef.split('_');
+        // Format: bridal_project_PROJECTID_50pct
+        if (parts.length >= 4) {
+            const projectId = parts[2];
+            console.log(`Interceptado pago de novia para proyecto: ${projectId}`);
+            
+            // Registrar el pago de la cuota 1
+            const { registerPayment, acceptContract, sendBridalThankYouEmailAction } = await import('@/app/admin/novias/actions');
+            
+            // Solo si no está ya aceptado (idempotency)
+            const { data: proj } = await supabase.from('bridal_projects').select('payment_1_status').eq('id', projectId).single();
+            if (proj && proj.payment_1_status !== 'paid') {
+                await acceptContract(projectId);
+                await registerPayment(projectId, 1);
+                await sendBridalThankYouEmailAction(projectId);
+                await logSystemEvent(supabase, 'INFO', `Pago de Novia Procesado`, { projectId, paymentId });
+            } else {
+                console.log(`Pago de Novia ${projectId} ya estaba procesado.`);
+            }
+        }
+        return true;
+    }
+    // --- END BRIDAL PROJECTS INTERCEPT ---
+
     // Check idempotency with external_transaction_id in sales_ledger
     const { data: existingLedger } = await supabase
         .from('sales_ledger')

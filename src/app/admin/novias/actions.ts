@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import nodemailer from 'nodemailer';
 
 // ─── Types ───────────────────────────────────────────────────
 type ProjectType = 'novia' | 'madrina' | 'graduacion';
@@ -340,3 +341,353 @@ export async function cancelProject(projectId: string) {
     revalidatePath(`/admin/novias/${projectId}`);
     return { success: true };
 }
+
+// ─── Email & Automation Actions ──────────────────────────────
+
+const getTransporter = () => {
+    const smtpUser = process.env.SMTP_USER || '';
+    const smtpPassword = process.env.SMTP_PASSWORD || '';
+    if (!smtpUser || !smtpPassword) throw new Error('SMTP credentials missing');
+    return nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: { user: smtpUser, pass: smtpPassword },
+    });
+};
+
+const emailLogoHtml = `
+    <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto; width: 150px; text-align: center;">
+      <tr>
+        <td style="font-family:'Playfair Display', Georgia, serif; font-size: 26px; font-weight: 900; color: #FFFFFF; letter-spacing: 10px; text-transform: uppercase; text-align: center; line-height: 1; padding: 0 0 0 10px;">
+          ELENA
+        </td>
+      </tr>
+      <tr>
+        <td style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 8px; font-weight: 700; color: #FFFFFF; letter-spacing: 4.2px; text-transform: uppercase; text-align: center; padding-top: 8px; line-height: 1; padding-left: 4.2px;">
+          LA COSTURERA
+        </td>
+      </tr>
+    </table>`;
+
+const formatCurrency = (val: number) =>
+    new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val);
+
+export async function sendBridalWelcomeEmailAction(projectId: string) {
+    try {
+        const supabase = getAdminClient();
+        const { data: project } = await supabase.from('bridal_projects')
+            .select('*, customers(email, full_name)')
+            .eq('id', projectId).single();
+            
+        if (!project || !project.customers?.email) throw new Error('Proyecto o correo no encontrado');
+        
+        const customerEmail = project.customers.email;
+        const customerName = project.customers.full_name?.split(' ')[0] || 'futura novia';
+        const portalLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/portal-novias/${projectId}`;
+
+        // Luxury background image logic
+        const attachments = [];
+        let cardBgUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGUlEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAA8F8bGgABxZqVdgAAAABJRU5ErkJggg==';
+        const fs = require('fs');
+        const path = require('path');
+        const filePath = path.join(process.cwd(), 'public', 'trabajos', 'novia 2.jpeg');
+        if (fs.existsSync(filePath)) {
+            attachments.push({ filename: 'novia_2.jpeg', path: filePath, cid: 'luxuryPassBg' });
+            cardBgUrl = 'cid:luxuryPassBg';
+        }
+
+        const htmlContent = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8" /></head>
+<body style="margin: 0; padding: 0; background-color: #F8F6F0; font-family: 'Inter', sans-serif;">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8F6F0; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" border="0" cellpadding="0" cellspacing="0" style="background-color: #1A1A1A; border-radius: 8px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
+          <tr>
+            <td style="background-image: url('${cardBgUrl}'); background-size: cover; background-position: center; padding: 60px 40px; text-align: center; position: relative;">
+              <div style="background-color: rgba(26,26,26,0.7); position: absolute; top: 0; left: 0; right: 0; bottom: 0;"></div>
+              <div style="position: relative; z-index: 2;">
+                ${emailLogoHtml}
+                <h1 style="font-family: 'Playfair Display', serif; color: #FFFFFF; font-size: 32px; font-weight: 400; margin: 40px 0 20px 0; letter-spacing: 1px;">
+                  ¡Felicidades por tu compromiso, ${customerName}!
+                </h1>
+                <p style="color: #D4D0C5; font-size: 14px; line-height: 1.8; margin-bottom: 30px; font-weight: 300;">
+                  Es un honor para nosotros acompañarte en este viaje tan especial. Hemos creado un portal exclusivo para ti, donde podrás ingresar tus datos y preferencias para comenzar la creación de tu vestido soñado.
+                </p>
+                <table align="center" border="0" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td align="center" style="border-radius: 2px;" bgcolor="#C17F5F">
+                      <a href="${portalLink}" target="_blank" style="font-size: 11px; font-family: 'Inter', sans-serif; font-weight: 600; color: #ffffff; text-decoration: none; padding: 16px 32px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 2px;">
+                        INGRESAR A MI PORTAL
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color: #1A1A1A; padding: 30px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1);">
+              <p style="color: #8A857D; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0;">
+                Vitacura, Santiago de Chile<br><br>
+                © ${new Date().getFullYear()} ELENA ATELIER. Todos los derechos reservados.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+        const transporter = getTransporter();
+        await transporter.sendMail({
+            from: '"Elena Atelier" <' + process.env.SMTP_USER + '>',
+            to: customerEmail,
+            subject: '¡Felicidades! Ingresa a tu Portal de Novia - Elena Atelier',
+            html: htmlContent,
+            attachments
+        });
+
+        // Update project status to indicate email sent
+        await supabase.from('bridal_projects').update({ status: 'consulta' }).eq('id', projectId);
+        revalidatePath('/admin/novias');
+        return { success: true };
+    } catch (e: any) {
+        console.error('Error sending welcome email:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+export async function processBridalFormAction(projectId: string, formData: FormData) {
+    try {
+        const supabase = getAdminClient();
+        
+        // 1. Update Customer
+        const customerData = {
+            full_name: formData.get('fullName'),
+            rut: formData.get('rut'),
+            phone: formData.get('phone'),
+        };
+        
+        const { data: project } = await supabase.from('bridal_projects').select('customer_id').eq('id', projectId).single();
+        if (project?.customer_id) {
+            await supabase.from('customers').update(customerData).eq('id', project.customer_id);
+        }
+
+        // 2. Update Project
+        const projectData: any = {};
+        if (formData.get('eventDate')) projectData.event_date = new Date(`${formData.get('eventDate')}T12:00:00-04:00`).toISOString();
+        if (formData.get('eventVenue')) projectData.event_venue = formData.get('eventVenue');
+        if (formData.get('notes')) projectData.description = formData.get('notes');
+        
+        await supabase.from('bridal_projects').update(projectData).eq('id', projectId);
+        
+        // 3. Trigger Contract Email
+        const contractRes = await sendBridalContractEmailAction(projectId);
+        if (!contractRes.success) throw new Error(contractRes.error);
+
+        return { success: true };
+    } catch (e: any) {
+        console.error('Error processing form:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+export async function sendBridalContractEmailAction(projectId: string) {
+    try {
+        const supabase = getAdminClient();
+        const { data: project } = await supabase.from('bridal_projects')
+            .select('*, customers(email, full_name)')
+            .eq('id', projectId).single();
+            
+        if (!project || !project.customers?.email) throw new Error('Proyecto no encontrado');
+        
+        // Use portal checkout page instead of generating MP directly here
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+        const paymentLink = `${siteUrl}/portal-novias/${projectId}/pagar`;
+
+        const customerEmail = project.customers.email;
+        const customerName = project.customers.full_name?.split(' ')[0] || 'Clienta';
+
+        const htmlContent = \`<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8" /></head>
+<body style="margin: 0; padding: 0; background-color: #F8F6F0; font-family: 'Inter', sans-serif;">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8F6F0; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" border="0" cellpadding="0" cellspacing="0" style="background-color: #1A1A1A; border-radius: 8px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
+          <tr>
+            <td style="padding: 60px 40px; text-align: center;">
+              \${emailLogoHtml}
+              <h1 style="font-family: 'Playfair Display', serif; color: #FFFFFF; font-size: 28px; font-weight: 400; margin: 40px 0 20px 0;">
+                Tu Contrato y Presupuesto
+              </h1>
+              <p style="color: #D4D0C5; font-size: 14px; line-height: 1.8; margin-bottom: 30px; font-weight: 300;">
+                Hola \${customerName}, hemos redactado tu contrato y presupuesto formal. Para dar inicio al proceso y reservar tu cupo de producción, por favor revisa el documento, firma aceptando el presupuesto y realiza el abono inicial (50%) de <strong>\${formatCurrency(project.payment_1_amount)}</strong>.
+              </p>
+              <table align="center" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="border-radius: 2px;" bgcolor="#C17F5F">
+                    <a href="\${paymentLink}" target="_blank" style="font-size: 11px; font-family: 'Inter', sans-serif; font-weight: 600; color: #ffffff; text-decoration: none; padding: 16px 32px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 2px;">
+                      ACEPTO EL PRESUPUESTO Y FIRMO EL CONTRATO
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+        const transporter = getTransporter();
+        await transporter.sendMail({
+            from: '"Elena Atelier" <' + process.env.SMTP_USER + '>',
+            to: customerEmail,
+            subject: 'Tu Presupuesto y Contrato - Elena Atelier',
+            html: htmlContent
+        });
+
+        await supabase.from('bridal_projects').update({ status: 'contrato_pendiente' }).eq('id', projectId);
+        return { success: true };
+    } catch (e: any) {
+        console.error('Error sending contract email:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+export async function sendBridalThankYouEmailAction(projectId: string) {
+    try {
+        const supabase = getAdminClient();
+        const { data: project } = await supabase.from('bridal_projects')
+            .select('*, customers(email, full_name)')
+            .eq('id', projectId).single();
+            
+        if (!project || !project.customers?.email) throw new Error('Proyecto no encontrado');
+        
+        const customerEmail = project.customers.email;
+        const customerName = project.customers.full_name?.split(' ')[0] || 'Clienta';
+
+        const htmlContent = \`<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8" /></head>
+<body style="margin: 0; padding: 0; background-color: #F8F6F0; font-family: 'Inter', sans-serif;">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8F6F0; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" border="0" cellpadding="0" cellspacing="0" style="background-color: #1A1A1A; border-radius: 8px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
+          <tr>
+            <td style="padding: 60px 40px; text-align: center;">
+              \${emailLogoHtml}
+              <h1 style="font-family: 'Playfair Display', serif; color: #FFFFFF; font-size: 28px; font-weight: 400; margin: 40px 0 20px 0;">
+                ¡Gracias por Elegirnos!
+              </h1>
+              <p style="color: #D4D0C5; font-size: 14px; line-height: 1.8; margin-bottom: 20px; font-weight: 300;">
+                Estimada \${customerName}, hemos recibido exitosamente la firma de tu contrato y el abono inicial. Tu cupo de producción ya está oficialmente reservado en nuestro atelier.
+              </p>
+              <p style="color: #D4D0C5; font-size: 14px; line-height: 1.8; margin-bottom: 30px; font-weight: 300;">
+                En los próximos días nos contactaremos contigo para agendar tu primera prueba. ¡Estamos muy emocionados de comenzar este proceso y confeccionar el vestido de tus sueños!
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+        const transporter = getTransporter();
+        await transporter.sendMail({
+            from: '"Elena Atelier" <' + process.env.SMTP_USER + '>',
+            to: customerEmail,
+            subject: '¡Reserva Confirmada! Gracias por elegir Elena Atelier',
+            html: htmlContent
+        });
+
+        return { success: true };
+    } catch (e: any) {
+        console.error('Error sending thank you email:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+export async function generateBridalPaymentLinksAction(projectId: string) {
+    try {
+        const supabase = getAdminClient();
+        const { data: project } = await supabase.from('bridal_projects')
+            .eq('id', projectId).single();
+            
+        if (!project) throw new Error('Proyecto no encontrado');
+
+        const amount = project.payment_1_amount;
+        const externalRef = `bridal_project_${projectId}_50pct`;
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
+        let mpLink = null;
+        let tbkLink = null;
+        let tbkToken = null;
+
+        // 1. Generate MP Link
+        if (process.env.MP_ACCESS_TOKEN) {
+            const mpPayload = {
+                items: [{
+                    title: `Reserva 50% - ${project.project_type === 'novia' ? 'Vestido de Novia' : 'Vestido'}`,
+                    quantity: 1,
+                    unit_price: amount,
+                    currency_id: 'CLP'
+                }],
+                external_reference: externalRef,
+                back_urls: {
+                    success: `${siteUrl}/portal-novias/${projectId}/pago-exitoso`,
+                    pending: `${siteUrl}/portal-novias/${projectId}/pagar`,
+                    failure: `${siteUrl}/portal-novias/${projectId}/pagar`
+                },
+                auto_return: "approved"
+            };
+
+            const mpRes = await fetch('https://api.mercadopago.com/checkout/preferences', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(mpPayload)
+            });
+            const mpData = await mpRes.json();
+            if (mpData.init_point) mpLink = mpData.init_point;
+        }
+
+        // 2. Generate Transbank Link
+        try {
+            const { createWebpayTransaction } = await import('@/lib/transbank');
+            const shortId = projectId.split('-')[0];
+            const buyOrder = `BRDL_${shortId}_50`;
+            const sessionId = `sess_${shortId}`;
+            const returnUrl = `${siteUrl}/portal-novias/${projectId}/webpay-callback`;
+
+            const tbkRes = await createWebpayTransaction(buyOrder, sessionId, amount, returnUrl);
+            if (tbkRes.success) {
+                tbkLink = tbkRes.url;
+                tbkToken = tbkRes.token;
+            }
+        } catch (e) {
+            console.error('Error generating transbank link for bride:', e);
+        }
+
+        return { success: true, mpLink, tbkLink, tbkToken, amount };
+    } catch (e: any) {
+        console.error('Error generating payment links:', e);
+        return { success: false, error: e.message };
+    }
+}
+
+

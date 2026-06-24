@@ -8,7 +8,7 @@ import {
     Clock, AlertCircle, FileText, Ruler, Camera, StickyNote, Loader2, Printer,
     ChevronDown, ChevronUp, X, Save, Trash2
 } from 'lucide-react';
-import { getBridalProjectById, registerPayment, completeMilestone, acceptContract, saveMeasurements, updateBridalProject, cancelProject } from '../actions';
+import { getBridalProjectById, registerPayment, completeMilestone, acceptContract, saveMeasurements, updateBridalProject, cancelProject, sendBridalWelcomeEmailAction } from '../actions';
 import ContractTemplate from '../ContractTemplate';
 
 const formatCurrency = (val: number) =>
@@ -124,6 +124,19 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         router.push('/admin/novias');
     }
 
+    async function handleSendWelcomeEmail() {
+        if (!confirm('¿Enviar correo de bienvenida a la clienta para que complete sus datos?')) return;
+        setSaving(true);
+        const res = await sendBridalWelcomeEmailAction(projectId);
+        if (!res.success) {
+            alert('Error al enviar correo: ' + res.error);
+        } else {
+            alert('Correo enviado exitosamente.');
+        }
+        await loadProject(projectId);
+        setSaving(false);
+    }
+
     function handlePrintContract() {
         setShowContractPrint(true);
         setTimeout(() => {
@@ -221,6 +234,13 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                     </div>
                                     <p className="text-zinc-500 text-sm">{serviceTypeLabel[project.service_type]} · {typeConfig.label}</p>
                                     {project.description && <p className="text-zinc-400 text-xs mt-1 italic">"{project.description}"</p>}
+                                    <button
+                                        onClick={handleSendWelcomeEmail}
+                                        disabled={saving}
+                                        className="mt-3 text-[10px] uppercase tracking-widest font-bold bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-zinc-300"
+                                    >
+                                        Enviar Formulario de Bienvenida
+                                    </button>
                                 </div>
                             </div>
 
