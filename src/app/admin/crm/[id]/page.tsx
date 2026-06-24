@@ -50,6 +50,7 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
         .from('sales_ledger')
         .select('*')
         .eq('customer_id', id)
+        .not('internal_id', 'like', '%_balance_%')
         .order('created_at', { ascending: false });
 
     const sales = salesData || [];

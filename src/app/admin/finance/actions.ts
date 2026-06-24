@@ -447,7 +447,8 @@ export async function getSalesMetrics(month: number, year: number) {
   const { data: sales } = await supabase.from('sales_ledger')
     .select('total_amount, status')
     .gte('created_at', startDate)
-    .lte('created_at', endDate);
+    .lte('created_at', endDate)
+    .not('internal_id', 'like', '%_balance_%');
     
   const totalGrossSales = sales?.reduce((sum, s) => sum + (Number(s.total_amount) || 0), 0) || 0;
   // Net Sales = Gross / 1.19

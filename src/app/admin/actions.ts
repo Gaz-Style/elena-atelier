@@ -12,7 +12,8 @@ export async function getDashboardData() {
     const { data: sales } = await supabase
         .from('sales_ledger')
         .select('total_amount')
-        .gte('created_at', firstDayOfMonth);
+        .gte('created_at', firstDayOfMonth)
+        .not('internal_id', 'like', '%_balance_%');
         
     const salesThisMonth = sales?.reduce((sum, sale) => sum + Number(sale.total_amount || 0), 0) || 0;
     
@@ -121,14 +122,34 @@ export async function getDetailedDashboardData() {
             .eq('register_id', activeRegister.id);
 
         let expectedCash = Number(activeRegister.opening_amount);
-        if (sales) {
+        if (sales && sales.length > 0) {
+            const salesGrouped = new Map<string, typeof sales>();
             sales.forEach(sale => {
-                const method = sale.payment_method?.toLowerCase() || '';
-                if (method.includes('efectivo') || method.includes('transferencia')) {
-                    expectedCash += Number(sale.total_amount);
-                } else if (method.includes('mixto')) {
-                    const cashMatch = method.match(/efectivo:\s*\$(\d+)/i);
-                    if (cashMatch) expectedCash += Number(cashMatch[1]);
+                const baseId = sale.internal_id?.split('_balance_')[0] || sale.id;
+                if (!salesGrouped.has(baseId)) salesGrouped.set(baseId, []);
+                salesGrouped.get(baseId)!.push(sale);
+            });
+
+            salesGrouped.forEach((groupSales) => {
+                const originalSale = groupSales.find(s => !s.internal_id?.includes('_balance_'));
+                if (originalSale) {
+                    const method = originalSale.payment_method?.toLowerCase() || '';
+                    if (method.includes('efectivo') || method.includes('transferencia')) {
+                        expectedCash += Number(originalSale.paid_amount || originalSale.total_amount);
+                    } else if (method.includes('mixto')) {
+                        const cashMatch = method.match(/efectivo:\s*\$(\d+)/i);
+                        if (cashMatch) expectedCash += Number(cashMatch[1]);
+                    }
+                } else {
+                    groupSales.forEach(balanceSale => {
+                        const method = balanceSale.payment_method?.toLowerCase() || '';
+                        if (method.includes('efectivo') || method.includes('transferencia')) {
+                            expectedCash += Number(balanceSale.paid_amount || balanceSale.total_amount);
+                        } else if (method.includes('mixto')) {
+                            const cashMatch = method.match(/efectivo:\s*\$(\d+)/i);
+                            if (cashMatch) expectedCash += Number(cashMatch[1]);
+                        }
+                    });
                 }
             });
         }

@@ -27,6 +27,7 @@ export default async function SalesLedgerPage() {
             payment_method,
             customer_id
         `)
+        .not('internal_id', 'like', '%_balance_%')
         .order('created_at', { ascending: false });
 
     if (error) {

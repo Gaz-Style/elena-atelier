@@ -12,11 +12,13 @@ export default async function CRMPage() {
   // Fetch customers and their sales from Supabase
   const { data: customersData, error } = await supabase
     .from('customers')
-    .select('*, sales_ledger(id, total_amount, status)')
+    .select('*, sales_ledger(id, total_amount, status, internal_id)')
     .order('created_at', { ascending: false });
 
   let customers = customersData?.map(c => {
-      const sales = Array.isArray(c.sales_ledger) ? c.sales_ledger : [];
+      const sales = Array.isArray(c.sales_ledger) 
+          ? c.sales_ledger.filter(s => !s.internal_id?.includes('_balance_'))
+          : [];
       const totalSpent = sales.reduce((acc: number, sale: any) => {
           return acc + (sale.total_amount || 0);
       }, 0);

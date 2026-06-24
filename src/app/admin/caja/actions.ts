@@ -50,23 +50,51 @@ export async function getCurrentCashRegisterAction() {
     let expectedCash = Number(register.opening_amount);
     let expectedCard = 0;
     
-    // Sumar ventas
-    if (sales) {
+    // Sumar ventas con lógica de agrupación para evitar pagos duplicados
+    if (sales && sales.length > 0) {
+        // Agrupar por internal_id base
+        const salesGrouped = new Map<string, typeof sales>();
+        
         sales.forEach(sale => {
-            const method = sale.payment_method?.toLowerCase() || '';
-            if (method.includes('efectivo') || method.includes('transferencia')) {
-                // Asumimos que "Efectivo / Transferencia" entra a la cuenta del día físicamente o en banco
-                // Nota: Si quieres separar transferencia de efectivo real, habría que ajustar esto.
-                expectedCash += Number(sale.total_amount);
-            } else if (method.includes('mixto')) {
-                // Parsear formato mixto: "Mixto (Máquina: $X, Efectivo: $Y)"
-                const cardMatch = method.match(/m\u00e1quina:\s*\$(\d+)/i) || method.match(/maquina:\s*\$(\d+)/i);
-                const cashMatch = method.match(/efectivo:\s*\$(\d+)/i);
-                
-                if (cardMatch) expectedCard += Number(cardMatch[1]);
-                if (cashMatch) expectedCash += Number(cashMatch[1]);
+            const baseId = sale.internal_id?.split('_balance_')[0] || sale.id;
+            if (!salesGrouped.has(baseId)) {
+                salesGrouped.set(baseId, []);
+            }
+            salesGrouped.get(baseId)!.push(sale);
+        });
+
+        salesGrouped.forEach((groupSales, baseId) => {
+            // Check if the original order row is in this shift
+            const originalSale = groupSales.find(s => !s.internal_id?.includes('_balance_'));
+            
+            if (originalSale) {
+                // If original sale is here, its paid_amount already includes all payments made
+                const method = originalSale.payment_method?.toLowerCase() || '';
+                if (method.includes('efectivo') || method.includes('transferencia')) {
+                    expectedCash += Number(originalSale.paid_amount || originalSale.total_amount);
+                } else if (method.includes('mixto')) {
+                    const cardMatch = method.match(/m\u00e1quina:\s*\$(\d+)/i) || method.match(/maquina:\s*\$(\d+)/i);
+                    const cashMatch = method.match(/efectivo:\s*\$(\d+)/i);
+                    if (cardMatch) expectedCard += Number(cardMatch[1]);
+                    if (cashMatch) expectedCash += Number(cashMatch[1]);
+                } else {
+                    expectedCard += Number(originalSale.paid_amount || originalSale.total_amount);
+                }
             } else {
-                expectedCard += Number(sale.total_amount);
+                // Original sale is from a previous shift, so count the balance rows
+                groupSales.forEach(balanceSale => {
+                    const method = balanceSale.payment_method?.toLowerCase() || '';
+                    if (method.includes('efectivo') || method.includes('transferencia')) {
+                        expectedCash += Number(balanceSale.paid_amount || balanceSale.total_amount);
+                    } else if (method.includes('mixto')) {
+                        const cardMatch = balanceSale.payment_method?.match(/m\u00e1quina:\s*\$(\d+)/i) || balanceSale.payment_method?.match(/maquina:\s*\$(\d+)/i);
+                        const cashMatch = balanceSale.payment_method?.match(/efectivo:\s*\$(\d+)/i);
+                        if (cardMatch) expectedCard += Number(cardMatch[1]);
+                        if (cashMatch) expectedCash += Number(cashMatch[1]);
+                    } else {
+                        expectedCard += Number(balanceSale.paid_amount || balanceSale.total_amount);
+                    }
+                });
             }
         });
     }
