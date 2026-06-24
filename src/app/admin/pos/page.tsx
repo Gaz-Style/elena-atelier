@@ -1207,6 +1207,13 @@ export default function POSPage() {
         setDailyWorkload(null);
         setPosMode('new_sale');
         setPendingOrderToPay(null);
+        
+        // Refrescar saldos pendientes al cerrar el modal para que no quede la data obsoleta (stale) en el dropdown
+        getAllPendingOrdersAction().then(res => {
+            if (res.success) {
+                setAllPendingOrders(res.orders || []);
+            }
+        });
     };
 
     const handleCloseBudgetModal = () => {
