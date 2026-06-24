@@ -59,6 +59,7 @@ export default function AdminDashboard() {
   // Bento Modules
   const operationalModules = [
     { title: 'Agenda de Citas', desc: 'Bloqueos horarios e integración con citas por IA.', href: '/admin/agenda', icon: Calendar, size: 'col-span-1', accentColor: 'group-hover:text-emerald-600 group-hover:bg-emerald-50 group-hover:border-emerald-100/80' },
+    { title: 'Novias & Eventos Especiales', desc: 'Proyectos de novia, madrina y graduación con contrato y cronograma.', href: '/admin/novias', icon: Sparkles, size: 'col-span-1', accentColor: 'group-hover:text-rose-600 group-hover:bg-rose-50 group-hover:border-rose-100/80' },
     { title: 'Gobernanza de Producción', desc: 'Kanban del taller, costuras y plazos.', href: '/admin/production', icon: Scissors, size: 'col-span-1', accentColor: 'group-hover:text-emerald-600 group-hover:bg-emerald-50 group-hover:border-emerald-100/80' },
     { title: 'Live Production Board', desc: 'Tiempos de costura para pantallas de taller.', href: '/admin/production-board', icon: Activity, size: 'col-span-1', accentColor: 'group-hover:text-emerald-600 group-hover:bg-emerald-50 group-hover:border-emerald-100/80' },
     { title: 'Planificador Semanal', desc: 'Carga de trabajo por costurera y bloqueos.', href: '/admin/planificador', icon: Calendar, size: 'col-span-2', accentColor: 'group-hover:text-emerald-600 group-hover:bg-emerald-50 group-hover:border-emerald-100/80' },
