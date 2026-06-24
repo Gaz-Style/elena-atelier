@@ -1168,9 +1168,9 @@ export default function POSPage() {
             }
             
             // NUEVO: Enviar WhatsApp si el pago es en efectivo/transferencia
-            if (paymentMethod === 'cash' && posMode === 'new_sale' && amountToCharge > 0) {
-                const paidNow = splitCardAmount > 0 ? (splitCashAmount + splitCardAmount) : amountToCharge;
-                sendWhatsAppPaymentConfirmationAction(finalOrderIdStr.replace('order_', ''), paidNow, finalPaymentMethodStr || 'Efectivo/Transferencia')
+            // OJO: SOLO enviar si es 100% efectivo. Si es Mixto (splitCardAmount > 0), no enviar, el Webhook se encarga al confirmar la tarjeta.
+            if (paymentMethod === 'cash' && splitCardAmount === 0 && posMode === 'new_sale' && amountToCharge > 0) {
+                sendWhatsAppPaymentConfirmationAction(finalOrderIdStr.replace('order_', ''), amountToCharge, finalPaymentMethodStr || 'Efectivo/Transferencia')
                     .catch(err => console.error('Error enviando WhatsApp de confirmacion de efectivo:', err));
             }
             

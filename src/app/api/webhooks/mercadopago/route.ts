@@ -191,7 +191,7 @@ async function updateDatabaseAndNotify(
         if (orders && orders.length > 0) {
             const order = orders[0];
             const customerObj: any = Array.isArray(order.customers) ? order.customers[0] : order.customers;
-            const finalAmount = amount || existingLedger?.total_amount || 0;
+            const finalAmount = isFullyPaidProd ? totalOrderAmount : newProdPaidAmount > 0 ? newProdPaidAmount : amount || existingLedger?.total_amount || 0;
             const monto = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(finalAmount);
             const prenda = order.description || 'Servicio';
             const clienteName = customerObj?.full_name || 'Clienta';
