@@ -941,33 +941,36 @@ export async function checkOrderStatusAction(posOrderId: string) {
     // 1. Verificar production_orders
     const { data: prodData } = await supabase
         .from('production_orders')
-        .select('payment_status')
+        .select('payment_status, paid_amount')
         .eq('pos_order_id', posOrderId)
         .limit(1)
         .single();
         
     if (prodData?.payment_status === 'paid') {
-        return { success: true, status: 'paid' };
+        return { success: true, status: 'paid', paidAmount: prodData.paid_amount || 0 };
     }
     
-    // 2. Fallback: verificar sales_ledger (el webhook de producción actualiza sales_ledger con éxito)
+    // 2. Fallback: verificar sales_ledger
     const { data: ledgerData } = await supabase
         .from('sales_ledger')
-        .select('status')
+        .select('status, paid_amount')
         .eq('internal_id', posOrderId)
         .single();
         
     if (ledgerData?.status === 'completed' || ledgerData?.status === 'paid') {
-        // Sincronizar localmente en production_orders para corregir el estado
         await supabase
             .from('production_orders')
             .update({ payment_status: 'paid' })
             .eq('pos_order_id', posOrderId);
             
-        return { success: true, status: 'paid' };
+        return { success: true, status: 'paid', paidAmount: ledgerData.paid_amount || 0 };
     }
     
-    return { success: true, status: prodData?.payment_status || ledgerData?.status || 'pending' };
+    return { 
+        success: true, 
+        status: prodData?.payment_status || ledgerData?.status || 'pending',
+        paidAmount: Math.max(Number(prodData?.paid_amount || 0), Number(ledgerData?.paid_amount || 0))
+    };
 }
 
 export async function getDailyWorkloadAction(dateStr: string) {

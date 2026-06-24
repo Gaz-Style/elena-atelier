@@ -3564,7 +3564,9 @@ function PollingComponent({ checkoutResult, paymentConfirmed, setPaymentConfirme
             try {
                 const orderRef = `order_${checkoutResult.orderId}`;
                 const res = await checkOrderStatusAction(orderRef);
-                if (res.success && res.status === 'paid') {
+                
+                // Si la orden está completamente pagada o si ya alcanzó el monto que estábamos cobrando ahora
+                if (res.success && (res.status === 'paid' || (res.paidAmount !== undefined && res.paidAmount >= checkoutResult.total))) {
                     setPaymentConfirmed(true);
                 }
             } catch (err) {
