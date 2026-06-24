@@ -119,10 +119,14 @@ async function updateDatabaseAndNotify(
 
     if (isFullyPaidLedger) {
         try {
-            await sendOrderConfirmationEmailByOrderIdAction(externalRef);
+            const emailRes = await sendOrderConfirmationEmailByOrderIdAction(externalRef);
+            if (!emailRes?.success) {
+                console.error('Error reportado al enviar correo de confirmación de pago desde el webhook:', emailRes?.error);
+                await logSystemEvent(supabase, 'ERROR', 'Fallo envio correo confirmacion webhook', { error: emailRes?.error, externalRef });
+            }
         } catch (emailErr) {
-            console.error('Error al enviar correo de confirmación de pago desde el webhook:', emailErr);
-            await logSystemEvent(supabase, 'ERROR', 'Error enviando correo confirmacion webhook', { error: String(emailErr), externalRef });
+            console.error('Excepcion al enviar correo de confirmación de pago desde el webhook:', emailErr);
+            await logSystemEvent(supabase, 'ERROR', 'Excepcion enviando correo confirmacion webhook', { error: String(emailErr), externalRef });
         }
     }
 

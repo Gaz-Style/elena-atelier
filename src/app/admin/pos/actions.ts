@@ -541,7 +541,11 @@ export async function sendOrderConfirmationEmailAction(payload: {
 }
 
 export async function sendOrderConfirmationEmailByOrderIdAction(posOrderId: string) {
-    const supabase = await createClient();
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js');
+    const supabase = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     try {
         // 1. Obtener la venta
         const { data: sale, error: saleErr } = await supabase

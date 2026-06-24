@@ -307,7 +307,8 @@ export async function payOrderBalanceAction(posOrderId: string, amountToPay: num
             status: isPendingTerminal ? 'pending' : 'completed',
             total_amount: amountToPay,
             paid_amount: isPendingTerminal ? 0 : amountToPay,
-            payment_method: method
+            payment_method: method,
+            customer_id: sale.customer_id
         }]);
         
     if (newSaleError) console.error('Error inserting balance payment in sales ledger:', newSaleError);
