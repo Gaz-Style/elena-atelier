@@ -1122,11 +1122,17 @@ export default function POSPage() {
                 }
             }
             
+            let targetPaidAmount = amountToCharge;
+            if (posMode === 'pay_balance' && pendingOrderToPay) {
+                targetPaidAmount = Number(pendingOrderToPay.paid_amount || 0) + amountToCharge;
+            }
+            
             setCheckoutResult({
                 orderId: finalOrderIdStr.replace('order_', ''),
                 customer: selectedCustomer,
                 items: [...cart],
                 total: amountToCharge,
+                targetPaidAmount,
                 method: finalPaymentMethodStr,
                 date: dateStr,
                 deliveryDate: finalDeliveryDateStr,
@@ -3566,7 +3572,7 @@ function PollingComponent({ checkoutResult, paymentConfirmed, setPaymentConfirme
                 const res = await checkOrderStatusAction(orderRef);
                 
                 // Si la orden está completamente pagada o si ya alcanzó el monto que estábamos cobrando ahora
-                if (res.success && (res.status === 'paid' || (res.paidAmount !== undefined && res.paidAmount >= checkoutResult.total))) {
+                if (res.success && (res.status === 'paid' || (res.paidAmount !== undefined && checkoutResult?.targetPaidAmount !== undefined && res.paidAmount >= checkoutResult.targetPaidAmount))) {
                     setPaymentConfirmed(true);
                 }
             } catch (err) {
