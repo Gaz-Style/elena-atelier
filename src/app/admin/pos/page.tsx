@@ -3556,7 +3556,7 @@ function WebhookSupervisorPanel({ checkoutResult, paymentConfirmed }: any) {
 // Helper component for polling so we can use useEffect cleanly inside the conditionally rendered block
 function PollingComponent({ checkoutResult, paymentConfirmed, setPaymentConfirmed }: any) {
     useEffect(() => {
-        if (checkoutResult?.method !== 'mercadopago_point' || paymentConfirmed) return;
+        if (!(checkoutResult?.method === 'mercadopago_point' || checkoutResult?.method?.startsWith('Mixto')) || paymentConfirmed) return;
         
         let interval: NodeJS.Timeout;
         
