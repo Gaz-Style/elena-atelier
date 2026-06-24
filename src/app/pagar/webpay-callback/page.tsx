@@ -117,73 +117,70 @@ function CallbackContent() {
     };
 
     return (
-        <div className="max-w-xl mx-auto bg-[#12131C] border border-gray-800 rounded-lg overflow-hidden shadow-2xl animate-in fade-in duration-500 print:border-0 print:bg-white print:text-black print:shadow-none">
-            {/* Header decorativo de éxito */}
-            <div className="bg-gradient-to-b from-emerald-950/20 to-transparent p-8 text-center space-y-4 border-b border-gray-850 print:hidden">
-                <div className="w-16 h-16 rounded-full bg-emerald-950/30 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.15)]">
-                    <CheckCircle2 className="w-8 h-8" />
-                </div>
-                <div className="space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-[0.25em]">Transacción Autorizada</span>
-                    <h2 className="font-serif text-3xl font-light text-white tracking-wide">¡Pago Recibido con Éxito!</h2>
-                    <p className="text-xs text-gray-400 font-light">
-                        Elena Atelier agradece tu preferencia en servicios de alta costura
+        <div className="relative group overflow-hidden w-full max-w-md mx-auto">
+            {/* Glass panel container */}
+            <div className="bg-white/[0.03] backdrop-blur-md border border-white/10 border-t-white/20 border-l-white/20 border-b-white/5 border-r-white/5 rounded-[1px] shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-8 md:p-10 w-full animate-in fade-in zoom-in duration-[800ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
+                
+                {/* Header decorativo de éxito */}
+                <div className="text-center mb-10">
+                    <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto text-emerald-400 mb-6 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
+                        <CheckCircle2 className="w-8 h-8" />
+                    </div>
+                    <p className="text-[#f5f2eb]/60 text-[10px] uppercase tracking-[0.45em] font-semibold mb-4">Transacción Autorizada</p>
+                    <h2 className="text-[#f5f2eb] text-3xl md:text-4xl font-serif font-light tracking-widest mb-3">
+                        ¡Pago Exitoso!
+                    </h2>
+                    <p className="text-white/40 text-[10px] font-sans tracking-widest uppercase">
+                        Ref: {paymentData.buy_order}
                     </p>
                 </div>
-            </div>
 
-            {/* Comprobante de Venta */}
-            <div className="p-8 space-y-6">
-                <div className="flex justify-between items-center pb-2 border-b border-dashed border-gray-800">
-                    <span className="text-xs font-bold uppercase tracking-widest text-[#C5A880]">Comprobante Webpay Plus</span>
-                    <span className="text-[10px] font-mono text-gray-500">REF: {paymentData.buy_order}</span>
-                </div>
+                {/* Detalles del Comprobante */}
+                <div className="space-y-4">
+                    <div className="flex justify-between items-end border-b border-white/5 pb-3">
+                        <span className="text-white/40 text-[10px] uppercase tracking-[0.2em]">Monto Autorizado</span>
+                        <span className="font-serif text-[#f5f2eb] text-xl">{formatCurrency(paymentData.amount)}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-end border-b border-white/5 pb-3">
+                        <span className="text-white/40 text-[10px] uppercase tracking-[0.2em]">Cód. Autorización</span>
+                        <span className="font-sans text-white/90 text-xs tracking-widest">{paymentData.authorization_code}</span>
+                    </div>
 
-                <div className="space-y-4 text-sm text-gray-300">
-                    <div className="flex justify-between items-center">
-                        <span className="text-gray-500 font-medium">Monto Autorizado:</span>
-                        <strong className="text-white font-serif text-lg">{formatCurrency(paymentData.amount)}</strong>
+                    <div className="flex justify-between items-end border-b border-white/5 pb-3">
+                        <span className="text-white/40 text-[10px] uppercase tracking-[0.2em]">Método de Pago</span>
+                        <span className="font-sans text-white/90 text-xs tracking-widest">{getPaymentType(paymentData.payment_type_code)}</span>
                     </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-gray-500 font-medium">Orden de Compra:</span>
-                        <span className="font-mono text-white text-xs">{paymentData.buy_order}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-gray-500 font-medium">Código de Autorización:</span>
-                        <span className="font-mono text-white font-bold">{paymentData.authorization_code}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-gray-500 font-medium">Método de Pago:</span>
-                        <span className="text-white font-medium flex items-center gap-1.5">
-                            <CreditCard className="w-4 h-4 text-[#C5A880]" />
-                            {getPaymentType(paymentData.payment_type_code)}
-                        </span>
-                    </div>
+
                     {paymentData.installments_number > 0 && (
-                        <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-medium">Cuotas Pactadas:</span>
-                            <span className="text-[#C5A880] font-bold">{paymentData.installments_number} cuotas</span>
+                        <div className="flex justify-between items-end border-b border-white/5 pb-3">
+                            <span className="text-white/40 text-[10px] uppercase tracking-[0.2em]">Cuotas</span>
+                            <span className="font-sans text-white/90 text-xs tracking-widest">{paymentData.installments_number}</span>
                         </div>
                     )}
-                    <div className="flex justify-between items-center">
-                        <span className="text-gray-500 font-medium">Tarjeta Terminada en:</span>
-                        <span className="font-mono text-white font-bold">•••• •••• •••• {paymentData.card_detail?.card_number || 'XXXX'}</span>
+
+                    <div className="flex justify-between items-end border-b border-white/5 pb-3">
+                        <span className="text-white/40 text-[10px] uppercase tracking-[0.2em]">Tarjeta</span>
+                        <span className="font-sans text-white/90 text-xs tracking-widest">•••• {paymentData.card_detail?.card_number || 'XXXX'}</span>
                     </div>
                 </div>
 
-                <div className="bg-[#1A1C28]/80 border border-gray-800/80 p-4 rounded-sm space-y-1.5 text-center text-xs leading-relaxed text-gray-400">
-                    <p className="font-semibold text-white">✨ Su orden ya ha sido registrada en el taller.</p>
-                    <p>Las costureras del atelier han recibido las especificaciones y se han programado las fechas estimadas del proyecto.</p>
+                {/* Mensaje de confirmación del taller */}
+                <div className="mt-8 mb-8 bg-white/[0.02] border border-white/5 p-5 text-center">
+                    <p className="text-[#f5f2eb]/80 text-[10px] uppercase tracking-[0.2em] mb-2 font-semibold">Su orden está en el taller</p>
+                    <p className="text-white/40 text-[11px] leading-relaxed">Las costureras del atelier han recibido las especificaciones y se han programado las fechas del proyecto.</p>
                 </div>
 
-                {/* Acciones */}
-                <div className="pt-6 border-t border-gray-850 flex justify-center print:hidden">
+                {/* Botón Volver a Inicio */}
+                <div className="pt-2">
                     <button 
                         onClick={() => router.push('/')}
-                        className="w-full max-w-sm bg-[#C5A880] hover:bg-[#D5B890] text-[#12131C] py-3 rounded-sm text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all cursor-pointer"
+                        className="group relative w-full inline-flex items-center justify-center gap-3 px-6 py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[10px] uppercase tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] rounded-[1px]"
                     >
-                        <ShoppingBag className="w-4 h-4" />
-                        Volver a Inicio
+                        <span className="relative z-10 transition-colors duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:text-[#121212] flex items-center gap-2">
+                            <ShoppingBag className="w-4 h-4" />
+                            Volver a Inicio
+                        </span>
                     </button>
                 </div>
             </div>
