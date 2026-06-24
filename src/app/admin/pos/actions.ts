@@ -2213,9 +2213,10 @@ export async function deleteBudgetAction(id: string) {
     return { success: true };
 }
 
-export async function cancelPendingOrderAction(orderId: string, isBalancePayment: boolean) {
+export async function cancelPendingOrderAction(rawOrderId: string, isBalancePayment: boolean) {
     try {
         const supabase = await createClient();
+        const orderId = rawOrderId.startsWith('order_') ? rawOrderId : `order_${rawOrderId}`;
         
         if (isBalancePayment) {
             const { data: pendingBalanceRows } = await supabase
@@ -2224,14 +2225,26 @@ export async function cancelPendingOrderAction(orderId: string, isBalancePayment
                 .like('internal_id', `${orderId}_balance_%`)
                 .eq('status', 'pending');
                 
+            let cashToSubtract = 0;
             if (pendingBalanceRows && pendingBalanceRows.length > 0) {
                 for (const row of pendingBalanceRows) {
+                    if (row.payment_method && row.payment_method.toLowerCase().includes('mixto')) {
+                        const cashMatch = row.payment_method.match(/efectivo:\s*\$(\d+)/i);
+                        if (cashMatch) {
+                            cashToSubtract += Number(cashMatch[1]);
+                        }
+                    }
                     await supabase.from('sales_ledger').delete().eq('id', row.id);
                 }
             }
             
-            await supabase.from('production_orders').update({ payment_status: 'partial' }).eq('pos_order_id', orderId);
-            await supabase.from('sales_ledger').update({ status: 'partial' }).eq('internal_id', orderId);
+            // Get current paid amount
+            const { data: sale } = await supabase.from('sales_ledger').select('paid_amount').eq('internal_id', orderId).single();
+            if (sale) {
+                const newAmount = Math.max(0, Number(sale.paid_amount) - cashToSubtract);
+                await supabase.from('production_orders').update({ payment_status: 'partial', paid_amount: newAmount }).eq('pos_order_id', orderId);
+                await supabase.from('sales_ledger').update({ status: 'partial', paid_amount: newAmount }).eq('internal_id', orderId);
+            }
         } else {
             await supabase.from('production_orders').delete().eq('pos_order_id', orderId);
             await supabase.from('sales_ledger').delete().eq('internal_id', orderId);
