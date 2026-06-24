@@ -170,29 +170,52 @@ export default function ContractTemplate({ data }: { data: ContractData }) {
                 <h3 className="font-bold text-sm uppercase tracking-widest border-b border-gray-300 pb-2 mb-4">
                     {data.milestones.length > 0 ? '5' : '4'}. TÉRMINOS Y CONDICIONES
                 </h3>
-                <div className="space-y-3 text-[12px]">
-                    <p><strong>a)</strong> El abono inicial del 50% es condición necesaria para reservar el cupo de producción. Sin este pago, el taller no iniciará ningún trabajo.</p>
-                    <p><strong>b)</strong> La clienta se compromete a asistir a las pruebas programadas en las fechas acordadas. La reprogramación debe solicitarse con al menos 48 horas de anticipación.</p>
-                    <p><strong>c)</strong> La inasistencia a una prueba sin aviso previo no constituye motivo para extender los plazos de entrega.</p>
-                    <p><strong>d)</strong> El vestido se entregará únicamente una vez completado el 100% del pago total.</p>
-                    
-                    {isVestidoPropio && (
-                        <>
-                            <div className="bg-amber-50 border border-amber-200 p-4 rounded-sm mt-4">
-                                <p className="font-bold text-amber-800 uppercase text-xs tracking-widest mb-2">⚠ Cláusula Especial — Vestido Propio</p>
-                                <p><strong>e)</strong> Al tratarse de un vestido proporcionado por la clienta, ELENA ATELIER no se responsabiliza por defectos preexistentes en la tela, incluyendo pero no limitado a: desgaste, decoloración, fragilidad de fibras o daños previos no visibles a simple inspección.</p>
-                                <p className="mt-2"><strong>f)</strong> ELENA ATELIER garantiza exclusivamente la calidad de la mano de obra aplicada sobre la prenda. Cualquier daño derivado de la condición original de la tela no será cubierto por esta garantía.</p>
-                            </div>
-                        </>
+                
+                <p className="text-[12px] mb-3">El presente contrato tiene como objetivo dejar en conocimiento los términos y condiciones del servicio acordado.</p>
+                
+                <div className="space-y-4 text-[12px]">
+                    <div>
+                        <h4 className="font-bold text-gray-700">1. Reserva y Pagos</h4>
+                        <p>Para confirmar el servicio e iniciar el trabajo, se debe abonar el 50% del valor total (Reserva). El saldo restante se dividirá y cancelará según el esquema detallado en la sección "Condiciones Económicas". El vestido debe estar pagado en su totalidad (100%) al momento de retirarlo.</p>
+                        <p className="mt-1"><strong>Formas de Pago Aceptadas:</strong> Efectivo, Tarjetas de Crédito/Débito, y Transferencias Bancarias.</p>
+                    </div>
+
+                    {data.serviceType === 'bespoke' && (
+                        <div>
+                            <h4 className="font-bold text-gray-700">2. Diseño y Tiempo de Fabricación (A la medida)</h4>
+                            <p>El diseño y confección a medida conlleva un proceso de meses. ELENA ATELIER asesora en la búsqueda del diseño óptimo. La clienta escoge el diseño, color y materiales. Si los materiales exactos no se encuentran en stock en fábrica, se buscarán las alternativas más similares (encajes, bordados, pedrería, etc.) previa aprobación. Posterior al inicio del proceso de confección, no se pueden realizar cambios estructurales en el diseño del vestido.</p>
+                        </div>
                     )}
 
-                    <p><strong>{isVestidoPropio ? 'g' : 'e'})</strong> <strong>Política de Cancelación:</strong> En caso de cancelación antes del corte de tela, se retendrá un 20% del abono por concepto de diseño y patronaje. Posterior al corte, no habrá devolución del abono.</p>
+                    <div>
+                        <h4 className="font-bold text-gray-700">3. Pruebas y Ajustes</h4>
+                        <p>Se realizarán pruebas calendarizadas previas a la entrega final para lograr el calce perfecto. La clienta se compromete a asistir a la hora y fecha coordinada. <strong>Importante:</strong> Debe asistir sin maquillaje y con los accesorios, ropa interior y zapatos definitivos que usará el día del evento. La reprogramación de pruebas debe solicitarse con al menos 48 horas de anticipación.</p>
+                        {(data.serviceType === 'modificacion_tienda' || data.serviceType === 'vestido_propio') && (
+                            <p className="mt-1 text-gray-600">Al comenzar a realizar las modificaciones y cortes correspondientes, el vestido no podrá ser cambiado ni devuelto.</p>
+                        )}
+                    </div>
+
+                    <div>
+                        <h4 className="font-bold text-gray-700">4. Cancelaciones, Suspensiones y Cambios</h4>
+                        <p>ELENA ATELIER <strong>NO HACE DEVOLUCIÓN DE DINERO</strong> bajo ningún concepto (incluyendo arrepentimiento de compra, embarazo, suspensión o cancelación del evento). </p>
+                        {data.serviceType === 'modificacion_tienda' && (
+                            <p className="mt-1">Solo se permite el cambio por otro vestido en stock, siempre y cuando <strong>no se haya realizado ninguna modificación o corte</strong> en la prenda original.</p>
+                        )}
+                        <p className="mt-1">Si se suspende, cancela o cambia la fecha del evento, ELENA ATELIER se compromete a mantener el vestido resguardado en el atelier por un período <strong>máximo de 6 meses</strong>. Si cumplido este plazo el vestido no ha sido pagado en su 100% y/o no es retirado, pasará a formar parte del stock de la tienda, perdiendo la clienta el derecho a reclamo o reembolso de los abonos.</p>
+                    </div>
+
+                    {isVestidoPropio && (
+                        <div className="bg-amber-50 border border-amber-200 p-4 rounded-sm mt-4 text-[11px]">
+                            <p className="font-bold text-amber-800 uppercase tracking-widest mb-2">⚠ Cláusula Especial — Vestido Propio</p>
+                            <p>Al tratarse de un vestido proporcionado por la clienta, ELENA ATELIER no se responsabiliza por defectos preexistentes en la tela, incluyendo pero no limitado a: desgaste, decoloración, fragilidad de fibras o daños previos no visibles a simple inspección. Se garantiza exclusivamente la calidad de la mano de obra aplicada sobre la prenda.</p>
+                        </div>
+                    )}
                 </div>
                 
                 {data.contractNotes && (
-                    <div className="mt-4 bg-gray-50 border border-gray-200 p-4 rounded-sm">
-                        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Notas Adicionales</p>
-                        <p className="italic text-gray-600 whitespace-pre-wrap">{data.contractNotes}</p>
+                    <div className="mt-6 bg-gray-50 border border-gray-200 p-4 rounded-sm">
+                        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Acuerdos Adicionales</p>
+                        <p className="italic text-gray-600 text-[12px] whitespace-pre-wrap">{data.contractNotes}</p>
                     </div>
                 )}
             </section>
