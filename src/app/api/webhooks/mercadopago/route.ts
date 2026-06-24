@@ -242,14 +242,10 @@ async function updateDatabaseAndNotify(
                 }
             }
         } else {
-            // Sin detalles de orden — notificar sólo con la referencia externa
-            const finalAmount = amount || 0;
-            const monto = finalAmount > 0 ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(finalAmount) : 'Monto';
-            for (const ownerNum of ['56984021940', '56937667709']) {
-                await sendWsp(ownerNum, 'alerta_pago_recibido', [
-                    'Clienta', 'Orden', `Ref: ${externalRef} (${monto})`, externalRef, paymentMethodLabel
-                ], 'en');
-            }
+            // Sin detalles de orden — es probable que sea un pago personal o ajeno al POS.
+            // Solo lo registramos en los logs del sistema, NO enviamos WhatsApp para evitar spam.
+            console.warn(`Pago aprobado (${paymentId}) sin coincidencia en BD. Ref: ${externalRef}. Se ignora la notificación de WhatsApp.`);
+            await logSystemEvent(supabase, 'INFO', 'Pago externo/personal detectado (sin orden en BD)', { paymentId, externalRef, amount });
         }
     }
     return true;
@@ -292,8 +288,11 @@ export async function POST(req: Request) {
                 if (key === 'v1') v1 = value;
             }
 
-            const dataUrl = req.url.split('?')[1] || ''; // Data from query params if any
-            let manifest = `id:${paymentId || ''};request-id:${requestId};ts:${ts};`;
+            const urlObj = new URL(req.url);
+            const dataIdFromUrl = urlObj.searchParams.get('data.id') || urlObj.searchParams.get('id');
+            const idForSignature = dataIdFromUrl || paymentId || '';
+            
+            let manifest = `id:${idForSignature};request-id:${requestId};ts:${ts};`;
             
             const hmac = crypto.createHmac('sha256', webhookSecret);
             hmac.update(manifest);
