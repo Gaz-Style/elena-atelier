@@ -42,19 +42,24 @@ export default async function AgendaPage({
     // --- DETERMINAR RANGO DE FECHAS SEGÚN VISTA ---
     let startQuery, endQuery;
     
+    const formatToTZ = (d: Date, endOfDay = false) => {
+        const dateStr = d.toLocaleDateString('en-CA');
+        return new Date(`${dateStr}T${endOfDay ? '23:59:59' : '00:00:00'}-04:00`);
+    };
+
     if (view === 'year') {
-        startQuery = new Date(currentYear, 0, 1, 0, 0, 0); // 1 Enero
-        endQuery = new Date(currentYear, 11, 31, 23, 59, 59); // 31 Diciembre
+        startQuery = formatToTZ(new Date(currentYear, 0, 1));
+        endQuery = formatToTZ(new Date(currentYear, 11, 31), true);
     } else if (view === 'month') {
-        startQuery = new Date(startGridMonth.getFullYear(), startGridMonth.getMonth(), startGridMonth.getDate(), 0, 0, 0);
+        startQuery = formatToTZ(startGridMonth);
         const endGridMonth = new Date(startGridMonth);
-        endGridMonth.setDate(endGridMonth.getDate() + 41); // 6 semanas
-        endQuery = new Date(endGridMonth.getFullYear(), endGridMonth.getMonth(), endGridMonth.getDate(), 23, 59, 59);
+        endGridMonth.setDate(endGridMonth.getDate() + 41);
+        endQuery = formatToTZ(endGridMonth, true);
     } else if (view === 'week') {
-        startQuery = new Date(startGridWeek.getFullYear(), startGridWeek.getMonth(), startGridWeek.getDate(), 0, 0, 0);
+        startQuery = formatToTZ(startGridWeek);
         const endGridWeek = new Date(startGridWeek);
-        endGridWeek.setDate(endGridWeek.getDate() + 6); // 1 semana
-        endQuery = new Date(endGridWeek.getFullYear(), endGridWeek.getMonth(), endGridWeek.getDate(), 23, 59, 59);
+        endGridWeek.setDate(endGridWeek.getDate() + 6);
+        endQuery = formatToTZ(endGridWeek, true);
     } else {
         startQuery = new Date(`${selectedDateStr}T00:00:00-04:00`);
         endQuery = new Date(`${selectedDateStr}T23:59:59-04:00`);
@@ -361,10 +366,14 @@ export default async function AgendaPage({
                                 <div className="grid grid-cols-7">
                                     {monthDays.map((day, idx) => {
                                         const isCurrentMonth = day.getMonth() === selectedDate.getMonth();
-                                        const dateStr = day.toISOString().split('T')[0];
-                                        const isToday = dateStr === today.toISOString().split('T')[0];
+                                        const todayStr = today.toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
+                                        const dateStr = day.toLocaleDateString('en-CA');
+                                        const isToday = dateStr === todayStr;
                                         
-                                        const dayEvents = eventos?.filter(e => e.fecha_hora.startsWith(dateStr)) || [];
+                                        const dayEvents = eventos?.filter(e => {
+                                            const tzDateStr = new Date(e.fecha_hora).toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
+                                            return tzDateStr === dateStr;
+                                        }) || [];
                                         
                                         return (
                                             <Link 
@@ -385,7 +394,7 @@ export default async function AgendaPage({
                                                 <div className="flex-1 space-y-1 overflow-hidden">
                                                     {dayEvents.slice(0, 3).map((e) => (
                                                         <div key={e.id} className={`text-[10px] truncate px-1.5 py-0.5 rounded ${e.tipo_evento === 'tarea_interna' ? 'bg-gray-200 text-gray-700' : 'bg-brand-sand text-brand-charcoal'}`}>
-                                                            {new Date(e.fecha_hora).toLocaleTimeString('es-CL', {hour: '2-digit', minute:'2-digit'})} - {e.tipo_evento === 'tarea_interna' ? 'Bloqueo' : e.nombre}
+                                                            {new Date(e.fecha_hora).toLocaleTimeString('es-CL', {hour: '2-digit', minute:'2-digit', timeZone: 'America/Santiago'})} - {e.tipo_evento === 'tarea_interna' ? 'Bloqueo' : e.nombre}
                                                         </div>
                                                     ))}
                                                     {dayEvents.length > 3 && (
@@ -420,11 +429,15 @@ export default async function AgendaPage({
 
                             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row">
                                 {weekDays.map((day, idx) => {
-                                    const dateStr = day.toISOString().split('T')[0];
-                                    const isToday = dateStr === today.toISOString().split('T')[0];
+                                    const todayStr = today.toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
+                                    const dateStr = day.toLocaleDateString('en-CA');
+                                    const isToday = dateStr === todayStr;
                                     const dayName = day.toLocaleDateString('es-CL', { weekday: 'short' });
                                     
-                                    const dayEvents = eventos?.filter(e => e.fecha_hora.startsWith(dateStr)) || [];
+                                    const dayEvents = eventos?.filter(e => {
+                                        const tzDateStr = new Date(e.fecha_hora).toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
+                                        return tzDateStr === dateStr;
+                                    }) || [];
 
                                     return (
                                         <div key={idx} className="flex-1 border-b md:border-b-0 md:border-r border-gray-100 last:border-0 md:min-h-[500px]">
@@ -441,7 +454,7 @@ export default async function AgendaPage({
                                                 {dayEvents.map((e) => (
                                                     <div key={e.id} className={`p-2 rounded-lg text-xs border ${e.tipo_evento === 'tarea_interna' ? 'bg-gray-50 border-gray-200' : 'bg-brand-sand/30 border-brand-sand text-brand-charcoal'}`}>
                                                         <div className="font-bold mb-1">
-                                                            {new Date(e.fecha_hora).toLocaleTimeString('es-CL', {hour: '2-digit', minute:'2-digit'})}
+                                                            {new Date(e.fecha_hora).toLocaleTimeString('es-CL', {hour: '2-digit', minute:'2-digit', timeZone: 'America/Santiago'})}
                                                         </div>
                                                         <div className="truncate">
                                                             {e.tipo_evento === 'tarea_interna' ? e.notas : `${e.nombre} ${e.apellido}`}
