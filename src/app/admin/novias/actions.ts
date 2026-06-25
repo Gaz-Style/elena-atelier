@@ -14,7 +14,7 @@ type ProjectStatus = 'consulta' | 'contrato_pendiente' | 'en_proceso' | 'prueba_
 async function getSiteUrl() {
     if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
     try {
-        const headersList = headers();
+        const headersList = await headers();
         const host = headersList.get('x-forwarded-host') || headersList.get('host');
         if (host && !host.includes('localhost')) {
             const protocol = headersList.get('x-forwarded-proto') || 'https';
