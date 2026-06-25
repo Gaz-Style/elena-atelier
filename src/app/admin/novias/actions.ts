@@ -420,73 +420,74 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
   @import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap');
 </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #F8F6F0; font-family: 'Inter', sans-serif;">
+<body style="margin: 0; padding: 0; background-color: #F8F6F0; font-family: 'Inter', Helvetica, sans-serif;">
   <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8F6F0; padding: 40px 20px;">
     <tr>
       <td align="center">
-        <!-- Main Card -->
+        <!-- Main Card Container -->
         <table width="650" border="0" cellpadding="0" cellspacing="0" style="background-color: #120F0D; border-radius: 4px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.4);">
           <tr>
-            <td background="${cardBgUrl}" bgcolor="#120F0D" style="background: linear-gradient(to right, rgba(18,15,13,1) 0%, rgba(18,15,13,0.95) 45%, rgba(18,15,13,0.3) 100%), url('${cardBgUrl}') right center/cover; background-image: linear-gradient(to right, rgba(18,15,13,1) 0%, rgba(18,15,13,0.95) 45%, rgba(18,15,13,0.3) 100%), url('${cardBgUrl}'); background-size: cover; background-position: right top; position: relative; padding: 15px;">
-              
-              <!-- Inner border -->
-              <div style="border: 1px solid rgba(193, 127, 95, 0.3); border-radius: 2px; padding: 40px 20px; position: relative; min-height: 700px;">
-                
-                <!-- Left Column for Text (55% width) -->
-                <table width="55%" border="0" cellpadding="0" cellspacing="0" style="float: left; text-align: center;">
-                  <tr>
-                    <td>
-                      <!-- Logo -->
-                      ${emailLogoHtml}
-                      
-                      <div style="margin-top: 30px; color: #C17F5F; font-size: 14px;">✦</div>
-                      
-                      <p style="color: #C17F5F; font-size: 8px; text-transform: uppercase; letter-spacing: 4px; margin: 15px 0 25px 0; font-weight: 600;">
-                        INGRESO ATELIER
-                      </p>
-                      
-                      <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 32px; font-weight: 400; margin: 0; line-height: 1.2;">
-                        ¡Felicidades
-                      </h1>
-                      <h2 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 20px; font-weight: 400; margin: 5px 0 0 0; font-style: italic;">
-                        por tu
-                      </h2>
-                      <h1 style="font-family: 'Alex Brush', 'Playfair Display', cursive, serif; color: #C17F5F; font-size: 42px; font-weight: 400; margin: 0 0 15px 0; font-style: normal; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
-                        compromiso!
-                      </h1>
-                      
-                      <div style="color: #C17F5F; font-size: 12px; margin-bottom: 10px;">♡</div>
-                      
-                      <p style="font-family: 'Alex Brush', 'Playfair Display', cursive, serif; color: #FFFFFF; font-size: 38px; margin: 0; line-height: 1;">
-                        ${customerName}
-                      </p>
-                      
-                      <div style="color: #C17F5F; font-size: 10px; margin-top: 15px; margin-bottom: 30px;">♡</div>
+            <td style="padding: 15px;">
+              <!-- Inner Border Table -->
+              <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border: 1px solid rgba(193, 127, 95, 0.4); border-radius: 2px;">
+                <tr>
+                  <!-- LEFT COLUMN: TEXT -->
+                  <td width="380" bgcolor="#120F0D" valign="middle" align="center" style="padding: 40px 20px;">
+                    
+                    <!-- Logo -->
+                    ${emailLogoHtml}
+                    
+                    <div style="margin-top: 30px; color: #C17F5F; font-size: 14px;">✦</div>
+                    
+                    <p style="color: #C17F5F; font-size: 8px; text-transform: uppercase; letter-spacing: 4px; margin: 15px 0 25px 0; font-weight: 600;">
+                      INGRESO ATELIER
+                    </p>
+                    
+                    <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 32px; font-weight: 400; margin: 0; line-height: 1.2;">
+                      ¡Felicidades
+                    </h1>
+                    <h2 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 20px; font-weight: 400; margin: 5px 0 0 0; font-style: italic;">
+                      por tu
+                    </h2>
+                    <h1 style="font-family: 'Alex Brush', 'Playfair Display', cursive, Georgia, serif; color: #C17F5F; font-size: 42px; font-weight: 400; margin: 0 0 15px 0; font-style: italic;">
+                      compromiso!
+                    </h1>
+                    
+                    <div style="color: #C17F5F; font-size: 12px; margin-bottom: 10px;">♡</div>
+                    
+                    <p style="font-family: 'Alex Brush', 'Playfair Display', cursive, Georgia, serif; color: #FFFFFF; font-size: 36px; margin: 0; line-height: 1.2; font-style: italic;">
+                      ${customerName}
+                    </p>
+                    
+                    <div style="color: #C17F5F; font-size: 10px; margin-top: 15px; margin-bottom: 30px;">♡</div>
 
-                      <p style="color: #D4D0C5; font-size: 11px; line-height: 1.8; margin-bottom: 40px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
-                        Es un honor para nosotros acompañarte en este viaje tan especial. Hemos preparado un portal exclusivo para ti, donde comenzaremos a diseñar el vestido de tus sueños con todo el lujo que mereces.
-                      </p>
-                      
-                      <div style="color: #C17F5F; font-size: 10px; margin-bottom: 25px;">⬩</div>
+                    <p style="color: #D4D0C5; font-size: 11px; line-height: 1.8; margin-bottom: 40px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
+                      Es un honor para nosotros acompañarte en este viaje tan especial. Hemos preparado un portal exclusivo para ti, donde comenzaremos a diseñar el vestido de tus sueños con todo el lujo que mereces.
+                    </p>
+                    
+                    <div style="color: #C17F5F; font-size: 10px; margin-bottom: 25px;">⬩</div>
 
-                      <a href="${portalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', sans-serif; font-weight: 600; color: #C17F5F; text-decoration: none; padding: 14px 28px; border: 1px solid rgba(193, 127, 95, 0.6); display: inline-block; text-transform: uppercase; letter-spacing: 2px; border-radius: 1px;">
-                        INGRESAR A MI PORTAL &rarr;
-                      </a>
-                      
-                      <div style="color: #C17F5F; font-size: 8px; margin-top: 25px; margin-bottom: 10px;">-</div>
-                      
-                      <p style="font-family: 'Alex Brush', cursive, serif; color: #C17F5F; font-size: 22px; margin: 0 0 5px 0;">
-                        Con cariño,
-                      </p>
-                      <p style="color: #A39E93; font-size: 7px; text-transform: uppercase; letter-spacing: 2px; margin: 0;">
-                        ELENA LA COSTURERA<br>ATELIER
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-                <!-- Clearfix for float -->
-                <div style="clear: both;"></div>
-              </div>
+                    <a href="${portalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, sans-serif; font-weight: 600; color: #C17F5F; text-decoration: none; padding: 14px 28px; border: 1px solid rgba(193, 127, 95, 0.6); display: inline-block; text-transform: uppercase; letter-spacing: 2px; border-radius: 1px;">
+                      INGRESAR A MI PORTAL &rarr;
+                    </a>
+                    
+                    <div style="color: #C17F5F; font-size: 8px; margin-top: 25px; margin-bottom: 10px;">-</div>
+                    
+                    <p style="font-family: 'Alex Brush', 'Playfair Display', cursive, Georgia, serif; color: #C17F5F; font-size: 22px; margin: 0 0 5px 0; font-style: italic;">
+                      Con cariño,
+                    </p>
+                    <p style="color: #A39E93; font-size: 7px; text-transform: uppercase; letter-spacing: 2px; margin: 0;">
+                      ELENA LA COSTURERA<br>ATELIER
+                    </p>
+
+                  </td>
+                  
+                  <!-- RIGHT COLUMN: IMAGE -->
+                  <td width="240" background="${cardBgUrl}" bgcolor="#120F0D" style="background-image: url('${cardBgUrl}'); background-size: cover; background-position: center; background-repeat: no-repeat; border-left: 1px solid rgba(193,127,95,0.1);">
+                    <div style="width: 240px; min-height: 600px;"></div>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
         </table>
