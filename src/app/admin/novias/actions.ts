@@ -427,7 +427,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
         <!-- Main Card -->
         <table width="650" border="0" cellpadding="0" cellspacing="0" style="background-color: #120F0D; border-radius: 4px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.4);">
           <tr>
-            <td background="${cardBgUrl}" bgcolor="#120F0D" style="background: linear-gradient(to right, #120F0D 0%, #120F0D 40%, rgba(18,15,13,0.6) 60%, rgba(18,15,13,0) 100%), url('${cardBgUrl}') right center/cover; background-image: linear-gradient(to right, #120F0D 0%, #120F0D 40%, rgba(18,15,13,0.6) 60%, rgba(18,15,13,0) 100%), url('${cardBgUrl}'); background-size: cover; background-position: right center; position: relative; padding: 15px;">
+            <td background="${cardBgUrl}" bgcolor="#120F0D" style="background: linear-gradient(to right, #120F0D 0%, #120F0D 30%, rgba(18,15,13,0.3) 45%, rgba(18,15,13,0) 65%), url('${cardBgUrl}') center right/cover; background-image: linear-gradient(to right, #120F0D 0%, #120F0D 30%, rgba(18,15,13,0.3) 45%, rgba(18,15,13,0) 65%), url('${cardBgUrl}'); background-size: 110%; background-position: right 30%; position: relative; padding: 15px; background-repeat: no-repeat;">
               
               <!-- Inner border -->
               <div style="border: 1px solid rgba(193, 127, 95, 0.4); border-radius: 2px; padding: 40px 20px; position: relative; min-height: 700px;">
