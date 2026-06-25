@@ -16,12 +16,13 @@ async function getSiteUrl() {
     try {
         const headersList = headers();
         const host = headersList.get('x-forwarded-host') || headersList.get('host');
-        if (host) {
-            const protocol = headersList.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https');
+        if (host && !host.includes('localhost')) {
+            const protocol = headersList.get('x-forwarded-proto') || 'https';
             return `${protocol}://${host}`;
         }
     } catch(e) {}
-    return 'http://localhost:3000';
+    // Force production URL when generating emails from localhost admin panel
+    return 'https://elenalacosturera.cl';
 }
 
 function getAdminClient() {
