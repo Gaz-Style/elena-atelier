@@ -67,8 +67,42 @@ export default function PortalNoviasContratoPage() {
 
     const formatDate = (dateStr: string) => {
         if (!dateStr) return '—';
-        // Handle timezone issues nicely
-        const dateObj = new Date(dateStr + 'T12:00:00');
+        
+        let dateObj: Date;
+        
+        if (dateStr.includes('-')) {
+            const parts = dateStr.split('-');
+            if (parts[0].length === 2 && parts[2].length === 4) {
+                dateObj = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]), 12, 0, 0);
+            } else if (parts[0].length === 4 && parts[2].length === 2) {
+                dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 12, 0, 0);
+            } else {
+                dateObj = new Date(dateStr + 'T12:00:00');
+            }
+        } else if (dateStr.includes('/')) {
+            const parts = dateStr.split('/');
+            if (parts[0].length === 2 && parts[2].length === 4) {
+                dateObj = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]), 12, 0, 0);
+            } else if (parts[0].length === 4 && parts[2].length === 2) {
+                dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 12, 0, 0);
+            } else {
+                dateObj = new Date(dateStr + 'T12:00:00');
+            }
+        } else {
+            dateObj = new Date(dateStr + 'T12:00:00');
+        }
+
+        if (isNaN(dateObj.getTime())) {
+            const cleanStr = dateStr.replace(/-/g, '/');
+            const fallbackObj = new Date(cleanStr);
+            if (!isNaN(fallbackObj.getTime())) {
+                return fallbackObj.toLocaleDateString('es-CL', {
+                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+                });
+            }
+            return dateStr;
+        }
+
         return dateObj.toLocaleDateString('es-CL', {
             weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
         });
