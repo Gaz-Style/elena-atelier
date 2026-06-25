@@ -383,7 +383,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
         if (!project || !project.customers?.email) throw new Error('Proyecto o correo no encontrado');
         
         const customerEmail = project.customers.email;
-        const customerName = project.customers.full_name?.split(' ')[0] || 'futura novia';
+        const customerName = project.customers.full_name || 'Futura Novia';
         const portalLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/portal-novias/${projectId}`;
 
         // Luxury background image logic
@@ -404,9 +404,9 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
   <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8F6F0; padding: 40px 20px;">
     <tr>
       <td align="center">
-        <table width="500" border="0" cellpadding="0" cellspacing="0" style="background-color: #0A0A0A; border-radius: 4px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.4);">
+        <table width="500" border="0" cellpadding="0" cellspacing="0" style="background-color: #0A0A0A; border-radius: 20px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.4);">
           <tr>
-            <td background="${cardBgUrl}" bgcolor="#111111" style="background: linear-gradient(rgba(10,10,10,0.65), rgba(10,10,10,0.9)), url('${cardBgUrl}') center/cover; background-image: linear-gradient(rgba(10,10,10,0.65), rgba(10,10,10,0.9)), url('${cardBgUrl}'); background-size: cover; background-position: center; padding: 60px 40px; text-align: center; position: relative;">
+            <td background="${cardBgUrl}" bgcolor="#111111" style="border-radius: 20px; overflow: hidden; background: linear-gradient(rgba(20,20,20,0.2), rgba(20,20,20,0.7)), url('${cardBgUrl}') center/cover; background-image: linear-gradient(rgba(20,20,20,0.2), rgba(20,20,20,0.7)), url('${cardBgUrl}'); background-size: cover; background-position: center; padding: 60px 40px; text-align: center; position: relative;">
               
               <div style="position: relative; z-index: 2;">
                 ${emailLogoHtml}
@@ -518,7 +518,7 @@ export async function sendBridalContractEmailAction(projectId: string) {
         const paymentLink = `${siteUrl}/portal-novias/${projectId}/pagar`;
 
         const customerEmail = project.customers.email;
-        const customerName = project.customers.full_name?.split(' ')[0] || 'Clienta';
+        const customerName = project.customers.full_name || 'Clienta';
 
         const htmlContent = `<!DOCTYPE html>
 <html lang="es">
@@ -591,7 +591,7 @@ export async function sendBridalThankYouEmailAction(projectId: string) {
         if (!project || !project.customers?.email) throw new Error('Proyecto no encontrado');
         
         const customerEmail = project.customers.email;
-        const customerName = project.customers.full_name?.split(' ')[0] || 'Clienta';
+        const customerName = project.customers.full_name || 'Clienta';
 
         const htmlContent = `<!DOCTYPE html>
 <html lang="es">
