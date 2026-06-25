@@ -357,14 +357,14 @@ const getTransporter = () => {
 };
 
 const emailLogoHtml = `
-    <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto; width: 150px; text-align: center;">
+    <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto; text-align: center;">
       <tr>
-        <td style="font-family:'Playfair Display', Georgia, serif; font-size: 26px; font-weight: 900; color: #FFFFFF; letter-spacing: 10px; text-transform: uppercase; text-align: center; line-height: 1; padding: 0 0 0 10px;">
+        <td style="font-family:'Playfair Display', Georgia, serif; font-size: 28px; font-weight: 900; color: #FFFFFF; letter-spacing: 12px; text-transform: uppercase; text-align: center; line-height: 1; padding: 0 0 0 12px;">
           ELENA
         </td>
       </tr>
       <tr>
-        <td style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 8px; font-weight: 700; color: #FFFFFF; letter-spacing: 4.2px; text-transform: uppercase; text-align: center; padding-top: 8px; line-height: 1; padding-left: 4.2px;">
+        <td style="font-family:'Inter', -apple-system, sans-serif; font-size: 8px; font-weight: 700; color: #FFFFFF; letter-spacing: 5.8px; text-transform: uppercase; text-align: center; padding-top: 8px; line-height: 1; padding-left: 5.8px; width: 100%;">
           LA COSTURERA
         </td>
       </tr>
@@ -406,18 +406,16 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
       <td align="center">
         <table width="500" border="0" cellpadding="0" cellspacing="0" style="background-color: #0A0A0A; border-radius: 4px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.4);">
           <tr>
-            <td style="background-image: url('${cardBgUrl}'); background-size: cover; background-position: center; padding: 60px 40px; text-align: center; position: relative;">
-              <!-- Heavy dark overlay to match the luxury pass -->
-              <div style="background-color: rgba(15,15,15,0.85); position: absolute; top: 0; left: 0; right: 0; bottom: 0;"></div>
+            <td background="${cardBgUrl}" bgcolor="#111111" style="background: linear-gradient(rgba(10,10,10,0.65), rgba(10,10,10,0.9)), url('${cardBgUrl}') center/cover; background-image: linear-gradient(rgba(10,10,10,0.65), rgba(10,10,10,0.9)), url('${cardBgUrl}'); background-size: cover; background-position: center; padding: 60px 40px; text-align: center; position: relative;">
               
               <div style="position: relative; z-index: 2;">
                 ${emailLogoHtml}
                 
-                <div style="margin-top: 50px; margin-bottom: 40px; border-top: 1px dashed rgba(255,255,255,0.15); border-bottom: 1px dashed rgba(255,255,255,0.15); padding: 30px 0;">
-                    <p style="color: #C17F5F; font-size: 9px; text-transform: uppercase; letter-spacing: 4px; margin: 0 0 15px 0; font-weight: 600;">
+                <div style="margin-top: 60px; margin-bottom: 40px; padding: 20px 0;">
+                    <p style="color: #C17F5F; font-size: 9px; text-transform: uppercase; letter-spacing: 4px; margin: 0 0 20px 0; font-weight: 600;">
                       INGRESO ATELIER
                     </p>
-                    <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 26px; font-weight: 400; margin: 0 0 15px 0; letter-spacing: 1px; line-height: 1.3;">
+                    <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 26px; font-weight: 400; margin: 0 0 20px 0; letter-spacing: 1px; line-height: 1.3;">
                       ¡Felicidades por tu compromiso!
                     </h1>
                     <p style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-style: italic; font-size: 22px; margin: 0;">
@@ -425,7 +423,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
                     </p>
                 </div>
 
-                <p style="color: #A39E93; font-size: 13px; line-height: 1.8; margin-bottom: 40px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
+                <p style="color: #A39E93; font-size: 13px; line-height: 1.8; margin-bottom: 50px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
                   Es un honor para nosotros acompañarte en este viaje tan especial. Hemos preparado un portal exclusivo para ti, donde comenzaremos a diseñar el vestido de tus sueños con todo el lujo que mereces.
                 </p>
 
@@ -439,7 +437,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
                   </tr>
                 </table>
                 
-                <p style="color: #5A554D; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; margin: 50px 0 0 0;">
+                <p style="color: #5A554D; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; margin: 60px 0 0 0;">
                   Vitacura, Santiago de Chile<br><br>
                   © ${new Date().getFullYear()} ELENA LA COSTURERA | ATELIER
                 </p>
