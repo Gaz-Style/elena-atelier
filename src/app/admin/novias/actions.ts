@@ -3,13 +3,26 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import nodemailer from 'nodemailer';
-
+import { headers } from 'next/headers';
 // ─── Types ───────────────────────────────────────────────────
 type ProjectType = 'novia' | 'madrina' | 'graduacion';
 type ServiceType = 'modificacion_tienda' | 'vestido_propio' | 'bespoke';
 type ProjectStatus = 'consulta' | 'contrato_pendiente' | 'en_proceso' | 'prueba_1' | 'prueba_2' | 'prueba_final' | 'entregado' | 'cancelado';
 
 // ─── Helpers ─────────────────────────────────────────────────
+
+async function getSiteUrl() {
+    if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
+    try {
+        const headersList = headers();
+        const host = headersList.get('x-forwarded-host') || headersList.get('host');
+        if (host) {
+            const protocol = headersList.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https');
+            return `${protocol}://${host}`;
+        }
+    } catch(e) {}
+    return 'http://localhost:3000';
+}
 
 function getAdminClient() {
     const { createClient: createSupabaseClient } = require('@supabase/supabase-js');
@@ -384,7 +397,8 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
         
         const customerEmail = project.customers.email;
         const customerName = project.customers.full_name || 'Futura Novia';
-        const portalLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/portal-novias/${projectId}`;
+        const siteUrl = await getSiteUrl();
+        const portalLink = `${siteUrl}/portal-novias/${projectId}`;
 
         // Luxury background image logic
         const attachments = [];
@@ -544,7 +558,7 @@ export async function sendBridalContractEmailAction(projectId: string) {
             
         if (!project || !project.customers?.email) throw new Error('Proyecto no encontrado');
         
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+        const siteUrl = await getSiteUrl();
         const paymentLink = `${siteUrl}/portal-novias/${projectId}/pagar`;
 
         const customerEmail = project.customers.email;
@@ -687,7 +701,7 @@ export async function generateBridalPaymentLinksAction(projectId: string) {
 
         const amount = project.payment_1_amount;
         const externalRef = `bridal_project_${projectId}_50pct`;
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+        const siteUrl = await getSiteUrl();
 
         let mpLink = null;
         let tbkLink = null;
