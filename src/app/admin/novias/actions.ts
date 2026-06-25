@@ -404,44 +404,46 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
   <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8F6F0; padding: 40px 20px;">
     <tr>
       <td align="center">
-        <table width="600" border="0" cellpadding="0" cellspacing="0" style="background-color: #FFFFFF; border-radius: 0px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border: 1px solid #EAE6D7;">
-          <!-- Hero Image -->
+        <table width="500" border="0" cellpadding="0" cellspacing="0" style="background-color: #0A0A0A; border-radius: 4px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.4);">
           <tr>
-            <td style="background-image: url('${cardBgUrl}'); background-size: cover; background-position: center 20%; height: 350px; text-align: center; position: relative;">
-              <!-- Overlay gradient from top for logo contrast -->
-              <div style="background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 50%); position: absolute; top: 0; left: 0; right: 0; bottom: 0;"></div>
-              <div style="position: relative; z-index: 2; padding-top: 40px;">
+            <td style="background-image: url('${cardBgUrl}'); background-size: cover; background-position: center; padding: 60px 40px; text-align: center; position: relative;">
+              <!-- Heavy dark overlay to match the luxury pass -->
+              <div style="background-color: rgba(15,15,15,0.85); position: absolute; top: 0; left: 0; right: 0; bottom: 0;"></div>
+              
+              <div style="position: relative; z-index: 2;">
                 ${emailLogoHtml}
+                
+                <div style="margin-top: 50px; margin-bottom: 40px; border-top: 1px dashed rgba(255,255,255,0.15); border-bottom: 1px dashed rgba(255,255,255,0.15); padding: 30px 0;">
+                    <p style="color: #C17F5F; font-size: 9px; text-transform: uppercase; letter-spacing: 4px; margin: 0 0 15px 0; font-weight: 600;">
+                      INGRESO ATELIER
+                    </p>
+                    <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 26px; font-weight: 400; margin: 0 0 15px 0; letter-spacing: 1px; line-height: 1.3;">
+                      ¡Felicidades por tu compromiso!
+                    </h1>
+                    <p style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-style: italic; font-size: 22px; margin: 0;">
+                      ${customerName}
+                    </p>
+                </div>
+
+                <p style="color: #A39E93; font-size: 13px; line-height: 1.8; margin-bottom: 40px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
+                  Es un honor para nosotros acompañarte en este viaje tan especial. Hemos preparado un portal exclusivo para ti, donde comenzaremos a diseñar el vestido de tus sueños con todo el lujo que mereces.
+                </p>
+
+                <table align="center" border="0" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td align="center" style="border-radius: 2px;" bgcolor="transparent">
+                      <a href="${portalLink}" target="_blank" style="font-size: 11px; font-family: 'Inter', sans-serif; font-weight: 600; color: #C17F5F; text-decoration: none; padding: 18px 40px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 2px;">
+                        INGRESAR A MI PORTAL
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+                
+                <p style="color: #5A554D; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; margin: 50px 0 0 0;">
+                  Vitacura, Santiago de Chile<br><br>
+                  © ${new Date().getFullYear()} ELENA LA COSTURERA | ATELIER
+                </p>
               </div>
-            </td>
-          </tr>
-          <!-- Content Body -->
-          <tr>
-            <td style="background-color: #F8F6F0; padding: 50px 40px; text-align: center;">
-              <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #1A1A1A; font-size: 28px; font-weight: 400; margin: 0 0 20px 0; letter-spacing: 0.5px; line-height: 1.3;">
-                ¡Felicidades por tu compromiso,<br><i style="color: #C17F5F;">${customerName}</i>!
-              </h1>
-              <p style="color: #5A554D; font-size: 14px; line-height: 1.8; margin-bottom: 40px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
-                Es un honor para nosotros acompañarte en este viaje tan especial. Hemos preparado un portal exclusivo para ti, donde comenzaremos a diseñar el vestido de tus sueños con todo el lujo que mereces.
-              </p>
-              <table align="center" border="0" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td align="center" style="border-radius: 2px;" bgcolor="#1A1A1A">
-                    <a href="${portalLink}" target="_blank" style="font-size: 11px; font-family: 'Inter', sans-serif; font-weight: 600; color: #ffffff; text-decoration: none; padding: 18px 40px; border: 1px solid #1A1A1A; display: inline-block; text-transform: uppercase; letter-spacing: 2px;">
-                      INGRESAR A MI PORTAL
-                    </a>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #FFFFFF; padding: 30px 40px; text-align: center; border-top: 1px solid #EAE6D7;">
-              <p style="color: #A39E93; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0;">
-                Vitacura, Santiago de Chile<br><br>
-                © ${new Date().getFullYear()} ELENA LA COSTURERA | ATELIER
-              </p>
             </td>
           </tr>
         </table>
@@ -453,7 +455,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
 
         const transporter = getTransporter();
         await transporter.sendMail({
-            from: '"Elena La Costurera | Atelier" <' + process.env.SMTP_USER + '>',
+            from: '"ELENA La Costurera" <contacto@elenalacosturera.cl>',
             to: customerEmail,
             subject: '¡Felicidades! Ingresa a tu Portal de Novia - Elena Atelier',
             html: htmlContent,
@@ -567,7 +569,7 @@ export async function sendBridalContractEmailAction(projectId: string) {
 
         const transporter = getTransporter();
         await transporter.sendMail({
-            from: '"Elena La Costurera | Atelier" <' + process.env.SMTP_USER + '>',
+            from: '"ELENA La Costurera" <contacto@elenalacosturera.cl>',
             to: customerEmail,
             subject: 'Tu Presupuesto y Contrato - Elena Atelier',
             html: htmlContent
@@ -634,7 +636,7 @@ export async function sendBridalThankYouEmailAction(projectId: string) {
 
         const transporter = getTransporter();
         await transporter.sendMail({
-            from: '"Elena La Costurera | Atelier" <' + process.env.SMTP_USER + '>',
+            from: '"ELENA La Costurera" <contacto@elenalacosturera.cl>',
             to: customerEmail,
             subject: '¡Reserva Confirmada! Gracias por elegir Elena Atelier',
             html: htmlContent
