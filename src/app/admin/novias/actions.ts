@@ -427,10 +427,11 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
         <!-- Main Card Container -->
         <table width="650" border="0" cellpadding="0" cellspacing="0" style="background-color: #120F0D; border-radius: 4px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.4);">
           <tr>
-            <td background="${cardBgUrl}" bgcolor="#120F0D" style="background: linear-gradient(to right, #120F0D 0%, #120F0D 35%, rgba(18,15,13,0.3) 50%, rgba(18,15,13,0) 65%), url('${cardBgUrl}') right top no-repeat; background-image: linear-gradient(to right, #120F0D 0%, #120F0D 35%, rgba(18,15,13,0.3) 50%, rgba(18,15,13,0) 65%), url('${cardBgUrl}'); background-size: auto 100%; background-position: right top; position: relative; padding: 15px; background-repeat: no-repeat;">
+            <td background="${cardBgUrl}" bgcolor="#120F0D" style="background: linear-gradient(to right, #120F0D 0%, #120F0D 35%, rgba(18,15,13,0.3) 50%, rgba(18,15,13,0) 65%), url('${cardBgUrl}') 90px top no-repeat; background-image: linear-gradient(to right, #120F0D 0%, #120F0D 35%, rgba(18,15,13,0.3) 50%, rgba(18,15,13,0) 65%), url('${cardBgUrl}'); background-size: 100% 100%, auto 100%; background-position: 0 0, 90px top; position: relative; padding: 15px; background-repeat: no-repeat;">
               
               <!-- Inner border -->
-              <div style="border: 1px solid rgba(193, 127, 95, 0.4); border-radius: 2px; padding: 40px 20px; position: relative; min-height: 700px;">
+              <fieldset style="border: 1px solid rgba(193, 127, 95, 0.4); border-radius: 2px; padding: 40px 20px; min-height: 700px; margin: 0; box-sizing: border-box;">
+                <legend align="center" style="color: #C17F5F; padding: 0 10px; font-size: 12px; margin: 0 auto; line-height: 1;">♡</legend>
                 
                 <!-- Text Container (left aligned) -->
                 <table width="360" border="0" cellpadding="0" cellspacing="0" align="left" style="text-align: center;">
@@ -469,7 +470,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
                       
                       <div style="color: #C17F5F; font-size: 10px; margin-bottom: 25px;">⬩</div>
 
-                      <a href="${portalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, sans-serif; font-weight: 600; color: #C17F5F; text-decoration: none; padding: 14px 28px; border: 1px solid rgba(193, 127, 95, 0.6); display: inline-block; text-transform: uppercase; letter-spacing: 2px; border-radius: 1px;">
+                      <a href="${portalLink}" target="_blank" style="font-size: 11px; font-family: 'Inter', Helvetica, sans-serif; font-weight: 700; color: #120F0D; background-color: #C17F5F; text-decoration: none; padding: 15px 32px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 2px; border-radius: 2px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
                         INGRESAR A MI PORTAL &rarr;
                       </a>
                       
@@ -487,7 +488,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
                 </table>
                 <!-- Clearfix for align="left" -->
                 <div style="clear: both;"></div>
-              </div>
+              </fieldset>
             </td>
           </tr>
         </table>
@@ -561,7 +562,7 @@ export async function sendBridalContractEmailAction(projectId: string) {
         if (!project || !project.customers?.email) throw new Error('Proyecto no encontrado');
         
         const siteUrl = await getSiteUrl();
-        const paymentLink = `${siteUrl}/portal-novias/${projectId}/pagar`;
+        const proposalLink = `${siteUrl}/portal-novias/${projectId}/contrato`;
 
         const customerEmail = project.customers.email;
         const customerName = project.customers.full_name || 'Clienta';
@@ -579,16 +580,16 @@ export async function sendBridalContractEmailAction(projectId: string) {
             <td style="background-color: #1A1A1A; padding: 50px 40px; text-align: center;">
               ${emailLogoHtml}
               <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 28px; font-weight: 400; margin: 30px 0 20px 0; letter-spacing: 0.5px;">
-                Tu Contrato y Presupuesto
+                Contrato y Presupuesto de Servicio
               </h1>
               <p style="color: #D4D0C5; font-size: 14px; line-height: 1.8; margin-bottom: 40px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
-                Hola <i style="color: #FFFFFF;">${customerName}</i>, hemos redactado tu contrato y presupuesto formal. Para dar inicio al proceso y reservar tu cupo de producción, por favor revisa el documento, firma aceptando el presupuesto y realiza el abono inicial (50%) de <strong>${formatCurrency(project.payment_1_amount)}</strong>.
+                Hola <i style="color: #FFFFFF;">${customerName}</i>, hemos recibido tus datos correctamente y preparado tu propuesta formal. Para continuar con el proceso y reservar tu cupo de producción en nuestro atelier, por favor ingresa al siguiente enlace para revisar en detalle el cronograma de pruebas, el presupuesto y los términos de nuestro contrato de servicio.
               </p>
               <table align="center" border="0" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center" style="border-radius: 2px;" bgcolor="#C17F5F">
-                    <a href="${paymentLink}" target="_blank" style="font-size: 11px; font-family: 'Inter', sans-serif; font-weight: 600; color: #ffffff; text-decoration: none; padding: 18px 40px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 2px;">
-                      ACEPTO EL PRESUPUESTO Y FIRMO EL CONTRATO
+                    <a href="${proposalLink}" target="_blank" style="font-size: 11px; font-family: 'Inter', sans-serif; font-weight: 600; color: #ffffff; text-decoration: none; padding: 18px 40px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 2px;">
+                      REVISAR CONTRATO Y PRESUPUESTO
                     </a>
                   </td>
                 </tr>
@@ -615,7 +616,7 @@ export async function sendBridalContractEmailAction(projectId: string) {
         await transporter.sendMail({
             from: '"ELENA La Costurera" <contacto@elenalacosturera.cl>',
             to: customerEmail,
-            subject: 'Tu Presupuesto y Contrato - Elena Atelier',
+            subject: 'Revisión de Contrato y Presupuesto - Elena Atelier',
             html: htmlContent
         });
 

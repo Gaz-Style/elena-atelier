@@ -189,13 +189,13 @@ export default function PortalNoviasPage() {
                                     <><Loader2 className="w-4 h-4 animate-spin" /> Procesando...</>
                                 ) : (
                                     <>
-                                        Generar Contrato 
+                                        Generar Propuesta 
                                         <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                     </>
                                 )}
                             </button>
                             <p className="text-[9px] text-gray-500 mt-4 uppercase tracking-widest">
-                                Al continuar, se generará tu contrato formal y presupuesto.
+                                Al continuar, se generará tu propuesta y presupuesto.
                             </p>
                         </div>
                     </form>
