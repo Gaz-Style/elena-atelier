@@ -1436,7 +1436,7 @@ export async function getBudgetAction(id: string) {
     return { success: true, data: data.payload };
 }
 
-export async function updateOrderStatusToPaidAction(posOrderId: string) {
+export async function updateOrderStatusToPaidAction(posOrderId: string, amountPaid?: number) {
     const supabase = await createClient();
     
     // Intercept budgets and convert them to real orders BEFORE updating
@@ -1492,16 +1492,18 @@ export async function updateOrderStatusToPaidAction(posOrderId: string) {
         .single();
         
     const finalTotal = salesData?.total_amount || 0;
+    const finalPaid = amountPaid !== undefined ? amountPaid : finalTotal;
+    const isFullPayment = finalPaid >= finalTotal;
 
     const { error: salesError } = await supabase
         .from('sales_ledger')
-        .update({ status: 'completed', paid_amount: finalTotal })
+        .update({ status: isFullPayment ? 'completed' : 'partial', paid_amount: finalPaid })
         .eq('internal_id', internalId);
         
     // Actualizar production_orders con el paid_amount también
     const { error: prodError } = await supabase
         .from('production_orders')
-        .update({ payment_status: 'paid', status: 'pending', paid_amount: finalTotal }) // Pasamos status a pending ya que estaba en draft
+        .update({ payment_status: isFullPayment ? 'paid' : 'partial', status: 'pending', paid_amount: finalPaid }) // Pasamos status a pending ya que estaba en draft
         .eq('pos_order_id', posOrderId);
         
     if (prodError) {
