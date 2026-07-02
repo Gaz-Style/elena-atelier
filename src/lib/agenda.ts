@@ -293,7 +293,9 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
                             components: [{
                                 type: 'body',
                                 parameters: [
-                                    { type: 'text', text: nombre }
+                                    { type: 'text', text: `${nombre} ${apellido}` },
+                                    { type: 'text', text: fechaLegible },
+                                    { type: 'text', text: horaLegible }
                                 ]
                             }]
                         }
@@ -301,8 +303,6 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
                 });
                 const dataClient = await respClient.json();
                 console.log(`WhatsApp Cliente (${finalPhone}):`, dataClient);
-                
-                // Opcional: Guardar en CRM Live Chat si tienes acceso a supabase aquí
             }
         }
     } catch (mailError) {
