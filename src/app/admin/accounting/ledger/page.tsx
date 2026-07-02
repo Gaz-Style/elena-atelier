@@ -82,7 +82,13 @@ export default function GeneralLedgerPage() {
     const linesWithBalance = filteredLines.map(line => {
         // Assets (Activo) and Expenses (Gasto) increase with Debit, decrease with Credit
         // Liabilities (Pasivo), Equity (Patrimonio), and Revenue (Ingreso) increase with Credit, decrease with Debit
-        if (accountType === 'Asset' || accountType === 'Expense') {
+        if (
+            accountType === 'Asset' || 
+            accountType === 'Expense' || 
+            accountType === 'Activo' || 
+            accountType === 'Gasto' || 
+            accountType === 'Costo'
+        ) {
             runningBalance += (line.debit - line.credit);
         } else {
             runningBalance += (line.credit - line.debit);

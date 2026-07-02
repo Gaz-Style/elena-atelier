@@ -185,6 +185,15 @@ export async function updateSaleStatusAction(saleId: string, status: string) {
     revalidatePath(`/admin/sales/${saleId}`);
     revalidatePath('/admin/production');
     revalidatePath('/admin/production-board');
+
+    // Sync to accounting ERP
+    try {
+        const { syncSalesLedgerToAccounting } = await import('../accounting/actions');
+        await syncSalesLedgerToAccounting();
+    } catch (accErr) {
+        console.error('Error syncing sales ledger to accounting in updateSaleStatusAction:', accErr);
+    }
+
     return { success: true };
 }
 
@@ -392,5 +401,14 @@ export async function cobrarEnCajaAction(payload: {
     revalidatePath('/admin/sales');
     revalidatePath(`/admin/sales/${saleId}`);
     revalidatePath('/admin/caja');
+
+    // Sync to accounting ERP
+    try {
+        const { syncSalesLedgerToAccounting } = await import('../accounting/actions');
+        await syncSalesLedgerToAccounting();
+    } catch (accErr) {
+        console.error('Error syncing sales ledger to accounting in cobrarEnCajaAction:', accErr);
+    }
+
     return { success: true };
 }

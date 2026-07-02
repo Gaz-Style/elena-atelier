@@ -279,6 +279,15 @@ async function updateDatabaseAndNotify(
             await logSystemEvent(supabase, 'INFO', 'Pago externo/personal detectado (sin orden en BD)', { paymentId, externalRef, amount });
         }
     }
+
+    // Sync to accounting ERP
+    try {
+        const { syncSalesLedgerToAccounting } = await import('@/app/admin/accounting/actions');
+        await syncSalesLedgerToAccounting();
+    } catch (accErr) {
+        console.error('Error syncing sales ledger to accounting in MercadoPago webhook:', accErr);
+    }
+
     return true;
 }
 

@@ -814,7 +814,7 @@ export async function createPOSOrdersAction(payload: {
             tax_amount: taxAmount,
             total_amount: totalAmount,
             paid_amount: paidAmount,
-            status: derivedStatus === 'paid' ? 'completed' : 'pending',
+            status: derivedStatus === 'paid' ? 'completed' : (derivedStatus === 'partial' ? 'partial' : 'pending'),
             payment_method: finalPaymentMethod || null,
             external_transaction_id: null
         }])
@@ -934,6 +934,14 @@ export async function createPOSOrdersAction(payload: {
         } catch (syncError) {
             console.error('Error sincronizando retiro con la agenda:', syncError);
         }
+    }
+
+    // Sync to accounting ERP
+    try {
+        const { syncSalesLedgerToAccounting } = await import('../accounting/actions');
+        await syncSalesLedgerToAccounting();
+    } catch (accErr) {
+        console.error('Error syncing sales ledger to accounting in createPOSOrdersAction:', accErr);
     }
 
     return { success: true };
@@ -2257,6 +2265,14 @@ export async function cancelPendingOrderAction(rawOrderId: string, isBalancePaym
         } else {
             await supabase.from('production_orders').delete().eq('pos_order_id', orderId);
             await supabase.from('sales_ledger').delete().eq('internal_id', orderId);
+        }
+        
+        // Sync to accounting ERP
+        try {
+            const { syncSalesLedgerToAccounting } = await import('../accounting/actions');
+            await syncSalesLedgerToAccounting();
+        } catch (accErr) {
+            console.error('Error syncing sales ledger in cancelPendingOrderAction:', accErr);
         }
         
         revalidatePath('/admin/pos');

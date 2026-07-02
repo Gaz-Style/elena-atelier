@@ -58,6 +58,36 @@ export async function updateOrderStatus(id: string, newStatus: string) {
 
   if (updateError) return { error: updateError.message };
 
+  // 1.5. If the order goes to 'cutting' phase, deduct inventory from the erp_order_bom
+  if (newStatus === 'cutting' && order.status !== 'cutting') {
+      const { data: bomRecords } = await supabase
+          .from('erp_order_bom')
+          .select('item_id, estimated_qty, used_qty')
+          .eq('order_id', id);
+
+      if (bomRecords && bomRecords.length > 0) {
+          for (const bomItem of bomRecords) {
+              const qtyToDeduct = Number(bomItem.used_qty || bomItem.estimated_qty || 0);
+              if (qtyToDeduct > 0 && bomItem.item_id) {
+                  // Fetch current stock
+                  const { data: invItem } = await supabase
+                      .from('erp_inventory')
+                      .select('stock_qty')
+                      .eq('id', bomItem.item_id)
+                      .single();
+                  
+                  if (invItem) {
+                      const newStock = Number(invItem.stock_qty || 0) - qtyToDeduct;
+                      await supabase
+                          .from('erp_inventory')
+                          .update({ stock_qty: newStock })
+                          .eq('id', bomItem.item_id);
+                  }
+              }
+          }
+      }
+  }
+
   // Log the status change (for history/WhatsApp triggers)
   const { error: logError } = await supabase
     .from('order_status_logs')

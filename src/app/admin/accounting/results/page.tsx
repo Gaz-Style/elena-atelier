@@ -64,7 +64,13 @@ export default function IncomeStatementPage() {
     accounts.forEach(acc => {
         const amt = accountBalances[acc.id];
         if (!amt) return;
-        if (acc.account_type === 'Asset' || acc.account_type === 'Expense') {
+        if (
+            acc.account_type === 'Asset' || 
+            acc.account_type === 'Expense' || 
+            acc.account_type === 'Activo' || 
+            acc.account_type === 'Gasto' || 
+            acc.account_type === 'Costo'
+        ) {
             amt.balance = amt.debit - amt.credit;
         } else {
             amt.balance = amt.credit - amt.debit;
