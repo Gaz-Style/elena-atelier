@@ -498,9 +498,12 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
 </body>
 </html>`;
 
+        const smtpUser = process.env.SMTP_USER || '';
+        const fromAddress = smtpUser.includes('gmail.com') ? 'contacto@elenalacosturera.cl' : smtpUser;
+
         const transporter = getTransporter();
         await transporter.sendMail({
-            from: '"ELENA La Costurera" <contacto@elenalacosturera.cl>',
+            from: `"ELENA La Costurera" <${fromAddress}>`,
             to: customerEmail,
             subject: '¡Felicidades! Ingresa a tu Portal de Novia - Elena Atelier',
             html: htmlContent,
@@ -583,7 +586,7 @@ export async function sendBridalContractEmailAction(projectId: string) {
                 Contrato y Presupuesto de Servicio
               </h1>
               <p style="color: #D4D0C5; font-size: 14px; line-height: 1.8; margin-bottom: 40px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
-                Hola <i style="color: #FFFFFF;">${customerName}</i>, hemos recibido tus datos correctamente y preparado tu propuesta formal. Para continuar con el proceso y reservar tu cupo de producción en nuestro atelier, por favor ingresa al siguiente enlace para revisar en detalle el cronograma de pruebas, el presupuesto y los términos de nuestro contrato de servicio.
+                Hola <i style="color: #FFFFFF;">${customerName}</i>, hemos recibido tus datos correctamente y preparado tu proposal formal. Para continuar con el proceso y reservar tu cupo de producción en nuestro atelier, por favor ingresa al siguiente enlace para revisar en detalle el cronograma de pruebas, el presupuesto y los términos de nuestro contrato de servicio.
               </p>
               <table align="center" border="0" cellpadding="0" cellspacing="0">
                 <tr>
@@ -612,9 +615,12 @@ export async function sendBridalContractEmailAction(projectId: string) {
 </body>
 </html>`;
 
+        const smtpUser = process.env.SMTP_USER || '';
+        const fromAddress = smtpUser.includes('gmail.com') ? 'contacto@elenalacosturera.cl' : smtpUser;
+
         const transporter = getTransporter();
         await transporter.sendMail({
-            from: '"ELENA La Costurera" <contacto@elenalacosturera.cl>',
+            from: `"ELENA La Costurera" <${fromAddress}>`,
             to: customerEmail,
             subject: 'Revisión de Contrato y Presupuesto - Elena Atelier',
             html: htmlContent
@@ -679,9 +685,12 @@ export async function sendBridalThankYouEmailAction(projectId: string) {
 </body>
 </html>`;
 
+        const smtpUser = process.env.SMTP_USER || '';
+        const fromAddress = smtpUser.includes('gmail.com') ? 'contacto@elenalacosturera.cl' : smtpUser;
+
         const transporter = getTransporter();
         await transporter.sendMail({
-            from: '"ELENA La Costurera" <contacto@elenalacosturera.cl>',
+            from: `"ELENA La Costurera" <${fromAddress}>`,
             to: customerEmail,
             subject: '¡Reserva Confirmada! Gracias por elegir Elena Atelier',
             html: htmlContent
