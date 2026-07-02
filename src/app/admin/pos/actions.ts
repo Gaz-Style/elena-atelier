@@ -1528,7 +1528,7 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
     try {
         const { data: orderInfo } = await supabase.from('production_orders').select('customer_id').eq('pos_order_id', posOrderId).single();
         if (orderInfo && orderInfo.customer_id && orderInfo.customer_id !== 'unassigned') {
-            const { data: custInfo } = await supabase.from('crm_customers').select('phone, full_name').eq('id', orderInfo.customer_id).single();
+            const { data: custInfo } = await supabase.from('customers').select('phone, full_name').eq('id', orderInfo.customer_id).single();
             if (custInfo && custInfo.phone) {
                 const WHATSAPP_API_TOKEN = process.env.NEXT_PUBLIC_WHATSAPP_API_TOKEN || process.env.WHATSAPP_API_TOKEN;
                 const PHONE_NUMBER_ID = process.env.NEXT_PUBLIC_WHATSAPP_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_NUMBER_ID;
@@ -1555,25 +1555,33 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
                     });
                     
                     if (wpRes.ok) {
-                        // Log to Live Chat
-                        const { data: chatSession } = await supabase.from('crm_chat_sessions').select('id').eq('customer_phone', finalPhone).single();
-                        let sessionId = chatSession?.id;
-                        if (!sessionId) {
-                            const { data: newSession } = await supabase.from('crm_chat_sessions').insert([{
-                                customer_phone: finalPhone,
-                                customer_name: custInfo.full_name,
-                                unread_count: 0,
-                                last_message_at: new Date().toISOString()
-                            }]).select('id').single();
-                            sessionId = newSession?.id;
-                        }
-                        if (sessionId) {
-                            await supabase.from('crm_whatsapp_messages').insert([{
-                                session_id: sessionId,
-                                sender: 'system',
-                                content: `[Sistema] Transbank Webpay Plus: Se envió la plantilla confirmacion_pago_cliente automáticamente.`,
-                                status: 'sent'
-                            }]);
+                        // Log to Live Chat (CRM)
+                        try {
+                            let { data: chatData } = await supabase
+                                .from('crm_whatsapp_chats')
+                                .select('id')
+                                .eq('phone_number', finalPhone)
+                                .single();
+
+                            if (!chatData) {
+                                const { data: newChat } = await supabase
+                                    .from('crm_whatsapp_chats')
+                                    .insert([{ phone_number: finalPhone, session_status: 'bot' }])
+                                    .select('id')
+                                    .single();
+                                chatData = newChat;
+                            }
+
+                            if (chatData) {
+                                await supabase.from('crm_whatsapp_messages').insert([{
+                                    chat_id: chatData.id,
+                                    sender_type: 'system',
+                                    message_type: 'text',
+                                    content: `[Sistema] Webpay Plus: Se envió la plantilla confirmacion_pago_cliente automáticamente.`
+                                }]);
+                            }
+                        } catch (dbErr) {
+                            console.error('Error logging confirmacion_pago Webpay to LiveChat:', dbErr);
                         }
                     }
                     

@@ -105,7 +105,7 @@ export default async function AgendaPage({
         'use server';
         
         try {
-            const supabaseServer = await createClient(); // Utiliza las cookies de admin
+            const supabaseServer = await createClient();
             
             const tipo = formData.get('tipo') as string;
             const horaStr = formData.get('hora') as string;
@@ -118,7 +118,6 @@ export default async function AgendaPage({
                 const celular = formData.get('celular') as string || '';
                 const correo = formData.get('correo') as string || '';
                 
-                // 1. Insertar con el cliente autenticado para evitar RLS
                 const { error: insertError } = await supabaseServer.from('agendamientos').insert([{
                     nombre,
                     apellido,
@@ -134,9 +133,60 @@ export default async function AgendaPage({
                     return { success: false, error: 'Error RLS Cliente: ' + insertError.message };
                 }
                 
-                // 2. Enviar correo de confirmación
+                // 2. Enviar correo de confirmación al cliente (incluye intento de WhatsApp vía lib/agenda)
                 const { enviar_correo_confirmacion } = await import('@/lib/agenda');
                 await enviar_correo_confirmacion(nombre, apellido, celular, correo, fechaHoraIso);
+
+                // 3. Notificación WhatsApp directa a los dueños (independiente, con logging explícito)
+                try {
+                    const WSP_PHONE_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+                    const WSP_TOKEN = process.env.WHATSAPP_API_TOKEN;
+                    console.log('[Agenda Admin] WSP vars — PHONE_ID:', !!WSP_PHONE_ID, '| TOKEN:', !!WSP_TOKEN);
+
+                    if (WSP_PHONE_ID && WSP_TOKEN) {
+                        const dateObj = new Date(fechaHoraIso);
+                        const fechaLegible = dateObj.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Santiago' });
+                        const horaLegible = dateObj.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' });
+
+                        for (const numeroEncargado of ['56984021940', '56937667709']) {
+                            try {
+                                const resp = await fetch(`https://graph.facebook.com/v21.0/${WSP_PHONE_ID}/messages`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Authorization': `Bearer ${WSP_TOKEN}`,
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        messaging_product: 'whatsapp',
+                                        to: numeroEncargado,
+                                        type: 'template',
+                                        template: {
+                                            name: 'alerta_nueva_cita',
+                                            language: { code: 'es_CL' },
+                                            components: [{
+                                                type: 'body',
+                                                parameters: [
+                                                    { type: 'text', text: `${nombre} ${apellido}` },
+                                                    { type: 'text', text: fechaLegible },
+                                                    { type: 'text', text: horaLegible },
+                                                    { type: 'text', text: celular || 'Sin teléfono' }
+                                                ]
+                                            }]
+                                        }
+                                    })
+                                });
+                                const data = await resp.json();
+                                console.log(`[Agenda Admin] WhatsApp dueño (${numeroEncargado}):`, JSON.stringify(data));
+                            } catch (wspErr) {
+                                console.error(`[Agenda Admin] Error enviando WhatsApp a ${numeroEncargado}:`, wspErr);
+                            }
+                        }
+                    } else {
+                        console.warn('[Agenda Admin] Variables WHATSAPP no configuradas — se omite notificación a dueños.');
+                    }
+                } catch (wspOuterErr) {
+                    console.error('[Agenda Admin] Error general bloque WhatsApp dueños:', wspOuterErr);
+                }
             } else {
                 const notas = formData.get('notas') as string;
                 
