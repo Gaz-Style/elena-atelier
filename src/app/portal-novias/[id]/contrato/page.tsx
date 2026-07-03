@@ -173,9 +173,11 @@ export default function PortalNoviasContratoPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs bg-white/5 border border-white/5 rounded p-4">
                             <div>
                                 <p className="text-[9px] uppercase tracking-wider text-gray-400 font-bold mb-1">Prestador del Servicio</p>
-                                <p className="font-bold text-white">ELENA ATELIER — La Costurera</p>
+                                <p className="font-bold text-white">ATELIER HORTENSIA SPA</p>
+                                <p className="text-gray-400">RUT: 78.158.853-9</p>
+                                <p className="text-gray-400">Av. Tabancura 1091, Of. 319</p>
                                 <p className="text-gray-400">Vitacura, Santiago de Chile</p>
-                                <p className="text-gray-400">elenaatalier@gmail.com</p>
+                                <p className="text-gray-400">Contacto@elenalacosturera.cl</p>
                             </div>
                             <div className="border-t md:border-t-0 md:border-l border-white/10 pt-3 md:pt-0 md:pl-4">
                                 <p className="text-[9px] uppercase tracking-wider text-gray-400 font-bold mb-1">Clienta</p>
