@@ -69,6 +69,16 @@ export default function PortalNoviasContratoPage() {
         if (!dateStr) return '—';
         
         let dateObj: Date;
+
+        // Handle ISO format (e.g. 2027-03-20T16:00:00+00:00)
+        if (dateStr.includes('T')) {
+            dateObj = new Date(dateStr);
+            if (!isNaN(dateObj.getTime())) {
+                return dateObj.toLocaleDateString('es-CL', {
+                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+                });
+            }
+        }
         
         if (dateStr.includes('-')) {
             const parts = dateStr.split('-');
