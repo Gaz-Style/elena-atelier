@@ -420,63 +420,85 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap');
 </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #F8F6F0; font-family: 'Inter', Helvetica, sans-serif;">
-  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8F6F0; padding: 40px 20px;">
+<body style="margin: 0; padding: 0; background-color: #0A0A0A; font-family: 'Inter', Helvetica, sans-serif;">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0A0A0A; padding: 40px 20px;">
     <tr>
       <td align="center">
         <!-- Main Card Container -->
-        <table width="650" border="0" cellpadding="0" cellspacing="0" style="background-color: #120F0D; border-radius: 4px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.4);">
+        <table width="650" border="0" cellpadding="0" cellspacing="0" style="background-color: #0E0E0E; overflow: hidden;">
           <tr>
-            <td background="${cardBgUrl}" bgcolor="#120F0D" style="background: linear-gradient(to right, #120F0D 0%, #120F0D 35%, rgba(18,15,13,0.3) 50%, rgba(18,15,13,0) 65%), url('${cardBgUrl}') 90px top no-repeat; background-image: linear-gradient(to right, #120F0D 0%, #120F0D 35%, rgba(18,15,13,0.3) 50%, rgba(18,15,13,0) 65%), url('${cardBgUrl}'); background-size: 100% 100%, auto 100%; background-position: 0 0, 90px top; position: relative; padding: 15px; background-repeat: no-repeat;">
+            <td background="${cardBgUrl}" bgcolor="#0E0E0E" style="background: linear-gradient(to right, #0E0E0E 0%, #0E0E0E 40%, rgba(14,14,14,0.5) 55%, rgba(14,14,14,0) 70%), url('${cardBgUrl}') right top no-repeat; background-image: linear-gradient(to right, #0E0E0E 0%, #0E0E0E 40%, rgba(14,14,14,0.5) 55%, rgba(14,14,14,0) 70%), url('${cardBgUrl}'); background-size: 100% 100%, auto 100%; background-position: 0 0, right top; padding: 50px 0; background-repeat: no-repeat;">
               
-              <!-- Inner border -->
-              <fieldset style="border: 1px solid rgba(193, 127, 95, 0.4); border-radius: 2px; padding: 40px 20px; min-height: 700px; margin: 0; box-sizing: border-box;">
-                
-                <!-- Text Container (left aligned) -->
-                <table width="360" border="0" cellpadding="0" cellspacing="0" align="left" style="text-align: center;">
-                  <tr>
-                    <td>
-                      <!-- Logo -->
-                      ${emailLogoHtml}
-                      
-                      <div style="margin-top: 40px;"></div>
-                      
-                      <p style="color: #C17F5F; font-size: 8px; text-transform: uppercase; letter-spacing: 4px; margin: 15px 0 25px 0; font-weight: 600;">
-                        INGRESO ATELIER
-                      </p>
-                      
-                      <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 32px; font-weight: 400; margin: 0; line-height: 1.2;">
-                        Felicidades
-                      </h1>
-                      <h2 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 20px; font-weight: 400; margin: 5px 0 0 0; font-style: italic;">
-                        por tu
-                      </h2>
-                      <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #C17F5F; font-size: 36px; font-weight: 400; margin: 10px 0 25px 0; font-style: italic;">
-                        compromiso
-                      </h1>
-                      
-                      <p style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 28px; margin: 0 0 30px 0; font-style: italic;">
-                        ${customerName}
-                      </p>
-                      
-                      <p style="color: #D4D0C5; font-size: 11px; line-height: 1.8; margin-bottom: 40px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
-                        Es un honor para nosotros acompañarte en este viaje tan especial. Hemos preparado un portal exclusivo para ti, donde comenzaremos a diseñar el vestido de tus sueños con todo el lujo que mereces.
-                      </p>
-                      
-                      <a href="${portalLink}" target="_blank" style="font-size: 11px; font-family: 'Inter', Helvetica, sans-serif; font-weight: 700; color: #120F0D; background-color: #C17F5F; text-decoration: none; padding: 15px 32px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 2px; border-radius: 2px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
-                        INGRESAR A MI PORTAL &rarr;
-                      </a>
-                      
-                      <p style="color: #A39E93; font-size: 9px; text-transform: uppercase; letter-spacing: 2px; margin: 50px 0 0 0; font-family: 'Inter', sans-serif;">
-                        ELENA LA COSTURERA<br>ATELIER
-                      </p>
- 
-                    </td>
-                  </tr>
-                </table>
-                <!-- Clearfix for align="left" -->
-                <div style="clear: both;"></div>
-              </fieldset>
+              <!-- Text Container (left aligned) -->
+              <table width="380" border="0" cellpadding="0" cellspacing="0" align="left" style="padding-left: 45px;">
+                <tr>
+                  <td>
+                    <!-- Logo -->
+                    ${emailLogoHtml}
+                    
+                    <div style="margin-top: 50px;"></div>
+                    
+                    <p style="color: #C17F5F; font-size: 8px; text-transform: uppercase; letter-spacing: 4px; margin: 0 0 30px 0; font-weight: 600;">
+                      ACCESO PORTAL PRIVADO
+                    </p>
+                    
+                    <p style="font-family: 'Inter', Helvetica, sans-serif; color: #A39E93; font-size: 9px; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 5px 0; font-weight: 400;">
+                      ESTIMADA
+                    </p>
+                    
+                    <p style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 28px; margin: 0 0 30px 0; font-style: italic; font-weight: 400;">
+                      ${customerName}
+                    </p>
+                    
+                    <!-- Gold divider line -->
+                    <table width="40" border="0" cellpadding="0" cellspacing="0" style="margin: 0 0 30px 0;">
+                      <tr><td style="border-top: 2px solid #C17F5F; font-size: 0; line-height: 0; height: 1px;">&nbsp;</td></tr>
+                    </table>
+                    
+                    <p style="color: #9A958C; font-size: 12px; line-height: 1.9; margin: 0 0 40px 0; font-weight: 300; max-width: 320px;">
+                      Es un privilegio acompañarte en este proceso. Hemos preparado un portal exclusivo donde podrás seguir cada etapa de la confección, desde el diseño hasta la entrega final.
+                    </p>
+                    
+                    <a href="${portalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, sans-serif; font-weight: 600; color: #FFFFFF; background-color: transparent; text-decoration: none; padding: 14px 30px; border: 1px solid rgba(255,255,255,0.35); display: inline-block; text-transform: uppercase; letter-spacing: 3px;">
+                      INGRESAR AL PORTAL &rarr;
+                    </a>
+                    
+                    <div style="margin-top: 60px;"></div>
+                    
+                    <!-- Footer signature -->
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 25px;">
+                      <tr>
+                        <td>
+                          <table border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td style="border-left: 2px solid #C17F5F; padding-left: 12px;">
+                                <p style="font-family: 'Inter', Helvetica, sans-serif; color: #FFFFFF; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 3px 0;">
+                                  ELENA ATELIER
+                                </p>
+                                <p style="font-family: 'Inter', Helvetica, sans-serif; color: #6B6660; font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; margin: 0;">
+                                  ATELIER &middot; SANTIAGO DE CHILE
+                                </p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                  </td>
+                </tr>
+              </table>
+              <!-- Clearfix -->
+              <div style="clear: both;"></div>
+            </td>
+          </tr>
+          
+          <!-- Copyright footer row -->
+          <tr>
+            <td style="background-color: #080808; padding: 15px 45px; border-top: 1px solid rgba(255,255,255,0.05);">
+              <p style="font-family: 'Inter', Helvetica, sans-serif; color: #3D3A37; font-size: 7px; letter-spacing: 1.5px; text-transform: uppercase; margin: 0; text-align: center;">
+                &copy; 2025 ELENA ATELIER &middot; TODOS LOS DERECHOS RESERVADOS
+              </p>
             </td>
           </tr>
         </table>
