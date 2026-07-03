@@ -503,7 +503,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
 
         const transporter = getTransporter();
         await transporter.sendMail({
-            from: `"ELENA La Costurera" <${fromAddress}>`,
+            from: '"ELENA La Costurera" <contacto@elenalacosturera.cl>',
             to: customerEmail,
             subject: '¡Felicidades! Ingresa a tu Portal de Novia - Elena Atelier',
             html: htmlContent,
@@ -620,7 +620,7 @@ export async function sendBridalContractEmailAction(projectId: string) {
 
         const transporter = getTransporter();
         await transporter.sendMail({
-            from: `"ELENA La Costurera" <${fromAddress}>`,
+            from: '"ELENA La Costurera" <contacto@elenalacosturera.cl>',
             to: customerEmail,
             subject: 'Revisión de Contrato y Presupuesto - Elena Atelier',
             html: htmlContent
@@ -690,7 +690,7 @@ export async function sendBridalThankYouEmailAction(projectId: string) {
 
         const transporter = getTransporter();
         await transporter.sendMail({
-            from: `"ELENA La Costurera" <${fromAddress}>`,
+            from: '"ELENA La Costurera" <contacto@elenalacosturera.cl>',
             to: customerEmail,
             subject: '¡Reserva Confirmada! Gracias por elegir Elena Atelier',
             html: htmlContent
