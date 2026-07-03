@@ -61,9 +61,11 @@ export default function ContractTemplate({ data }: { data: ContractData }) {
                 <div className="grid grid-cols-2 gap-8">
                     <div>
                         <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Prestador del Servicio</p>
-                        <p className="font-bold">ELENA ATELIER — La Costurera</p>
+                        <p className="font-bold">ATELIER HORTENSIA SPA</p>
+                        <p>RUT: 78.158.853-9</p>
+                        <p>Av. Tabancura 1091, Of. 319</p>
                         <p>Vitacura, Santiago de Chile</p>
-                        <p>elenaatalier@gmail.com</p>
+                        <p>Contacto@elenalacosturera.cl</p>
                     </div>
                     <div>
                         <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Clienta</p>
