@@ -300,7 +300,7 @@ export default function PortalNoviasContratoPage() {
                         <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
                             <ShieldAlert className="w-4 h-4" /> {project.milestones && project.milestones.length > 0 ? '5' : '4'}. Términos y Condiciones
                         </h3>
-                        <div className="text-[11px] text-gray-400 space-y-4 max-h-60 overflow-y-auto pr-2 bg-white/5 border border-white/5 rounded p-4 scrollbar-thin">
+                        <div className="text-[11px] text-gray-400 space-y-4 pr-2 bg-white/5 border border-white/5 rounded p-4">
                             <div>
                                 <h4 className="font-bold text-white mb-1">1. Reserva de Cupo y Pagos</h4>
                                 <p>Para confirmar el servicio e iniciar la confección o modificación, se debe abonar el 50% del presupuesto. El vestido debe ser cancelado en su totalidad (100%) antes de salir del atelier.</p>
