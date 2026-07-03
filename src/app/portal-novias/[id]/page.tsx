@@ -4,6 +4,42 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Heart, Loader2, ChevronRight, User, Phone, FileText, Calendar, MapPin } from 'lucide-react';
 
+// --- Formatting helpers ---
+function formatRut(value: string): string {
+    // Strip everything except digits and kK
+    let clean = value.replace(/[^0-9kK]/g, '').toUpperCase();
+    if (clean.length === 0) return '';
+    
+    // Separate body from check digit
+    let body = clean.slice(0, -1);
+    let dv = clean.slice(-1);
+    
+    if (clean.length === 1) return clean; // just one char, no formatting yet
+    
+    // Add dots to body (from right to left, groups of 3)
+    let formatted = '';
+    let count = 0;
+    for (let i = body.length - 1; i >= 0; i--) {
+        formatted = body[i] + formatted;
+        count++;
+        if (count % 3 === 0 && i > 0) {
+            formatted = '.' + formatted;
+        }
+    }
+    
+    return formatted + '-' + dv;
+}
+
+function formatPhoneDigits(value: string): string {
+    // Only keep digits, max 9
+    let digits = value.replace(/[^0-9]/g, '').slice(0, 9);
+    
+    // Format as: 9 1234 5678
+    if (digits.length <= 1) return digits;
+    if (digits.length <= 5) return digits.slice(0, 1) + ' ' + digits.slice(1);
+    return digits.slice(0, 1) + ' ' + digits.slice(1, 5) + ' ' + digits.slice(5);
+}
+
 export default function PortalNoviasPage() {
     const params = useParams();
     const router = useRouter();
@@ -11,6 +47,10 @@ export default function PortalNoviasPage() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+    
+    // Controlled fields for formatting
+    const [rutValue, setRutValue] = useState('');
+    const [phoneValue, setPhoneValue] = useState('');
 
     useEffect(() => {
         if (params?.id) {
@@ -22,12 +62,31 @@ export default function PortalNoviasPage() {
         try {
             const { getBridalProjectById } = await import('@/app/admin/novias/actions');
             const data = await getBridalProjectById(id);
-            if (data) setProject(data);
+            if (data) {
+                setProject(data);
+                // Pre-populate formatted values if data exists
+                if (data.customers?.rut) setRutValue(formatRut(data.customers.rut));
+                if (data.customers?.phone) {
+                    // Strip +56 prefix if present, then format remaining digits
+                    const rawPhone = data.customers.phone.replace(/^\+?56\s*/, '');
+                    setPhoneValue(formatPhoneDigits(rawPhone));
+                }
+            }
         } catch (e) {
             console.error(e);
         } finally {
             setLoading(false);
         }
+    }
+
+    function handleRutChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const raw = e.target.value;
+        setRutValue(formatRut(raw));
+    }
+    
+    function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const raw = e.target.value;
+        setPhoneValue(formatPhoneDigits(raw));
     }
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -36,6 +95,9 @@ export default function PortalNoviasPage() {
         setErrorMsg('');
         try {
             const formData = new FormData(e.currentTarget);
+            // Ensure phone is stored with +56 prefix
+            const phoneDigits = phoneValue.replace(/\s/g, '');
+            formData.set('phone', '+56 ' + phoneValue);
             const { processBridalFormAction } = await import('@/app/admin/novias/actions');
             const res = await processBridalFormAction(params.id as string, formData);
             if (res.success) {
@@ -119,7 +181,9 @@ export default function PortalNoviasPage() {
                                         type="text" 
                                         name="rut" 
                                         required 
-                                        defaultValue={project.customers?.rut || ''}
+                                        value={rutValue}
+                                        onChange={handleRutChange}
+                                        maxLength={12}
                                         className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors placeholder-white/20" 
                                         placeholder="12.345.678-9"
                                     />
@@ -128,14 +192,19 @@ export default function PortalNoviasPage() {
                                     <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] flex items-center gap-2">
                                         Teléfono WhatsApp
                                     </label>
-                                    <input 
-                                        type="tel" 
-                                        name="phone" 
-                                        required 
-                                        defaultValue={project.customers?.phone || ''}
-                                        className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors placeholder-white/20" 
-                                        placeholder="+56 9 1234 5678"
-                                    />
+                                    <div className="flex items-center border-b border-white/20 focus-within:border-[#C17F5F] transition-colors">
+                                        <span className="text-sm text-white/50 pr-2 select-none font-medium">+56</span>
+                                        <input 
+                                            type="tel" 
+                                            name="phone" 
+                                            required 
+                                            value={phoneValue}
+                                            onChange={handlePhoneChange}
+                                            maxLength={11}
+                                            className="w-full bg-transparent py-2 text-sm text-white outline-none placeholder-white/20" 
+                                            placeholder="9 1234 5678"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -202,7 +271,6 @@ export default function PortalNoviasPage() {
                 </div>
                 
                 <div className="text-center mt-8">
-                    <p className="text-[#C17F5F] font-serif italic text-lg mb-1">Con cariño,</p>
                     <p className="text-[8px] text-gray-500 uppercase tracking-widest">Elena La Costurera | Atelier</p>
                 </div>
             </div>
