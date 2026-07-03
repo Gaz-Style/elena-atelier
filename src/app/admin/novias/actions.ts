@@ -417,7 +417,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
 <head>
 <meta charset="utf-8" />
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap');
 </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #F8F6F0; font-family: 'Inter', Helvetica, sans-serif;">
@@ -431,7 +431,6 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
               
               <!-- Inner border -->
               <fieldset style="border: 1px solid rgba(193, 127, 95, 0.4); border-radius: 2px; padding: 40px 20px; min-height: 700px; margin: 0; box-sizing: border-box;">
-                <legend align="center" style="color: #C17F5F; padding: 0 10px; font-size: 12px; margin: 0 auto; line-height: 1;">♡</legend>
                 
                 <!-- Text Container (left aligned) -->
                 <table width="360" border="0" cellpadding="0" cellspacing="0" align="left" style="text-align: center;">
@@ -440,49 +439,38 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
                       <!-- Logo -->
                       ${emailLogoHtml}
                       
-                      <div style="margin-top: 30px; color: #C17F5F; font-size: 14px;">✦</div>
+                      <div style="margin-top: 40px;"></div>
                       
                       <p style="color: #C17F5F; font-size: 8px; text-transform: uppercase; letter-spacing: 4px; margin: 15px 0 25px 0; font-weight: 600;">
                         INGRESO ATELIER
                       </p>
                       
                       <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 32px; font-weight: 400; margin: 0; line-height: 1.2;">
-                        ¡Felicidades
+                        Felicidades
                       </h1>
                       <h2 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 20px; font-weight: 400; margin: 5px 0 0 0; font-style: italic;">
                         por tu
                       </h2>
-                      <h1 style="font-family: 'Great Vibes', 'Brush Script MT', 'Lucida Handwriting', cursive, Georgia, serif; color: #C17F5F; font-size: 42px; font-weight: 400; margin: 0 0 15px 0; font-style: italic;">
-                        compromiso!
+                      <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #C17F5F; font-size: 36px; font-weight: 400; margin: 10px 0 25px 0; font-style: italic;">
+                        compromiso
                       </h1>
                       
-                      <div style="color: #C17F5F; font-size: 12px; margin-bottom: 10px;">♡</div>
-                      
-                      <p style="font-family: 'Great Vibes', 'Brush Script MT', 'Lucida Handwriting', cursive, Georgia, serif; color: #FFFFFF; font-size: 36px; margin: 0; line-height: 1.2; font-style: italic;">
+                      <p style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 28px; margin: 0 0 30px 0; font-style: italic;">
                         ${customerName}
                       </p>
                       
-                      <div style="color: #C17F5F; font-size: 10px; margin-top: 15px; margin-bottom: 30px;">♡</div>
-
                       <p style="color: #D4D0C5; font-size: 11px; line-height: 1.8; margin-bottom: 40px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
                         Es un honor para nosotros acompañarte en este viaje tan especial. Hemos preparado un portal exclusivo para ti, donde comenzaremos a diseñar el vestido de tus sueños con todo el lujo que mereces.
                       </p>
                       
-                      <div style="color: #C17F5F; font-size: 10px; margin-bottom: 25px;">⬩</div>
-
                       <a href="${portalLink}" target="_blank" style="font-size: 11px; font-family: 'Inter', Helvetica, sans-serif; font-weight: 700; color: #120F0D; background-color: #C17F5F; text-decoration: none; padding: 15px 32px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 2px; border-radius: 2px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
                         INGRESAR A MI PORTAL &rarr;
                       </a>
                       
-                      <div style="color: #C17F5F; font-size: 8px; margin-top: 25px; margin-bottom: 10px;">-</div>
-                      
-                      <p style="font-family: 'Great Vibes', 'Brush Script MT', cursive, Georgia, serif; color: #C17F5F; font-size: 22px; margin: 0 0 5px 0; font-style: italic;">
-                        Con cariño,
-                      </p>
-                      <p style="color: #A39E93; font-size: 7px; text-transform: uppercase; letter-spacing: 2px; margin: 0;">
+                      <p style="color: #A39E93; font-size: 9px; text-transform: uppercase; letter-spacing: 2px; margin: 50px 0 0 0; font-family: 'Inter', sans-serif;">
                         ELENA LA COSTURERA<br>ATELIER
                       </p>
-
+ 
                     </td>
                   </tr>
                 </table>
@@ -497,9 +485,6 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
   </table>
 </body>
 </html>`;
-
-        const smtpUser = process.env.SMTP_USER || '';
-        const fromAddress = smtpUser.includes('gmail.com') ? 'contacto@elenalacosturera.cl' : smtpUser;
 
         const transporter = getTransporter();
         await transporter.sendMail({
