@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { CreditCard, Loader2, Lock, ArrowRight, Wallet, Building } from 'lucide-react';
+import { CreditCard, Loader2, Lock, ArrowRight, Wallet, Building, Copy, Check } from 'lucide-react';
 
 export default function PortalNoviasPagarPage() {
     const params = useParams();
@@ -10,6 +10,7 @@ export default function PortalNoviasPagarPage() {
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState('');
     const [links, setLinks] = useState<any>(null);
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         if (params?.id) {
@@ -35,6 +36,17 @@ export default function PortalNoviasPagarPage() {
 
     const formatCurrency = (val: number) =>
         new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val || 0);
+
+    const handleCopy = async () => {
+        const text = `Destinatario: Elena Rojas Bustamante\nRUT: 10.826.329-6\nBanco: BCI / MACHBANK\nTipo de cuenta: Cuenta Corriente\nNº de cuenta: 7 779 10 82632 9\nCorreo: contacto@elenalacosturera.cl`;
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+        }
+    };
 
     if (loading) {
         return (
@@ -124,12 +136,21 @@ export default function PortalNoviasPagarPage() {
                                 
                                 {/* Bank Transfer */}
                                 <div className="mt-8 border border-white/10 rounded-sm overflow-hidden bg-white/5 group transition-all duration-300 hover:border-white/20">
-                                    <div className="p-5 border-b border-white/5 flex items-center gap-4">
-                                        <Building className="w-6 h-6 text-white/80" />
-                                        <div className="text-left">
-                                            <span className="font-bold text-sm tracking-widest uppercase block text-white">Transferencia Bancaria</span>
-                                            <span className="text-[9px] text-gray-500 uppercase tracking-widest mt-1 block">Datos para abono directo</span>
+                                    <div className="p-5 border-b border-white/5 flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <Building className="w-6 h-6 text-white/80" />
+                                            <div className="text-left">
+                                                <span className="font-bold text-sm tracking-widest uppercase block text-white">Transferencia Bancaria</span>
+                                                <span className="text-[9px] text-gray-500 uppercase tracking-widest mt-1 block">Datos para abono directo</span>
+                                            </div>
                                         </div>
+                                        <button 
+                                            onClick={handleCopy}
+                                            className="flex items-center justify-center p-2 rounded-sm bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors border border-white/5"
+                                            title="Copiar datos bancarios"
+                                        >
+                                            {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                                        </button>
                                     </div>
                                     <div className="p-6 space-y-4 bg-black/20 text-xs text-gray-400 font-light">
                                         <div className="flex justify-between items-center border-b border-white/5 pb-3">
