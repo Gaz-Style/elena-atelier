@@ -404,7 +404,16 @@ export default function PortalNoviasContratoPage() {
                     {project.materials_notes && (
                         <div className="bg-white/5 border border-white/10 rounded p-4 text-xs text-gray-300">
                             <p className="font-bold text-[#C17F5F] mb-1.5 uppercase tracking-wider text-[10px]">Materiales Comprometidos / Detalles de Diseño:</p>
-                            <p className="whitespace-pre-wrap font-light leading-relaxed">{project.materials_notes}</p>
+                            <p className="whitespace-pre-wrap font-light leading-relaxed">
+                                {project.materials_notes.replace(/!\[Referencia(?: \d+)?\]\((data:image\/[^;]+;base64,[^\)]+)\)/g, '').trim()}
+                            </p>
+                            {Array.from(project.materials_notes.matchAll(/!\[Referencia(?: \d+)?\]\((data:image\/[^;]+;base64,[^\)]+)\)/g)).length > 0 && (
+                                <div className="flex flex-wrap gap-4 mt-4">
+                                    {Array.from(project.materials_notes.matchAll(/!\[Referencia(?: \d+)?\]\((data:image\/[^;]+;base64,[^\)]+)\)/g)).map((match: any, idx) => (
+                                        <img key={idx} src={match[1]} className="max-w-[250px] max-h-[300px] object-contain border border-white/20 rounded shadow-sm" alt="Foto de Referencia" />
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
 
