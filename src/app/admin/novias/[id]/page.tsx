@@ -73,9 +73,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     }
 
     async function handleRegisterPayment(paymentNum: 1 | 2 | 3) {
-        if (!confirm(`¿Confirmar registro de Cuota ${paymentNum}?`)) return;
+        const method = prompt(`¿Confirmar registro de Cuota ${paymentNum}? Ingrese el método de pago (ej: Transferencia, Efectivo, Tarjeta):`, "Transferencia");
+        if (method === null) return;
         setSaving(true);
-        await registerPayment(projectId, paymentNum);
+        await registerPayment(projectId, paymentNum, method);
         await loadProject(projectId);
         setSaving(false);
     }

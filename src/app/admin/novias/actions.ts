@@ -221,9 +221,20 @@ export async function updateBridalProject(id: string, formData: FormData) {
     return { success: true };
 }
 
-export async function registerPayment(projectId: string, paymentNumber: 1 | 2 | 3) {
+export async function registerPayment(projectId: string, paymentNumber: 1 | 2 | 3, paymentMethod: string = 'Efectivo/Transferencia') {
     const supabase = getAdminClient();
     
+    const { data: project, error: fetchError } = await supabase
+        .from('bridal_projects')
+        .select('*')
+        .eq('id', projectId)
+        .single();
+        
+    if (fetchError || !project) {
+        console.error('Error fetching bridal project for payment:', fetchError);
+        return { success: false, error: 'Proyecto no encontrado' };
+    }
+
     const updates: Record<string, any> = {
         [`payment_${paymentNumber}_status`]: 'paid',
         [`payment_${paymentNumber}_date`]: new Date().toISOString(),
@@ -243,6 +254,38 @@ export async function registerPayment(projectId: string, paymentNumber: 1 | 2 | 
     if (error) {
         console.error('Error registering payment:', error);
         return { success: false, error: error.message };
+    }
+
+    // Registrar en sales_ledger
+    const amount = paymentNumber === 1 ? project.payment_1_amount :
+                   paymentNumber === 2 ? project.payment_2_amount :
+                   project.payment_3_amount;
+                   
+    const ledgerId = `bridal_${projectId}_p${paymentNumber}`;
+    
+    // Evitar duplicados
+    const { data: existingLedger } = await supabase
+        .from('sales_ledger')
+        .select('id')
+        .eq('internal_id', ledgerId)
+        .maybeSingle();
+
+    if (!existingLedger && amount > 0) {
+        const { error: ledgerError } = await supabase
+            .from('sales_ledger')
+            .insert([{
+                internal_id: ledgerId,
+                customer_id: project.customer_id,
+                total_amount: amount,
+                paid_amount: amount,
+                status: 'completed',
+                payment_method: paymentMethod,
+                branch: 'Alta Costura'
+            }]);
+            
+        if (ledgerError) {
+            console.error('Error recording bridal payment in sales ledger:', ledgerError);
+        }
     }
     
     revalidatePath('/admin/novias');
@@ -359,9 +402,12 @@ export async function cancelProject(projectId: string) {
 export async function deleteBridalProjectAction(projectId: string) {
     const supabase = getAdminClient();
     
-    // El borrado en cascada (cascade delete) debería estar configurado en la base de datos
-    // para bridal_project_milestones, payments, etc., o se deben borrar manualmente si no es así.
-    // Por seguridad, intentamos borrar el proyecto principal (si falla por FK, habría que manejarlo).
+    // Eliminar primero los registros del libro de ventas asociados a este proyecto
+    await supabase
+        .from('sales_ledger')
+        .delete()
+        .like('internal_id', `bridal_${projectId}_%`);
+
     const { error } = await supabase
         .from('bridal_projects')
         .delete()

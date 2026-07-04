@@ -38,7 +38,7 @@ export default async function WebpayCallbackPage({
             if (project && project.payment_1_status !== 'paid') {
                 // Registrar contrato y pago
                 await acceptContract(projectId);
-                await registerPayment(projectId, 1);
+                await registerPayment(projectId, 1, 'Webpay');
                 await sendBridalThankYouEmailAction(projectId);
             }
 

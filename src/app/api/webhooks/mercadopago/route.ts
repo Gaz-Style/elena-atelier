@@ -41,7 +41,7 @@ async function updateDatabaseAndNotify(
             const { data: proj } = await supabase.from('bridal_projects').select('payment_1_status').eq('id', projectId).single();
             if (proj && proj.payment_1_status !== 'paid') {
                 await acceptContract(projectId);
-                await registerPayment(projectId, 1);
+                await registerPayment(projectId, 1, 'Mercado Pago');
                 await sendBridalThankYouEmailAction(projectId);
                 await logSystemEvent(supabase, 'INFO', `Pago de Novia Procesado`, { projectId, paymentId });
             } else {
