@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Play, ArrowRight, Loader2 } from 'lucide-react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import Link from 'next/link';
 
 export default function BridalInductionPage() {
@@ -13,17 +12,17 @@ export default function BridalInductionPage() {
 
     useEffect(() => {
         const fetchProject = async () => {
-            const supabase = createClientComponentClient();
-            const { data, error } = await supabase
-                .from('bridal_projects')
-                .select('*, customers(full_name)')
-                .eq('id', params.id as string)
-                .single();
-                
-            if (data) {
-                setProject(data);
+            try {
+                const { getBridalProjectById } = await import('@/app/admin/novias/actions');
+                const data = await getBridalProjectById(params.id as string);
+                if (data) {
+                    setProject(data);
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
         fetchProject();
     }, [params.id]);
