@@ -303,7 +303,7 @@ export default function PortalNoviasContratoPage() {
                         <div className="text-[11px] text-gray-400 space-y-4 pr-2 bg-white/5 border border-white/5 rounded p-4">
                             <div>
                                 <h4 className="font-bold text-white mb-1">1. Tiempo de Fabricación</h4>
-                                <p>Se tiene en conocimiento que cualquier vestido diseñado y fabricado a la medida conlleva un proceso prolongado. ATELIER HORTENSIA SPA se hace responsable mediante el reemplazo de la prenda por otra similar dentro del stock existente en caso fortuito imputable al taller.</p>
+                                <p>Se tiene en conocimiento que el diseño, confección a medida y/o modificación de un vestido conlleva un proceso de meses y un trabajo artesanal meticuloso. Los tiempos de avance y entrega final dependerán estrictamente del cumplimiento del cronograma de pruebas establecido y de la puntual asistencia de la clienta a cada sesión.</p>
                             </div>
 
                             {project.service_type === 'bespoke' && (
