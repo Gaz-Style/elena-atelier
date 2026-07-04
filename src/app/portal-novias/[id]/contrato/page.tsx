@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Loader2, CheckSquare, Square, FileText, Calendar, DollarSign, ShieldAlert, ArrowRight } from 'lucide-react';
+import { Loader2, CheckSquare, Square, FileText, Calendar, DollarSign, ShieldAlert, ArrowRight, Printer, X } from 'lucide-react';
+import ContractTemplate from '@/app/admin/novias/ContractTemplate';
 
 export default function PortalNoviasContratoPage() {
     const params = useParams();
@@ -12,6 +13,7 @@ export default function PortalNoviasContratoPage() {
     const [submitting, setSubmitting] = useState(false);
     const [accepted, setAccepted] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+    const [showContractPrint, setShowContractPrint] = useState(false);
 
     useEffect(() => {
         if (params?.id) {
@@ -118,6 +120,31 @@ export default function PortalNoviasContratoPage() {
         });
     };
 
+    function handlePrintContract() {
+        setShowContractPrint(true);
+        setTimeout(() => {
+            window.print();
+        }, 500);
+    }
+
+    const contractData = project ? {
+        customerName: project.customers?.full_name || '',
+        customerRut: project.customers?.rut || '',
+        customerPhone: project.customers?.phone || '',
+        customerEmail: project.customers?.email || '',
+        projectType: project.project_type,
+        serviceType: project.service_type,
+        description: project.description || '',
+        eventDate: project.event_date || '',
+        eventVenue: project.event_venue || '',
+        totalAmount: project.total_amount,
+        payment1: project.payment_1_amount,
+        payment2: project.payment_2_amount,
+        payment3: project.payment_3_amount,
+        milestones: (project.milestones || []).map((m: any) => ({ title: m.title, scheduledDate: m.scheduled_date })),
+        contractNotes: project.contract_notes || '',
+    } : null;
+
     const serviceTypeLabel: Record<string, string> = {
         modificacion_tienda: 'Modificación de vestido adquirido en tienda',
         vestido_propio: 'Ajuste de vestido propio de la clienta',
@@ -144,21 +171,41 @@ export default function PortalNoviasContratoPage() {
     const isVestidoPropio = project.service_type === 'vestido_propio';
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] text-white font-sans py-12 px-4 md:px-6 relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle at center, #1A1A1A 0%, #0A0A0A 100%)" }}>
-            
-            <div className="w-full max-w-3xl mx-auto relative z-10">
-                {/* Logo */}
-                <div className="text-center mb-8">
-                    <h1 className="font-serif text-3xl md:text-4xl font-black text-white tracking-[0.3em] mb-2">ELENA</h1>
-                    <p className="text-[9px] uppercase tracking-[0.5em] text-white/70 font-bold ml-1">LA COSTURERA</p>
+        <>
+            {/* Print-only contract view */}
+            {showContractPrint && contractData && (
+                <div className="fixed inset-0 bg-white z-50 overflow-auto print:static print:z-auto p-8 text-black">
+                    <button onClick={() => setShowContractPrint(false)} className="print:hidden fixed top-4 right-4 bg-zinc-800 text-white p-2 rounded-full z-50">
+                        <X className="w-5 h-5" />
+                    </button>
+                    <div>
+                        <ContractTemplate data={contractData} />
+                    </div>
                 </div>
+            )}
 
-                <div className="text-center mb-8">
-                    <h2 className="font-serif text-2xl text-white mb-2 italic">Propuesta y Presupuesto</h2>
-                    <p className="text-xs text-gray-400 max-w-md mx-auto">
-                        Por favor revisa detenidamente el presupuesto, cronograma y condiciones del servicio a continuación. Debe aceptar los términos para proceder a la reserva de su cupo.
-                    </p>
-                </div>
+            <div className="min-h-screen bg-[#0A0A0A] text-white font-sans py-12 px-4 md:px-6 relative overflow-hidden print:hidden" style={{ backgroundImage: "radial-gradient(circle at center, #1A1A1A 0%, #0A0A0A 100%)" }}>
+                
+                <div className="w-full max-w-3xl mx-auto relative z-10">
+                    {/* Logo */}
+                    <div className="text-center mb-8">
+                        <h1 className="font-serif text-3xl md:text-4xl font-black text-white tracking-[0.3em] mb-2">ELENA</h1>
+                        <p className="text-[9px] uppercase tracking-[0.5em] text-white/70 font-bold ml-1">LA COSTURERA</p>
+                    </div>
+
+                    <div className="text-center mb-8">
+                        <h2 className="font-serif text-2xl text-white mb-2 italic">Propuesta y Presupuesto</h2>
+                        <p className="text-xs text-gray-400 max-w-md mx-auto mb-6">
+                            Por favor revisa detenidamente el presupuesto, cronograma y condiciones del servicio a continuación. Debe aceptar los términos para proceder a la reserva de su cupo.
+                        </p>
+                        <button
+                            type="button"
+                            onClick={handlePrintContract}
+                            className="inline-flex items-center gap-2 text-[10px] text-[#C17F5F] hover:text-[#a96e51] font-bold uppercase tracking-[0.15em] border border-[#C17F5F]/30 hover:border-[#C17F5F] px-5 py-2.5 rounded transition-all"
+                        >
+                            <Printer className="w-3.5 h-3.5" /> Descargar Contrato en PDF
+                        </button>
+                    </div>
 
                 {errorMsg && (
                     <div className="mb-6 p-4 bg-red-900/20 border border-red-500/50 text-red-200 rounded text-xs text-center">
@@ -426,5 +473,6 @@ export default function PortalNoviasContratoPage() {
                 </div>
             </div>
         </div>
+        </>
     );
 }

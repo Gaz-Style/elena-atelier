@@ -644,39 +644,66 @@ export async function sendBridalContractEmailAction(projectId: string) {
 
         const htmlContent = `<!DOCTYPE html>
 <html lang="es">
-<head><meta charset="utf-8" /></head>
-<body style="margin: 0; padding: 0; background-color: #F8F6F0; font-family: 'Inter', sans-serif;">
-  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8F6F0; padding: 40px 20px;">
+<head>
+  <meta charset="utf-8" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap');
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0A0A0A; font-family: 'Inter', Helvetica, Arial, sans-serif;">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0A0A0A; padding: 50px 20px;">
     <tr>
       <td align="center">
-        <table width="600" border="0" cellpadding="0" cellspacing="0" style="background-color: #FFFFFF; border-radius: 0px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border: 1px solid #EAE6D7;">
-          <!-- Content Body -->
+        <!-- Card Container -->
+        <table width="580" border="0" cellpadding="0" cellspacing="0" style="background-color: #0E0E0E; border-top: 3px solid #C17F5F; border-radius: 4px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5);">
+          <!-- Main Content -->
           <tr>
-            <td style="background-color: #1A1A1A; padding: 50px 40px; text-align: center;">
+            <td style="padding: 60px 40px; text-align: center;">
+              <!-- Logo -->
               ${emailLogoHtml}
-              <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 28px; font-weight: 400; margin: 30px 0 20px 0; letter-spacing: 0.5px;">
-                Contrato y Presupuesto de Servicio
-              </h1>
-              <p style="color: #D4D0C5; font-size: 14px; line-height: 1.8; margin-bottom: 40px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
-                Hola <i style="color: #FFFFFF;">${customerName}</i>, hemos recibido tus datos correctamente y preparado tu proposal formal. Para continuar con el proceso y reservar tu cupo de producción en nuestro atelier, por favor ingresa al siguiente enlace para revisar en detalle el cronograma de pruebas, el presupuesto y los términos de nuestro contrato de servicio.
-              </p>
-              <table align="center" border="0" cellpadding="0" cellspacing="0">
+              
+              <div style="margin-top: 40px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 25px;">
+                <p style="color: #C17F5F; font-size: 8px; text-transform: uppercase; letter-spacing: 5px; margin: 0 0 12px 0; font-weight: 600;">
+                  DOCUMENTO DE SERVICIO
+                </p>
+                <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 26px; font-weight: 400; margin: 0; font-style: italic; letter-spacing: 0.5px;">
+                  Propuesta y Contrato Formal
+                </h1>
+              </div>
+
+              <div style="margin-top: 35px; text-align: left;">
+                <p style="color: #9A958C; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 20px 0;">
+                  Estimada <strong style="color: #FFFFFF; font-weight: 600;">${customerName}</strong>,
+                </p>
+                <p style="color: #9A958C; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 30px 0;">
+                  Hemos recibido y procesado sus datos con éxito. En base a sus requerimientos, hemos confeccionado la propuesta de servicio formal que incluye el <strong>presupuesto detallado, cronograma tentativo de pruebas</strong> y los <strong>términos del contrato</strong>.
+                </p>
+                <p style="color: #9A958C; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 35px 0;">
+                  Para proceder con la revisión, firma digital y la reserva de su cupo exclusivo de producción en nuestro taller, por favor ingrese al portal privado a través del siguiente botón:
+                </p>
+              </div>
+
+              <!-- Button -->
+              <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto 10px auto;">
                 <tr>
-                  <td align="center" style="border-radius: 2px;" bgcolor="#C17F5F">
-                    <a href="${proposalLink}" target="_blank" style="font-size: 11px; font-family: 'Inter', sans-serif; font-weight: 600; color: #ffffff; text-decoration: none; padding: 18px 40px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 2px;">
-                      REVISAR CONTRATO Y PRESUPUESTO
+                  <td align="center">
+                    <a href="${proposalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, Arial, sans-serif; font-weight: 600; color: #FFFFFF; background-color: transparent; text-decoration: none; padding: 16px 35px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 3px; border-radius: 2px; transition: all 0.3s ease;">
+                      REVISAR PROPUESTA Y CONTRATO
                     </a>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
-          <!-- Footer -->
+
+          <!-- Footer Signature/Address -->
           <tr>
-            <td style="background-color: #FFFFFF; padding: 30px 40px; text-align: center; border-top: 1px solid #EAE6D7;">
-              <p style="color: #A39E93; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0;">
-                Vitacura, Santiago de Chile<br><br>
-                © ${new Date().getFullYear()} ELENA LA COSTURERA | ATELIER
+            <td style="background-color: #090909; padding: 35px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.04);">
+              <p style="font-family: 'Inter', Helvetica, Arial, sans-serif; color: #6B6660; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 10px 0;">
+                ATELIER HORTENSIA SPA &middot; AV. TABANCURA 1091, OF 319, VITACURA
+              </p>
+              <p style="font-family: 'Inter', Helvetica, Arial, sans-serif; color: #4B4640; font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; margin: 0;">
+                © ${new Date().getFullYear()} ELENA LA COSTURERA &middot; TODOS LOS DERECHOS RESERVADOS
               </p>
             </td>
           </tr>
