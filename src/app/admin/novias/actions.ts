@@ -607,7 +607,7 @@ export async function sendBridalInductionEmailAction(projectId: string) {
         const portalLink = `${siteUrl}/portal-novias/${projectId}/induccion`;
 
         // Luxury background image logic
-        const attachments = [];
+        const attachments: any[] = [];
         let cardBgUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGUlEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAA8F8bGgABxZqVdgAAAABJRU5ErkJggg==';
         const fs = require('fs');
         const path = require('path');
@@ -644,7 +644,7 @@ export async function sendBridalInductionEmailAction(projectId: string) {
                     <div style="margin-top: 50px;"></div>
                     
                     <p style="color: #C17F5F; font-size: 8px; text-transform: uppercase; letter-spacing: 4px; margin: 0 0 30px 0; font-weight: 600;">
-                      INDUCCIÓN EXCLUSIVA
+                      INFORMACIÓN DE TU PROYECTO
                     </p>
                     
                     <p style="font-family: 'Inter', Helvetica, sans-serif; color: #A39E93; font-size: 9px; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 5px 0; font-weight: 400;">
@@ -660,12 +660,16 @@ export async function sendBridalInductionEmailAction(projectId: string) {
                       <tr><td style="border-top: 2px solid #C17F5F; font-size: 0; line-height: 0; height: 1px;">&nbsp;</td></tr>
                     </table>
                     
+                    <p style="color: #9A958C; font-size: 12px; line-height: 1.9; margin: 0 0 15px 0; font-weight: 300; max-width: 320px;">
+                      Como parte del proceso de tu proyecto, hemos preparado un breve video donde Elena te explica personalmente los pasos que seguiremos para la confección de tu vestido.
+                    </p>
+
                     <p style="color: #9A958C; font-size: 12px; line-height: 1.9; margin: 0 0 40px 0; font-weight: 300; max-width: 320px;">
-                      Para asegurarnos de que tu experiencia sea perfecta, hemos preparado un video especial donde Elena te guiará personalmente sobre cómo funcionará cada detalle de tu vestido.
+                      Te pedimos que lo revises antes de tu próxima cita para que puedas resolver cualquier duda que tengas durante la sesión.
                     </p>
                     
-                    <a href="${portalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, sans-serif; font-weight: 600; color: #0A0A0A; background-color: #C17F5F; text-decoration: none; padding: 14px 30px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 3px;">
-                      VER VIDEO DE INDUCCIÓN
+                    <a href="${portalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, sans-serif; font-weight: 600; color: #FFFFFF; background-color: transparent; text-decoration: none; padding: 14px 30px; border: 1px solid rgba(255,255,255,0.35); display: inline-block; text-transform: uppercase; letter-spacing: 3px;">
+                      VER VIDEO INFORMATIVO &rarr;
                     </a>
                     
                     <div style="margin-top: 60px;"></div>
@@ -716,10 +720,16 @@ export async function sendBridalInductionEmailAction(projectId: string) {
         const transporter = getTransporter();
         await transporter.sendMail({
             from: '"ELENA La Costurera" <contacto@elenalacosturera.cl>',
+            replyTo: 'contacto@elenalacosturera.cl',
             to: customerEmail,
-            subject: 'Tu Video de Inducción - Elena Atelier',
+            subject: `${customerName}, tu video informativo está listo`,
             html: htmlContent,
-            attachments
+            attachments,
+            headers: {
+                'X-Priority': '1',
+                'X-PM-Message-Stream': 'outbound',
+                'Precedence': 'bulk'
+            }
         });
 
         return { success: true };
