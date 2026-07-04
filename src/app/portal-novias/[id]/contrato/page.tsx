@@ -385,6 +385,17 @@ export default function PortalNoviasContratoPage() {
                     )}
 
                     <div className="pt-2">
+                        {!project.contract_accepted && (
+                            <div className="mb-8 p-4 border border-[#C17F5F]/20 bg-gradient-to-br from-[#C17F5F]/10 to-transparent rounded text-left shadow-lg">
+                                <p className="text-[10px] text-gray-300 font-light leading-relaxed">
+                                    <span className="font-bold text-[#C17F5F] uppercase tracking-[0.15em] block mb-1.5 flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#C17F5F]"></span>
+                                        Confirmación y Exclusividad de Agenda
+                                    </span>
+                                    Al presionar el botón de aceptación y proceder con el pago, usted ratifica su plena conformidad con las condiciones de este contrato. En ese mismo acto, el sistema <strong>agendará automáticamente sus fechas de prueba</strong> y <strong>bloqueará tiempos de producción exclusivos</strong> en nuestro atelier, garantizando la dedicación absoluta y artesanal que su vestido requiere.
+                                </p>
+                            </div>
+                        )}
                         <button
                             type="button"
                             onClick={handleAccept}
