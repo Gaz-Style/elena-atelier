@@ -8,7 +8,7 @@ import {
     Clock, AlertCircle, FileText, Ruler, Camera, StickyNote, Loader2, Printer,
     ChevronDown, ChevronUp, X, Save, Trash2
 } from 'lucide-react';
-import { getBridalProjectById, registerPayment, completeMilestone, acceptContract, saveMeasurements, updateBridalProject, cancelProject, sendBridalWelcomeEmailAction, deleteBridalProjectAction } from '../actions';
+import { getBridalProjectById, registerPayment, completeMilestone, acceptContract, saveMeasurements, updateBridalProject, cancelProject, sendBridalWelcomeEmailAction, sendBridalInductionEmailAction, deleteBridalProjectAction } from '../actions';
 import ContractTemplate from '../ContractTemplate';
 
 const formatCurrency = (val: number) =>
@@ -150,6 +150,19 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         setSaving(false);
     }
 
+    async function handleSendInductionEmail() {
+        if (!confirm('¿Enviar video de inducción a la clienta?')) return;
+        setSaving(true);
+        const res = await sendBridalInductionEmailAction(projectId);
+        if (!res.success) {
+            alert('Error al enviar correo: ' + res.error);
+        } else {
+            alert('Video de inducción enviado exitosamente.');
+        }
+        await loadProject(projectId);
+        setSaving(false);
+    }
+
     function handlePrintContract() {
         setShowContractPrint(true);
         setTimeout(() => {
@@ -248,13 +261,22 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                     </div>
                                     <p className="text-zinc-500 text-sm">{serviceTypeLabel[project.service_type]} · {typeConfig.label}</p>
                                     {project.description && <p className="text-zinc-400 text-xs mt-1 italic">"{project.description}"</p>}
-                                    <button
-                                        onClick={handleSendWelcomeEmail}
-                                        disabled={saving}
-                                        className="mt-3 text-[10px] uppercase tracking-widest font-bold bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-zinc-300"
-                                    >
-                                        Enviar Formulario de Bienvenida
-                                    </button>
+                                    <div className="flex flex-wrap gap-2 mt-3">
+                                        <button
+                                            onClick={handleSendWelcomeEmail}
+                                            disabled={saving}
+                                            className="text-[10px] uppercase tracking-widest font-bold bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-zinc-300"
+                                        >
+                                            Enviar Formulario de Bienvenida
+                                        </button>
+                                        <button
+                                            onClick={handleSendInductionEmail}
+                                            disabled={saving}
+                                            className="text-[10px] uppercase tracking-widest font-bold bg-[#C17F5F] hover:bg-[#A86F53] text-white px-4 py-2 rounded-lg transition-colors disabled:bg-zinc-300"
+                                        >
+                                            Enviar Video de Inducción
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 

@@ -592,6 +592,143 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
     }
 }
 
+export async function sendBridalInductionEmailAction(projectId: string) {
+    try {
+        const supabase = getAdminClient();
+        const { data: project } = await supabase.from('bridal_projects')
+            .select('*, customers(email, full_name)')
+            .eq('id', projectId).single();
+            
+        if (!project || !project.customers?.email) throw new Error('Proyecto o correo no encontrado');
+        
+        const customerEmail = project.customers.email;
+        const customerName = project.customers.full_name || 'Futura Novia';
+        const siteUrl = await getSiteUrl();
+        const portalLink = `${siteUrl}/portal-novias/${projectId}/induccion`;
+
+        // Luxury background image logic
+        const attachments = [];
+        let cardBgUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGUlEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAA8F8bGgABxZqVdgAAAABJRU5ErkJggg==';
+        const fs = require('fs');
+        const path = require('path');
+        const filePath = path.join(process.cwd(), 'public', 'trabajos', 'novia 2.jpeg');
+        if (fs.existsSync(filePath)) {
+            attachments.push({ filename: 'novia_2.jpeg', path: filePath, cid: 'luxuryPassBg' });
+            cardBgUrl = 'cid:luxuryPassBg';
+        }
+
+        const htmlContent = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap');
+</style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0A0A0A; font-family: 'Inter', Helvetica, sans-serif;">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0A0A0A; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <!-- Main Card Container -->
+        <table width="650" border="0" cellpadding="0" cellspacing="0" style="background-color: #0E0E0E; overflow: hidden;">
+          <tr>
+            <td background="${cardBgUrl}" bgcolor="#0E0E0E" style="background: linear-gradient(to right, #0E0E0E 0%, #0E0E0E 40%, rgba(14,14,14,0.5) 55%, rgba(14,14,14,0) 70%), url('${cardBgUrl}') right top no-repeat; background-image: linear-gradient(to right, #0E0E0E 0%, #0E0E0E 40%, rgba(14,14,14,0.5) 55%, rgba(14,14,14,0) 70%), url('${cardBgUrl}'); background-size: 100% 100%, auto 100%; background-position: 0 0, right top; padding: 50px 0; background-repeat: no-repeat;">
+              
+              <!-- Text Container (left aligned) -->
+              <table width="380" border="0" cellpadding="0" cellspacing="0" align="left" style="padding-left: 45px;">
+                <tr>
+                  <td>
+                    <!-- Logo -->
+                    ${emailLogoHtml}
+                    
+                    <div style="margin-top: 50px;"></div>
+                    
+                    <p style="color: #C17F5F; font-size: 8px; text-transform: uppercase; letter-spacing: 4px; margin: 0 0 30px 0; font-weight: 600;">
+                      INDUCCIÓN EXCLUSIVA
+                    </p>
+                    
+                    <p style="font-family: 'Inter', Helvetica, sans-serif; color: #A39E93; font-size: 9px; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 5px 0; font-weight: 400;">
+                      ESTIMADA
+                    </p>
+                    
+                    <p style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 28px; margin: 0 0 30px 0; font-style: italic; font-weight: 400;">
+                      ${customerName}
+                    </p>
+                    
+                    <!-- Gold divider line -->
+                    <table width="40" border="0" cellpadding="0" cellspacing="0" style="margin: 0 0 30px 0;">
+                      <tr><td style="border-top: 2px solid #C17F5F; font-size: 0; line-height: 0; height: 1px;">&nbsp;</td></tr>
+                    </table>
+                    
+                    <p style="color: #9A958C; font-size: 12px; line-height: 1.9; margin: 0 0 40px 0; font-weight: 300; max-width: 320px;">
+                      Para asegurarnos de que tu experiencia sea perfecta, hemos preparado un video especial donde Elena te guiará personalmente sobre cómo funcionará cada detalle de tu vestido.
+                    </p>
+                    
+                    <a href="${portalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, sans-serif; font-weight: 600; color: #0A0A0A; background-color: #C17F5F; text-decoration: none; padding: 14px 30px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 3px;">
+                      VER VIDEO DE INDUCCIÓN
+                    </a>
+                    
+                    <div style="margin-top: 60px;"></div>
+                    
+                    <!-- Footer signature -->
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 25px;">
+                      <tr>
+                        <td>
+                          <table border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td style="border-left: 2px solid #C17F5F; padding-left: 12px;">
+                                <p style="font-family: 'Inter', Helvetica, sans-serif; color: #FFFFFF; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 3px 0;">
+                                  ELENA ATELIER
+                                </p>
+                                <p style="font-family: 'Inter', Helvetica, sans-serif; color: #6B6660; font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; margin: 0;">
+                                  ATELIER &middot; SANTIAGO DE CHILE
+                                </p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                  </td>
+                </tr>
+              </table>
+              <!-- Clearfix -->
+              <div style="clear: both;"></div>
+            </td>
+          </tr>
+          
+          <!-- Copyright footer row -->
+          <tr>
+            <td style="background-color: #080808; padding: 15px 45px; border-top: 1px solid rgba(255,255,255,0.05);">
+              <p style="font-family: 'Inter', Helvetica, sans-serif; color: #3D3A37; font-size: 7px; letter-spacing: 1.5px; text-transform: uppercase; margin: 0; text-align: center;">
+                &copy; 2025 ELENA ATELIER &middot; TODOS LOS DERECHOS RESERVADOS
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+        const transporter = getTransporter();
+        await transporter.sendMail({
+            from: '"ELENA La Costurera" <contacto@elenalacosturera.cl>',
+            to: customerEmail,
+            subject: 'Tu Video de Inducción - Elena Atelier',
+            html: htmlContent,
+            attachments
+        });
+
+        return { success: true };
+    } catch (e: any) {
+        console.error('Error sending induction email:', e);
+        return { success: false, error: e.message };
+    }
+}
+
 export async function processBridalFormAction(projectId: string, formData: FormData) {
     try {
         const supabase = getAdminClient();
