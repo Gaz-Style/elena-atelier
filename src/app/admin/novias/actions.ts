@@ -356,6 +356,25 @@ export async function cancelProject(projectId: string) {
     return { success: true };
 }
 
+export async function deleteBridalProjectAction(projectId: string) {
+    const supabase = getAdminClient();
+    
+    // El borrado en cascada (cascade delete) debería estar configurado en la base de datos
+    // para bridal_project_milestones, payments, etc., o se deben borrar manualmente si no es así.
+    // Por seguridad, intentamos borrar el proyecto principal (si falla por FK, habría que manejarlo).
+    const { error } = await supabase
+        .from('bridal_projects')
+        .delete()
+        .eq('id', projectId);
+    
+    if (error) {
+        return { success: false, error: error.message };
+    }
+    
+    revalidatePath('/admin/novias');
+    return { success: true };
+}
+
 // ─── Email & Automation Actions ──────────────────────────────
 
 const getTransporter = () => {

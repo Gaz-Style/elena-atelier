@@ -8,7 +8,7 @@ import {
     Clock, AlertCircle, FileText, Ruler, Camera, StickyNote, Loader2, Printer,
     ChevronDown, ChevronUp, X, Save, Trash2
 } from 'lucide-react';
-import { getBridalProjectById, registerPayment, completeMilestone, acceptContract, saveMeasurements, updateBridalProject, cancelProject, sendBridalWelcomeEmailAction } from '../actions';
+import { getBridalProjectById, registerPayment, completeMilestone, acceptContract, saveMeasurements, updateBridalProject, cancelProject, sendBridalWelcomeEmailAction, deleteBridalProjectAction } from '../actions';
 import ContractTemplate from '../ContractTemplate';
 
 const formatCurrency = (val: number) =>
@@ -122,6 +122,18 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         setSaving(true);
         await cancelProject(projectId);
         router.push('/admin/novias');
+    }
+
+    async function handleDelete() {
+        if (!confirm('¿Estás segura de ELIMINAR COMPLETAMENTE este proyecto? Esta acción borrará el proyecto de la base de datos y NO se puede deshacer.')) return;
+        setSaving(true);
+        const res = await deleteBridalProjectAction(projectId);
+        if (!res.success) {
+            alert('Error al eliminar: ' + res.error);
+            setSaving(false);
+        } else {
+            router.push('/admin/novias');
+        }
     }
 
     async function handleSendWelcomeEmail() {
@@ -572,12 +584,20 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                 />
                             </div>
                             <div className="flex justify-between">
-                                <button
-                                    onClick={handleCancel}
-                                    className="text-[10px] uppercase tracking-widest font-bold text-red-500 hover:text-red-700 px-4 py-2 border border-red-200 rounded-lg transition-colors flex items-center gap-2"
-                                >
-                                    <Trash2 className="w-3.5 h-3.5" /> Cancelar Proyecto
-                                </button>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleCancel}
+                                        className="text-[10px] uppercase tracking-widest font-bold text-amber-600 hover:text-amber-800 px-4 py-2 border border-amber-200 rounded-lg transition-colors flex items-center gap-2"
+                                    >
+                                        <X className="w-3.5 h-3.5" /> Cancelar
+                                    </button>
+                                    <button
+                                        onClick={handleDelete}
+                                        className="text-[10px] uppercase tracking-widest font-bold text-red-500 hover:text-red-700 px-4 py-2 border border-red-200 rounded-lg transition-colors flex items-center gap-2"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" /> Eliminar Definitivamente
+                                    </button>
+                                </div>
                                 <button
                                     onClick={handleSaveNotes}
                                     disabled={saving}
