@@ -189,8 +189,9 @@ export default function PortalNoviasContratoPage() {
                 
                 <div className="w-full max-w-3xl mx-auto relative z-10">
                     {/* Logo */}
-                    <div className="mb-8 flex justify-center">
-                        <img src="/logotipo.png" alt="Elena La Costurera" className="h-16 w-auto object-contain" />
+                    <div className="text-center mb-8">
+                        <h1 className="font-serif text-3xl md:text-4xl font-black text-white tracking-[0.3em] mb-2">ELENA</h1>
+                        <p className="text-[9px] uppercase tracking-[0.5em] text-white/70 font-bold ml-1">LA COSTURERA</p>
                     </div>
 
                     <div className="text-center mb-8">
