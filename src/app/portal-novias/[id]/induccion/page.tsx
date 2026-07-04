@@ -59,12 +59,12 @@ export default function BridalInductionPage() {
                 </h1>
             </div>
 
-            {/* Video Container */}
-            <div className="w-full max-w-4xl mx-auto rounded-xl overflow-hidden shadow-2xl shadow-[#C17F5F]/10 border border-white/5 bg-black mt-20 relative z-20">
+            {/* Video Container - formato vertical 9:16 */}
+            <div className="w-full max-w-sm mx-auto rounded-xl overflow-hidden shadow-2xl shadow-[#C17F5F]/10 border border-white/5 bg-black mt-20 relative z-20">
                 <video 
                     controls
                     autoPlay
-                    className="w-full aspect-video object-cover"
+                    className="w-full aspect-[9/16] object-contain bg-black"
                     poster="/trabajos/novia 2.jpeg"
                 >
                     <source src="/Induccion portal novias.mp4" type="video/mp4" />
