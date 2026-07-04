@@ -143,6 +143,7 @@ export default function PortalNoviasContratoPage() {
         payment3: project.payment_3_amount,
         milestones: (project.milestones || []).map((m: any) => ({ title: m.title, scheduledDate: m.scheduled_date })),
         contractNotes: project.contract_notes || '',
+        materialsNotes: project.materials_notes || '',
     } : null;
 
     const serviceTypeLabel: Record<string, string> = {
@@ -398,6 +399,14 @@ export default function PortalNoviasContratoPage() {
                             )}
                         </div>
                     </div>
+
+                    {/* Materials Notes */}
+                    {project.materials_notes && (
+                        <div className="bg-white/5 border border-white/10 rounded p-4 text-xs text-gray-300">
+                            <p className="font-bold text-[#C17F5F] mb-1.5 uppercase tracking-wider text-[10px]">Materiales Comprometidos / Detalles de Diseño:</p>
+                            <p className="whitespace-pre-wrap font-light leading-relaxed">{project.materials_notes}</p>
+                        </div>
+                    )}
 
                     {/* Additional Notes */}
                     {project.contract_notes && (

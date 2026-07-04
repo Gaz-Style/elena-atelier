@@ -18,6 +18,7 @@ interface ContractData {
     payment3: number;
     milestones: { title: string; scheduledDate: string }[];
     contractNotes: string;
+    materialsNotes?: string;
 }
 
 const formatCurrency = (val: number) =>
@@ -226,6 +227,13 @@ export default function ContractTemplate({ data }: { data: ContractData }) {
                     )}
                 </div>
                 
+                {data.materialsNotes && (
+                    <div className="mt-6 bg-gray-50 border border-gray-200 p-4 rounded-sm">
+                        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Materiales Comprometidos / Notas de Diseño</p>
+                        <p className="text-gray-700 text-[12px] whitespace-pre-wrap font-light">{data.materialsNotes}</p>
+                    </div>
+                )}
+
                 {data.contractNotes && (
                     <div className="mt-6 bg-gray-50 border border-gray-200 p-4 rounded-sm">
                         <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Acuerdos Adicionales</p>
