@@ -148,9 +148,13 @@ export default function PortalNoviasPagarPage() {
                                             <span className="uppercase tracking-widest text-[9px] font-bold">Tipo de cuenta</span>
                                             <span className="text-white font-medium">Cuenta Corriente</span>
                                         </div>
-                                        <div className="flex justify-between items-center">
+                                        <div className="flex justify-between items-center border-b border-white/5 pb-3">
                                             <span className="uppercase tracking-widest text-[9px] font-bold">Nº de cuenta</span>
                                             <span className="text-white font-medium">7 779 10 82632 9</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="uppercase tracking-widest text-[9px] font-bold">Correo</span>
+                                            <span className="text-white font-medium">contacto@elenalacosturera.cl</span>
                                         </div>
                                         
                                         <div className="mt-4 pt-4 border-t border-white/10 text-center">
