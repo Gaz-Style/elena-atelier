@@ -714,6 +714,7 @@ export async function generateBridalPaymentLinksAction(projectId: string) {
     try {
         const supabase = getAdminClient();
         const { data: project } = await supabase.from('bridal_projects')
+            .select('*')
             .eq('id', projectId).single();
             
         if (!project) throw new Error('Proyecto no encontrado');
