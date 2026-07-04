@@ -235,7 +235,7 @@ export default function ContractTemplate({ data }: { data: ContractData }) {
                         </p>
                         {Array.from(data.materialsNotes.matchAll(/!\[Referencia(?: \d+)?\]\((data:image\/[^;]+;base64,[^\)]+)\)/g)).length > 0 && (
                             <div className="flex flex-wrap gap-4 mt-4">
-                                {Array.from(data.materialsNotes.matchAll(/!\[Referencia(?: \d+)?\]\((data:image\/[^;]+;base64,[^\)]+)\)/g)).map((match, idx) => (
+                                {Array.from(data.materialsNotes.matchAll(/!\[Referencia(?: \d+)?\]\((data:image\/[^;]+;base64,[^\)]+)\)/g)).map((match: any, idx) => (
                                     <img key={idx} src={match[1]} className="max-w-[250px] max-h-[300px] object-contain border border-gray-300 rounded-sm shadow-sm" alt="Foto de Referencia" />
                                 ))}
                             </div>

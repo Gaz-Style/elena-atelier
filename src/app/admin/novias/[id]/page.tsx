@@ -580,7 +580,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                 {(() => {
                                     const rawNotes = project.materials_notes || '';
                                     const regex = /!\[Referencia(?: \d+)?\]\((data:image\/[^;]+;base64,[^\)]+)\)/g;
-                                    const refImages = Array.from(rawNotes.matchAll(regex)).map(m => m[1]);
+                                    const refImages = Array.from(rawNotes.matchAll(regex)).map((m: any) => m[1]);
                                     const cleanNotes = rawNotes.replace(regex, '').trim();
 
                                     return (
