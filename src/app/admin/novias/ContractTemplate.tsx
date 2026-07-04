@@ -177,39 +177,51 @@ export default function ContractTemplate({ data }: { data: ContractData }) {
                 
                 <div className="space-y-4 text-[12px]">
                     <div>
-                        <h4 className="font-bold text-gray-700">1. Reserva y Pagos</h4>
-                        <p>Para confirmar el servicio e iniciar el trabajo, se debe abonar el 50% del valor total (Reserva). El saldo restante se dividirá y cancelará según el esquema detallado en la sección "Condiciones Económicas". El vestido debe estar pagado en su totalidad (100%) al momento de retirarlo.</p>
-                        <p className="mt-1"><strong>Formas de Pago Aceptadas:</strong> Efectivo, Tarjetas de Crédito/Débito, y Transferencias Bancarias.</p>
+                        <h4 className="font-bold text-gray-700">1. Tiempo de Fabricación</h4>
+                        <p>Se tiene en conocimiento que cualquier vestido diseñado y fabricado a la medida conlleva un proceso prolongado. ATELIER HORTENSIA SPA se hace responsable mediante el reemplazo de la prenda por otra similar dentro del stock existente en caso fortuito imputable al taller.</p>
                     </div>
 
                     {data.serviceType === 'bespoke' && (
                         <div>
-                            <h4 className="font-bold text-gray-700">2. Diseño y Tiempo de Fabricación (A la medida)</h4>
-                            <p>El diseño y confección a medida conlleva un proceso de meses. ELENA ATELIER asesora en la búsqueda del diseño óptimo. La clienta escoge el diseño, color y materiales. Si los materiales exactos no se encuentran en stock en fábrica, se buscarán las alternativas más similares (encajes, bordados, pedrería, etc.) previa aprobación. Posterior al inicio del proceso de confección, no se pueden realizar cambios estructurales en el diseño del vestido.</p>
+                            <h4 className="font-bold text-gray-700">2. Diseño</h4>
+                            <p>ATELIER HORTENSIA SPA se compromete a asesorar en todo el proceso de la búsqueda del diseño óptimo para la novia. La novia puede escoger el diseño, color, materiales y tela de fabricación del vestido. Si los materiales en la fábrica no se encuentran en stock, se buscarán los más similares a lo que el cliente quiere (Encajes, bordados, pedrería, flores, macramé, colores, etc.) previa aprobación.</p>
+                            <p className="mt-1"><strong>Posterior al proceso de diseño y solicitud de fabricación, no se pueden hacer cambios estructurales en el diseño del vestido.</strong></p>
                         </div>
                     )}
 
                     <div>
-                        <h4 className="font-bold text-gray-700">3. Pruebas y Ajustes</h4>
-                        <p>Se realizarán pruebas calendarizadas previas a la entrega final para lograr el calce perfecto. La clienta se compromete a asistir a la hora y fecha coordinada. <strong>Importante:</strong> Debe asistir sin maquillaje y con los accesorios, ropa interior y zapatos definitivos que usará el día del evento. La reprogramación de pruebas debe solicitarse con al menos 48 horas de anticipación.</p>
+                        <h4 className="font-bold text-gray-700">3. Solicitud y Pago</h4>
+                        <p>Al momento de la firma del contrato y confirmación del servicio, se debe cancelar el <strong>50%</strong> del valor total (Reserva). El <strong>25%</strong> restante se cancelará en la prueba intermedia y el último <strong>25%</strong> contra entrega. El vestido debe estar pagado en su totalidad (100%) al momento de retirarlo.</p>
+                        <p className="mt-1"><strong>Formas de Pago:</strong> Efectivo, Tarjetas de Crédito/Débito y Transferencias Bancarias.</p>
+                    </div>
+
+                    <div>
+                        <h4 className="font-bold text-gray-700">4. Ajustes y Protocolo de Pruebas</h4>
+                        <p>Se realizarán pruebas calendarizadas previas a la entrega final para lograr el calce perfecto del vestido, aproximadamente un mes antes del día del matrimonio. Para ello debes asistir a la hora y fecha coordinada. <strong>Importante:</strong> Debes asistir sin maquillaje y con los accesorios, ropa interior y zapatos definitivos que usarás ese día para resguardar la pulcritud de los tejidos.</p>
                         {(data.serviceType === 'modificacion_tienda' || data.serviceType === 'vestido_propio') && (
                             <p className="mt-1 text-gray-600">Al comenzar a realizar las modificaciones y cortes correspondientes, el vestido no podrá ser cambiado ni devuelto.</p>
                         )}
                     </div>
 
                     <div>
-                        <h4 className="font-bold text-gray-700">4. Cancelaciones, Suspensiones y Cambios</h4>
-                        <p>ELENA ATELIER <strong>NO HACE DEVOLUCIÓN DE DINERO</strong> bajo ningún concepto (incluyendo arrepentimiento de compra, embarazo, suspensión o cancelación del evento). </p>
-                        {data.serviceType === 'modificacion_tienda' && (
-                            <p className="mt-1">Solo se permite el cambio por otro vestido en stock, siempre y cuando <strong>no se haya realizado ninguna modificación o corte</strong> en la prenda original.</p>
-                        )}
-                        <p className="mt-1">Si se suspende, cancela o cambia la fecha del evento, ELENA ATELIER se compromete a mantener el vestido resguardado en el atelier por un período <strong>máximo de 6 meses</strong>. Si cumplido este plazo el vestido no ha sido pagado en su 100% y/o no es retirado, pasará a formar parte del stock de la tienda, perdiendo la clienta el derecho a reclamo o reembolso de los abonos.</p>
+                        <h4 className="font-bold text-gray-700">5. Cancelaciones, Suspensiones y Devoluciones</h4>
+                        <p>ATELIER HORTENSIA SPA <strong>NO HACE DEVOLUCIÓN DE DINERO</strong> bajo ningún concepto. No se hace responsable en caso de suspensión o cancelación del matrimonio o evento, arrepentimiento de compra o embarazo.</p>
+                        <p className="mt-1">Si se suspende, cancela o cambia la fecha del evento, nos comprometemos a mantener el vestido resguardado en el atelier por un período <strong>máximo de 6 meses</strong>. Si cumplido este plazo el vestido no ha sido pagado en su 100% y/o no es retirado en dicha fecha, pasará a formar parte del stock de la tienda, perdiendo la clienta el derecho a reclamo o reembolso.</p>
                     </div>
 
                     {isVestidoPropio && (
                         <div className="bg-amber-50 border border-amber-200 p-4 rounded-sm mt-4 text-[11px]">
-                            <p className="font-bold text-amber-800 uppercase tracking-widest mb-2">⚠ Cláusula Especial — Vestido Propio</p>
-                            <p>Al tratarse de un vestido proporcionado por la clienta, ELENA ATELIER no se responsabiliza por defectos preexistentes en la tela, incluyendo pero no limitado a: desgaste, decoloración, fragilidad de fibras o daños previos no visibles a simple inspección. Se garantiza exclusivamente la calidad de la mano de obra aplicada sobre la prenda.</p>
+                            <p className="font-bold text-amber-800 uppercase tracking-widest mb-2">⚠ Estado del Vestido, Aceptación de Riesgos y Exención de Responsabilidad por Upcycling</p>
+                            <p className="mb-2"><strong>6.1. Declaración del Estado del Producto:</strong> El Cliente declara y reconoce de forma expresa que el vestido de novia entregado para la prestación del servicio de Upcycling es una prenda usada y presenta, al momento de su recepción, desgastes naturales por el uso, detalles estructurales y/o manchas preexistentes (de origen orgánico, químico o sintético).</p>
+                            
+                            <p className="mb-2"><strong>6.2. Exención de Responsabilidad:</strong> La Empresa deja constancia de que los procesos de transformación, confección y limpieza necesarios para el Upcycling pueden reaccionar de manera imprevista ante dichas condiciones preexistentes. Por lo tanto, la Empresa queda totalmente exenta de cualquier responsabilidad civil, comercial o de cualquier otra índole por:</p>
+                            <ul className="list-disc pl-5 mb-2 space-y-1 text-gray-600">
+                                <li>El empeoramiento, fijación o alteración de las manchas ya existentes durante los procesos técnicos de costura o tratamiento.</li>
+                                <li>El comportamiento o resistencia de las telas, encajes o pedrería que ya presentaran desgaste o fatiga material previa.</li>
+                                <li>Los resultados estéticos finales que se deriven directamente de las condiciones iniciales en que fue entregada la prenda.</li>
+                            </ul>
+
+                            <p><strong>6.3. Conformidad del Cliente:</strong> Al firmar este documento, el Cliente acepta recibir el servicio bajo estas condiciones, asumiendo el riesgo inherente a la transformación de una prenda con detalles previos, y renuncia expresamente a ejercer cualquier tipo de acción legal, reclamación o solicitud de indemnización en contra de la Empresa por los conceptos antes mencionados.</p>
                         </div>
                     )}
                 </div>
