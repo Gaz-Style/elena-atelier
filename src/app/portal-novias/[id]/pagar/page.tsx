@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { CreditCard, Loader2, Lock, ArrowRight, Wallet } from 'lucide-react';
+import { CreditCard, Loader2, Lock, ArrowRight, Wallet, Building } from 'lucide-react';
 
 export default function PortalNoviasPagarPage() {
     const params = useParams();
@@ -120,7 +120,43 @@ export default function PortalNoviasPagarPage() {
                                         </div>
                                         <ArrowRight className="w-4 h-4 text-[#C17F5F] group-hover:translate-x-1 transition-transform" />
                                     </a>
-                                )}
+                                
+                                {/* Bank Transfer */}
+                                <div className="mt-8 border border-white/10 rounded-sm overflow-hidden bg-white/5 group transition-all duration-300 hover:border-white/20">
+                                    <div className="p-5 border-b border-white/5 flex items-center gap-4">
+                                        <Building className="w-6 h-6 text-white/80" />
+                                        <div className="text-left">
+                                            <span className="font-bold text-sm tracking-widest uppercase block text-white">Transferencia Bancaria</span>
+                                            <span className="text-[9px] text-gray-500 uppercase tracking-widest mt-1 block">Datos para abono directo</span>
+                                        </div>
+                                    </div>
+                                    <div className="p-6 space-y-4 bg-black/20 text-xs text-gray-400 font-light">
+                                        <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                                            <span className="uppercase tracking-widest text-[9px] font-bold">Destinatario</span>
+                                            <span className="text-white font-medium">Elena Rojas Bustamante</span>
+                                        </div>
+                                        <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                                            <span className="uppercase tracking-widest text-[9px] font-bold">RUT</span>
+                                            <span className="text-white font-medium">10.826.329-6</span>
+                                        </div>
+                                        <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                                            <span className="uppercase tracking-widest text-[9px] font-bold">Banco</span>
+                                            <span className="text-white font-medium">BCI / MACHBANK</span>
+                                        </div>
+                                        <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                                            <span className="uppercase tracking-widest text-[9px] font-bold">Tipo de cuenta</span>
+                                            <span className="text-white font-medium">Cuenta Corriente</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="uppercase tracking-widest text-[9px] font-bold">Nº de cuenta</span>
+                                            <span className="text-white font-medium">7 779 10 82632 9</span>
+                                        </div>
+                                        
+                                        <div className="mt-4 pt-4 border-t border-white/10 text-center">
+                                            <p className="text-[9px] uppercase tracking-wider text-[#C17F5F]">Por favor, enviar comprobante a contacto@elenalacosturera.cl</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <p className="text-[9px] uppercase tracking-widest text-center text-gray-600 pt-6 border-t border-white/5 flex items-center justify-center gap-2">
