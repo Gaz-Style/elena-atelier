@@ -120,6 +120,7 @@ export default function PortalNoviasPagarPage() {
                                         </div>
                                         <ArrowRight className="w-4 h-4 text-[#C17F5F] group-hover:translate-x-1 transition-transform" />
                                     </a>
+                                )}
                                 
                                 {/* Bank Transfer */}
                                 <div className="mt-8 border border-white/10 rounded-sm overflow-hidden bg-white/5 group transition-all duration-300 hover:border-white/20">
