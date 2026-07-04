@@ -577,13 +577,54 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             </div>
                             <div className="bg-white border border-zinc-200 rounded-xl p-6">
                                 <h3 className="text-xs uppercase tracking-widest font-bold text-zinc-400 mb-3">Materiales Comprometidos</h3>
-                                <textarea
-                                    value={project.materials_notes || ''}
-                                    onChange={(e) => setProject({ ...project, materials_notes: e.target.value })}
-                                    rows={3}
-                                    placeholder="Telas, encajes, pedrería y materiales reservados para este vestido..."
-                                    className="w-full border border-zinc-200 rounded-lg px-4 py-3 text-sm resize-none focus:ring-1 focus:ring-rose-300 outline-none"
-                                />
+                                {(() => {
+                                    const rawNotes = project.materials_notes || '';
+                                    const regex = /!\[Referencia(?: \d+)?\]\((data:image\/[^;]+;base64,[^\)]+)\)/g;
+                                    const refImages = Array.from(rawNotes.matchAll(regex)).map(m => m[1]);
+                                    const cleanNotes = rawNotes.replace(regex, '').trim();
+
+                                    return (
+                                        <>
+                                            {refImages.length > 0 && (
+                                                <div className="mb-4">
+                                                    <label className="block text-[10px] text-zinc-500 mb-2 uppercase tracking-widest font-bold">Fotos de Referencia adjuntas</label>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {refImages.map((img, idx) => (
+                                                            <div key={idx} className="relative w-16 h-16 border border-zinc-200 rounded-lg overflow-hidden group bg-zinc-50">
+                                                                <img src={img} className="w-full h-full object-cover cursor-pointer hover:opacity-80 transition-opacity" onClick={() => window.open(img, '_blank')} alt="Referencia" />
+                                                                <button type="button" onClick={() => {
+                                                                    const newImages = refImages.filter((_, i) => i !== idx);
+                                                                    let newNotes = cleanNotes;
+                                                                    newImages.forEach((imgBase64, i) => {
+                                                                        newNotes += `\n\n![Referencia ${i + 1}](${imgBase64})`;
+                                                                    });
+                                                                    setProject({ ...project, materials_notes: newNotes });
+                                                                }} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <X className="w-3 h-3" />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <textarea
+                                                value={cleanNotes}
+                                                onChange={(e) => {
+                                                    let newNotes = e.target.value;
+                                                    if (refImages.length > 0) {
+                                                        refImages.forEach((img, idx) => {
+                                                            newNotes += `\n\n![Referencia ${idx + 1}](${img})`;
+                                                        });
+                                                    }
+                                                    setProject({ ...project, materials_notes: newNotes });
+                                                }}
+                                                rows={3}
+                                                placeholder="Telas, encajes, pedrería y materiales reservados para este vestido..."
+                                                className="w-full border border-zinc-200 rounded-lg px-4 py-3 text-sm resize-none focus:ring-1 focus:ring-rose-300 outline-none"
+                                            />
+                                        </>
+                                    );
+                                })()}
                             </div>
                             <div className="flex justify-between">
                                 <div className="flex gap-2">

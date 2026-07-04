@@ -230,7 +230,16 @@ export default function ContractTemplate({ data }: { data: ContractData }) {
                 {data.materialsNotes && (
                     <div className="mt-6 bg-gray-50 border border-gray-200 p-4 rounded-sm">
                         <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Materiales Comprometidos / Notas de Diseño</p>
-                        <p className="text-gray-700 text-[12px] whitespace-pre-wrap font-light">{data.materialsNotes}</p>
+                        <p className="text-gray-700 text-[12px] whitespace-pre-wrap font-light">
+                            {data.materialsNotes.replace(/!\[Referencia(?: \d+)?\]\((data:image\/[^;]+;base64,[^\)]+)\)/g, '').trim()}
+                        </p>
+                        {Array.from(data.materialsNotes.matchAll(/!\[Referencia(?: \d+)?\]\((data:image\/[^;]+;base64,[^\)]+)\)/g)).length > 0 && (
+                            <div className="flex flex-wrap gap-4 mt-4">
+                                {Array.from(data.materialsNotes.matchAll(/!\[Referencia(?: \d+)?\]\((data:image\/[^;]+;base64,[^\)]+)\)/g)).map((match, idx) => (
+                                    <img key={idx} src={match[1]} className="max-w-[250px] max-h-[300px] object-contain border border-gray-300 rounded-sm shadow-sm" alt="Foto de Referencia" />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
 

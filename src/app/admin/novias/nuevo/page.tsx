@@ -3,12 +3,46 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Heart, Crown, GraduationCap, Calendar, DollarSign, FileText, Loader2, CheckCircle2, Sparkles, User } from 'lucide-react';
+import { ArrowLeft, Heart, Crown, GraduationCap, Calendar, DollarSign, FileText, Loader2, CheckCircle2, Sparkles, User, Camera, X } from 'lucide-react';
 import { createBridalProject } from '../actions';
 import { getCustomers } from '../../crm/actions';
 
 const formatCurrency = (val: number) =>
     new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val);
+
+const compressImage = (file: File, maxWidth = 800, maxHeight = 800, quality = 0.6): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.onerror = (error) => reject(error);
+        };
+        reader.onerror = (error) => reject(error);
+    });
+};
 
 export default function NuevoProyectoPage() {
     const router = useRouter();
@@ -28,6 +62,7 @@ export default function NuevoProyectoPage() {
     const [description, setDescription] = useState('');
     const [materialsNotes, setMaterialsNotes] = useState('');
     const [contractNotes, setContractNotes] = useState('');
+    const [referenceImages, setReferenceImages] = useState<{url: string}[]>([]);
 
     // Derived
     const payment1 = Math.round(totalAmount * 0.5);
@@ -69,7 +104,15 @@ export default function NuevoProyectoPage() {
         formData.set('event_venue', eventVenue);
         formData.set('total_amount', String(totalAmount));
         formData.set('description', description);
-        formData.set('materials_notes', materialsNotes);
+        
+        let finalMaterialsNotes = materialsNotes;
+        if (referenceImages.length > 0) {
+            referenceImages.forEach((img, idx) => {
+                finalMaterialsNotes += `\n\n![Referencia ${idx + 1}](${img.url})`;
+            });
+        }
+        
+        formData.set('materials_notes', finalMaterialsNotes);
         formData.set('contract_notes', contractNotes);
 
         const result = await createBridalProject(formData);
@@ -335,6 +378,33 @@ export default function NuevoProyectoPage() {
                                         rows={2}
                                         className="w-full border border-zinc-200 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-rose-300 outline-none resize-none"
                                     />
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-zinc-500 mb-2 font-medium">Fotos de Referencia (Se adjuntarán a los materiales)</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {referenceImages.map((img, idx) => (
+                                            <div key={idx} className="relative w-16 h-16 border border-zinc-200 rounded-lg overflow-hidden group">
+                                                <img src={img.url} alt="Referencia" className="w-full h-full object-cover" />
+                                                <button type="button" onClick={() => setReferenceImages(referenceImages.filter((_, i) => i !== idx))} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        <div className="border border-dashed border-zinc-300 rounded-lg w-16 h-16 flex flex-col items-center justify-center cursor-pointer hover:border-zinc-500 hover:bg-zinc-50 transition-colors relative">
+                                            <input 
+                                                type="file" 
+                                                accept="image/*" 
+                                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" 
+                                                onChange={async (e) => {
+                                                    if (e.target.files?.[0]) {
+                                                        const url = await compressImage(e.target.files[0], 600, 600, 0.5);
+                                                        setReferenceImages([...referenceImages, { url }]);
+                                                    }
+                                                }} 
+                                            />
+                                            <Camera className="w-4 h-4 text-zinc-400" />
+                                        </div>
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-xs text-zinc-500 mb-1 font-medium">Cláusulas Adicionales al Contrato</label>
