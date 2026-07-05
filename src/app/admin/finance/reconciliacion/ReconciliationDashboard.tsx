@@ -36,7 +36,23 @@ export default function ReconciliationDashboard() {
         setLoading(true);
         try {
             const buffer = await file.arrayBuffer();
-            const workbook = xlsx.read(buffer, { type: 'array' });
+            
+            // Silence console.error temporarily to avoid Next.js overlay for known MP Excel warnings
+            const originalConsoleError = console.error;
+            console.error = (...args) => {
+                if (args[0] && typeof args[0] === 'string' && args[0].includes('Bad uncompressed size')) {
+                    return;
+                }
+                originalConsoleError(...args);
+            };
+
+            let workbook;
+            try {
+                workbook = xlsx.read(buffer, { type: 'array' });
+            } finally {
+                console.error = originalConsoleError;
+            }
+
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
             
