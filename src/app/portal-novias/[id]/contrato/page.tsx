@@ -53,7 +53,7 @@ export default function PortalNoviasContratoPage() {
             const { acceptContract } = await import('@/app/admin/novias/actions');
             const res = await acceptContract(params.id as string);
             if (res.success) {
-                router.push(`/portal-novias/${params.id}/pagar`);
+                router.push(`/portal-novias/${params.id}/bienvenida`);
             } else {
                 setErrorMsg(res.error || 'Ocurrió un error al aceptar el contrato.');
             }

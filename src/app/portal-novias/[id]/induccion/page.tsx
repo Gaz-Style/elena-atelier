@@ -81,7 +81,7 @@ export default function BridalInductionPage() {
                 
                 <Link 
                     href={`/portal-novias/${params.id}`}
-                    className="inline-flex items-center gap-3 bg-[#C17F5F] hover:bg-[#A86F53] text-white px-8 py-4 rounded transition-all transform hover:scale-105 shadow-lg shadow-[#C17F5F]/20 text-xs tracking-widest uppercase font-bold"
+                    className="inline-flex items-center gap-3 bg-transparent text-white px-8 py-4 border border-white/35 hover:bg-white/10 transition-all text-[10px] tracking-[0.3em] uppercase font-semibold"
                 >
                     Ir a mi Portal <ArrowRight className="w-4 h-4" />
                 </Link>

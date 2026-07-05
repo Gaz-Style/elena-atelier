@@ -267,14 +267,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                             disabled={saving}
                                             className="text-[10px] uppercase tracking-widest font-bold bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-zinc-300"
                                         >
-                                            Enviar Formulario de Bienvenida
-                                        </button>
-                                        <button
-                                            onClick={handleSendInductionEmail}
-                                            disabled={saving}
-                                            className="text-[10px] uppercase tracking-widest font-bold bg-[#C17F5F] hover:bg-[#A86F53] text-white px-4 py-2 rounded-lg transition-colors disabled:bg-zinc-300"
-                                        >
-                                            Enviar Video de Inducción
+                                            Enviar Correo de Bienvenida y Video
                                         </button>
                                     </div>
                                 </div>

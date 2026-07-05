@@ -309,6 +309,9 @@ export async function acceptContract(projectId: string) {
     if (error) {
         return { success: false, error: error.message };
     }
+
+    // Now trigger the contract and payment email
+    await sendBridalContractEmailAction(projectId);
     
     revalidatePath(`/admin/novias/${projectId}`);
     return { success: true };
@@ -464,7 +467,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
         const customerEmail = project.customers.email;
         const customerName = project.customers.full_name || 'Futura Novia';
         const siteUrl = await getSiteUrl();
-        const portalLink = `${siteUrl}/portal-novias/${projectId}`;
+        const portalLink = `${siteUrl}/portal-novias/${projectId}/induccion`;
 
         // Luxury background image logic
         const attachments = [];
@@ -520,12 +523,16 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
                       <tr><td style="border-top: 2px solid #C17F5F; font-size: 0; line-height: 0; height: 1px;">&nbsp;</td></tr>
                     </table>
                     
-                    <p style="color: #9A958C; font-size: 12px; line-height: 1.9; margin: 0 0 40px 0; font-weight: 300; max-width: 320px;">
+                    <p style="color: #9A958C; font-size: 12px; line-height: 1.9; margin: 0 0 15px 0; font-weight: 300; max-width: 320px;">
                       Es un privilegio acompañarte en este proceso. Hemos preparado un portal exclusivo donde podrás seguir cada etapa de la confección, desde el diseño hasta la entrega final.
                     </p>
                     
-                    <a href="${portalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, sans-serif; font-weight: 600; color: #FFFFFF; background-color: transparent; text-decoration: none; padding: 14px 30px; border: 1px solid rgba(255,255,255,0.35); display: inline-block; text-transform: uppercase; letter-spacing: 3px;">
-                      INGRESAR AL PORTAL &rarr;
+                    <p style="color: #9A958C; font-size: 12px; line-height: 1.9; margin: 0 0 15px 0; font-weight: 300; max-width: 320px;">
+                      Como parte del proceso de tu proyecto, hemos preparado un breve video donde Elena te explica personalmente los pasos que seguiremos. Te pedimos que lo revises antes de tu próxima cita.
+                    </p>
+                    
+                    <a href="${portalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, sans-serif; font-weight: 600; color: #FFFFFF; background-color: transparent; text-decoration: none; padding: 14px 30px; border: 1px solid rgba(255,255,255,0.35); display: inline-block; text-transform: uppercase; letter-spacing: 3px; margin-top: 20px;">
+                      VER VIDEO E INGRESAR AL PORTAL &rarr;
                     </a>
                     
                     <div style="margin-top: 60px;"></div>
@@ -763,10 +770,6 @@ export async function processBridalFormAction(projectId: string, formData: FormD
         
         await supabase.from('bridal_projects').update(projectData).eq('id', projectId);
         
-        // 3. Trigger Contract Email
-        const contractRes = await sendBridalContractEmailAction(projectId);
-        if (!contractRes.success) throw new Error(contractRes.error);
-
         return { success: true };
     } catch (e: any) {
         console.error('Error processing form:', e);
@@ -784,6 +787,7 @@ export async function sendBridalContractEmailAction(projectId: string) {
         if (!project || !project.customers?.email) throw new Error('Proyecto no encontrado');
         
         const siteUrl = await getSiteUrl();
+        const paymentLink = `${siteUrl}/portal-novias/${projectId}/pagar`;
         const proposalLink = `${siteUrl}/portal-novias/${projectId}/contrato`;
 
         const customerEmail = project.customers.email;
@@ -823,10 +827,10 @@ export async function sendBridalContractEmailAction(projectId: string) {
                   Estimada <strong style="color: #FFFFFF; font-weight: 600;">${customerName}</strong>,
                 </p>
                 <p style="color: #9A958C; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 30px 0;">
-                  Hemos recibido y procesado sus datos con éxito. En base a sus requerimientos, hemos confeccionado la propuesta de servicio formal que incluye el <strong>presupuesto detallado, cronograma tentativo de pruebas</strong> y los <strong>términos del contrato</strong>.
+                  Hemos recibido exitosamente la aceptación de su propuesta de servicio y firma del contrato. A continuación puede proceder a realizar el abono inicial para reservar definitivamente su cupo exclusivo de producción.
                 </p>
                 <p style="color: #9A958C; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 35px 0;">
-                  Para proceder con la revisión, firma digital y la reserva de su cupo exclusivo de producción en nuestro taller, por favor ingrese al portal privado a través del siguiente botón:
+                  Puede revisar y descargar su contrato firmado en el <a href="${proposalLink}" style="color: #C17F5F;">siguiente enlace</a>. Para procesar su pago de forma segura, haga clic en el botón a continuación:
                 </p>
               </div>
 
@@ -834,8 +838,8 @@ export async function sendBridalContractEmailAction(projectId: string) {
               <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto 10px auto;">
                 <tr>
                   <td align="center">
-                    <a href="${proposalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, Arial, sans-serif; font-weight: 600; color: #FFFFFF; background-color: transparent; text-decoration: none; padding: 16px 35px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 3px; border-radius: 2px; transition: all 0.3s ease;">
-                      REVISAR PROPUESTA Y CONTRATO
+                    <a href="${paymentLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, Arial, sans-serif; font-weight: 600; color: #FFFFFF; background-color: transparent; text-decoration: none; padding: 16px 35px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 3px; border-radius: 2px; transition: all 0.3s ease;">
+                      PROCEDER AL PAGO
                     </a>
                   </td>
                 </tr>
