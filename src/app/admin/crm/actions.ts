@@ -105,3 +105,21 @@ export async function updateCustomer(id: string, formData: FormData) {
   return { success: true, data };
 }
 
+export async function searchCustomersAction(query: string) {
+    if (!query || query.length < 2) return { success: true, customers: [] };
+    
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from('customers')
+        .select('*')
+        .or(`full_name.ilike.%${query}%,email.ilike.%${query}%,phone.ilike.%${query}%`)
+        .order('full_name', { ascending: true })
+        .limit(10);
+        
+    if (error) {
+        console.error('Error searching customers:', error);
+        return { success: false, error: error.message };
+    }
+    
+    return { success: true, customers: data };
+}

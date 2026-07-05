@@ -2,7 +2,8 @@ import React from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import Navbar from '@/components/Navbar';
-import { Users, Plus, ChevronRight, Search, MessageCircle } from 'lucide-react';
+import { Users, Plus, ChevronRight, MessageCircle } from 'lucide-react';
+import CrmSearchBar from './CrmSearchBar';
 
 export const revalidate = 0; // Disable caching for CRM
 
@@ -61,14 +62,7 @@ export default async function CRMPage() {
           </div>
           
           <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 w-full md:w-auto">
-            <div className="relative flex-grow md:flex-grow-0 w-full md:w-auto">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input 
-                type="text" 
-                placeholder="Buscar clienta..." 
-                className="w-full md:w-64 pl-10 pr-4 py-3 md:py-2 text-sm border border-gray-200 rounded-sm focus:outline-none focus:border-brand-terracotta bg-white"
-              />
-            </div>
+            <CrmSearchBar />
             <Link 
               href="/admin/crm/nueva" 
               className="bg-brand-charcoal text-white hover:bg-brand-terracotta px-6 py-3 md:py-2.5 text-xs uppercase tracking-widest font-bold rounded-sm transition-all flex items-center justify-center gap-2 whitespace-nowrap"
