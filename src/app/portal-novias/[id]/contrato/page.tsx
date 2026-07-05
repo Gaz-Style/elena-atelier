@@ -431,8 +431,9 @@ export default function PortalNoviasContratoPage() {
                 <div className="max-w-xl mx-auto text-center space-y-6">
                     
                     {project.contract_accepted ? (
-                        <div className="p-4 bg-emerald-950/30 border border-emerald-500/30 text-emerald-300 rounded text-xs">
-                            ✓ Propuesta y contrato aceptados formalmente el {formatDate(project.contract_accepted_at)}.
+                        <div className="p-4 bg-[#C17F5F]/5 border border-[#C17F5F]/20 text-zinc-300 rounded text-xs tracking-wide">
+                            <span className="text-[#C17F5F] font-bold mr-2">✓</span>
+                            Propuesta y contrato aceptados formalmente el {formatDate(project.contract_accepted_at)}.
                         </div>
                     ) : (
                         <button 
@@ -465,7 +466,7 @@ export default function PortalNoviasContratoPage() {
                             type="button"
                             onClick={handleAccept}
                             disabled={submitting || (!accepted && !project.contract_accepted)}
-                            className="w-full bg-[#C17F5F] text-[#120F0D] hover:bg-[#a96e51] py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all flex justify-center items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full bg-transparent text-white border border-white/35 hover:bg-white/10 py-4 rounded text-[10px] font-semibold uppercase tracking-[0.3em] transition-all flex justify-center items-center gap-3 disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                             {submitting ? (
                                 <><Loader2 className="w-4 h-4 animate-spin" /> Procesando Firma...</>
