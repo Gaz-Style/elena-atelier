@@ -100,7 +100,7 @@ export default function ReconciliationDashboard() {
             let totalMp = 0;
             let totalDbMatched = 0;
 
-            const processedRecords = mpPayments.map(mp => {
+            const processedRecords: MPRecord[] = mpPayments.map(mp => {
                 totalMp += mp.amount;
                 // Try to find exact match by external_transaction_id
                 let match = dbSales.find(db => db.external_transaction_id === mp.id);
@@ -132,7 +132,7 @@ export default function ReconciliationDashboard() {
             setRecords(processedRecords);
 
             // Find extra records in DB (MercadoPago payments not in the excel)
-            const matchedDbIds = new Set(processedRecords.filter(r => r.matchedDbRecord).map(r => r.matchedDbRecord.id));
+            const matchedDbIds = new Set(processedRecords.filter(r => r.matchedDbRecord).map(r => r.matchedDbRecord?.id));
             const extraDb = dbSales.filter(db => 
                 db.payment_method?.toLowerCase().includes('mercadopago') && 
                 !matchedDbIds.has(db.id)
