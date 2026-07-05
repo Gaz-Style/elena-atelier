@@ -468,3 +468,12 @@ export async function getSalesMetrics(month: number, year: number) {
 
   return { totalGrossSales, netSales, ivaDebito, ivaCredito, f29 };
 }
+
+export async function getRecentPaymentsForReconciliation(startDate: string, endDate: string) {
+  const supabase = await createClient();
+  const { data } = await supabase.from('sales_ledger')
+    .select('*')
+    .gte('created_at', startDate)
+    .lte('created_at', endDate);
+  return data || [];
+}

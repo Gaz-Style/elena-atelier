@@ -161,7 +161,7 @@ export default function FinanceDashboard() {
     const formatCurrency = (val: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val);
 
     const metrics = [
-        { title: 'Ventas Netas', value: formatCurrency(salesMetrics.netSales), icon: DollarSign, trend: '+12%', link: null },
+        { title: 'Ventas Netas', value: formatCurrency(salesMetrics.netSales), icon: DollarSign, trend: '+12%', link: '/admin/finance/reconciliacion' },
         { title: 'Gastos Variables (Mes)', value: formatCurrency(totalExpenses), icon: TrendingUp, trend: 'Dinámico', link: '/admin/finance/expenses' },
         { title: 'Costos Fijos (Planilla)', value: formatCurrency(totalFixedCosts), icon: Building2, trend: 'Configurado', link: '/admin/finance/fixed-costs' },
         { title: 'IVA por Pagar (19%)', value: formatCurrency(salesMetrics.f29), icon: Receipt, trend: 'Calculado', link: null },
