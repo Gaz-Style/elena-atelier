@@ -466,19 +466,19 @@ export default function PortalNoviasContratoPage() {
                             type="button"
                             onClick={handleAccept}
                             disabled={submitting || (!accepted && !project.contract_accepted)}
-                            className="w-full bg-transparent text-white border border-white/35 hover:bg-white/10 py-4 rounded text-[10px] font-semibold uppercase tracking-[0.3em] transition-all flex justify-center items-center gap-3 disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="w-full bg-transparent border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-white py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all flex justify-center items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
                         >
                             {submitting ? (
                                 <><Loader2 className="w-4 h-4 animate-spin" /> Procesando Firma...</>
                             ) : project.contract_accepted ? (
                                 <>
                                     Proceder al Pago
-                                    <ArrowRight className="w-4 h-4" />
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 </>
                             ) : (
                                 <>
                                     Aceptar Propuesta y Firmar Contrato
-                                    <ArrowRight className="w-4 h-4" />
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 </>
                             )}
                         </button>
