@@ -239,11 +239,9 @@ export default function AgendaForm({
                         >
                             <option value="Primera Cita">Primera Cita</option>
                             <option value="Toma de Medidas">Toma de Medidas</option>
-                            <option value="Prueba de Vestido">Prueba de Vestido</option>
-                            <option value="Prueba de Prenda (Otra)">Prueba de Prenda (Otra)</option>
+                            <option value="Prueba de Prenda">Prueba de Prenda</option>
                             <option value="Prueba Final">Prueba Final</option>
-                            <option value="Entrega de Vestido">Entrega de Vestido</option>
-                            <option value="Entrega de Prenda (Otra)">Entrega de Prenda (Otra)</option>
+                            <option value="Entrega de Prenda">Entrega de Prenda</option>
                             <option value="Upcycling / Repair">Upcycling / Repair</option>
                             <option value="Cita General">Cita General</option>
                             <option value="Otro">Otro Motivo...</option>
