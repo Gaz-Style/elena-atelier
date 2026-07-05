@@ -125,12 +125,14 @@ export default async function AgendaPage({
                 const apellido = formData.get('apellido') as string;
                 const celular = formData.get('celular') as string || '';
                 const correo = formData.get('correo') as string || '';
+                const notas = formData.get('notas') as string || 'Cita General';
                 
                 const { error: insertError } = await supabaseServer.from('agendamientos').insert([{
                     nombre,
                     apellido,
                     celular,
                     correo,
+                    notas,
                     fecha_hora: fechaHoraIso,
                     origen: 'admin',
                     tipo_evento: 'cita_cliente',
@@ -302,9 +304,9 @@ export default async function AgendaPage({
                                         <div key={evento.id} className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex flex-col justify-between">
                                             <div>
                                                 <div className="flex items-center justify-between mb-2">
-                                                    <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full ${evento.tipo_evento === 'tarea_interna' ? 'bg-gray-200 text-gray-700' : 'bg-black text-white'}`}>
-                                                        {evento.tipo_evento === 'tarea_interna' ? 'Bloqueo' : 'Cita'}
-                                                    </span>
+                                                        <span className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm ${evento.tipo_evento === 'tarea_interna' ? 'bg-gray-200 text-gray-600' : 'bg-black text-white'}`}>
+                                                            {evento.tipo_evento === 'tarea_interna' ? 'Bloqueo Interno' : (evento.notas || 'Cita')}
+                                                        </span>
                                                 </div>
                                                 <p className="font-bold text-sm">
                                                     {evento.tipo_evento === 'tarea_interna' ? evento.notas : `${evento.nombre} ${evento.apellido}`}
@@ -559,7 +561,7 @@ export default async function AgendaPage({
                                                     <div className="flex items-start justify-between">
                                                         <div>
                                                             <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full ${evento.tipo_evento === 'tarea_interna' ? 'bg-gray-200 text-gray-700' : evento.tipo_evento === 'retiro_encargo' ? 'bg-blue-600 text-white' : 'bg-black text-white'}`}>
-                                                                {evento.tipo_evento === 'tarea_interna' ? 'Bloqueo' : evento.tipo_evento === 'retiro_encargo' ? 'Retiro de Prenda' : 'Cita Cliente'}
+                                                                {evento.tipo_evento === 'tarea_interna' ? 'Bloqueo' : evento.tipo_evento === 'retiro_encargo' ? 'Retiro de Prenda' : (evento.notas || 'Cita Cliente')}
                                                             </span>
                                                             <h3 className="font-bold text-lg mt-2">
                                                                 {evento.tipo_evento === 'tarea_interna' ? evento.notas : `${evento.nombre} ${evento.apellido}`}

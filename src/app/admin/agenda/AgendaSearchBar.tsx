@@ -111,7 +111,7 @@ export default function AgendaSearchBar({ view, selectedDateStr, initialSearch =
                                         {evento.tipo_evento === 'tarea_interna' ? evento.notas : `${evento.nombre} ${evento.apellido}`}
                                     </p>
                                     <span className={`text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-sm ml-2 shrink-0 ${evento.tipo_evento === 'tarea_interna' ? 'bg-gray-200 text-gray-700' : 'bg-black text-white'}`}>
-                                        {evento.tipo_evento === 'tarea_interna' ? 'Bloqueo' : 'Cita'}
+                                        {evento.tipo_evento === 'tarea_interna' ? 'Bloqueo' : (evento.notas || 'Cita')}
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center mt-2">

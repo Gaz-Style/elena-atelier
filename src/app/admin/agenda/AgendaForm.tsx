@@ -225,6 +225,20 @@ export default function AgendaForm({
                             )}
                         </div>
                     )}
+                    
+                    {/* Etiqueta / Motivo */}
+                    <div className="pt-2">
+                        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Etiqueta / Motivo</label>
+                        <select name="notas" className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50" required>
+                            <option value="Primera Cita">Primera Cita</option>
+                            <option value="Toma de Medidas">Toma de Medidas</option>
+                            <option value="Prueba de Vestido">Prueba de Vestido</option>
+                            <option value="Prueba Final">Prueba Final</option>
+                            <option value="Entrega de Vestido">Entrega de Vestido</option>
+                            <option value="Upcycling / Repair">Upcycling / Repair</option>
+                            <option value="Cita General">Cita General</option>
+                        </select>
+                    </div>
                 </div>
             ) : (
                 <div>
