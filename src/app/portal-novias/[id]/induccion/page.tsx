@@ -60,24 +60,36 @@ export default function BridalInductionPage() {
             </div>
 
             {/* Video Container - formato vertical 9:16 */}
-            <div className="w-full max-w-sm mx-auto rounded-xl overflow-hidden shadow-2xl shadow-[#C17F5F]/10 border border-white/5 bg-black mt-20 relative z-20">
+            <div className="w-full max-w-sm mx-auto rounded-xl overflow-hidden shadow-2xl shadow-[#C17F5F]/10 border border-white/5 bg-black mt-20 relative z-20 group">
                 <video 
                     controls
-                    autoPlay
                     className="w-full aspect-[9/16] object-contain bg-black"
                     poster="/trabajos/novia 2.jpeg"
+                    onPlay={(e) => {
+                        const target = e.target as HTMLVideoElement;
+                        const overlay = target.nextElementSibling as HTMLElement;
+                        if (overlay) overlay.style.opacity = '0';
+                    }}
+                    onPause={(e) => {
+                        const target = e.target as HTMLVideoElement;
+                        const overlay = target.nextElementSibling as HTMLElement;
+                        if (overlay) overlay.style.opacity = '1';
+                    }}
                 >
                     <source src="/Induccion portal novias.mp4" type="video/mp4" />
                     Tu navegador no soporta la etiqueta de video.
                 </video>
+                
+                {/* Text Overlay on Poster */}
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 bg-black/40 transition-opacity duration-500">
+                    <p className="text-white/90 font-light text-sm leading-relaxed text-center drop-shadow-md">
+                        Como parte del proceso de tu proyecto, hemos preparado un breve video donde Elena te explica personalmente los pasos que seguiremos. Te pedimos que lo revises antes de tu próxima cita.
+                    </p>
+                </div>
             </div>
 
             {/* Actions */}
             <div className="mt-12 mb-8 z-10 flex flex-col items-center text-center">
-                <p className="text-zinc-400 font-light max-w-md mb-8 text-sm leading-relaxed">
-                    Tómate un momento para ver este video. Aquí Elena te explica personalmente 
-                    cómo funcionará cada etapa de la confección de tu vestido soñado.
-                </p>
                 
                 <Link 
                     href={`/portal-novias/${params.id}`}

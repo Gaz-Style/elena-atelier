@@ -523,12 +523,8 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
                       <tr><td style="border-top: 2px solid #C17F5F; font-size: 0; line-height: 0; height: 1px;">&nbsp;</td></tr>
                     </table>
                     
-                    <p style="color: #9A958C; font-size: 12px; line-height: 1.9; margin: 0 0 15px 0; font-weight: 300; max-width: 320px;">
-                      Es un privilegio acompañarte en este proceso. Hemos preparado un portal exclusivo donde podrás seguir cada etapa de la confección, desde el diseño hasta la entrega final.
-                    </p>
-                    
-                    <p style="color: #9A958C; font-size: 12px; line-height: 1.9; margin: 0 0 15px 0; font-weight: 300; max-width: 320px;">
-                      Como parte del proceso de tu proyecto, hemos preparado un breve video donde Elena te explica personalmente los pasos que seguiremos. Te pedimos que lo revises antes de tu próxima cita.
+                    <p style="color: #9A958C; font-size: 12px; line-height: 1.9; margin: 0 0 30px 0; font-weight: 300; max-width: 280px;">
+                      Es un privilegio acompañarte en este proceso. Te invitamos a vivir la experiencia Elena Atelier.
                     </p>
                     
                     <a href="${portalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, sans-serif; font-weight: 600; color: #FFFFFF; background-color: transparent; text-decoration: none; padding: 14px 30px; border: 1px solid rgba(255,255,255,0.35); display: inline-block; text-transform: uppercase; letter-spacing: 3px; margin-top: 20px;">
