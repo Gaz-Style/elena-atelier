@@ -823,10 +823,10 @@ export async function sendBridalContractEmailAction(projectId: string) {
                   Estimada <strong style="color: #FFFFFF; font-weight: 600;">${customerName}</strong>,
                 </p>
                 <p style="color: #9A958C; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 30px 0;">
-                  Hemos recibido exitosamente la aceptación de su propuesta de servicio y firma del contrato. A continuación puede proceder a realizar el abono inicial para reservar definitivamente su cupo exclusivo de producción.
+                  Hemos recibido exitosamente la aceptación de tu propuesta y la firma del contrato. Queremos agradecerte por confiar en Elena Atelier para confeccionar tu vestido soñado.
                 </p>
                 <p style="color: #9A958C; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 35px 0;">
-                  Puede revisar y descargar su contrato firmado en el <a href="${proposalLink}" style="color: #C17F5F;">siguiente enlace</a>. Para procesar su pago de forma segura, haga clic en el botón a continuación:
+                  Como último paso para consolidar tu reserva y bloquear tu cupo exclusivo de producción, te invitamos a revisar tu documento final y gestionar tu abono inicial.
                 </p>
               </div>
 
@@ -834,8 +834,8 @@ export async function sendBridalContractEmailAction(projectId: string) {
               <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto 10px auto;">
                 <tr>
                   <td align="center">
-                    <a href="${paymentLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, Arial, sans-serif; font-weight: 600; color: #FFFFFF; background-color: transparent; text-decoration: none; padding: 16px 35px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 3px; border-radius: 2px; transition: all 0.3s ease;">
-                      PROCEDER AL PAGO
+                    <a href="${proposalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, Arial, sans-serif; font-weight: 600; color: #FFFFFF; background-color: transparent; text-decoration: none; padding: 16px 35px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 3px; border-radius: 2px; transition: all 0.3s ease;">
+                      REVISAR CONTRATO Y PROCESAR PAGO
                     </a>
                   </td>
                 </tr>
