@@ -242,8 +242,8 @@ export default async function AgendaPage({
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 p-8">
-                <div className="max-w-6xl mx-auto">
+            <main className="flex-1 p-4 md:p-8 w-full max-w-full overflow-hidden">
+                <div className="max-w-6xl mx-auto w-full">
                     {/* Header */}
                     <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-8">
                         <div>
@@ -408,14 +408,15 @@ export default async function AgendaPage({
                                 </Link>
                             </div>
 
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                                <div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50">
-                                    {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
-                                        <div key={d} className="py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-widest border-r border-gray-100 last:border-r-0">
-                                            {d}
-                                        </div>
-                                    ))}
-                                </div>
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto w-full">
+                                <div className="min-w-[700px]">
+                                    <div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50">
+                                        {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
+                                            <div key={d} className="py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-widest border-r border-gray-100 last:border-r-0">
+                                                {d}
+                                            </div>
+                                        ))}
+                                    </div>
                                 <div className="grid grid-cols-7">
                                     {monthDays.map((day, idx) => {
                                         const isCurrentMonth = day.getMonth() === selectedDate.getMonth();
@@ -459,6 +460,7 @@ export default async function AgendaPage({
                                             </Link>
                                         );
                                     })}
+                                    </div>
                                 </div>
                             </div>
                         </>
@@ -550,16 +552,16 @@ export default async function AgendaPage({
                                         </div>
                                     ) : (
                                         eventos?.map((evento) => (
-                                            <div key={evento.id} className={`p-4 rounded-xl border flex items-start gap-4 ${evento.tipo_evento === 'tarea_interna' ? 'bg-gray-50 border-gray-200' : evento.tipo_evento === 'retiro_encargo' ? 'bg-blue-50 border-blue-200 shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
-                                                <div className="flex flex-col items-center justify-center p-3 bg-gray-100 rounded-lg min-w-[80px]">
-                                                    <Clock className="w-4 h-4 text-gray-500 mb-1" />
+                                            <div key={evento.id} className={`p-4 rounded-xl border flex flex-col sm:flex-row items-start gap-4 ${evento.tipo_evento === 'tarea_interna' ? 'bg-gray-50 border-gray-200' : evento.tipo_evento === 'retiro_encargo' ? 'bg-blue-50 border-blue-200 shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
+                                                <div className="flex sm:flex-col items-center justify-center p-3 bg-gray-100 rounded-lg sm:min-w-[80px] w-full sm:w-auto gap-2 sm:gap-0">
+                                                    <Clock className="w-4 h-4 text-gray-500 sm:mb-1" />
                                                     <span className="font-bold text-sm">
                                                         {new Date(evento.fecha_hora).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' })}
                                                     </span>
                                                 </div>
-                                                <div className="flex-1">
-                                                    <div className="flex items-start justify-between">
-                                                        <div>
+                                                <div className="flex-1 w-full min-w-0">
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <div className="min-w-0">
                                                             <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-full ${evento.tipo_evento === 'tarea_interna' ? 'bg-gray-200 text-gray-700' : evento.tipo_evento === 'retiro_encargo' ? 'bg-blue-600 text-white' : 'bg-black text-white'}`}>
                                                                 {evento.tipo_evento === 'tarea_interna' ? 'Bloqueo' : evento.tipo_evento === 'retiro_encargo' ? 'Retiro de Prenda' : (evento.notas || 'Cita Cliente')}
                                                             </span>
