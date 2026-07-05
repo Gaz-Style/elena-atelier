@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
 import { agendar_visita } from '@/lib/agenda';
 import { getCustomers } from '../crm/actions';
-import { ArrowLeft, CalendarDays, LayoutGrid, List, ChevronLeft, ChevronRight, Clock, MapPin, Trash2, Calendar as CalendarIcon, Plus, Search } from 'lucide-react';
+import { ArrowLeft, CalendarDays, LayoutGrid, List, ChevronLeft, ChevronRight, Clock, MapPin, Trash2, Calendar as CalendarIcon, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
 import AgendaForm from './AgendaForm';
+import AgendaSearchBar from './AgendaSearchBar';
 
 export default async function AgendaPage({
     searchParams
@@ -22,7 +23,6 @@ export default async function AgendaPage({
     
     // Vista seleccionada (por defecto 'month')
     const view = resolvedSearchParams.view || 'month';
-    const search = resolvedSearchParams.search || '';
 
     // --- CÁLCULOS PARA AÑO ---
     const currentYear = selectedDate.getFullYear();
@@ -66,19 +66,13 @@ export default async function AgendaPage({
         endQuery = new Date(`${selectedDateStr}T23:59:59-04:00`);
     }
 
-    let query = supabase
+    const { data: eventos, error } = await supabase
         .from('agendamientos')
         .select('*')
-        .neq('estado', 'cancelado');
-
-    if (search) {
-        query = query.or(`nombre.ilike.%${search}%,apellido.ilike.%${search}%,correo.ilike.%${search}%`);
-    } else {
-        query = query.gte('fecha_hora', startQuery.toISOString())
-                     .lte('fecha_hora', endQuery.toISOString());
-    }
-
-    const { data: eventos, error } = await query.order('fecha_hora', { ascending: true });
+        .gte('fecha_hora', startQuery.toISOString())
+        .lte('fecha_hora', endQuery.toISOString())
+        .neq('estado', 'cancelado')
+        .order('fecha_hora', { ascending: true });
 
     const dayOfWeek = selectedDate.getDay();
     
@@ -252,23 +246,7 @@ export default async function AgendaPage({
                         </div>
                         
                         <div className="flex flex-col sm:flex-row gap-4 items-center">
-                            <form action="/admin/agenda" method="GET" className="relative flex items-center w-full sm:w-auto">
-                                <input type="hidden" name="view" value={view} />
-                                <input type="hidden" name="date" value={selectedDateStr} />
-                                <Search className="w-4 h-4 absolute left-3 text-gray-400" />
-                                <input 
-                                    type="text" 
-                                    name="search" 
-                                    defaultValue={search}
-                                    placeholder="Buscar novia o tarea..." 
-                                    className="pl-9 pr-4 py-2 w-full rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-black"
-                                />
-                                {search && (
-                                    <Link href={`/admin/agenda?view=${view}&date=${selectedDateStr}`} className="absolute right-3 text-gray-400 hover:text-black">
-                                        ×
-                                    </Link>
-                                )}
-                            </form>
+                            <AgendaSearchBar view={view} selectedDateStr={selectedDateStr} />
 
                             <div className="flex bg-gray-100 p-1 rounded-lg overflow-x-auto w-full sm:w-auto">
                                 <Link 
@@ -298,46 +276,6 @@ export default async function AgendaPage({
                             </div>
                         </div>
                     </div>
-
-                    {/* RESULTADOS DE BÚSQUEDA GLOBALES */}
-                    {search && (
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-black mb-8 animate-in fade-in">
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="font-serif text-lg flex items-center gap-2">
-                                    <Search className="w-5 h-5 text-gray-500" /> Resultados globales para "{search}"
-                                </h2>
-                                <span className="text-xs bg-gray-100 px-2 py-1 rounded-full font-bold text-gray-600">{eventos?.length} encontrados</span>
-                            </div>
-                            
-                            {eventos?.length === 0 ? (
-                                <p className="text-gray-500 text-sm py-4">No se encontraron agendamientos con ese nombre o correo.</p>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {eventos?.map(evento => (
-                                        <div key={evento.id} className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex flex-col justify-between">
-                                            <div>
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full ${evento.tipo_evento === 'tarea_interna' ? 'bg-gray-200 text-gray-700' : 'bg-black text-white'}`}>
-                                                        {evento.tipo_evento === 'tarea_interna' ? 'Bloqueo' : 'Cita'}
-                                                    </span>
-                                                </div>
-                                                <p className="font-bold text-sm">
-                                                    {evento.tipo_evento === 'tarea_interna' ? evento.notas : `${evento.nombre} ${evento.apellido}`}
-                                                </p>
-                                                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                                                    <Clock className="w-3 h-3" /> 
-                                                    {new Date(evento.fecha_hora).toLocaleString('es-CL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                                                </p>
-                                            </div>
-                                            <Link href={`/admin/agenda?view=day&date=${new Date(evento.fecha_hora).toISOString().split('T')[0]}`} className="mt-4 text-xs font-bold text-center w-full py-2 bg-white border border-gray-200 rounded-lg hover:border-black hover:bg-black hover:text-white transition-colors">
-                                                Ver en Agenda
-                                            </Link>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
 
                     {/* VISTA ANUAL */}
                     {view === 'year' && (
