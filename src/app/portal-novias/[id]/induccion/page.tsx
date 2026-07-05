@@ -60,7 +60,7 @@ export default function BridalInductionPage() {
             </div>
 
             {/* Video Container - formato vertical 9:16 */}
-            <div className="w-full max-w-sm mx-auto rounded-xl overflow-hidden shadow-2xl shadow-[#C17F5F]/10 border border-white/5 bg-black mt-20 relative z-20 group">
+            <div className="w-full max-w-sm mx-auto rounded-xl overflow-hidden shadow-2xl shadow-[#C17F5F]/10 border border-white/10 bg-black mt-20 relative z-20 group">
                 <video 
                     controls
                     className="w-full aspect-[9/16] object-contain bg-black"
@@ -75,16 +75,29 @@ export default function BridalInductionPage() {
                         const overlay = target.nextElementSibling as HTMLElement;
                         if (overlay) overlay.style.opacity = '1';
                     }}
+                    onEnded={(e) => {
+                        const target = e.target as HTMLVideoElement;
+                        const overlay = target.nextElementSibling as HTMLElement;
+                        target.load(); // Resets the video to show the poster again
+                        if (overlay) overlay.style.opacity = '1';
+                    }}
                 >
                     <source src="/Induccion portal novias.mp4" type="video/mp4" />
                     Tu navegador no soporta la etiqueta de video.
                 </video>
                 
                 {/* Text Overlay on Poster */}
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 bg-black/40 transition-opacity duration-500">
-                    <p className="text-white/90 font-light text-sm leading-relaxed text-center drop-shadow-md">
-                        Como parte del proceso de tu proyecto, hemos preparado un breve video donde Elena te explica personalmente los pasos que seguiremos. Te pedimos que lo revises antes de tu próxima cita.
-                    </p>
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 bg-black/40 backdrop-blur-[2px] transition-opacity duration-500">
+                    <div className="border border-white/20 bg-[#0A0A0A]/60 p-6 rounded-lg backdrop-blur-md shadow-2xl text-center max-w-[90%] transform transition-transform">
+                        <h3 className="font-serif italic text-xl text-white/90 mb-3">Tu Vestido Soñado</h3>
+                        <p className="text-zinc-300 font-light text-xs leading-relaxed tracking-wide">
+                            Como parte del proceso, hemos preparado este breve video donde Elena te explica personalmente los pasos que seguiremos. 
+                            Te pedimos revisarlo antes de tu próxima cita.
+                        </p>
+                        <p className="text-[#C17F5F] text-[9px] uppercase tracking-[3px] font-bold mt-5">
+                            Toca para reproducir
+                        </p>
+                    </div>
                 </div>
             </div>
 
