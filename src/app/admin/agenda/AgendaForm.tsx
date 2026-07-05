@@ -22,6 +22,7 @@ export default function AgendaForm({
     const [newClientData, setNewClientData] = useState({ name: '', phone: '56', email: '' });
     const [loading, setLoading] = useState(false);
     const [localCustomers, setLocalCustomers] = useState(customers);
+    const [motivoSelect, setMotivoSelect] = useState('Primera Cita');
 
     const handleQuickRegister = async () => {
         if (!newClientData.name) return;
@@ -229,15 +230,27 @@ export default function AgendaForm({
                     {/* Etiqueta / Motivo */}
                     <div className="pt-2">
                         <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Etiqueta / Motivo</label>
-                        <select name="notas" className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50" required>
+                        <select 
+                            name={motivoSelect === 'Otro' ? undefined : 'notas'}
+                            value={motivoSelect}
+                            onChange={(e) => setMotivoSelect(e.target.value)}
+                            className={`w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 ${motivoSelect === 'Otro' ? 'mb-2' : ''}`} 
+                            required
+                        >
                             <option value="Primera Cita">Primera Cita</option>
                             <option value="Toma de Medidas">Toma de Medidas</option>
                             <option value="Prueba de Vestido">Prueba de Vestido</option>
+                            <option value="Prueba de Prenda (Otra)">Prueba de Prenda (Otra)</option>
                             <option value="Prueba Final">Prueba Final</option>
                             <option value="Entrega de Vestido">Entrega de Vestido</option>
+                            <option value="Entrega de Prenda (Otra)">Entrega de Prenda (Otra)</option>
                             <option value="Upcycling / Repair">Upcycling / Repair</option>
                             <option value="Cita General">Cita General</option>
+                            <option value="Otro">Otro Motivo...</option>
                         </select>
+                        {motivoSelect === 'Otro' && (
+                            <input type="text" name="notas" placeholder="Escribe el motivo personalizado..." className="w-full p-3 border border-gray-200 rounded-lg text-sm bg-gray-50 animate-in fade-in slide-in-from-top-1" required />
+                        )}
                     </div>
                 </div>
             ) : (
