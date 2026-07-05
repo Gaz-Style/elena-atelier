@@ -108,7 +108,7 @@ export default function ReconciliationDashboard() {
                 if (match) {
                     matchedCount++;
                     totalDbMatched += mp.amount;
-                    return { ...mp, status: 'matched', matchedDbRecord: match };
+                    return { ...mp, status: 'matched' as const, matchedDbRecord: match };
                 }
 
                 // If not found by ID, maybe approximate match by Amount and Date (within same day)
@@ -122,7 +122,7 @@ export default function ReconciliationDashboard() {
                 if (match) {
                     matchedCount++;
                     totalDbMatched += mp.amount;
-                    return { ...mp, status: 'matched', matchedDbRecord: match };
+                    return { ...mp, status: 'matched' as const, matchedDbRecord: match };
                 }
 
                 missingCount++;
