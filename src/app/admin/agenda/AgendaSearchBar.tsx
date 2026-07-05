@@ -4,13 +4,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, Clock, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { searchAgendaEventsAction } from './actions';
+import { useRouter } from 'next/navigation';
 
-export default function AgendaSearchBar({ view, selectedDateStr }: { view: string, selectedDateStr: string }) {
-    const [query, setQuery] = useState('');
+export default function AgendaSearchBar({ view, selectedDateStr, initialSearch = '' }: { view: string, selectedDateStr: string, initialSearch?: string }) {
+    const [query, setQuery] = useState(initialSearch);
     const [results, setResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -52,13 +54,27 @@ export default function AgendaSearchBar({ view, selectedDateStr }: { view: strin
                         setQuery(e.target.value);
                         setIsOpen(true);
                     }}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && query.trim().length >= 2) {
+                            e.preventDefault();
+                            setIsOpen(false);
+                            router.push(`/admin/agenda?view=${view}&date=${selectedDateStr}&search=${encodeURIComponent(query.trim())}`);
+                        }
+                    }}
                     onFocus={() => setIsOpen(true)}
                     className="pl-9 pr-4 py-2 w-full rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-black transition-colors"
                 />
                 {query && (
                     <button 
                         type="button"
-                        onClick={() => { setQuery(''); setResults([]); setIsOpen(false); }}
+                        onClick={() => { 
+                            setQuery(''); 
+                            setResults([]); 
+                            setIsOpen(false); 
+                            if (initialSearch) {
+                                router.push(`/admin/agenda?view=${view}&date=${selectedDateStr}`);
+                            }
+                        }}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black"
                     >
                         ×
@@ -108,6 +124,18 @@ export default function AgendaSearchBar({ view, selectedDateStr }: { view: strin
                             </Link>
                         );
                     })}
+                    
+                    {!isSearching && results.length > 0 && (
+                        <button
+                            onClick={() => {
+                                setIsOpen(false);
+                                router.push(`/admin/agenda?view=${view}&date=${selectedDateStr}&search=${encodeURIComponent(query.trim())}`);
+                            }}
+                            className="block w-full p-3 text-center text-xs font-bold text-gray-500 hover:text-black hover:bg-gray-50 border-t border-gray-100 uppercase tracking-widest transition-colors"
+                        >
+                            Ver todos los resultados
+                        </button>
+                    )}
                 </div>
             )}
         </div>
