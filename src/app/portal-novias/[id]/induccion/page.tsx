@@ -91,8 +91,8 @@ export default function BridalInductionPage() {
                     <div className="border border-white/20 bg-[#0A0A0A]/60 p-6 rounded-lg backdrop-blur-md shadow-2xl text-center max-w-[90%] transform transition-transform">
                         <h3 className="font-serif italic text-xl text-white/90 mb-3">Tu Vestido Soñado</h3>
                         <p className="text-zinc-300 font-light text-xs leading-relaxed tracking-wide">
-                            Como parte del proceso, hemos preparado este breve video donde Elena te explica personalmente los pasos que seguiremos. 
-                            Te pedimos revisarlo antes de tu próxima cita.
+                            Como parte del proceso, hemos preparado este breve video donde te explicamos el paso a paso que seguiremos. 
+                            Te pedimos revisarlo para saber qué es lo que viene a continuación y guiarte fácilmente dentro de tu portal.
                         </p>
                         <p className="text-[#C17F5F] text-[9px] uppercase tracking-[3px] font-bold mt-5">
                             Toca para reproducir
