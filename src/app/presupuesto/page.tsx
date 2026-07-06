@@ -316,7 +316,7 @@ function BudgetContent() {
                                     <tbody className="divide-y divide-white/5">
                                         {data.cart.map((item: any, i: number) => (
                                             <tr key={i} className="group">
-                                                <td className="py-6">
+                                                <td className="py-6 pr-8 md:pr-12 align-top">
                                                     <p className="font-serif text-lg text-white">{item.name}</p>
                                                     <p className="text-[10px] text-white/40 mt-1 uppercase tracking-widest font-bold">{item.category}</p>
                                                     {item.notes && (
@@ -335,7 +335,7 @@ function BudgetContent() {
                                                         </div>
                                                     )}
                                                 </td>
-                                                <td className="py-6 text-right font-serif text-xl font-medium text-white">
+                                                <td className="py-6 text-right font-serif text-xl font-medium text-white align-top whitespace-nowrap w-28 md:w-36">
                                                     {formatCurrency(item.price)}
                                                 </td>
                                             </tr>
