@@ -23,7 +23,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
             {/* TEXT SIDE */}
-            <div className="lg:col-span-6 space-y-6 lg:space-y-8 text-center lg:text-left order-2 lg:order-1 lg:pr-8">
+            <div className="lg:col-span-6 space-y-6 lg:space-y-8 text-center lg:text-left order-1 lg:order-1 lg:pr-8">
               <div className="space-y-2 lg:space-y-3">
                 <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-sand block">Temporada 2026</span>
                 <h2 className="font-serif text-4xl md:text-6xl lg:text-7xl text-white leading-[1.1]">
@@ -38,10 +38,11 @@ export default function Home() {
                   Garantizamos exclusividad absoluta por colegio: tu vestido será único en tu fiesta.
                 </p>
               </div>
-              <div className="pt-4 lg:pt-6 w-full sm:w-auto flex justify-center lg:justify-start">
+              {/* DESKTOP CTA */}
+              <div className="hidden lg:flex pt-6 w-full justify-start">
                 <Link 
                   href="/graduacion" 
-                  className="inline-flex items-center justify-center gap-3 border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-serif text-[11px] uppercase tracking-[0.28em] font-semibold bg-white/[0.08] backdrop-blur-[10px] px-8 py-4 md:px-10 md:py-5 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] rounded-[1px] w-full sm:w-auto text-center whitespace-nowrap"
+                  className="inline-flex items-center justify-center gap-3 border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-serif text-[11px] uppercase tracking-[0.28em] font-semibold bg-white/[0.08] backdrop-blur-[10px] px-10 py-5 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] rounded-[1px] whitespace-nowrap"
                 >
                   Ver Catálogo Completo
                   <ArrowRight className="w-3.5 h-3.5 transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 flex-shrink-0" />
@@ -50,12 +51,23 @@ export default function Home() {
             </div>
 
             {/* IMAGE SIDE */}
-            <Link href="/graduacion" className="group lg:col-span-6 relative rounded-sm overflow-hidden shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700 aspect-[3/4.5] order-1 lg:order-2 block">
+            <Link href="/graduacion" className="group lg:col-span-6 relative rounded-sm overflow-hidden shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700 aspect-[3/4.5] order-2 lg:order-2 block">
               <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-700 z-10 pointer-events-none" />
               <div className="absolute inset-0 w-full h-full group-hover:scale-[1.03] transition-transform duration-[2000ms] ease-out">
                 <ImageRotator images={fiestaCarouselImages} interval={5000} />
               </div>
             </Link>
+
+            {/* MOBILE CTA */}
+            <div className="lg:hidden flex w-full justify-center order-3 pt-2">
+              <Link 
+                href="/graduacion" 
+                className="inline-flex items-center justify-center gap-3 border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-serif text-[11px] uppercase tracking-[0.28em] font-semibold bg-white/[0.08] backdrop-blur-[10px] px-8 py-4 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] rounded-[1px] w-full text-center whitespace-nowrap"
+              >
+                Ver Catálogo Completo
+                <ArrowRight className="w-3.5 h-3.5 transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 flex-shrink-0" />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
