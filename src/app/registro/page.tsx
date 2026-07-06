@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { ArrowRight, CheckCircle2, Loader2, Mail, User, Phone, Sparkles, Heart } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { createCustomer } from '../admin/crm/actions';
 import BackLink from '@/components/BackLink';
 
-export default function PublicRegistrationPage() {
+function RegistrationContent() {
+    const searchParams = useSearchParams();
+    const redirectUrl = searchParams.get('redirect') || '/';
     const [isSaving, setIsSaving] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
@@ -42,11 +45,11 @@ export default function PublicRegistrationPage() {
                         </p>
                     </div>
                     <Link 
-                        href="/" 
+                        href={redirectUrl} 
                         className="glass-btn group relative inline-flex items-center justify-center gap-3 px-6 py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] w-full"
                     >
                         <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-white group-hover:text-[#121212] transition-colors duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
-                            Explorar Colección
+                            {redirectUrl !== '/' ? 'Agendar mi Visita al Taller' : 'Explorar Colección'}
                         </span>
                     </Link>
                 </div>
@@ -188,5 +191,13 @@ export default function PublicRegistrationPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function PublicRegistrationPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-brand-charcoal flex items-center justify-center text-white"><Loader2 className="w-8 h-8 animate-spin" /></div>}>
+            <RegistrationContent />
+        </Suspense>
     );
 }

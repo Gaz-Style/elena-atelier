@@ -13,6 +13,7 @@ export interface Vestido {
   imagenFrente: string;
   imagenEspalda: string;
   imagenesExtra?: string[];
+  precio: number;
 }
 
 const BASE = '/vestidos de graduación';
@@ -28,6 +29,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido largo de satén pesado azul royal con corsé estructurado visible, escote strapless recto, cintura muy definida, falda amplia de caída fluida con tajo profundo y cola ligera.',
     imagenFrente: `${BASE}/1. Clara Celeste  Azul Royal Frente.png`,
     imagenEspalda: `${BASE}/1. Clara Celeste  Azul Royal Espalda.png`,
+    precio: 450000,
   },
   {
     id: 2,
@@ -39,6 +41,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido de satén verde esmeralda intenso con corsé estructurado, escote corazón, cintura entallada, falda recta con tajo lateral alto y espalda descubierta con amarres cruzados.',
     imagenFrente: `${BASE}/2. Lola Verde Esmeralda.png`,
     imagenEspalda: `${BASE}/2. Lola Verde Esmeralda Espalda.png`,
+    precio: 450000,
   },
   {
     id: 3,
@@ -50,6 +53,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido azul marino strapless con drapeado asimétrico en el torso, corsé interno invisible, falda recta de satén pesado con tajo profundo y silueta elegante y moderna.',
     imagenFrente: `${BASE}/3. Tomasa Azul Marino.png`,
     imagenEspalda: `${BASE}/3. Tomasa Azul Marino Espalda.png`,
+    precio: 450000,
   },
   {
     id: 4,
@@ -61,6 +65,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido estilo princesa color verde sage, corsé transparente con delicadas varillas visibles, escote corazón, falda multicapa de tul suave con mucho volumen y efecto etéreo.',
     imagenFrente: `${BASE}/4. Rebecca Verde Sage.png`,
     imagenEspalda: `${BASE}/4. Rebecca Verde Sage Espalda.png`,
+    precio: 450000,
   },
   {
     id: 5,
@@ -72,6 +77,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido sirena negro de satén pesado, corsé estructurado, cintura extremadamente marcada, espalda completamente descubierta, escote profundo y tajo frontal elegante.',
     imagenFrente: `${BASE}/5. Camila Negro Ajustado.png`,
     imagenEspalda: `${BASE}/5. Camila Negro Ajustado Espalda.png`,
+    precio: 450000,
   },
   {
     id: 6,
@@ -83,6 +89,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido azul navy con escote Bardot caído sobre los hombros, drapeados elegantes en el busto, corsé interno, falda recta satinada con tajo alto y caída sofisticada.',
     imagenFrente: `${BASE}/6. Olivia Azul Navy.png`,
     imagenEspalda: `${BASE}/6. Olivia Azul Navy Espalda.png`,
+    precio: 450000,
   },
   {
     id: 7,
@@ -94,6 +101,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido plata brillante con corsé transparente de tul, aplicaciones de pedrería fina distribuidas cuidadosamente, escote strapless, falda recta con transparencias sutiles.',
     imagenFrente: `${BASE}/7. Estrella Plata.png`,
     imagenEspalda: `${BASE}/7. Estrella Plata Espalda.png`,
+    precio: 450000,
   },
   {
     id: 8,
@@ -105,6 +113,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido sirena color moka gold, tejido metalizado de lujo, cuello halter, silueta completamente ajustada, brillo sofisticado y caída elegante tipo alfombra roja.',
     imagenFrente: `${BASE}/8. Marta Gold Mist.png`,
     imagenEspalda: `${BASE}/8. Marta Gold Mist Espalda.png`,
+    precio: 450000,
   },
   {
     id: 9,
@@ -116,6 +125,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido completamente cubierto por lentejuelas geométricas champagne, cuello halter cerrado, espalda descubierta, corte recto con brillo uniforme y silueta estilizada.',
     imagenFrente: `${BASE}/9. Majadas Lentejuelas.png`,
     imagenEspalda: `${BASE}/9. Majadas Lentejuelas Espalda.png`,
+    precio: 450000,
   },
   {
     id: 10,
@@ -127,6 +137,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido negro de crepé premium, espalda completamente abierta, escote discreto delantero, corte minimalista, cola ligera y caída perfecta.',
     imagenFrente: `${BASE}/10. Majadas Clásico.png`,
     imagenEspalda: `${BASE}/10. Majadas Clásico Espalda.png`,
+    precio: 450000,
   },
   {
     id: 11,
@@ -138,6 +149,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido de terciopelo italiano color burdeo profundo, manga larga asimétrica en un brazo, escote asimétrico, drapeados elegantes y tajo lateral alto.',
     imagenFrente: `${BASE}/11. Isabel Velvet.png`,
     imagenEspalda: `${BASE}/11. Isabel Velvet Espalda.png`,
+    precio: 450000,
   },
   {
     id: 12,
@@ -149,6 +161,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido verde oscuro de terciopelo, escote recto, tirantes finos ajustables, silueta sirena limpia, tela gruesa con caída elegante.',
     imagenFrente: `${BASE}/12. Antonieta Velvet.png`,
     imagenEspalda: `${BASE}/12. Antonieta Velvet Espalda.png`,
+    precio: 450000,
   },
   {
     id: 13,
@@ -160,6 +173,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido satinado azul petróleo con cuello drapeado tipo cowl neck, espalda descubierta, falda fluida de satén pesado con brillo natural.',
     imagenFrente: `${BASE}/13. Caroline Fiesta.png`,
     imagenEspalda: `${BASE}/13. Caroline Fiesta Espalda.png`,
+    precio: 450000,
   },
   {
     id: 14,
@@ -171,6 +185,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido turquesa intenso, cuello halter, espalda completamente descubierta, largo midi-maxi, caída ligera y satén brillante.',
     imagenFrente: `${BASE}/14. Faustina Turquesa.png`,
     imagenEspalda: `${BASE}/14. Faustina Turquesa Espalda.png`,
+    precio: 450000,
   },
   {
     id: 15,
@@ -183,6 +198,7 @@ export const vestidos: Vestido[] = [
     imagenFrente: `${BASE}/15. Julianna Magenta.png`,
     imagenEspalda: `${BASE}/15. Julianna Magenta Espalda 1.png`,
     imagenesExtra: [`${BASE}/15. Julianna Magenta Espalda 2.png`],
+    precio: 450000,
   },
   {
     id: 16,
@@ -194,6 +210,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido granate de satén pesado, escote caído sobre los hombros, espalda baja, silueta ajustada con acabado elegante y minimalista.',
     imagenFrente: `${BASE}/16. Camille Granate..png`,
     imagenEspalda: `${BASE}/16. Camille Granate Espalda.png`,
+    precio: 450000,
   },
   {
     id: 17,
@@ -205,6 +222,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido azul rey intenso, escote asimétrico de un hombro, corsé interno, tajo alto, falda recta de satén pesado con líneas limpias.',
     imagenFrente: `${BASE}/17. Isabella Azul Rey.png`,
     imagenEspalda: `${BASE}/17. Isabella Azul Rey Espalda.png`,
+    precio: 450000,
   },
   {
     id: 18,
@@ -216,6 +234,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido lencero de seda natural con estampado floral artístico, escote delicado, tirantes finos, silueta relajada con inspiración Rat & Boa.',
     imagenFrente: `${BASE}/18. Catarina Floral.png`,
     imagenEspalda: `${BASE}/18. Catarina Floral Espalda.png`,
+    precio: 450000,
   },
   {
     id: 19,
@@ -227,6 +246,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido morado confeccionado en gasa, corte imperio, falda extremadamente fluida con movimiento ligero y estilo romántico.',
     imagenFrente: `${BASE}/19. Marlene Morado.png`,
     imagenEspalda: `${BASE}/19. Marlene Morado Espalda.png`,
+    precio: 450000,
   },
   {
     id: 20,
@@ -238,6 +258,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido verde botella con escote asimétrico de un hombro, vuelos discretos en la falda, satén ligero y silueta moderna.',
     imagenFrente: `${BASE}/20. Renatta Verde Botella.png`,
     imagenEspalda: `${BASE}/20. Renatta Verde Botella.png`, // Only front available
+    precio: 450000,
   },
   {
     id: 21,
@@ -253,6 +274,7 @@ export const vestidos: Vestido[] = [
       `${BASE}/21.1. Arella Rose Gold Drapeado.png`,
       `${BASE}/21.1. Arella Rose Gold Drapeado Espalda.png`,
     ],
+    precio: 450000,
   },
   {
     id: 22,
@@ -264,6 +286,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido negro premium de seda fluida, mangas largas transparentes muy finas, corte elegante, escote discreto y falda recta con movimiento natural.',
     imagenFrente: `${BASE}/22. Madison Largo Negro.png`,
     imagenEspalda: `${BASE}/22. Madison Largo Negro Espalda.png`,
+    precio: 450000,
   },
   {
     id: 23,
@@ -275,6 +298,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido terracota confeccionado en crepé premium, cintura alta marcada, escote cruzado, falda fluida con líneas minimalistas contemporáneas.',
     imagenFrente: `${BASE}/23. Aliana Terracota.png`,
     imagenEspalda: `${BASE}/23. Aliana Terracota Espalda.png`,
+    precio: 450000,
   },
   {
     id: 24,
@@ -286,6 +310,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido bicolor azul intenso y fucsia, escote en V profundo, corte cruzado, falda larga con tajo lateral y estilo elegante juvenil.',
     imagenFrente: `${BASE}/20. Renatta Verde Botella.png`, // placeholder - no image found
     imagenEspalda: `${BASE}/20. Renatta Verde Botella.png`,
+    precio: 450000,
   },
   {
     id: 25,
@@ -297,6 +322,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Vestido blanco cristal de alta costura, corsé estructurado con ballenas visibles, falda amplia de satén y organza con aplicaciones de cristales finos, confección artesanal de lujo.',
     imagenFrente: `${BASE}/4. Rebecca Verde Sage.png`, // placeholder - no image found
     imagenEspalda: `${BASE}/4. Rebecca Verde Sage Espalda.png`,
+    precio: 450000,
   },
   {
     id: 26,
@@ -308,6 +334,7 @@ export const vestidos: Vestido[] = [
     descripcion: 'Satén pesado azul midnight con cuerpo drapeado de inspiración corsetera, escote corazón con tirantes finos, espalda descubierta profunda en V y falda columna de alta costura.',
     imagenFrente: `${BASE}/26. Valentina Midnight Navy.png`,
     imagenEspalda: `${BASE}/26. Valentina Midnight Navy Espalda.png`,
+    precio: 450000,
   },
 ];
 

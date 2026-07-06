@@ -114,17 +114,22 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
             <p className="text-white/50 text-sm mt-2 font-light tracking-wide">
               {vestido.color} · {vestido.tejido} · {vestido.silueta}
             </p>
+            {vestido.precio && (
+              <p className="text-brand-sand font-serif text-xl mt-4">
+                Confección desde {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(vestido.precio)}
+              </p>
+            )}
           </div>
           <p className="text-white/70 text-sm leading-relaxed max-w-md mx-auto lg:mx-0">
             {vestido.descripcion}
           </p>
           <div className="pt-2">
             <Link
-              href="/appointment"
+              href={`/registro?redirect=/portal/agenda`}
               className="glass-btn group relative inline-flex items-center justify-center gap-3 px-8 py-4 text-white font-serif text-[11px] uppercase tracking-[0.28em] font-semibold transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] w-full sm:w-auto"
             >
               <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-center">
-                Agendar Prueba en Atelier
+                Agendar Cita de Confección
                 <ArrowRight className="w-3.5 h-3.5 transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 flex-shrink-0" />
               </span>
             </Link>
