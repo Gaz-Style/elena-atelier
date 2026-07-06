@@ -56,9 +56,15 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
     if (!touchStart || !touchEnd || !touchStartY || !touchEndY) return;
     const distX = touchStart - touchEnd;
     const distY = touchStartY - touchEndY;
-    // If vertical swipe is dominant and large enough, close
+    // If vertical swipe is dominant and large enough
     if (Math.abs(distY) > Math.abs(distX) && Math.abs(distY) > 80) {
-      onClose();
+      if (isFullscreen) {
+        // Exit fullscreen back to detail view (with Agendar button)
+        setIsFullscreen(false);
+      } else {
+        // Close the entire lightbox
+        onClose();
+      }
       return;
     }
     // Horizontal swipe
@@ -159,7 +165,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
             <div className="pt-4 flex flex-col gap-3">
               <Link
                 href="/registro?redirect=/portal/agenda"
-                className="bg-brand-sand hover:bg-white text-brand-charcoal text-center py-4 font-bold text-xs uppercase tracking-[0.2em] transition-all w-full"
+                className="glass-btn group relative inline-flex items-center justify-center w-full py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.2em] font-bold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:text-[#121212] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px]"
               >
                 Agendar Prueba
               </Link>
