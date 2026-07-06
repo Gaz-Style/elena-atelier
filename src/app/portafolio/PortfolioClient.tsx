@@ -124,6 +124,79 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
   );
 }
 
+/* ─────────────────────────────────────────────
+   DRESS GRID ITEM (With Scroll Dots)
+   ───────────────────────────────────────────── */
+function DressGridItem({ vestido, onClick }: { vestido: Vestido, onClick: () => void }) {
+  const hasBack = vestido.imagenEspalda && vestido.imagenEspalda !== vestido.imagenFrente;
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (!hasBack) return;
+    const scrollLeft = e.currentTarget.scrollLeft;
+    const width = e.currentTarget.clientWidth;
+    const newIndex = Math.round(scrollLeft / width);
+    if (newIndex !== activeIndex) {
+      setActiveIndex(newIndex);
+    }
+  };
+
+  return (
+    <div 
+      onClick={onClick}
+      className="break-inside-avoid relative group overflow-hidden sm:rounded-sm border-b sm:border border-white/5 sm:border-white/10 sm:shadow-sm sm:hover:shadow-[0_0_24px_rgba(255,255,255,0.06)] hover:border-brand-sand/30 transition-all duration-500 mb-1 sm:mb-0 cursor-pointer"
+    >
+      <div 
+        onScroll={handleScroll}
+        className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar w-full h-full relative"
+      >
+        <div className="w-full flex-none snap-center relative">
+          <Image 
+            src={vestido.imagenFrente} 
+            alt={vestido.nombre + " frente"}
+            width={600} 
+            height={800} 
+            className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
+            unoptimized
+          />
+        </div>
+        {hasBack && (
+          <div className="w-full flex-none snap-center relative">
+            <Image 
+              src={vestido.imagenEspalda} 
+              alt={vestido.nombre + " espalda"}
+              width={600} 
+              height={800} 
+              className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
+              unoptimized
+            />
+          </div>
+        )}
+      </div>
+      
+      {/* Catalog Info Overlay (must have pointer-events-none so swipe works on the container below) */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6 pointer-events-none">
+        <span className="text-brand-sand text-[10px] uppercase tracking-widest mb-1">{vestido.color}</span>
+        <h3 className="font-serif text-2xl text-white mb-1">{vestido.nombre}</h3>
+        <p className="text-white/80 text-sm">{new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(vestido.precio)}</p>
+        
+        <div className="mt-4 flex items-center text-xs uppercase tracking-widest font-semibold text-white group-hover:translate-x-2 transition-transform">
+          Ver Detalles 
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </div>
+      </div>
+
+      {/* Swipe Dots */}
+      {hasBack && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 pointer-events-none">
+          <div className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${activeIndex === 0 ? 'bg-white' : 'bg-white/30'}`} />
+          <div className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${activeIndex === 1 ? 'bg-white' : 'bg-white/30'}`} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function PortfolioClient({ data, generalImages }: { data: PortfolioData[], generalImages: string[] }) {
   const [activeCategory, setActiveCategory] = useState<string>('fiesta');
   const [selectedVestido, setSelectedVestido] = useState<Vestido | null>(null);
@@ -197,48 +270,11 @@ export default function PortfolioClient({ data, generalImages }: { data: Portfol
         {activeCategory === 'fiesta' && (
           <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-0 sm:gap-6 space-y-0 sm:space-y-6">
             {vestidosFiesta.map((vestido) => (
-              <div 
-                key={vestido.id}
-                onClick={() => setSelectedVestido(vestido)}
-                className="break-inside-avoid relative group overflow-hidden sm:rounded-sm border-b sm:border border-white/5 sm:border-white/10 sm:shadow-sm sm:hover:shadow-[0_0_24px_rgba(255,255,255,0.06)] hover:border-brand-sand/30 transition-all duration-500 mb-1 sm:mb-0 cursor-pointer"
-              >
-                <div className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar w-full h-full relative">
-                  <div className="w-full flex-none snap-center relative">
-                    <Image 
-                      src={vestido.imagenFrente} 
-                      alt={vestido.nombre + " frente"}
-                      width={600} 
-                      height={800} 
-                      className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
-                      unoptimized
-                    />
-                  </div>
-                  {vestido.imagenEspalda && vestido.imagenEspalda !== vestido.imagenFrente && (
-                    <div className="w-full flex-none snap-center relative">
-                      <Image 
-                        src={vestido.imagenEspalda} 
-                        alt={vestido.nombre + " espalda"}
-                        width={600} 
-                        height={800} 
-                        className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
-                        unoptimized
-                      />
-                    </div>
-                  )}
-                </div>
-                
-                {/* Catalog Info Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6">
-                  <span className="text-brand-sand text-[10px] uppercase tracking-widest mb-1">{vestido.color}</span>
-                  <h3 className="font-serif text-2xl text-white mb-1">{vestido.nombre}</h3>
-                  <p className="text-white/80 text-sm">{new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(vestido.precio)}</p>
-                  
-                  <div className="mt-4 flex items-center text-xs uppercase tracking-widest font-semibold text-white group/btn">
-                    Ver Detalles 
-                    <ArrowRight className="w-4 h-4 ml-2 transform group-hover/btn:translate-x-2 transition-transform" />
-                  </div>
-                </div>
-              </div>
+              <DressGridItem 
+                key={vestido.id} 
+                vestido={vestido} 
+                onClick={() => setSelectedVestido(vestido)} 
+              />
             ))}
           </div>
         )}
