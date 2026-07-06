@@ -246,7 +246,7 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
     
     useEffect(() => {
       if (vestidoId) {
-        const v = vestidosFiesta.find(v => v.id === vestidoId);
+        const v = vestidosFiesta.find(v => v.id.toString() === vestidoId);
         if (v) setSelectedVestido(v);
       }
     }, [vestidoId]);
