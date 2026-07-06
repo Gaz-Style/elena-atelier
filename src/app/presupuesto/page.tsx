@@ -546,14 +546,14 @@ function BudgetContent() {
                             <>
                                 <div className="text-center md:text-left">
                                     <p className="text-xs text-white/40 font-bold uppercase tracking-widest">¿Deseas confirmar este presupuesto?</p>
-                                    <p className="text-sm text-white/80 mt-1">Haz clic para aceptar y elegir tu método de pago.</p>
+                                    <p className="text-sm text-white/80 mt-1">Agenda una cita con Elena para revisar los detalles y confirmar tu proyecto.</p>
                                 </div>
                                 <button 
                                     onClick={() => setStatus('scheduling')}
                                     className="w-full md:w-auto glass-btn group relative inline-flex items-center justify-center gap-3 px-10 py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] cursor-pointer"
                                 >
                                     <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-white group-hover:text-[#121212] transition-colors duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
-                                        Aceptar Presupuesto
+                                        Agendar Cita
                                     </span>
                                 </button>
                             </>
