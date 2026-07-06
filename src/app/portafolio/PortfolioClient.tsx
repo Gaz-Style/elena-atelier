@@ -38,6 +38,34 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
     if (distance < -50) prev();
   };
 
+  // Vertical swipe to close
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
+  const [touchEndY, setTouchEndY] = useState<number | null>(null);
+
+  const handleTouchStartCombined = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+    setTouchEndY(null);
+    setTouchStartY(e.targetTouches[0].clientY);
+  };
+  const handleTouchMoveCombined = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+    setTouchEndY(e.targetTouches[0].clientY);
+  };
+  const handleTouchEndCombined = () => {
+    if (!touchStart || !touchEnd || !touchStartY || !touchEndY) return;
+    const distX = touchStart - touchEnd;
+    const distY = touchStartY - touchEndY;
+    // If vertical swipe is dominant and large enough, close
+    if (Math.abs(distY) > Math.abs(distX) && Math.abs(distY) > 80) {
+      onClose();
+      return;
+    }
+    // Horizontal swipe
+    if (distX > 50) next();
+    if (distX < -50) prev();
+  };
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -73,9 +101,9 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
         <div 
           className={`relative overflow-hidden flex items-center justify-center transition-all duration-500 cursor-zoom-in ${isFullscreen ? 'fixed inset-0 z-[10000] bg-black w-full h-full cursor-zoom-out' : 'w-full h-[60vh] md:h-[80vh] md:flex-1 bg-[#121212] md:rounded-sm'}`}
           onClick={() => setIsFullscreen(!isFullscreen)}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          onTouchStart={handleTouchStartCombined}
+          onTouchMove={handleTouchMoveCombined}
+          onTouchEnd={handleTouchEndCombined}
         >
           <Image
             src={allImages[current]}
@@ -84,21 +112,17 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
             className="object-contain pointer-events-none"
             unoptimized
           />
+
+          {/* Instagram-style dots */}
           {allImages.length > 1 && (
-            <>
-              <button
-                onClick={(e) => { e.stopPropagation(); prev(); }}
-                className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 p-2 bg-black/40 hover:bg-black/80 text-white rounded-full transition-all"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); next(); }}
-                className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-2 bg-black/40 hover:bg-black/80 text-white rounded-full transition-all"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            </>
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+              {allImages.map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === current ? 'bg-white scale-125' : 'bg-white/35'}`}
+                />
+              ))}
+            </div>
           )}
         </div>
 
