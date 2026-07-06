@@ -61,7 +61,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
               src={src}
               alt={`${vestido.nombre} - Vista ${i + 1}`}
               fill
-              className={`object-cover transition-opacity duration-500 ease-in-out ${i === current ? 'opacity-100' : 'opacity-0'}`}
+              className={`object-contain transition-opacity duration-500 ease-in-out ${i === current ? 'opacity-100' : 'opacity-0'}`}
               sizes="(max-width: 1024px) 100vw, 55vw"
               priority={i === 0}
             />
@@ -150,13 +150,13 @@ function ProductCard({ vestido, onClick }: { vestido: Vestido; onClick: () => vo
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Image Container */}
-      <div className="relative aspect-[3/4] overflow-hidden rounded-sm bg-[#f0ede8]">
+      <div className="relative aspect-[3/4.5] overflow-hidden rounded-sm bg-[#c8c3bc]">
         {/* Front Image (Default) */}
         <Image
           src={vestido.imagenFrente}
           alt={`${vestido.nombre} ${vestido.color} - Frente`}
           fill
-          className={`object-cover transition-opacity duration-[600ms] ease-in-out ${isHovered ? 'opacity-0' : 'opacity-100'}`}
+          className={`object-contain transition-opacity duration-[600ms] ease-in-out ${isHovered ? 'opacity-0' : 'opacity-100'}`}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           onLoad={() => setIsLoaded(true)}
         />
@@ -165,7 +165,7 @@ function ProductCard({ vestido, onClick }: { vestido: Vestido; onClick: () => vo
           src={vestido.imagenEspalda}
           alt={`${vestido.nombre} ${vestido.color} - Espalda`}
           fill
-          className={`object-cover transition-opacity duration-[600ms] ease-in-out ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+          className={`object-contain transition-opacity duration-[600ms] ease-in-out ${isHovered ? 'opacity-100' : 'opacity-0'}`}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
 
