@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, ShoppingCart, User, Search, CreditCard, Tag, X, 
 import { getCostSettings } from '../finance/actions';
 import { getCatalog } from '../catalog/actions';
 import { getCustomers, createCustomer } from '../crm/actions';
-import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction, saveBudgetAction, wakeUpMercadoPagoTerminalAction, requestDiscountAuthorizationAction, getOperatorsDailyLoadAction, analyzeDesignWithGeminiAction, cancelPendingOrderAction, getLatestWebhookLogsAction, sendWhatsAppPaymentConfirmationAction } from './actions';
+import { sendBudgetEmailAction, sendOrderConfirmationEmailAction, createPOSOrdersAction, checkOrderStatusAction, getDailyWorkloadAction, getEstimatedDatesAction, getOperatorsAction, getAtelierConfigAction, saveBudgetAction, wakeUpMercadoPagoTerminalAction, requestDiscountAuthorizationAction, getOperatorsDailyLoadAction, analyzeDesignWithGeminiAction, cancelPendingOrderAction, getLatestWebhookLogsAction, sendWhatsAppPaymentConfirmationAction, checkDesignExclusivityAction, registerDesignExclusivityAction } from './actions';
 import { createPaymentPreference } from '@/lib/payments';
 import { createWebpayTransaction } from '@/lib/transbank';
 import { getCurrentCashRegisterAction, getAllPendingOrdersAction, payOrderBalanceAction } from '../caja/actions';
@@ -298,6 +298,11 @@ export default function POSPage() {
     const [allCustomers, setAllCustomers] = useState<any[]>([]);
     const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
     const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+
+    // Exclusivity Campaign State
+    const [exclusivityType, setExclusivityType] = useState<'none' | 'graduacion' | 'novias'>('none');
+    const [exclusivityEventId, setExclusivityEventId] = useState('');
+    const [exclusivityDesignName, setExclusivityDesignName] = useState('');
     const [clientSearch, setClientSearch] = useState('');
 
     useEffect(() => {
@@ -956,6 +961,33 @@ export default function POSPage() {
         if (cart.length === 0 || !selectedCustomer) return;
         if (initialPaymentType !== 'zero' && !paymentMethod) return;
 
+        setIsProcessing(true);
+
+        // Validar exclusividad si corresponde
+        if (exclusivityType !== 'none') {
+            if (!exclusivityEventId.trim()) {
+                alert(`Por favor ingresa el ${exclusivityType === 'graduacion' ? 'colegio y curso' : 'matrimonio o fecha'} para registrar la exclusividad.`);
+                setIsProcessing(false);
+                return;
+            }
+            if (!exclusivityDesignName.trim()) {
+                alert("Por favor especifica el nombre del diseño para registrar la exclusividad.");
+                setIsProcessing(false);
+                return;
+            }
+
+            try {
+                const check = await checkDesignExclusivityAction(exclusivityType, exclusivityEventId, exclusivityDesignName);
+                if (check.success && !check.available) {
+                    alert(`⚠️ Conflicto de Exclusividad: El diseño "${exclusivityDesignName}" ya está registrado para "${exclusivityEventId}".`);
+                    setIsProcessing(false);
+                    return;
+                }
+            } catch (errEx) {
+                console.error("Error al validar exclusividad:", errEx);
+            }
+        }
+
         let amountToCharge = total;
         if (initialPaymentType === '50percent') amountToCharge = Math.round(total / 2);
         else if (initialPaymentType === 'zero') amountToCharge = 0;
@@ -971,7 +1003,6 @@ export default function POSPage() {
             }
         }
         
-        setIsProcessing(true);
         
         try {
             const newOrderIdNumber = Math.floor(Math.random() * 90000) + 10000;
@@ -1041,7 +1072,12 @@ export default function POSPage() {
                     productionEndDate: adjustedDates?.productionEndDate || null,
                     finalDeliveryDate: adjustedDates?.finalDeliveryDate || deadline || null,
                     splitCashAmount: (paymentMethod === 'cash' && splitCardAmount > 0) ? splitCashAmount : undefined,
-                    splitCardAmount: (paymentMethod === 'cash' && splitCardAmount > 0) ? splitCardAmount : undefined
+                    splitCardAmount: (paymentMethod === 'cash' && splitCardAmount > 0) ? splitCardAmount : undefined,
+                    exclusividad: exclusivityType !== 'none' ? {
+                        tipo: exclusivityType,
+                        identificador: exclusivityEventId,
+                        diseno: exclusivityDesignName
+                    } : undefined
                 });
 
                 if (!res.success) {
@@ -2695,6 +2731,63 @@ export default function POSPage() {
                         </div>
                     )}
 
+
+                    {/* Registro de Exclusividad para Graduaciones o Novias */}
+                    <div className="mt-4 p-4 border border-gray-200 bg-gray-50 rounded-sm space-y-3">
+                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-brand-charcoal">Bloqueo de Exclusividad</h4>
+                        <div>
+                            <label className="block text-[9px] uppercase tracking-widest text-gray-500 font-bold mb-1">Tipo de Campaña</label>
+                            <select 
+                                value={exclusivityType} 
+                                onChange={(e) => {
+                                    const val = e.target.value as any;
+                                    setExclusivityType(val);
+                                    if (val === 'none') {
+                                        setExclusivityEventId('');
+                                        setExclusivityDesignName('');
+                                    } else {
+                                        // Auto-fill design name from customOrderName if present
+                                        if (customOrderName) {
+                                            setExclusivityDesignName(customOrderName);
+                                        } else if (cart.length > 0) {
+                                            setExclusivityDesignName(cart[0].name);
+                                        }
+                                    }
+                                }}
+                                className="w-full p-2 text-xs bg-white border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta"
+                            >
+                                <option value="none">Sin bloqueo</option>
+                                <option value="graduacion">Vestidos de Graduación</option>
+                                <option value="novias">Vestidos de Novia</option>
+                            </select>
+                        </div>
+                        {exclusivityType !== 'none' && (
+                            <>
+                                <div>
+                                    <label className="block text-[9px] uppercase tracking-widest text-gray-500 font-bold mb-1">
+                                        {exclusivityType === 'graduacion' ? 'Colegio y Curso' : 'Fecha o Lugar del Evento'}
+                                    </label>
+                                    <input 
+                                        type="text"
+                                        value={exclusivityEventId}
+                                        onChange={(e) => setExclusivityEventId(e.target.value)}
+                                        placeholder={exclusivityType === 'graduacion' ? 'Ej. Villa Maria 4to Medio B' : 'Ej. Boda 15 Diciembre'}
+                                        className="w-full p-2 text-xs bg-white border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] uppercase tracking-widest text-gray-500 font-bold mb-1">Modelo / Diseño a Bloquear</label>
+                                    <input 
+                                        type="text"
+                                        value={exclusivityDesignName}
+                                        onChange={(e) => setExclusivityDesignName(e.target.value)}
+                                        placeholder="Ej. Clara Celeste"
+                                        className="w-full p-2 text-xs bg-white border border-gray-200 rounded-sm outline-none focus:border-brand-terracotta"
+                                    />
+                                </div>
+                            </>
+                        )}
+                    </div>
 
                     <div className="flex flex-col gap-2 mt-4">
                         {posMode === 'new_sale' && (

@@ -774,8 +774,13 @@ export async function createPOSOrdersAction(payload: {
     paidAmount?: number;
     splitCashAmount?: number;
     splitCardAmount?: number;
+    exclusividad?: {
+        tipo: 'graduacion' | 'novias';
+        identificador: string;
+        diseno: string;
+    };
 }) {
-    const { customerId, posOrderId, paymentMethod, paymentStatus, status, items, deadline, productionStartDate, productionEndDate, finalDeliveryDate, paidAmount = 0, splitCashAmount, splitCardAmount } = payload;
+    const { customerId, posOrderId, paymentMethod, paymentStatus, status, items, deadline, productionStartDate, productionEndDate, finalDeliveryDate, paidAmount = 0, splitCashAmount, splitCardAmount, exclusividad } = payload;
     const supabase = await createClient();
 
     let finalPaymentMethod = paymentMethod;
@@ -942,6 +947,21 @@ export async function createPOSOrdersAction(payload: {
         await syncSalesLedgerToAccounting();
     } catch (accErr) {
         console.error('Error syncing sales ledger to accounting in createPOSOrdersAction:', accErr);
+    }
+
+    // Register exclusivity lock if payload was provided
+    if (exclusividad && exclusividad.identificador && exclusividad.diseno) {
+        try {
+            await registerDesignExclusivityAction({
+                tipo: exclusividad.tipo,
+                identificador: exclusividad.identificador,
+                diseno: exclusividad.diseno,
+                customerId: finalCustomerId || undefined,
+                posOrderId: internalId
+            });
+        } catch (exErr) {
+            console.error('Error registering exclusivity in createPOSOrdersAction:', exErr);
+        }
     }
 
     return { success: true };
@@ -2306,3 +2326,71 @@ export async function getLatestWebhookLogsAction() {
     }
     return { success: true, logs: data || [] };
 }
+
+export async function checkDesignExclusivityAction(
+    tipo: 'graduacion' | 'novias',
+    identificador: string,
+    diseno: string
+) {
+    const supabase = await createClient();
+    
+    // Normalize: lowercase, strip accents, trim spaces
+    const cleanIdentificador = identificador.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    const cleanDiseno = diseno.toLowerCase().trim();
+
+    const { data, error } = await supabase
+        .from('exclusividad_registro')
+        .select('*')
+        .eq('tipo_evento', tipo);
+
+    if (error) {
+        console.error('Error checking exclusivity:', error);
+        return { success: false, available: true, error: error.message };
+    }
+
+    const match = data?.find(item => {
+        const itemEvent = item.identificador_evento.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        const itemDesign = item.nombre_diseno.toLowerCase().trim();
+        return itemEvent === cleanIdentificador && itemDesign === cleanDiseno;
+    });
+
+    if (match) {
+        return { success: true, available: false, match };
+    }
+
+    return { success: true, available: true };
+}
+
+export async function registerDesignExclusivityAction(payload: {
+    tipo: 'graduacion' | 'novias';
+    identificador: string;
+    diseno: string;
+    customerId?: string;
+    posOrderId?: string;
+}) {
+    const supabase = await createClient();
+
+    const check = await checkDesignExclusivityAction(payload.tipo, payload.identificador, payload.diseno);
+    if (check.success && !check.available) {
+        return { success: false, error: 'El diseño ya está registrado para este colegio/curso o fecha.' };
+    }
+
+    const { data, error } = await supabase
+        .from('exclusividad_registro')
+        .insert([{
+            tipo_evento: payload.tipo,
+            identificador_evento: payload.identificador.trim(),
+            nombre_diseno: payload.diseno.trim(),
+            customer_id: payload.customerId || null,
+            pos_order_id: payload.posOrderId || null
+        }])
+        .select();
+
+    if (error) {
+        console.error('Error inserting exclusivity registry:', error);
+        return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+}
+
