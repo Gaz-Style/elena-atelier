@@ -15,25 +15,27 @@ import { enviar_correo_confirmacion } from '@/lib/agenda';
 export async function bookCatalogConsultationAction(payload: {
     dateStr: string;
     timeStr: string;
-    email: string;
 }) {
     try {
-        const { dateStr, timeStr, email } = payload;
+        const { dateStr, timeStr } = payload;
+        const supabaseAuth = await createClient();
         const supabaseEvent = getAdminClient();
         
-        if (!email) {
-            return { success: false, error: 'Correo electrónico es requerido.' };
+        // Ensure user is logged in
+        const { data: { user } } = await supabaseAuth.auth.getUser();
+        if (!user) {
+            return { success: false, error: 'Debe iniciar sesión para agendar.' };
         }
 
         // Get customer data
-        const { data: customer, error: customerError } = await supabaseEvent
+        const { data: customer } = await supabaseEvent
             .from('customers')
             .select('full_name, phone, email')
-            .eq('email', email)
+            .eq('id', user.id)
             .single();
 
-        if (customerError || !customer) {
-            return { success: false, error: 'No se encontró el perfil de cliente asociado a ese correo.' };
+        if (!customer) {
+            return { success: false, error: 'No se encontró el perfil de cliente.' };
         }
 
         const fechaHoraIso = `${dateStr}T${timeStr.padStart(5, '0')}:00-04:00`;

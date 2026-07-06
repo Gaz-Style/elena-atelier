@@ -46,7 +46,7 @@ export async function createCustomer(formData: FormData) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  let { data, error } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('customers')
     .insert([{
       full_name,
@@ -60,42 +60,7 @@ export async function createCustomer(formData: FormData) {
     .select()
     .single();
 
-  if (error) {
-    if (error.code === '23505' || error.message.includes('unique constraint')) {
-      // Customer already exists, fetch them and update preferences
-      const { data: existing, error: fetchError } = await supabaseAdmin
-        .from('customers')
-        .select('*')
-        .eq('email', email)
-        .single();
-        
-      if (!fetchError && existing) {
-         const { data: updated, error: updateError } = await supabaseAdmin
-           .from('customers')
-           .update({
-             full_name,
-             phone,
-             style_preference,
-             typical_occasion,
-             marketing_opt_in
-           })
-           .eq('id', existing.id)
-           .select()
-           .single();
-           
-         if (!updateError) {
-             data = updated;
-             error = null;
-         } else {
-             return { error: updateError.message };
-         }
-      } else {
-         return { error: error.message };
-      }
-    } else {
-      return { error: error.message };
-    }
-  }
+  if (error) return { error: error.message };
 
   // Trigger Notifications
   await sendWelcomeNotifications(data);

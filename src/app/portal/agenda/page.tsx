@@ -18,18 +18,7 @@ export default function PortalAgendaPage() {
         setError(null);
         
         try {
-            let email = '';
-            if (typeof window !== 'undefined') {
-                email = localStorage.getItem('agenda_email') || '';
-            }
-            
-            if (!email) {
-                setError('No encontramos tu perfil temporal. Por favor, regresa al catálogo y regístrate nuevamente.');
-                setIsConfirming(false);
-                return;
-            }
-
-            const res = await bookCatalogConsultationAction({ dateStr, timeStr, email });
+            const res = await bookCatalogConsultationAction({ dateStr, timeStr });
             if (res.success) {
                 setIsSuccess(true);
             } else {

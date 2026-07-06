@@ -24,9 +24,6 @@ function RegistrationContent() {
         
         setIsSaving(false);
         if (result.success) {
-            if (typeof window !== 'undefined') {
-                localStorage.setItem('agenda_email', formData.get('email') as string);
-            }
             setIsSuccess(true);
         } else {
             alert('Error: ' + result.error);
