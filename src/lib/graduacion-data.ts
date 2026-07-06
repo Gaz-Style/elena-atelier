@@ -257,7 +257,7 @@ export const vestidos: Vestido[] = [
     tejido: 'Satén',
     descripcion: 'Vestido verde botella con escote asimétrico de un hombro, vuelos discretos en la falda, satén ligero y silueta moderna.',
     imagenFrente: `${BASE}/20. Renatta Verde Botella.png`,
-    imagenEspalda: `${BASE}/20. Renatta Verde Botella.png`, // Only front available
+    imagenEspalda: `${BASE}/20. Renatta Verde Botella Espalda.png`,
     precio: 450000,
   },
   {
