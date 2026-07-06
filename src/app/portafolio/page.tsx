@@ -37,10 +37,12 @@ export default function PortfolioPage() {
         .filter(dirent => dirent.isFile() && dirent.name.match(/\.(jpg|jpeg|png|gif|webp)$/i))
         .map(dirent => `/trabajos/${dir.name}/${dirent.name}`);
         
-      categoryData.push({
-        category: dir.name,
-        images: catImages
-      });
+      if (catImages.length > 0) {
+        categoryData.push({
+          category: dir.name,
+          images: catImages
+        });
+      }
     }
   } catch (err) {
     console.error("Error reading subdirectories", err);

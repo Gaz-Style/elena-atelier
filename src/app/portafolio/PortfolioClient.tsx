@@ -128,8 +128,19 @@ export default function PortfolioClient({ data, generalImages }: { data: Portfol
   const [activeCategory, setActiveCategory] = useState<string>('fiesta');
   const [selectedVestido, setSelectedVestido] = useState<Vestido | null>(null);
 
-  // Build the list of categories including 'todos'
-  const categories = ['todos', ...data.map(d => d.category)];
+  // Build the list of categories
+  const categories = [];
+  if (generalImages && generalImages.length > 0) {
+    categories.push('todos');
+  }
+  categories.push(...data.map(d => d.category));
+
+  // If the default 'fiesta' is not in categories and categories is not empty, fallback to the first one
+  useEffect(() => {
+    if (categories.length > 0 && !categories.includes(activeCategory)) {
+      setActiveCategory(categories[0]);
+    }
+  }, [categories, activeCategory]);
 
   // Get images for current active category (only for non-catalog folders)
   let currentImages: string[] = [];
