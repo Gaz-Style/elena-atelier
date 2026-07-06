@@ -159,7 +159,7 @@ export default function PortfolioClient({ data, generalImages }: { data: Portfol
   return (
     <div className="w-full relative pb-32">
       {/* Highlights / Stories Filter Bar */}
-      <div className="sticky top-20 z-40 bg-brand-charcoal/90 backdrop-blur-xl border-b border-white/5 pb-4 pt-4 px-4 overflow-x-auto no-scrollbar">
+      <div className="border-b border-white/5 pb-4 pt-4 px-4 overflow-x-auto no-scrollbar">
         <div className="flex gap-4 md:justify-center min-w-max">
           {categories.map((cat) => (
             <button
