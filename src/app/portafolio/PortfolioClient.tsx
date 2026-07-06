@@ -129,7 +129,7 @@ export default function PortfolioClient({ data, generalImages }: { data: Portfol
   const [selectedVestido, setSelectedVestido] = useState<Vestido | null>(null);
 
   // Build the list of categories
-  const categories = [];
+  const categories: string[] = [];
   if (generalImages && generalImages.length > 0) {
     categories.push('todos');
   }
