@@ -109,13 +109,11 @@ export default function Hero() {
  
                     <div className="flex justify-center px-4 mt-12 md:mt-14">
                         <Link
-                            href="https://walink.co/5cm5kh"
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            href="/portafolio"
                             className="glass-btn group relative w-auto px-12 py-[18px] border-[0.5px] border-white/26 border-t-white/48 border-l-white/48 border-b-white/15 border-r-white/15 text-white font-sans text-xs uppercase tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/92 hover:border-[#f5f2eb] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] whitespace-nowrap"
                         >
                             <span className="glass-text relative z-10 flex items-center justify-center gap-3 whitespace-nowrap">
-                                HABLA CON ELENA
+                                VER CATÁLOGO
                                 <svg 
                                     className="w-3.5 h-3.5 glass-arrow" 
                                     fill="none" 
