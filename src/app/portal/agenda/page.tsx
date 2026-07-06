@@ -43,7 +43,7 @@ export default function PortalAgendaPage() {
                         <p className="text-white/60 text-sm leading-relaxed">Tu cita exclusiva para confección a medida ha sido agendada. Hemos enviado los detalles a tu correo electrónico.</p>
                     </div>
                     <button 
-                        onClick={() => router.push('/graduacion')}
+                        onClick={() => router.push('/portafolio')}
                         className="w-full glass-btn group relative inline-flex items-center justify-center px-6 py-4 border-[0.5px] border-white/20 text-white font-sans text-xs uppercase tracking-[0.25em] font-semibold bg-white/[0.08] hover:bg-[#f5f2eb]/90 hover:text-black transition-all rounded-[1px]"
                     >
                         Volver al Catálogo
