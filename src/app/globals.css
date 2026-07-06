@@ -294,3 +294,64 @@ input, select, textarea {
     @apply font-sans;
   }
 }
+
+/* ─── Graduation Catalog ─── */
+
+.filter-chip {
+  padding: 8px 16px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.filter-chip:hover {
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.filter-chip-active {
+  color: #1A1A1A !important;
+  background: #F5F5F0 !important;
+  border-color: #F5F5F0 !important;
+}
+
+.catalog-card {
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.catalog-card:hover {
+  transform: translateY(-4px);
+}
+
+.lightbox-enter {
+  animation: lightboxFadeIn 0.35s ease-out forwards;
+}
+
+.lightbox-content-enter {
+  animation: lightboxSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+  opacity: 0;
+}
+
+@keyframes lightboxFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes lightboxSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
