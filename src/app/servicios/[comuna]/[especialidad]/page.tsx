@@ -8,19 +8,20 @@ function formatTitle(slug: string) {
 }
 
 type Props = {
-    params: {
+    params: Promise<{
         comuna: string;
         especialidad: string;
-    };
+    }>;
 };
 
 // Generación Dinámica de Metaetiquetas para Programmatic SEO
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const comuna = formatTitle(params.comuna);
-    const especialidad = formatTitle(params.especialidad);
+    const resolvedParams = await params;
+    const comuna = formatTitle(resolvedParams.comuna);
+    const pedigreedSpecialty = formatTitle(resolvedParams.especialidad);
 
-    const title = `${especialidad} en ${comuna} | Elena Atelier de Alta Costura`;
-    const description = `Servicio exclusivo de ${especialidad.toLowerCase()} en ${comuna}. Elena Atelier ofrece confección a medida, terminaciones de lujo y ajuste perfecto. Agenda tu cita en nuestro taller.`;
+    const title = `${pedigreedSpecialty} en ${comuna} | Elena Atelier de Alta Costura`;
+    const description = `Servicio exclusivo de ${pedigreedSpecialty.toLowerCase()} en ${comuna}. Elena Atelier ofrece confección a medida, terminaciones de lujo y ajuste perfecto. Agenda tu cita en nuestro taller.`;
 
     return {
         title,
@@ -33,9 +34,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
 }
 
-export default function ProgrammaticSeoPage({ params }: Props) {
-    const comuna = formatTitle(params.comuna);
-    const especialidad = formatTitle(params.especialidad);
+export default async function ProgrammaticSeoPage({ params }: Props) {
+    const resolvedParams = await params;
+    const comuna = formatTitle(resolvedParams.comuna);
+    const especialidad = formatTitle(resolvedParams.especialidad);
 
     return (
         <div className="min-h-screen bg-brand-sand/15 font-sans text-brand-charcoal pt-10">

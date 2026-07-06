@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { X, ChevronLeft, ChevronRight, SlidersHorizontal, ArrowRight } from 'lucide-react';
 import { vestidosFiesta, type Vestido } from '@/lib/fiesta-data';
 
@@ -56,20 +57,13 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
     if (!touchStart || !touchEnd || !touchStartY || !touchEndY) return;
     const distX = touchStart - touchEnd;
     const distY = touchStartY - touchEndY;
-    // If vertical swipe is dominant and large enough
-    if (Math.abs(distY) > Math.abs(distX) && Math.abs(distY) > 80) {
-      if (isFullscreen) {
-        // Exit fullscreen back to detail view (with Agendar button)
-        setIsFullscreen(false);
-      } else {
-        // Close the entire lightbox
-        onClose();
-      }
-      return;
+    
+    // Only handle horizontal swipes for next/prev.
+    // Let native vertical scrolling happen for the rest of the modal.
+    if (Math.abs(distX) > Math.abs(distY)) {
+      if (distX > 50) next();
+      if (distX < -50) prev();
     }
-    // Horizontal swipe
-    if (distX > 50) next();
-    if (distX < -50) prev();
   };
 
   useEffect(() => {
@@ -93,7 +87,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
     >
       <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" />
       <div
-        className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center gap-0 md:gap-12 w-full h-full md:h-auto max-w-6xl mx-auto md:px-6 py-0 md:py-8 overflow-y-auto md:overflow-visible"
+        className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center gap-0 md:gap-12 w-full h-[100dvh] md:h-auto max-w-6xl mx-auto md:px-6 py-0 md:py-8 overflow-hidden md:overflow-visible"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -105,7 +99,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
 
         {/* IMAGEN */}
         <div 
-          className={`relative overflow-hidden flex items-center justify-center transition-all duration-500 cursor-zoom-in ${isFullscreen ? 'fixed inset-0 z-[10000] bg-black w-full h-full cursor-zoom-out' : 'w-full h-[60vh] md:h-[80vh] md:flex-1 bg-[#121212] md:rounded-sm'}`}
+          className={`relative overflow-hidden flex items-center justify-center transition-all duration-500 cursor-zoom-in ${isFullscreen ? 'fixed inset-0 z-[10000] bg-black w-full h-full cursor-zoom-out' : 'w-full flex-1 min-h-0 md:h-[80vh] bg-[#121212] md:rounded-sm'}`}
           onClick={() => setIsFullscreen(!isFullscreen)}
           onTouchStart={handleTouchStartCombined}
           onTouchMove={handleTouchMoveCombined}
@@ -135,34 +129,21 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
         </div>
 
         {/* INFO DEL VESTIDO */}
-        <div className={`flex-1 text-white flex flex-col justify-center p-6 md:p-0 md:max-w-sm transition-opacity duration-300 ${isFullscreen ? 'hidden' : 'flex'}`}>
-          <div className="space-y-6">
+        <div className={`flex-none text-white flex flex-col justify-end p-5 pb-6 md:p-0 md:flex-1 md:max-w-sm transition-opacity duration-300 ${isFullscreen ? 'hidden' : 'flex'}`}>
+          <div className="space-y-3 md:space-y-6">
             <div>
-              <span className="text-[10px] uppercase tracking-widest text-brand-sand block mb-2">Modelo #{vestido.id}</span>
-              <h2 className="font-serif text-3xl md:text-5xl mb-2">{vestido.nombre}</h2>
-              <p className="text-xl md:text-2xl text-white/90 font-light">
+              <span className="text-[10px] uppercase tracking-widest text-brand-sand block mb-1 md:mb-2">Modelo #{vestido.id}</span>
+              <h2 className="font-serif text-2xl md:text-5xl mb-1 md:mb-2">{vestido.nombre}</h2>
+              <p className="text-lg md:text-2xl text-white/90 font-light">
                 {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(vestido.precio)}
               </p>
             </div>
             
-            <p className="text-white/60 text-sm leading-relaxed font-sans">
+            <p className="text-white/60 text-xs md:text-sm leading-relaxed font-sans line-clamp-3 md:line-clamp-none">
               {vestido.descripcion}
             </p>
             
-            <div className="grid grid-cols-2 gap-4 py-6 border-y border-white/10 text-xs">
-              <div>
-                <span className="block text-white/40 uppercase tracking-widest mb-1">Color</span>
-                <span className="text-white font-medium">{vestido.color}</span>
-              </div>
-              <div>
-                <span className="block text-white/40 uppercase tracking-widest mb-1">Silueta</span>
-                <span className="text-white font-medium">{vestido.silueta}</span>
-              </div>
-              <div>
-                <span className="block text-white/40 uppercase tracking-widest mb-1">Tejido</span>
-                <span className="text-white font-medium">{vestido.tejido}</span>
-              </div>
-            </div>
+
 
             <div className="pt-4 flex flex-col gap-3">
               <Link
@@ -228,14 +209,18 @@ function DressGridItem({ vestido, onClick }: { vestido: Vestido, onClick: () => 
       </div>
       
       {/* Catalog Info Overlay (must have pointer-events-none so swipe works on the container below) */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6 pointer-events-none">
-        <span className="text-brand-sand text-[10px] uppercase tracking-widest mb-1">{vestido.color}</span>
-        <h3 className="font-serif text-2xl text-white mb-1">{vestido.nombre}</h3>
-        <p className="text-white/80 text-sm">{new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(vestido.precio)}</p>
-        
-        <div className="mt-4 flex items-center text-xs uppercase tracking-widest font-semibold text-white group-hover:translate-x-2 transition-transform">
-          Ver Detalles 
-          <ArrowRight className="w-4 h-4 ml-2" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-80 group-hover:opacity-70 transition-opacity duration-700 pointer-events-none" />
+      
+      <div className="absolute inset-0 z-10 flex flex-col justify-end p-6 md:p-8 space-y-2 pointer-events-none">
+        <h3 className="font-serif text-2xl md:text-3xl text-white leading-tight">{vestido.nombre}</h3>
+        <p className="text-white/60 text-[10px] md:text-xs uppercase tracking-[0.2em] mb-4">
+          {vestido.color}
+        </p>
+        <div className="pt-2 w-auto">
+          <span className="inline-flex items-center justify-center gap-2.5 border border-white/10 border-t-white/20 border-l-white/20 border-b-white/5 border-r-white/5 text-white font-serif text-[10px] uppercase tracking-[0.28em] font-semibold bg-white/[0.04] backdrop-blur-[5px] px-6 py-3.5 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-[#f5f2eb]/90 group-hover:text-[#121212] group-hover:border-[#f5f2eb] rounded-[1px] w-auto text-center whitespace-nowrap">
+            Ver Detalles
+            <ArrowRight className="w-3 h-3 transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 flex-shrink-0" />
+          </span>
         </div>
       </div>
 
@@ -250,9 +235,23 @@ function DressGridItem({ vestido, onClick }: { vestido: Vestido, onClick: () => 
   );
 }
 
-export default function PortfolioClient({ data, generalImages }: { data: PortfolioData[], generalImages: string[] }) {
-  const [activeCategory, setActiveCategory] = useState<string>('fiesta');
+export default function PortfolioClient({ data, generalImages, hideFilters = false, forceCategory, layout = 'grid' }: { data: PortfolioData[], generalImages: string[], hideFilters?: boolean, forceCategory?: string, layout?: 'grid' | 'carousel' }) {
+  const [activeCategory, setActiveCategory] = useState<string>(forceCategory || 'fiesta');
   const [selectedVestido, setSelectedVestido] = useState<Vestido | null>(null);
+
+  // Hidden component to handle Next.js searchParams without de-opting the entire page
+  const SearchParamHandler = () => {
+    const searchParams = useSearchParams();
+    const vestidoId = searchParams.get('vestido');
+    
+    useEffect(() => {
+      if (vestidoId) {
+        const v = vestidosFiesta.find(v => v.id === vestidoId);
+        if (v) setSelectedVestido(v);
+      }
+    }, [vestidoId]);
+    return null;
+  };
 
   // Build the list of categories
   const categories: string[] = [];
@@ -284,43 +283,49 @@ export default function PortfolioClient({ data, generalImages }: { data: Portfol
 
   return (
     <div className="w-full relative pb-32">
+      <Suspense fallback={null}>
+        <SearchParamHandler />
+      </Suspense>
+
       {/* Highlights / Stories Filter Bar */}
-      <div className="border-b border-white/5 pb-4 pt-4 px-4 overflow-x-auto no-scrollbar">
-        <div className="flex gap-4 md:justify-center min-w-max">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className="flex flex-col items-center gap-2 group outline-none"
-            >
-              <div 
-                className={`w-16 h-16 md:w-20 md:h-20 rounded-full border-2 p-1 flex items-center justify-center transition-all duration-300 ${
-                  activeCategory === cat 
-                    ? 'border-brand-sand bg-brand-sand/10' 
-                    : 'border-white/20 group-hover:border-white/50'
-                }`}
+      {!hideFilters && (
+        <div className="border-b border-white/5 pb-4 pt-4 px-4 overflow-x-auto no-scrollbar">
+          <div className="flex gap-4 md:justify-center min-w-max">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className="flex flex-col items-center gap-2 group outline-none"
               >
-                <div className="w-full h-full rounded-full bg-white/5 flex items-center justify-center overflow-hidden relative">
-                  <span className={`font-serif text-xl ${activeCategory === cat ? 'text-brand-sand' : 'text-white'}`}>
-                    {cat.charAt(0).toUpperCase()}
-                  </span>
+                <div 
+                  className={`w-16 h-16 md:w-20 md:h-20 rounded-full border-2 p-1 flex items-center justify-center transition-all duration-300 ${
+                    activeCategory === cat 
+                      ? 'border-brand-sand bg-brand-sand/10' 
+                      : 'border-white/20 group-hover:border-white/50'
+                  }`}
+                >
+                  <div className="w-full h-full rounded-full bg-white/5 flex items-center justify-center overflow-hidden relative">
+                    <span className={`font-serif text-xl ${activeCategory === cat ? 'text-brand-sand' : 'text-white'}`}>
+                      {cat.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <span className={`text-[10px] uppercase tracking-widest font-semibold transition-colors duration-300 ${
-                activeCategory === cat ? 'text-brand-sand' : 'text-white/60'
-              }`}>
-                {formatName(cat)}
-              </span>
-            </button>
-          ))}
+                <span className={`text-[10px] uppercase tracking-widest font-semibold transition-colors duration-300 ${
+                  activeCategory === cat ? 'text-brand-sand' : 'text-white/60'
+                }`}>
+                  {formatName(cat)}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Grid / Fullwidth Mobile View */}
       <div className="max-w-7xl mx-auto px-0 md:px-6 mt-8">
         
         {/* IF E-COMMERCE CATALOG (FIESTA) */}
-        {activeCategory === 'fiesta' && (
+        {activeCategory === 'fiesta' && layout === 'grid' && (
           <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-0 sm:gap-6 space-y-0 sm:space-y-6">
             {vestidosFiesta.map((vestido) => (
               <DressGridItem 
@@ -329,6 +334,22 @@ export default function PortfolioClient({ data, generalImages }: { data: Portfol
                 onClick={() => setSelectedVestido(vestido)} 
               />
             ))}
+          </div>
+        )}
+
+        {/* IF CAROUSEL LAYOUT FOR FIESTA */}
+        {activeCategory === 'fiesta' && layout === 'carousel' && (
+          <div className="w-full overflow-x-auto no-scrollbar pb-8 snap-x snap-mandatory">
+            <div className="flex gap-4 md:gap-6 w-max">
+              {vestidosFiesta.map((vestido) => (
+                <div key={vestido.id} className="w-[280px] sm:w-[320px] md:w-[380px] snap-center flex-none">
+                  <DressGridItem 
+                    vestido={vestido} 
+                    onClick={() => setSelectedVestido(vestido)} 
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
