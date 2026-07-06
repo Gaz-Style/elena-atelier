@@ -4,7 +4,7 @@ import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { ArrowRight, CheckCircle2, Loader2, Mail, User, Phone, Sparkles, Heart } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { createCustomer } from '../admin/crm/actions';
+import { publicRegisterCustomer } from './actions';
 import BackLink from '@/components/BackLink';
 
 function RegistrationContent() {
@@ -20,7 +20,7 @@ function RegistrationContent() {
         const formData = new FormData(e.currentTarget);
         formData.append('marketing_opt_in', 'on');
         
-        const result = await createCustomer(formData);
+        const result = await publicRegisterCustomer(formData);
         
         setIsSaving(false);
         if (result.success) {

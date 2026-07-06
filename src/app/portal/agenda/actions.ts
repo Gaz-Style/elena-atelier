@@ -1,6 +1,5 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 const getAdminClient = () => {
@@ -11,6 +10,21 @@ const getAdminClient = () => {
 };
 
 import { enviar_correo_confirmacion } from '@/lib/agenda';
+import { cookies } from 'next/headers';
+import crypto from 'crypto';
+
+const SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY || 'default-secret';
+
+function verifyEmail(token: string) {
+    const parts = token.split('.');
+    if (parts.length !== 2) return null;
+    const [b64Email, signature] = parts;
+    const email = Buffer.from(b64Email, 'base64').toString('utf8');
+    const hmac = crypto.createHmac('sha256', SECRET);
+    hmac.update(email);
+    if (hmac.digest('hex') === signature) return email;
+    return null;
+}
 
 export async function bookCatalogConsultationAction(payload: {
     dateStr: string;
@@ -18,20 +32,24 @@ export async function bookCatalogConsultationAction(payload: {
 }) {
     try {
         const { dateStr, timeStr } = payload;
-        const supabaseAuth = await createClient();
         const supabaseEvent = getAdminClient();
         
-        // Ensure user is logged in
-        const { data: { user } } = await supabaseAuth.auth.getUser();
-        if (!user) {
-            return { success: false, error: 'Debe iniciar sesión para agendar.' };
+        const cookieStore = await cookies();
+        const token = cookieStore.get('agenda_access')?.value;
+        if (!token) {
+            return { success: false, error: 'No tienes una sesión temporal válida. Por favor regístrate nuevamente.' };
+        }
+
+        const email = verifyEmail(token);
+        if (!email) {
+            return { success: false, error: 'El acceso ha expirado o es inválido. Por favor regístrate nuevamente.' };
         }
 
         // Get customer data
         const { data: customer } = await supabaseEvent
             .from('customers')
             .select('full_name, phone, email')
-            .eq('id', user.id)
+            .eq('email', email)
             .single();
 
         if (!customer) {
