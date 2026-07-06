@@ -73,8 +73,8 @@ export default function Navbar() {
                                 {link.label}
                             </Link>
                         ))}
-                        <Link href="/registro" className="glass-btn px-6 py-2.5 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.2em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[500ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] rounded-[1px] whitespace-nowrap">
-                            Únete
+                        <Link href="/registro?redirect=/portal/agenda" className="glass-btn px-6 py-2.5 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.2em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[500ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] rounded-[1px] whitespace-nowrap">
+                            Agenda
                         </Link>
                     </div>
  
@@ -109,11 +109,11 @@ export default function Navbar() {
                             </Link>
                         ))}
                         <Link
-                            href="/registro"
+                            href="/registro?redirect=/portal/agenda"
                             onClick={() => setIsOpen(false)}
                             className="glass-btn block w-full py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.2em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[500ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] rounded-[1px] text-center whitespace-nowrap"
                         >
-                            Únete
+                            Agenda
                         </Link>
                     </motion.div>
                 )}
