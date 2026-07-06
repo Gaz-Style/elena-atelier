@@ -99,12 +99,12 @@ export default function PremiumCalendar({ onConfirm, isConfirming = false }: Pre
                     </div>
                 ) : (
                     <div>
-                        <div className="grid grid-cols-7 gap-2 mb-4 text-center text-[10px] uppercase tracking-widest font-bold text-white/40">
+                        <div className="grid grid-cols-7 gap-1 md:gap-2 mb-4 text-center text-[10px] md:text-xs uppercase tracking-widest font-bold text-white/50">
                             <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
                         </div>
-                        <div className="grid grid-cols-7 gap-2">
+                        <div className="grid grid-cols-7 gap-1 md:gap-2">
                             {calendarGrid.map((day, idx) => {
-                                if (!day) return <div key={`empty-${idx}`} className="h-12" />;
+                                if (!day) return <div key={`empty-${idx}`} className="aspect-square" />;
                                 
                                 const dateStr = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
                                 const dayData = monthData.find(d => d.date === dateStr);
@@ -124,17 +124,16 @@ export default function PremiumCalendar({ onConfirm, isConfirming = false }: Pre
                                             setSelectedTime('');
                                         }}
                                         className={`
-                                            relative h-14 border flex flex-col items-center justify-center transition-all duration-300 rounded-sm
-                                            ${isSelected ? 'border-brand-sand bg-brand-sand/10 text-brand-sand' : ''}
-                                            ${isAvailable && !isSelected ? 'border-white/10 hover:border-brand-sand/50 text-white hover:bg-white/5 cursor-pointer' : ''}
-                                            ${(isClosed || isFull) ? 'border-transparent text-white/20 cursor-not-allowed bg-black/40' : ''}
+                                            relative aspect-square border flex flex-col items-center justify-center transition-all duration-300 rounded-sm
+                                            ${isSelected ? 'border-brand-sand bg-brand-sand text-[#121212] font-bold shadow-[0_0_15px_rgba(193,127,95,0.4)]' : ''}
+                                            ${isAvailable && !isSelected ? 'border-white/15 text-white hover:border-brand-sand/50 hover:bg-white/5 cursor-pointer' : ''}
+                                            ${(isClosed || isFull) ? 'border-transparent text-white/30 cursor-not-allowed' : ''}
                                         `}
                                     >
-                                        <span className={`font-serif text-lg ${(isClosed || isFull) ? 'line-through decoration-white/20 text-white/20' : ''}`}>
+                                        <span className={`font-serif text-sm md:text-lg ${(isClosed || isFull) ? 'opacity-40' : ''}`}>
                                             {day}
                                         </span>
-                                        {isFull && <span className="absolute bottom-1 text-[8px] uppercase tracking-tighter text-red-900 font-bold bg-red-900/20 px-1 rounded-sm">Lleno</span>}
-                                        {isAvailable && <span className="absolute bottom-2 w-1 h-1 bg-brand-sand rounded-full"></span>}
+                                        {isAvailable && !isSelected && <span className="absolute bottom-1 md:bottom-2 w-1 h-1 bg-brand-sand rounded-full"></span>}
                                     </button>
                                 );
                             })}
