@@ -112,10 +112,11 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
           onTouchEnd={handleTouchEndCombined}
         >
           <Image
+            key={current}
             src={allImages[current]}
             alt={vestido.nombre}
             fill
-            className="object-contain pointer-events-none"
+            className="object-contain pointer-events-none animate-in fade-in duration-700 ease-in-out"
             unoptimized
           />
 
