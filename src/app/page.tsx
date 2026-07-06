@@ -10,38 +10,47 @@ export default function Home() {
       <Hero />
 
       {/* Gateway Gala & Graduacion Section */}
-      <section className="py-16 md:py-24 px-6 bg-brand-charcoal relative z-10 border-t border-white/10 overflow-hidden">
+      <section className="py-16 md:py-24 px-6 bg-transparent relative z-10 border-t border-white/10 overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          <Link 
-            href="/graduacion" 
-            className="group relative w-full flex flex-col justify-end min-h-[500px] md:min-h-[600px] overflow-hidden rounded-sm p-8 md:p-12 shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700"
-          >
-            <Image 
-              src="/trabajos/fiesta/1. Clara Celeste  Azul Royal Frente.jpg" 
-              alt="Gala & Graduación" 
-              fill
-              className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]" 
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-95 group-hover:opacity-90 transition-opacity duration-700" />
-            
-            <div className="relative z-10 flex flex-col items-start w-full space-y-4 md:space-y-6">
-              <div className="space-y-1 md:space-y-2">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-20 items-center">
+            {/* TEXT SIDE */}
+            <div className="lg:col-span-6 space-y-6 lg:space-y-8 text-center lg:text-left order-2 lg:order-1">
+              <div className="space-y-2 lg:space-y-3">
                 <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-sand block">Temporada 2026</span>
-                <h2 className="font-serif text-4xl md:text-6xl text-white leading-tight">
-                  Gala & <span className="italic text-brand-sand">Graduación</span>
+                <h2 className="font-serif text-4xl md:text-6xl lg:text-7xl text-white leading-[1.1]">
+                  Gala & <br className="hidden lg:block"/><span className="italic text-brand-sand">Graduación</span>
                 </h2>
               </div>
-              <p className="text-white/70 text-sm max-w-lg leading-relaxed">
-                Alta costura para una noche irrepetible. <strong className="text-white font-medium">Exclusividad absoluta por colegio.</strong>
-              </p>
-              <div className="pt-2 md:pt-4 w-full sm:w-auto">
-                <span className="inline-flex items-center justify-center gap-3 border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-serif text-[11px] uppercase tracking-[0.28em] font-semibold bg-white/[0.08] backdrop-blur-[10px] px-8 py-4 md:px-10 md:py-5 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-[#f5f2eb]/90 group-hover:text-[#121212] group-hover:border-[#f5f2eb] group-hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] rounded-[1px] w-full sm:w-auto text-center whitespace-nowrap">
+              <div className="space-y-4 text-white/80 text-sm md:text-base leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                <p>
+                  Alta costura diseñada para una noche irrepetible. Cada pieza de nuestra colección de graduación es un testimonio de artesanía meticulosa y diseño contemporáneo.
+                </p>
+                <p className="font-medium text-white">
+                  Garantizamos exclusividad absoluta por colegio: tu vestido será único en tu fiesta.
+                </p>
+              </div>
+              <div className="pt-4 lg:pt-6 w-full sm:w-auto flex justify-center lg:justify-start">
+                <Link 
+                  href="/graduacion" 
+                  className="inline-flex items-center justify-center gap-3 border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-serif text-[11px] uppercase tracking-[0.28em] font-semibold bg-white/[0.08] backdrop-blur-[10px] px-8 py-4 md:px-10 md:py-5 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] rounded-[1px] w-full sm:w-auto text-center whitespace-nowrap"
+                >
                   Ver Catálogo Completo
                   <ArrowRight className="w-3.5 h-3.5 transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 flex-shrink-0" />
-                </span>
+                </Link>
               </div>
             </div>
-          </Link>
+
+            {/* IMAGE SIDE */}
+            <Link href="/graduacion" className="group lg:col-span-6 relative rounded-sm overflow-hidden shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700 min-h-[500px] lg:min-h-[750px] order-1 lg:order-2 block">
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-700 z-10 pointer-events-none" />
+              <Image 
+                src="/trabajos/fiesta/1. Clara Celeste  Azul Royal Frente.jpg" 
+                alt="Gala & Graduación" 
+                fill
+                className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]" 
+              />
+            </Link>
+          </div>
         </div>
       </section>
 
