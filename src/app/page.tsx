@@ -23,7 +23,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-12 gap-10 lg:gap-20 items-center">
             {/* TEXT SIDE */}
-            <div className="lg:col-span-6 space-y-6 lg:space-y-8 text-center lg:text-left order-2 lg:order-1">
+            <div className="lg:col-span-7 space-y-6 lg:space-y-8 text-center lg:text-left order-2 lg:order-1">
               <div className="space-y-2 lg:space-y-3">
                 <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-sand block">Temporada 2026</span>
                 <h2 className="font-serif text-4xl md:text-6xl lg:text-7xl text-white leading-[1.1]">
@@ -50,7 +50,7 @@ export default function Home() {
             </div>
 
             {/* IMAGE SIDE */}
-            <Link href="/graduacion" className="group lg:col-span-6 relative rounded-sm overflow-hidden shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700 min-h-[500px] lg:min-h-[750px] order-1 lg:order-2 block">
+            <Link href="/graduacion" className="group lg:col-span-5 relative rounded-sm overflow-hidden shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700 aspect-[3/4.5] order-1 lg:order-2 block">
               <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-700 z-10 pointer-events-none" />
               <div className="absolute inset-0 w-full h-full group-hover:scale-[1.03] transition-transform duration-[2000ms] ease-out">
                 <ImageRotator images={fiestaCarouselImages} interval={5000} />
