@@ -300,6 +300,7 @@ export const vestidosFiesta: Vestido[] = [
     imagenEspalda: `${BASE}/23. Aliana Terracota Espalda.png`,
     precio: 450000,
   },
+  /*
   {
     id: 24,
     nombre: 'Amanda Dupont',
@@ -324,6 +325,7 @@ export const vestidosFiesta: Vestido[] = [
     imagenEspalda: `${BASE}/4. Rebecca Verde Sage Espalda.png`,
     precio: 450000,
   },
+  */
   {
     id: 26,
     nombre: 'Valentina',
