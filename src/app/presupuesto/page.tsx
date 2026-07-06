@@ -319,6 +319,11 @@ function BudgetContent() {
                                                 <td className="py-6">
                                                     <p className="font-serif text-lg text-white">{item.name}</p>
                                                     <p className="text-[10px] text-white/40 mt-1 uppercase tracking-widest font-bold">{item.category}</p>
+                                                    {item.notes && (
+                                                        <p className="text-xs text-white/70 mt-2 whitespace-pre-line border-l border-brand-sand/30 pl-3 italic">
+                                                            {item.notes}
+                                                        </p>
+                                                    )}
                                                     {item.costBreakdown && (
                                                         <div className="mt-4 flex gap-2">
                                                             <span className="inline-flex items-center gap-1 bg-brand-sand/10 text-brand-sand px-2.5 py-1 rounded-sm text-[8px] font-bold uppercase tracking-tight border border-brand-sand/10">
