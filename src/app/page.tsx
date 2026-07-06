@@ -19,7 +19,7 @@ export default function Home() {
       <Hero />
 
       {/* Gateway Gala & Graduacion Section */}
-      <section className="py-16 md:py-24 px-6 bg-transparent relative z-10 border-t border-white/10 overflow-hidden">
+      <section className="py-16 md:py-24 px-6 bg-transparent relative z-10 overflow-hidden">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
             {/* TEXT SIDE */}
@@ -65,7 +65,7 @@ export default function Home() {
 
 
       {/* Services Section (Visual Cards Funnel) */}
-      <section className="py-16 md:py-28 px-6 bg-transparent relative z-10 border-t border-white/5">
+      <section className="py-16 md:py-28 px-6 bg-transparent relative z-10">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16 md:mb-24">
             <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-4">Estructura Creativa</span>
