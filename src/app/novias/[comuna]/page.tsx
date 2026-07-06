@@ -6,6 +6,13 @@ function formatTitle(slug: string) {
     if (slug === 'lo-barnechea') return 'Lo Barnechea';
     if (slug === 'las-condes') return 'Las Condes';
     if (slug === 'chicureo') return 'Colina / Chicureo';
+    if (slug === 'la-reina') return 'La Reina';
+    if (slug === 'nunoa') return 'Ñuñoa';
+    if (slug === 'maipu') return 'Maipú';
+    if (slug === 'la-florida') return 'La Florida';
+    if (slug === 'penalolen') return 'Peñalolén';
+    if (slug === 'san-miguel') return 'San Miguel';
+    if (slug === 'huechuraba') return 'Huechuraba';
     return slug.charAt(0).toUpperCase() + slug.slice(1);
 }
 

@@ -136,12 +136,20 @@ export default function GraduationLandingPage() {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                         {[
                             { name: 'Vitacura', path: 'vitacura' },
                             { name: 'Las Condes', path: 'las-condes' },
                             { name: 'Lo Barnechea', path: 'lo-barnechea' },
-                            { name: 'Colina / Chicureo', path: 'chicureo' }
+                            { name: 'Colina / Chicureo', path: 'chicureo' },
+                            { name: 'Providencia', path: 'providencia' },
+                            { name: 'La Reina', path: 'la-reina' },
+                            { name: 'Ñuñoa', path: 'nunoa' },
+                            { name: 'Huechuraba', path: 'huechuraba' },
+                            { name: 'Maipú', path: 'maipu' },
+                            { name: 'La Florida', path: 'la-florida' },
+                            { name: 'Peñalolén', path: 'penalolen' },
+                            { name: 'San Miguel', path: 'san-miguel' }
                         ].map((c) => (
                             <Link 
                                 key={c.path}
