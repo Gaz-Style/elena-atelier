@@ -260,18 +260,6 @@ export default function PortfolioClient({ data, generalImages }: { data: Portfol
       {selectedVestido && (
         <Lightbox vestido={selectedVestido} onClose={() => setSelectedVestido(null)} />
       )}
-
-      {/* Sticky Bottom CTA for Mobile-First Funnel (Only visible when NO lightbox is open) */}
-      {!selectedVestido && (
-        <div className="fixed bottom-0 left-0 w-full p-6 md:p-8 z-30 pointer-events-none flex justify-center">
-          <Link 
-            href="/registro?redirect=/portal/agenda" 
-            className="pointer-events-auto glass-btn px-10 py-5 border border-brand-sand/30 bg-black/60 backdrop-blur-2xl text-brand-sand font-sans text-xs md:text-sm uppercase tracking-[0.25em] font-bold shadow-[0_10px_40px_rgba(0,0,0,0.5)] hover:bg-brand-sand hover:text-black hover:scale-105 transition-all duration-300 rounded-[1px] w-full max-w-sm text-center"
-          >
-            AGENDAR CITA
-          </Link>
-        </div>
-      )}
     </div>
   );
 }
