@@ -186,7 +186,7 @@ export async function sendBudgetEmailAction(payload: {
         <!-- Botón de Pago -->
         <div style="margin: 30px 0 20px 0; text-align: center;">
           <a href="${budgetLink}" target="_blank" style="display: block; background-color: #C17F5F; color: #FFFFFF !important; text-decoration: none; padding: 15px 24px; font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 2.5px; border-radius: 2px; border: 1px solid #C17F5F; font-family: 'Inter', sans-serif; box-shadow: 0 4px 12px rgba(193, 127, 95, 0.25);">
-            REVISAR Y PAGAR EN LÍNEA
+            REVISAR Y AGENDAR
           </a>
         </div>
       </div>

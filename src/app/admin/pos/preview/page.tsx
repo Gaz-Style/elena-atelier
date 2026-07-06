@@ -197,11 +197,11 @@ export default function PreviewPage() {
         </div>
 
         <p class="lead-text" style="margin-bottom: 10px;">
-            Para revisar el detalle del servicio, dejar comentarios o **aprobar y pagar este presupuesto en línea**, haz clic en el siguiente enlace:
+            Para revisar el detalle del servicio, dejar comentarios o **aprobar y agendar tu cita**, haz clic en el siguiente enlace:
         </p>
 
         <div class="button-container">
-            <a href="${budgetLink}" class="btn" style="color: #FFFFFF;" target="_blank">Revisar y Pagar Presupuesto</a>
+            <a href="${budgetLink}" class="btn" style="color: #FFFFFF;" target="_blank">Revisar y Agendar Cita</a>
         </div>
 
         <p style="font-size: 11px; color: #8A857D; text-align: center; margin-top: 10px; font-weight: 300;">
