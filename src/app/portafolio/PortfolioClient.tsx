@@ -202,14 +202,30 @@ export default function PortfolioClient({ data, generalImages }: { data: Portfol
                 onClick={() => setSelectedVestido(vestido)}
                 className="break-inside-avoid relative group overflow-hidden sm:rounded-sm border-b sm:border border-white/5 sm:border-white/10 sm:shadow-sm sm:hover:shadow-[0_0_24px_rgba(255,255,255,0.06)] hover:border-brand-sand/30 transition-all duration-500 mb-1 sm:mb-0 cursor-pointer"
               >
-                <Image 
-                  src={vestido.imagenFrente} 
-                  alt={vestido.nombre}
-                  width={600} 
-                  height={800} 
-                  className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"
-                  unoptimized
-                />
+                <div className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar w-full h-full relative">
+                  <div className="w-full flex-none snap-center relative">
+                    <Image 
+                      src={vestido.imagenFrente} 
+                      alt={vestido.nombre + " frente"}
+                      width={600} 
+                      height={800} 
+                      className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
+                      unoptimized
+                    />
+                  </div>
+                  {vestido.imagenEspalda && vestido.imagenEspalda !== vestido.imagenFrente && (
+                    <div className="w-full flex-none snap-center relative">
+                      <Image 
+                        src={vestido.imagenEspalda} 
+                        alt={vestido.nombre + " espalda"}
+                        width={600} 
+                        height={800} 
+                        className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
+                        unoptimized
+                      />
+                    </div>
+                  )}
+                </div>
                 
                 {/* Catalog Info Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6">
