@@ -111,14 +111,16 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
           onTouchMove={handleTouchMoveCombined}
           onTouchEnd={handleTouchEndCombined}
         >
-          <Image
-            key={current}
-            src={allImages[current]}
-            alt={vestido.nombre}
-            fill
-            className="object-contain pointer-events-none animate-in fade-in duration-700 ease-in-out"
-            unoptimized
-          />
+          {allImages.map((src, index) => (
+            <Image
+              key={src}
+              src={src}
+              alt={`${vestido.nombre} - vista ${index + 1}`}
+              fill
+              className={`object-contain pointer-events-none transition-opacity duration-[800ms] ease-[cubic-bezier(0.25,0.1,0.25,1.0)] absolute inset-0 ${index === current ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+              unoptimized
+            />
+          ))}
 
           {/* Instagram-style dots */}
           {allImages.length > 1 && (
