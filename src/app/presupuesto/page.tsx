@@ -177,8 +177,12 @@ function BudgetContent() {
     }
 
     const processPayment = async (method: 'transbank' | 'mercadopago' | 'presencial') => {
-        setPaymentMethod(method);
-        setStatus('paying');
+        if (method === 'presencial') {
+            setIsConfirmingBooking(true);
+        } else {
+            setPaymentMethod(method);
+            setStatus('paying');
+        }
         try {
             const budgetId = searchParams.get('id') || '';
             const orderId = Date.now().toString();
@@ -220,7 +224,10 @@ function BudgetContent() {
                 throw new Error(res.error || 'Error al confirmar la cita');
             }
 
-            if (method === 'transbank') {
+            if (method === 'presencial') {
+                setPaymentMethod('presencial');
+                setStatus('paying');
+            } else if (method === 'transbank') {
                 const sessionId = `session_web_${orderId}`;
                 const callbackUrl = `${window.location.origin}/presupuesto/pago-exitoso`;
                 
@@ -242,7 +249,11 @@ function BudgetContent() {
         } catch (err: any) {
             console.error('Error confirming booking:', err);
             alert(err.message || 'Ocurrió un error al procesar el pago. Por favor reintente.');
-            setStatus('accepted');
+            if (method !== 'presencial') {
+                setStatus('accepted');
+            }
+        } finally {
+            setIsConfirmingBooking(false);
         }
     };
 
@@ -495,20 +506,24 @@ function BudgetContent() {
 
                                             <div className="pt-8 border-t border-white/10">
                                                 <button 
-                                                    disabled={!selectedTime}
-                                                    onClick={() => setStatus('accepted')}
+                                                    disabled={!selectedTime || isConfirmingBooking}
+                                                    onClick={() => processPayment('presencial')}
                                                     className={`
                                                         w-full flex items-center justify-center gap-3 py-5 text-xs font-bold uppercase tracking-[0.2em] transition-all duration-500
-                                                        ${!selectedTime
+                                                        ${(!selectedTime || isConfirmingBooking)
                                                             ? 'bg-white/5 text-white/30 border border-white/10 cursor-not-allowed'
                                                             : 'bg-brand-sand text-[#121212] hover:bg-white hover:text-black shadow-[0_0_30px_rgba(193,127,95,0.4)] cursor-pointer'
                                                         }
                                                     `}
                                                 >
-                                                    <CheckCircle className="w-5 h-5" /> Confirmar Horario
+                                                    {isConfirmingBooking ? (
+                                                        <><Loader2 className="w-5 h-5 animate-spin" /> Confirmando Cita...</>
+                                                    ) : (
+                                                        <><CheckCircle className="w-5 h-5" /> Confirmar Cita</>
+                                                    )}
                                                 </button>
                                                 <button 
-                                                    onClick={() => setStatus('accepted')} 
+                                                    onClick={() => setStatus('viewing')} 
                                                     className="w-full mt-6 text-[10px] uppercase tracking-widest font-bold text-white/40 hover:text-white cursor-pointer transition-colors"
                                                 >
                                                     Cancelar y volver
