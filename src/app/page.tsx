@@ -3,6 +3,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { vestidosFiesta } from "@/lib/fiesta-data";
+import ImageRotator from "@/components/ImageRotator";
+
+const fiestaCarouselImages = [
+  "/trabajos/fiesta/1. Clara Celeste  Azul Royal Frente.jpg",
+  "/trabajos/fiesta/4. Rebecca Verde Sage.jpg",
+  "/trabajos/fiesta/7. Estrella Plata.jpg",
+  "/trabajos/fiesta/16. Camille Granate..jpg",
+  "/trabajos/fiesta/23. Aliana Terracota.jpg"
+];
 
 export default function Home() {
   return (
@@ -43,12 +52,9 @@ export default function Home() {
             {/* IMAGE SIDE */}
             <Link href="/graduacion" className="group lg:col-span-6 relative rounded-sm overflow-hidden shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700 min-h-[500px] lg:min-h-[750px] order-1 lg:order-2 block">
               <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-700 z-10 pointer-events-none" />
-              <Image 
-                src="/trabajos/fiesta/1. Clara Celeste  Azul Royal Frente.jpg" 
-                alt="Gala & Graduación" 
-                fill
-                className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]" 
-              />
+              <div className="absolute inset-0 w-full h-full group-hover:scale-[1.03] transition-transform duration-[2000ms] ease-out">
+                <ImageRotator images={fiestaCarouselImages} interval={5000} />
+              </div>
             </Link>
           </div>
         </div>
