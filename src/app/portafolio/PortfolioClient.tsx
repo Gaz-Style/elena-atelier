@@ -118,7 +118,6 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
               alt={`${vestido.nombre} - vista ${index + 1}`}
               fill
               className={`object-contain pointer-events-none transition-opacity duration-[800ms] ease-[cubic-bezier(0.25,0.1,0.25,1.0)] absolute inset-0 ${index === current ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
-              unoptimized
             />
           ))}
 
@@ -213,7 +212,6 @@ function DressGridItem({ vestido, onClick }: { vestido: Vestido, onClick: () => 
             width={600} 
             height={800} 
             className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
-            unoptimized
           />
         </div>
         {hasBack && (
@@ -224,7 +222,6 @@ function DressGridItem({ vestido, onClick }: { vestido: Vestido, onClick: () => 
               width={600} 
               height={800} 
               className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
-              unoptimized
             />
           </div>
         )}
@@ -349,7 +346,6 @@ export default function PortfolioClient({ data, generalImages }: { data: Portfol
                   width={600} 
                   height={800} 
                   className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"
-                  unoptimized
                 />
               </div>
             ))}
