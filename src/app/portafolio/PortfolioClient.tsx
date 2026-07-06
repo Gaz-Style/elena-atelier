@@ -17,9 +17,26 @@ interface PortfolioData {
 function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void }) {
   const allImages = [vestido.imagenFrente, vestido.imagenEspalda, ...(vestido.imagenesExtra || [])].filter(Boolean);
   const [current, setCurrent] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Swipe state
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   const prev = () => setCurrent((c) => (c === 0 ? allImages.length - 1 : c - 1));
   const next = () => setCurrent((c) => (c === allImages.length - 1 ? 0 : c + 1));
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  const handleTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    if (distance > 50) next();
+    if (distance < -50) prev();
+  };
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -53,12 +70,18 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
         </button>
 
         {/* IMAGEN */}
-        <div className="relative w-full h-[60vh] md:h-[80vh] md:flex-1 bg-[#121212] md:rounded-sm overflow-hidden flex items-center justify-center">
+        <div 
+          className={`relative overflow-hidden flex items-center justify-center transition-all duration-500 cursor-zoom-in ${isFullscreen ? 'fixed inset-0 z-[10000] bg-black w-full h-full cursor-zoom-out' : 'w-full h-[60vh] md:h-[80vh] md:flex-1 bg-[#121212] md:rounded-sm'}`}
+          onClick={() => setIsFullscreen(!isFullscreen)}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <Image
             src={allImages[current]}
             alt={vestido.nombre}
             fill
-            className="object-contain"
+            className="object-contain pointer-events-none"
             unoptimized
           />
           {allImages.length > 1 && (
@@ -80,7 +103,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
         </div>
 
         {/* INFO DEL VESTIDO */}
-        <div className="flex-1 text-white flex flex-col justify-center p-6 md:p-0 md:max-w-sm">
+        <div className={`flex-1 text-white flex flex-col justify-center p-6 md:p-0 md:max-w-sm transition-opacity duration-300 ${isFullscreen ? 'hidden' : 'flex'}`}>
           <div className="space-y-6">
             <div>
               <span className="text-[10px] uppercase tracking-widest text-brand-sand block mb-2">Modelo #{vestido.id}</span>
