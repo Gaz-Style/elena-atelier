@@ -23,10 +23,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           {/* HEADER OUTSIDE */}
           <div className="text-center mb-10 md:mb-16">
-            <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-4">Temporada 2026</span>
+            <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-4">Gala & Graduación</span>
             <h2 className="font-serif text-4xl md:text-6xl text-white tracking-tight uppercase">
-              Gala & <br className="md:hidden" />
-              <span className="italic text-brand-sand font-serif normal-case tracking-normal">Graduación</span>
+              Vestidos <br className="md:hidden" />
+              <span className="italic text-brand-sand font-serif normal-case tracking-normal">de Fiesta</span>
             </h2>
           </div>
 
