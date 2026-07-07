@@ -56,10 +56,10 @@ export default function GraduationLandingPage() {
         <div className="min-h-screen bg-brand-charcoal text-white font-sans selection:bg-[#cda45e] selection:text-black">
             
             {/* Título SEO. Completamente integrado pero sin ser invasivo visualmente. */}
-            <div className="pt-24 pb-8">
-                <div className="text-center px-6 mb-4">
-                    <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-3 animate-fade-in">Temporada de Gala 2026</span>
-                    <h1 className="font-serif text-4xl md:text-6xl font-bold uppercase tracking-tight text-white mb-4">
+            <div className="pt-16 md:pt-24 pb-2 md:pb-6">
+                <div className="text-center px-6">
+                    <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-2 animate-fade-in">Temporada de Gala 2026</span>
+                    <h1 className="font-serif text-4xl md:text-6xl font-bold uppercase tracking-tight text-white">
                         Vestidos de Graduación <br className="hidden md:block" />
                         <span className="italic text-brand-sand lowercase">y fiesta a medida</span>
                     </h1>
