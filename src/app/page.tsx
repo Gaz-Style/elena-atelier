@@ -93,7 +93,7 @@ export default function Home() {
               <div className="relative z-10 flex flex-col items-start w-full space-y-4">
                 <h3 className="font-serif text-3xl md:text-4xl text-white leading-tight">Alta Costura Novias</h3>
                 <p className="text-white/70 text-sm max-w-lg leading-relaxed">
-                  Vestidos de novia a medida. Diseño de alta costura creado bajo una experiencia íntima y profundamente personalizada para el día de tu matrimonio.
+                  Vestidos de novia a medida. Diseño de alta costura creado bajo una experiencia íntima y profundamente personalizada.
                 </p>
                 <div className="pt-2 w-full sm:w-auto">
                   <span className="inline-flex items-center justify-center gap-3 border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-serif text-[11px] uppercase tracking-[0.28em] font-semibold bg-white/[0.08] backdrop-blur-[10px] px-8 py-4 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-[#f5f2eb]/90 group-hover:text-[#121212] group-hover:border-[#f5f2eb] group-hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] rounded-[1px] w-full sm:w-auto text-center whitespace-nowrap">
