@@ -74,7 +74,7 @@ export default function PortalColegiosPage() {
                         </div>
                         <div className="lg:col-span-5 relative">
                             {/* Visual representation card */}
-                            <div className="aspect-[3/4] bg-[url('https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=1000')] bg-cover bg-center border border-white/10 p-6 flex flex-col justify-end shadow-2xl group overflow-hidden">
+                            <div className="aspect-[3/4] bg-[url('/trabajos/fiesta/15.%20Julianna%20Magenta.jpg')] bg-cover bg-center border border-white/10 p-6 flex flex-col justify-end shadow-2xl group overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-0"></div>
                                 <div className="relative z-10 space-y-2">
                                     <span className="text-[#cda45e] text-[9px] uppercase tracking-widest font-bold">Gala Miss Mundo</span>
