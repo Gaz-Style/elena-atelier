@@ -125,49 +125,6 @@ export default function PortalColegiosPage() {
                 </div>
             </section>
 
-            {/* Target Communes and Booking Widget Hook */}
-            <section id="comunas" className="py-24 bg-[#121212]">
-                <div className="max-w-4xl mx-auto px-6 text-center space-y-12">
-                    <div className="space-y-4">
-                        <span className="text-[#cda45e] text-[10px] uppercase tracking-widest font-bold">Atelier & Citas</span>
-                        <h2 className="font-serif text-3xl md:text-5xl text-white">Reserva tu Cita de Diseño</h2>
-                        <p className="text-white/60 text-xs md:text-sm max-w-xl mx-auto">
-                            Atendemos exclusivamente con cita previa en nuestro Atelier de Vitacura. Selecciona tu comuna de procedencia para coordinar tu visita:
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        {[
-                            { name: 'Vitacura', path: 'vitacura' },
-                            { name: 'Las Condes', path: 'las-condes' },
-                            { name: 'Lo Barnechea', path: 'lo-barnechea' },
-                            { name: 'Colina / Chicureo', path: 'chicureo' },
-                            { name: 'Providencia', path: 'providencia' },
-                            { name: 'La Reina', path: 'la-reina' },
-                            { name: 'Ñuñoa', path: 'nunoa' },
-                            { name: 'Huechuraba', path: 'huechuraba' },
-                            { name: 'Maipú', path: 'maipu' },
-                            { name: 'La Florida', path: 'la-florida' },
-                            { name: 'Peñalolén', path: 'penalolen' },
-                            { name: 'San Miguel', path: 'san-miguel' }
-                        ].map((c) => (
-                            <Link 
-                                key={c.path}
-                                href={`/graduacion/${c.path}`} 
-                                className="group p-6 bg-[#0d0d0d] border border-white/5 hover:border-[#cda45e] transition-all duration-300 flex flex-col items-center justify-center gap-2 rounded-sm"
-                            >
-                                <span className="text-xs uppercase tracking-widest font-bold text-white group-hover:text-[#cda45e] transition-colors">{c.name}</span>
-                                <ArrowRight className="w-4 h-4 text-white/30 group-hover:translate-x-1 transition-all group-hover:text-[#cda45e]" />
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Footer */}
-            <footer className="py-12 border-t border-white/5 text-center text-white/40 text-xs bg-[#0d0d0d] tracking-widest uppercase">
-                Elena La Costurera &copy; 2026 - Alta Costura a Medida y Upcycling
-            </footer>
         </div>
     );
 }
