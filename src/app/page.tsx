@@ -69,10 +69,10 @@ export default function Home() {
       <section className="py-16 md:py-28 px-6 bg-transparent relative z-10">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16 md:mb-24">
-            <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-4">Estructura Creativa</span>
+            <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-4">Atelier Elena</span>
             <h2 className="font-serif text-4xl md:text-6xl text-white tracking-tight uppercase">
-              Tres formas <br className="md:hidden" />
-              <span className="italic text-brand-sand font-serif normal-case tracking-normal">de habitar ELENA</span>
+              Novias & <br className="md:hidden" />
+              <span className="italic text-brand-sand font-serif normal-case tracking-normal">Alta Costura</span>
             </h2>
           </div>
 
