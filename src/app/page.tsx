@@ -23,7 +23,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           {/* HEADER OUTSIDE */}
           <div className="text-center mb-10 md:mb-16">
-            <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-4">Gala & Graduación</span>
+            <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-4">Temporada 2026</span>
             <h2 className="font-serif text-4xl md:text-6xl text-white tracking-tight uppercase">
               Vestidos <br className="md:hidden" />
               <span className="italic text-brand-sand font-serif normal-case tracking-normal">de Fiesta</span>
@@ -45,7 +45,7 @@ export default function Home() {
             
             {/* INNER TEXT & CTA OVERLAY */}
             <div className="relative z-10 flex flex-col items-start w-full space-y-4 max-w-2xl">
-              <h3 className="font-serif text-3xl md:text-4xl text-white leading-tight">Vestidos de Fiesta y Graduación</h3>
+              <h3 className="font-serif text-3xl md:text-4xl text-white leading-tight">Gala & Graduación</h3>
               <p className="text-white/70 text-sm md:text-base leading-relaxed">
                 Alta costura y diseños exclusivos para una noche irrepetible.
               </p>
