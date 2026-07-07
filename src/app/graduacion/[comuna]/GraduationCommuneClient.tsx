@@ -322,7 +322,7 @@ export default function GraduationCommuneClient({ comuna }: GraduationCommuneCli
                     <div className="w-8 h-8 rounded-full border border-[#0c0c0c] bg-[#b8a07c]" />
                     <div className="w-8 h-8 rounded-full border border-[#0c0c0c] bg-[#f7f2eb]" />
                   </div>
-                  <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Muestrario físico disponible en Showroom</span>
+                  <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Muestrario físico disponible en Atelier</span>
                 </div>
               </div>
             </div>
@@ -426,7 +426,7 @@ export default function GraduationCommuneClient({ comuna }: GraduationCommuneCli
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {[
-              { num: '01', title: 'Cita & Concepto', text: 'Conversamos sobre tu estilo, silueta ideal y referencias en nuestro Showroom de Vitacura.' },
+              { num: '01', title: 'Cita & Concepto', text: 'Conversamos sobre tu estilo, silueta ideal y referencias en nuestro Atelier de Vitacura.' },
               { num: '02', title: 'Telas & Medidas', text: 'Elegimos telas nobles del muestrario y tomamos más de 15 puntos métricos de tu cuerpo.' },
               { num: '03', title: 'El Hilván de Calce', text: 'Creamos una prueba intermedia para esculpir el entalle sobre ti y definir escotes y largos.' },
               { num: '04', title: 'Entrega de Alta Gala', text: 'Últimos retoques y planchado artesanal. Te llevas una pieza exclusiva lista para destacar.' }

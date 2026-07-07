@@ -107,10 +107,10 @@ export default function BridalLandingPage() {
             <section id="comunas" className="py-24 bg-[#121212]">
                 <div className="max-w-4xl mx-auto px-6 text-center space-y-12">
                     <div className="space-y-4">
-                        <span className="text-[#cda45e] text-[10px] uppercase tracking-widest font-bold">Showroom & Citas</span>
+                        <span className="text-[#cda45e] text-[10px] uppercase tracking-widest font-bold">Atelier & Citas</span>
                         <h2 className="font-serif text-3xl md:text-5xl text-white">Agenda tu Asesoría de Novia</h2>
                         <p className="text-white/60 text-xs md:text-sm max-w-xl mx-auto">
-                            Coordinamos citas de calce y diseño exclusivas en nuestro showroom en Vitacura. Selecciona tu comuna para iniciar el contacto:
+                            Coordinamos citas de calce y diseño exclusivas en nuestro atelier en Vitacura. Selecciona tu comuna para iniciar el contacto:
                         </p>
                     </div>
 

@@ -129,10 +129,10 @@ export default function PortalColegiosPage() {
             <section id="comunas" className="py-24 bg-[#121212]">
                 <div className="max-w-4xl mx-auto px-6 text-center space-y-12">
                     <div className="space-y-4">
-                        <span className="text-[#cda45e] text-[10px] uppercase tracking-widest font-bold">Showroom & Citas</span>
+                        <span className="text-[#cda45e] text-[10px] uppercase tracking-widest font-bold">Atelier & Citas</span>
                         <h2 className="font-serif text-3xl md:text-5xl text-white">Reserva tu Cita de Diseño</h2>
                         <p className="text-white/60 text-xs md:text-sm max-w-xl mx-auto">
-                            Atendemos exclusivamente con cita previa en nuestro Showroom de Vitacura. Selecciona tu comuna de procedencia para coordinar tu visita:
+                            Atendemos exclusivamente con cita previa en nuestro Atelier de Vitacura. Selecciona tu comuna de procedencia para coordinar tu visita:
                         </p>
                     </div>
 

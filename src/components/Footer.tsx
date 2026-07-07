@@ -32,7 +32,7 @@ export default function Footer() {
 
           {/* Col 3 */}
           <div className="space-y-4">
-            <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Showroom (Comunas)</h4>
+            <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Atelier (Comunas)</h4>
             <ul className="grid grid-cols-2 gap-2 text-xs">
               <li><Link href="/graduacion/vitacura" className="hover:text-[#cda45e] transition-colors">Vitacura</Link></li>
               <li><Link href="/graduacion/las-condes" className="hover:text-[#cda45e] transition-colors">Las Condes</Link></li>

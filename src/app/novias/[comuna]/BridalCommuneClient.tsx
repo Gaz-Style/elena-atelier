@@ -233,7 +233,7 @@ export default function BridalCommuneClient({ comuna }: BridalCommuneClientProps
               <span className="text-[#cda45e] text-[10px] uppercase tracking-[0.3em] font-bold block">Textiles del Atelier</span>
               <h2 className="font-serif text-3xl md:text-5xl text-white">Encajes & Telas de Importación</h2>
               <p className="text-white/60 text-xs md:text-sm leading-relaxed">
-                Cada fibra de tu vestido de novia debe sentirse cómoda y lucir impecable bajo las luces. En nuestro Showroom de Vitacura podrás tocar y comparar la caída de las telas más finas del mundo.
+                Cada fibra de tu vestido de novia debe sentirse cómoda y lucir impecable bajo las luces. En nuestro Atelier de Vitacura podrás tocar y comparar la caída de las telas más finas del mundo.
               </p>
               
               {/* Swatch Selector */}
@@ -282,7 +282,7 @@ export default function BridalCommuneClient({ comuna }: BridalCommuneClientProps
                     <div className="w-8 h-8 rounded-full border border-[#0c0c0c] bg-[#fffdfa]" />
                     <div className="w-8 h-8 rounded-full border border-[#0c0c0c] bg-white" />
                   </div>
-                  <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Muestrario de alta costura en Showroom</span>
+                  <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Muestrario de alta costura en Atelier</span>
                 </div>
               </div>
             </div>
