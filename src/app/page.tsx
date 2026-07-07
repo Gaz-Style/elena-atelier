@@ -45,14 +45,14 @@ export default function Home() {
             
             {/* INNER TEXT & CTA OVERLAY */}
             <div className="relative z-10 flex flex-col items-start w-full space-y-4 max-w-2xl">
-              <h3 className="font-serif text-3xl md:text-4xl text-white leading-tight">Diseñada para una noche irrepetible</h3>
+              <h3 className="font-serif text-3xl md:text-4xl text-white leading-tight">Para una noche irrepetible</h3>
               <p className="text-white/70 text-sm md:text-base leading-relaxed">
-                Cada pieza es un testimonio de artesanía meticulosa y diseño contemporáneo. Garantizamos exclusividad absoluta por colegio: tu vestido será único en tu fiesta.
+                Cada pieza es un testimonio de artesanía meticulosa y diseño contemporáneo.
               </p>
               
               <div className="pt-4 w-full sm:w-auto">
                 <span className="inline-flex items-center justify-center gap-3 border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-serif text-[11px] uppercase tracking-[0.28em] font-semibold bg-white/[0.08] backdrop-blur-[10px] px-8 py-4 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-[#f5f2eb]/90 group-hover:text-[#121212] group-hover:border-[#f5f2eb] group-hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] rounded-[1px] w-full sm:w-auto text-center whitespace-nowrap">
-                  Ver Catálogo Completo
+                  Ver Colección
                   <ArrowRight className="w-3.5 h-3.5 transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 flex-shrink-0" />
                 </span>
               </div>
