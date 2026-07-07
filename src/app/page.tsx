@@ -91,7 +91,7 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-95 group-hover:opacity-90 transition-opacity duration-700" />
               
               <div className="relative z-10 flex flex-col items-start w-full space-y-4">
-                <h3 className="font-serif text-3xl md:text-4xl text-white leading-tight">Alta Costura Novias</h3>
+                <h3 className="font-serif text-3xl md:text-4xl text-white leading-tight">Diseño a Medida</h3>
                 <p className="text-white/70 text-sm max-w-lg leading-relaxed">
                   Vestidos de novia a medida. Diseño de alta costura creado bajo una experiencia íntima y profundamente personalizada.
                 </p>
