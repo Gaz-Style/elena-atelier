@@ -45,9 +45,9 @@ export default function Home() {
             
             {/* INNER TEXT & CTA OVERLAY */}
             <div className="relative z-10 flex flex-col items-start w-full space-y-4 max-w-2xl">
-              <h3 className="font-serif text-3xl md:text-4xl text-white leading-tight">Para una noche irrepetible</h3>
+              <h3 className="font-serif text-3xl md:text-4xl text-white leading-tight">Alta Costura para tu Graduación</h3>
               <p className="text-white/70 text-sm md:text-base leading-relaxed">
-                Cada pieza es un testimonio de artesanía meticulosa y diseño contemporáneo.
+                Descubre nuestra colección de vestidos de fiesta y gala. Diseños exclusivos y artesanía meticulosa para deslumbrar con elegancia en una noche irrepetible.
               </p>
               
               <div className="pt-4 w-full sm:w-auto">
