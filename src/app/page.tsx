@@ -20,55 +20,44 @@ export default function Home() {
 
       {/* Gateway Gala & Graduacion Section */}
       <section className="py-16 md:py-24 px-6 bg-transparent relative z-10 overflow-hidden">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-            {/* TEXT SIDE */}
-            <div className="lg:col-span-6 space-y-6 lg:space-y-8 text-center lg:text-left order-1 lg:order-1 lg:pr-8">
-              <div className="space-y-2 lg:space-y-3">
-                <span className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-sand block">Temporada 2026</span>
-                <h2 className="font-serif text-4xl md:text-6xl lg:text-7xl text-white leading-[1.1]">
-                  Gala & <br className="hidden lg:block"/><span className="italic text-brand-sand">Graduación</span>
-                </h2>
-              </div>
-              <div className="space-y-4 text-white/80 text-sm md:text-base leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                <p>
-                  Alta costura diseñada para una noche irrepetible. Cada pieza de nuestra colección de graduación es un testimonio de artesanía meticulosa y diseño contemporáneo.
-                </p>
-                <p className="font-medium text-white">
-                  Garantizamos exclusividad absoluta por colegio: tu vestido será único en tu fiesta.
-                </p>
-              </div>
-              {/* DESKTOP CTA */}
-              <div className="hidden lg:flex pt-6 w-full justify-start">
-                <Link 
-                  href="/graduacion" 
-                  className="inline-flex items-center justify-center gap-3 border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-serif text-[11px] uppercase tracking-[0.28em] font-semibold bg-white/[0.08] backdrop-blur-[10px] px-10 py-5 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] rounded-[1px] whitespace-nowrap"
-                >
+        <div className="max-w-7xl mx-auto">
+          {/* HEADER OUTSIDE */}
+          <div className="text-center mb-10 md:mb-16">
+            <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-4">Temporada 2026</span>
+            <h2 className="font-serif text-4xl md:text-6xl text-white tracking-tight uppercase">
+              Gala & <br className="md:hidden" />
+              <span className="italic text-brand-sand font-serif normal-case tracking-normal">Graduación</span>
+            </h2>
+          </div>
+
+          {/* SINGLE CARD CONTAINER */}
+          <Link 
+            href="/graduacion" 
+            className="group relative block w-full min-h-[550px] md:min-h-[700px] overflow-hidden rounded-sm flex flex-col justify-end p-8 md:p-12 lg:p-16 shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700"
+          >
+            {/* ROTATING BACKGROUND IMAGE */}
+            <div className="absolute inset-0 w-full h-full group-hover:scale-[1.03] transition-transform duration-[2000ms] ease-out">
+              <ImageRotator images={fiestaCarouselImages} interval={5000} />
+            </div>
+
+            {/* GRADIENT OVERLAY */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-95 group-hover:opacity-90 transition-opacity duration-700" />
+            
+            {/* INNER TEXT & CTA OVERLAY */}
+            <div className="relative z-10 flex flex-col items-start w-full space-y-4 max-w-2xl">
+              <h3 className="font-serif text-3xl md:text-4xl text-white leading-tight">Diseñada para una noche irrepetible</h3>
+              <p className="text-white/70 text-sm md:text-base leading-relaxed">
+                Cada pieza es un testimonio de artesanía meticulosa y diseño contemporáneo. Garantizamos exclusividad absoluta por colegio: tu vestido será único en tu fiesta.
+              </p>
+              
+              <div className="pt-4 w-full sm:w-auto">
+                <span className="inline-flex items-center justify-center gap-3 border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-serif text-[11px] uppercase tracking-[0.28em] font-semibold bg-white/[0.08] backdrop-blur-[10px] px-8 py-4 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-[#f5f2eb]/90 group-hover:text-[#121212] group-hover:border-[#f5f2eb] group-hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] rounded-[1px] w-full sm:w-auto text-center whitespace-nowrap">
                   Ver Catálogo Completo
                   <ArrowRight className="w-3.5 h-3.5 transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 flex-shrink-0" />
-                </Link>
+                </span>
               </div>
             </div>
-
-            {/* IMAGE SIDE */}
-            <Link href="/graduacion" className="group lg:col-span-6 relative rounded-sm overflow-hidden shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700 aspect-[3/4.5] order-2 lg:order-2 block">
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-700 z-10 pointer-events-none" />
-              <div className="absolute inset-0 w-full h-full group-hover:scale-[1.03] transition-transform duration-[2000ms] ease-out">
-                <ImageRotator images={fiestaCarouselImages} interval={5000} />
-              </div>
-            </Link>
-
-            {/* MOBILE CTA */}
-            <div className="lg:hidden flex w-full justify-center order-3 pt-2">
-              <Link 
-                href="/graduacion" 
-                className="inline-flex items-center justify-center gap-3 border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-serif text-[11px] uppercase tracking-[0.28em] font-semibold bg-white/[0.08] backdrop-blur-[10px] px-8 py-4 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] rounded-[1px] w-full text-center whitespace-nowrap"
-              >
-                Ver Catálogo Completo
-                <ArrowRight className="w-3.5 h-3.5 transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1 flex-shrink-0" />
-              </Link>
-            </div>
-          </div>
+          </Link>
         </div>
       </section>
 
