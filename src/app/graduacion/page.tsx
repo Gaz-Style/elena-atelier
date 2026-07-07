@@ -63,9 +63,6 @@ export default function GraduationLandingPage() {
                         Vestidos de Graduación <br className="hidden md:block" />
                         <span className="italic text-brand-sand lowercase">y fiesta a medida</span>
                     </h1>
-                    <p className="font-sans text-white/60 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
-                        Desliza y descubre la colección. Cada diseño es único y se confecciona exclusivamente a tu medida.
-                    </p>
                 </div>
             </div>
 
