@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     openGraph: {
         title: 'Vestidos de Graduación 2026 | Alta Costura a Medida',
         description: 'Explora nuestra colección exclusiva de gala. Confección a medida con garantía de exclusividad por colegio. Agenda tu cita en nuestro Atelier.',
-        images: ['https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=1200'],
+        images: ['https://www.elenalacosturera.cl/trabajos/fiesta/4.%20Rebecca%20Verde%20Sage.jpg'],
         locale: 'es_CL',
         type: 'website',
     }
