@@ -103,6 +103,59 @@ export default function BridalLandingPage() {
                 </div>
             </section>
 
+            {/* Comunas Cobertura Section */}
+            <section id="comunas" className="py-24 bg-[#121212] border-b border-white/5 relative z-10">
+                <div className="max-w-4xl mx-auto px-6 text-center space-y-8">
+                    <div className="space-y-2">
+                        <span className="text-[#cda45e] text-[10px] uppercase tracking-widest font-bold">Cobertura Novias</span>
+                        <h2 className="font-serif text-3xl text-white">Atención en tu Comuna</h2>
+                        <p className="text-white/60 text-xs max-w-md mx-auto leading-relaxed">
+                            Diseñamos vestidos de novia y hacemos upcycling nupcial de lujo con pruebas en nuestro taller para novias de todo Santiago.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-4">
+                        {[
+                            { name: 'Vitacura', slug: 'vitacura' },
+                            { name: 'Las Condes', slug: 'las-condes' },
+                            { name: 'Lo Barnechea', slug: 'lo-barnechea' },
+                            { name: 'Providencia', slug: 'providencia' },
+                            { name: 'La Reina', slug: 'la-reina' },
+                            { name: 'Ñuñoa', slug: 'nunoa' }
+                        ].map((c) => (
+                            <Link 
+                                key={c.slug}
+                                href={`/novias/${c.slug}`}
+                                className="p-4 border border-white/5 hover:border-[#cda45e]/40 hover:bg-[#0d0d0d]/60 text-center rounded-sm transition-all duration-300 group flex flex-col items-center justify-center gap-2"
+                            >
+                                <MapPin className="w-4 h-4 text-[#cda45e]" />
+                                <span className="text-xs font-bold uppercase tracking-wider text-white/80 group-hover:text-[#cda45e] transition-colors">{c.name}</span>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            </section>
         </div>
+    );
+}
+
+// Subcomponente simple para emular MapPin en el componente cliente sin reimportaciones extrañas
+function MapPin(props: React.SVGProps<SVGSVGElement>) {
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+            <circle cx="12" cy="10" r="3" />
+        </svg>
     );
 }

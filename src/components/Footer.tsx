@@ -10,38 +10,63 @@ export default function Footer() {
   return (
     <footer className="w-full py-16 border-t border-white/5 bg-[#0d0d0d] mt-auto relative z-10 text-white/60">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
-          {/* Col 1 */}
-          <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+          {/* Col 1: Brand */}
+          <div className="space-y-4 md:col-span-1">
             <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Elena La Costurera</h4>
-            <p className="text-xs leading-relaxed max-w-xs">
-              Alta costura a medida y upcycling. Diseños únicos y exclusivos para novias, graduaciones y fiestas en Santiago.
+            <p className="text-xs leading-relaxed">
+              Alta costura a medida y upcycling. Diseños únicos y exclusivos para novias, graduaciones y arreglos sastreros en Santiago.
             </p>
           </div>
           
-          {/* Col 2 */}
+          {/* Col 2: Useful Links */}
           <div className="space-y-4">
             <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Enlaces Útiles</h4>
             <ul className="space-y-2 text-xs">
               <li><Link href="/" className="hover:text-[#cda45e] transition-colors">Inicio</Link></li>
-              <li><Link href="/graduacion" className="hover:text-[#cda45e] transition-colors">Catálogo de Gala</Link></li>
-              <li><Link href="/portal-colegios" className="hover:text-[#cda45e] transition-colors">Portal Colegios</Link></li>
+              <li><Link href="/novias" className="hover:text-[#cda45e] transition-colors">Vestidos de Novia</Link></li>
+              <li><Link href="/graduacion" className="hover:text-[#cda45e] transition-colors">Vestidos de Gala</Link></li>
+              <li><Link href="/costuras" className="hover:text-[#cda45e] transition-colors">Taller de Costuras</Link></li>
               <li><Link href="/graduacion/registro-exclusividad" className="hover:text-[#cda45e] transition-colors">Registro Exclusividad</Link></li>
             </ul>
           </div>
 
-          {/* Col 3 */}
+          {/* Col 3: Novias por Comuna */}
           <div className="space-y-4">
-            <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Atelier (Comunas)</h4>
-            <ul className="grid grid-cols-2 gap-2 text-xs">
-              <li><Link href="/graduacion/vitacura" className="hover:text-[#cda45e] transition-colors">Vitacura</Link></li>
-              <li><Link href="/graduacion/las-condes" className="hover:text-[#cda45e] transition-colors">Las Condes</Link></li>
-              <li><Link href="/graduacion/lo-barnechea" className="hover:text-[#cda45e] transition-colors">Lo Barnechea</Link></li>
-              <li><Link href="/graduacion/providencia" className="hover:text-[#cda45e] transition-colors">Providencia</Link></li>
-              <li><Link href="/graduacion/la-reina" className="hover:text-[#cda45e] transition-colors">La Reina</Link></li>
-              <li><Link href="/graduacion/nunoa" className="hover:text-[#cda45e] transition-colors">Ñuñoa</Link></li>
-              <li><Link href="/graduacion/chicureo" className="hover:text-[#cda45e] transition-colors">Chicureo</Link></li>
-              <li><Link href="/graduacion/maipu" className="hover:text-[#cda45e] transition-colors">Maipú</Link></li>
+            <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Novias</h4>
+            <ul className="space-y-1.5 text-[11px]">
+              <li><Link href="/novias/vitacura" className="hover:text-[#cda45e] transition-colors">Novias Vitacura</Link></li>
+              <li><Link href="/novias/las-condes" className="hover:text-[#cda45e] transition-colors">Novias Las Condes</Link></li>
+              <li><Link href="/novias/lo-barnechea" className="hover:text-[#cda45e] transition-colors">Novias Lo Barnechea</Link></li>
+              <li><Link href="/novias/providencia" className="hover:text-[#cda45e] transition-colors">Novias Providencia</Link></li>
+              <li><Link href="/novias/la-reina" className="hover:text-[#cda45e] transition-colors">Novias La Reina</Link></li>
+              <li><Link href="/novias/nunoa" className="hover:text-[#cda45e] transition-colors">Novias Ñuñoa</Link></li>
+            </ul>
+          </div>
+
+          {/* Col 4: Graduacion por Comuna */}
+          <div className="space-y-4">
+            <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Graduación</h4>
+            <ul className="space-y-1.5 text-[11px]">
+              <li><Link href="/graduacion/vitacura" className="hover:text-[#cda45e] transition-colors">Gala Vitacura</Link></li>
+              <li><Link href="/graduacion/las-condes" className="hover:text-[#cda45e] transition-colors">Gala Las Condes</Link></li>
+              <li><Link href="/graduacion/lo-barnechea" className="hover:text-[#cda45e] transition-colors">Gala Lo Barnechea</Link></li>
+              <li><Link href="/graduacion/providencia" className="hover:text-[#cda45e] transition-colors">Gala Providencia</Link></li>
+              <li><Link href="/graduacion/la-reina" className="hover:text-[#cda45e] transition-colors">Gala La Reina</Link></li>
+              <li><Link href="/graduacion/nunoa" className="hover:text-[#cda45e] transition-colors">Gala Ñuñoa</Link></li>
+            </ul>
+          </div>
+
+          {/* Col 5: Costuras por Comuna */}
+          <div className="space-y-4">
+            <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Taller Costuras</h4>
+            <ul className="space-y-1.5 text-[11px]">
+              <li><Link href="/costuras/vitacura" className="hover:text-[#cda45e] transition-colors">Costuras Vitacura</Link></li>
+              <li><Link href="/costuras/las-condes" className="hover:text-[#cda45e] transition-colors">Costuras Las Condes</Link></li>
+              <li><Link href="/costuras/lo-barnechea" className="hover:text-[#cda45e] transition-colors">Costuras Lo Barnechea</Link></li>
+              <li><Link href="/costuras/la-dehesa" className="hover:text-[#cda45e] transition-colors">Costuras La Dehesa</Link></li>
+              <li><Link href="/costuras/los-trapenses" className="hover:text-[#cda45e] transition-colors">Costuras Los Trapenses</Link></li>
+              <li><Link href="/costuras/el-huinganal" className="hover:text-[#cda45e] transition-colors">Costuras El Huinganal</Link></li>
             </ul>
           </div>
         </div>

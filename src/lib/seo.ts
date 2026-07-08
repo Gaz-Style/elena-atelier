@@ -1,7 +1,7 @@
 export const ElenaAtelierSchema = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    "name": "elenalacosturera",
+    "name": "ELENA La Costurera - Alta Costura & Sastrería",
     "image": "https://elenaatelier.cl/images/facade.jpg",
     "@id": "https://elenaatelier.cl",
     "url": "https://elenaatelier.cl",
@@ -9,7 +9,7 @@ export const ElenaAtelierSchema = {
     "priceRange": "$$$",
     "address": {
         "@type": "PostalAddress",
-        "streetAddress": "Av. Tabancura 1091",
+        "streetAddress": "Av. Tabancura 1091, Oficina 319",
         "addressLocality": "Vitacura",
         "addressRegion": "Santiago",
         "postalCode": "7630000",
