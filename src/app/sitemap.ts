@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = 'https://elenaatelier.cl';
+    const baseUrl = 'https://elenalacosturera.cl';
     const communes = ['vitacura', 'las-condes', 'lo-barnechea', 'providencia', 'la-reina', 'nunoa'];
     const costurasSectors = ['vitacura', 'las-condes', 'lo-barnechea', 'la-dehesa', 'los-trapenses', 'el-huinganal'];
 

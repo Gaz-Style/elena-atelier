@@ -38,7 +38,7 @@ export default function PortalNoviasPagarPage() {
         new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val || 0);
 
     const handleCopy = async () => {
-        const text = `Destinatario: Elena Rojas Bustamante\nRUT: 10.826.329-6\nBanco: BCI / MACHBANK\nTipo de cuenta: Cuenta Corriente\nNº de cuenta: 7 779 10 82632 9\nCorreo: contacto@elenalacosturera.cl`;
+        const text = `Destinatario: ATELIER HORTENSIA SPA\nRUT: 78.158.853-9\nBanco: Banco Bci / Mach\nTipo de cuenta: Cuenta corriente\nNº de cuenta: 77180795\nCorreo: pagos@elenalacosturera.cl`;
         try {
             await navigator.clipboard.writeText(text);
             setCopied(true);
@@ -155,31 +155,31 @@ export default function PortalNoviasPagarPage() {
                                     <div className="p-6 space-y-4 bg-black/20 text-xs text-gray-400 font-light">
                                         <div className="flex justify-between items-center border-b border-white/5 pb-3">
                                             <span className="uppercase tracking-widest text-[9px] font-bold">Destinatario</span>
-                                            <span className="text-white font-medium">Elena Rojas Bustamante</span>
+                                            <span className="text-white font-medium">ATELIER HORTENSIA SPA</span>
                                         </div>
                                         <div className="flex justify-between items-center border-b border-white/5 pb-3">
                                             <span className="uppercase tracking-widest text-[9px] font-bold">RUT</span>
-                                            <span className="text-white font-medium">10.826.329-6</span>
+                                            <span className="text-white font-medium">78.158.853-9</span>
                                         </div>
                                         <div className="flex justify-between items-center border-b border-white/5 pb-3">
                                             <span className="uppercase tracking-widest text-[9px] font-bold">Banco</span>
-                                            <span className="text-white font-medium">BCI / MACHBANK</span>
+                                            <span className="text-white font-medium">Banco Bci / Mach</span>
                                         </div>
                                         <div className="flex justify-between items-center border-b border-white/5 pb-3">
                                             <span className="uppercase tracking-widest text-[9px] font-bold">Tipo de cuenta</span>
-                                            <span className="text-white font-medium">Cuenta Corriente</span>
+                                            <span className="text-white font-medium">Cuenta corriente</span>
                                         </div>
                                         <div className="flex justify-between items-center border-b border-white/5 pb-3">
                                             <span className="uppercase tracking-widest text-[9px] font-bold">Nº de cuenta</span>
-                                            <span className="text-white font-medium">7 779 10 82632 9</span>
+                                            <span className="text-white font-medium">77180795</span>
                                         </div>
                                         <div className="flex justify-between items-center">
                                             <span className="uppercase tracking-widest text-[9px] font-bold">Correo</span>
-                                            <span className="text-white font-medium">contacto@elenalacosturera.cl</span>
+                                            <span className="text-white font-medium">pagos@elenalacosturera.cl</span>
                                         </div>
                                         
                                         <div className="mt-4 pt-4 border-t border-white/10 text-center">
-                                            <p className="text-[9px] uppercase tracking-wider text-[#C17F5F]">Por favor, enviar comprobante a contacto@elenalacosturera.cl</p>
+                                            <p className="text-[9px] uppercase tracking-wider text-[#C17F5F]">Por favor, enviar comprobante a pagos@elenalacosturera.cl</p>
                                         </div>
                                     </div>
                                 </div>

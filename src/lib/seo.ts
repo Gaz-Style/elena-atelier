@@ -2,9 +2,9 @@ export const ElenaAtelierSchema = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "name": "ELENA La Costurera - Alta Costura & Sastrería",
-    "image": "https://elenaatelier.cl/images/facade.jpg",
-    "@id": "https://elenaatelier.cl",
-    "url": "https://elenaatelier.cl",
+    "image": "https://elenalacosturera.cl/images/facade.jpg",
+    "@id": "https://elenalacosturera.cl",
+    "url": "https://elenalacosturera.cl",
     "telephone": "+56937667709",
     "priceRange": "$$$",
     "address": {

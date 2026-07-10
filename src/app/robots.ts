@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
             allow: '/',
             disallow: ['/private/', '/admin/', '/portal/', '/api/'],
         },
-        sitemap: 'https://elenaatelier.cl/sitemap.xml',
+        sitemap: 'https://elenalacosturera.cl/sitemap.xml',
     };
 }

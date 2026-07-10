@@ -1,8 +1,17 @@
-'use client';
-
 import React from 'react';
+import { Metadata } from 'next';
 import Link from 'next/link';
 import { Sparkles, Heart, RefreshCw, Scissors, Award, ArrowRight } from 'lucide-react';
+
+export const metadata: Metadata = {
+    title: 'Vestidos de Novia a Medida y Upcycling | Elena La Costurera',
+    description: 'Diseño y confección de vestidos de novia exclusivos a medida y upcycling nupcial de lujo en Vitacura, Santiago. Reserva tu primera cita de diseño.',
+    openGraph: {
+        title: 'Vestidos de Novia a Medida y Upcycling | Elena La Costurera',
+        description: 'Diseño y confección de vestidos de novia exclusivos a medida y upcycling nupcial de lujo en Vitacura, Santiago. Reserva tu primera cita de diseño.',
+        images: ['/og-image.jpg'],
+    },
+};
 
 export default function BridalLandingPage() {
     return (
