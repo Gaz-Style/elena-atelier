@@ -92,3 +92,28 @@ export async function publicRegisterCustomer(formData: FormData) {
         return { error: err.message || 'Error desconocido' };
     }
 }
+
+export async function checkCustomerByEmail(email: string) {
+    if (!email || !email.includes('@')) return null;
+    try {
+        const supabaseAdmin = createAdminClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+        const { data, error } = await supabaseAdmin
+            .from('customers')
+            .select('full_name, phone, style_preference, typical_occasion')
+            .eq('email', email)
+            .maybeSingle();
+
+        if (error) {
+            console.error('Error fetching customer by email:', error);
+            return null;
+        }
+        return data;
+    } catch (err) {
+        console.error('Error in checkCustomerByEmail server action:', err);
+        return null;
+    }
+}
+

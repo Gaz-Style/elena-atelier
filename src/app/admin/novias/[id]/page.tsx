@@ -8,7 +8,7 @@ import {
     Clock, AlertCircle, FileText, Ruler, Camera, StickyNote, Loader2, Printer,
     ChevronDown, ChevronUp, X, Save, Trash2
 } from 'lucide-react';
-import { getBridalProjectById, registerPayment, completeMilestone, acceptContract, saveMeasurements, updateBridalProject, cancelProject, sendBridalWelcomeEmailAction, sendBridalInductionEmailAction, deleteBridalProjectAction } from '../actions';
+import { getBridalProjectById, registerPayment, completeMilestone, acceptContract, saveMeasurements, updateBridalProject, cancelProject, sendBridalWelcomeEmailAction, sendBridalInductionEmailAction, deleteBridalProjectAction, updateMilestoneDateAction } from '../actions';
 import ContractTemplate from '../ContractTemplate';
 
 const formatCurrency = (val: number) =>
@@ -56,6 +56,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     const [showContractPrint, setShowContractPrint] = useState(false);
     const [saving, setSaving] = useState(false);
     const [projectId, setProjectId] = useState('');
+    const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(null);
+    const [editingDate, setEditingDate] = useState<string>('');
+    const [notifyClientOnEdit, setNotifyClientOnEdit] = useState<boolean>(false);
     const contractRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -78,6 +81,20 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         setSaving(true);
         await registerPayment(projectId, paymentNum, method);
         await loadProject(projectId);
+        setSaving(false);
+    }
+
+    async function handleUpdateMilestoneDate(milestoneId: string) {
+        if (!editingDate) return;
+        setSaving(true);
+        const res = await updateMilestoneDateAction(milestoneId, projectId, editingDate, notifyClientOnEdit);
+        if (!res.success) {
+            alert('Error al actualizar fecha: ' + res.error);
+        } else {
+            setEditingMilestoneId(null);
+            setNotifyClientOnEdit(false);
+            await loadProject(projectId);
+        }
         setSaving(false);
     }
 
@@ -376,11 +393,59 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                                     <h3 className={`font-bold text-sm ${isCompleted ? 'text-emerald-700 line-through' : isPast ? 'text-red-700' : 'text-zinc-800'}`}>
                                                         {milestone.title}
                                                     </h3>
-                                                    <p className="text-xs text-zinc-500 mt-1 flex items-center gap-1">
-                                                        <Calendar className="w-3 h-3" />
-                                                        {formatDateLong(milestone.scheduled_date)}
-                                                        {isPast && <span className="text-red-500 font-bold ml-2">• Atrasado</span>}
-                                                    </p>
+                                                    {editingMilestoneId === milestone.id ? (
+                                                        <div className="mt-3 p-3 bg-zinc-50 rounded-lg border border-zinc-200/80 max-w-sm space-y-3">
+                                                            <label className="block text-[9px] uppercase tracking-widest font-bold text-zinc-400">Nueva Fecha de Prueba</label>
+                                                            <input 
+                                                                type="date" 
+                                                                value={editingDate}
+                                                                onChange={(e) => setEditingDate(e.target.value)}
+                                                                className="w-full bg-white border border-zinc-200 rounded px-2.5 py-1.5 text-xs text-zinc-800 focus:outline-none focus:ring-1 focus:ring-rose-300"
+                                                            />
+                                                            <label className="flex items-center gap-2 text-xs text-zinc-600 cursor-pointer select-none">
+                                                                <input 
+                                                                    type="checkbox" 
+                                                                    checked={notifyClientOnEdit}
+                                                                    onChange={(e) => setNotifyClientOnEdit(e.target.checked)}
+                                                                    className="rounded border-zinc-300 text-rose-500 focus:ring-rose-400"
+                                                                />
+                                                                <span>Notificar a la clienta (Email y WhatsApp)</span>
+                                                            </label>
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={() => handleUpdateMilestoneDate(milestone.id)}
+                                                                    disabled={saving}
+                                                                    className="bg-zinc-900 hover:bg-emerald-600 text-white text-[9px] uppercase tracking-widest font-bold px-3 py-1.5 rounded transition-colors disabled:bg-zinc-300"
+                                                                >
+                                                                    Guardar
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => setEditingMilestoneId(null)}
+                                                                    className="bg-transparent text-zinc-500 hover:text-zinc-800 text-[9px] uppercase tracking-widest font-bold px-3 py-1.5 border border-zinc-200 rounded transition-all"
+                                                                >
+                                                                    Cancelar
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-xs text-zinc-500 mt-1 flex items-center gap-1">
+                                                            <Calendar className="w-3 h-3" />
+                                                            {formatDateLong(milestone.scheduled_date)}
+                                                            {isPast && <span className="text-red-500 font-bold ml-2">• Atrasado</span>}
+                                                            {!isCompleted && project.status !== 'cancelado' && project.status !== 'entregado' && (
+                                                                <button 
+                                                                    onClick={() => {
+                                                                        setEditingMilestoneId(milestone.id);
+                                                                        setEditingDate(milestone.scheduled_date ? milestone.scheduled_date.split('T')[0] : '');
+                                                                        setNotifyClientOnEdit(false);
+                                                                    }}
+                                                                    className="ml-3 text-[10px] font-bold text-rose-500 hover:text-rose-700 transition-colors uppercase tracking-widest"
+                                                                >
+                                                                    Editar Fecha
+                                                                </button>
+                                                            )}
+                                                        </p>
+                                                    )}
                                                     {isCompleted && milestone.completed_date && (
                                                         <p className="text-[10px] text-emerald-600 mt-1">Completado el {formatDate(milestone.completed_date)}</p>
                                                     )}

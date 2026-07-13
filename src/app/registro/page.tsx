@@ -13,12 +13,24 @@ function RegistrationContent() {
     const [isSaving, setIsSaving] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
 
+    // Form States
+    const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
+    const [stylePreference, setStylePreference] = useState('Minimalista');
+    const [typicalOccasion, setTypicalOccasion] = useState('Daily');
+
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setIsSaving(true);
         
         const formData = new FormData(e.currentTarget);
         formData.append('marketing_opt_in', 'on');
+        
+        // Ensure phone is correctly set in FormData
+        const cleanDigits = phone.replace(/\D/g, '');
+        const fullPhone = cleanDigits ? `+56 9 ${cleanDigits.slice(0, 4)} ${cleanDigits.slice(4)}` : '';
+        formData.set('phone', fullPhone);
         
         const result = await publicRegisterCustomer(formData);
         
@@ -108,17 +120,23 @@ function RegistrationContent() {
                                         <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-brand-sand transition-colors" />
                                         <input 
                                             name="full_name" required type="text" placeholder="Nombre Completo" 
+                                            value={fullName}
+                                            onChange={(e) => setFullName(e.target.value)}
                                             className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-sm text-white text-sm outline-none focus:border-brand-sand focus:bg-white/10 transition-all placeholder:text-white/20" 
                                         />
                                     </div>
                                 </div>
 
                                 <div className="relative group">
-                                    <label className="text-[9px] uppercase tracking-widest font-bold text-brand-sand/50 mb-1 block ml-1">Contacto Digital</label>
+                                    <label className="text-[9px] uppercase tracking-widest font-bold text-brand-sand/50 mb-1 block ml-1 flex justify-between items-center">
+                                        <span>Contacto Digital</span>
+                                    </label>
                                     <div className="relative">
                                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-brand-sand transition-colors" />
                                         <input 
                                             name="email" required type="email" placeholder="correo@ejemplo.com" 
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
                                             className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-sm text-white text-sm outline-none focus:border-brand-sand focus:bg-white/10 transition-all placeholder:text-white/20" 
                                         />
                                     </div>
@@ -132,21 +150,15 @@ function RegistrationContent() {
                                         <input 
                                             type="tel" placeholder="1234 5678" 
                                             maxLength={9} // 8 digits + optional space
+                                            value={phone}
                                             onChange={(e) => {
                                                 let val = e.target.value.replace(/\D/g, '').slice(0, 8);
-                                                if (val.length > 4) val = val.slice(0,4) + ' ' + val.slice(4);
-                                                e.target.value = val;
+                                                if (val.length > 4) val = val.slice(0, 4) + ' ' + val.slice(4);
+                                                setPhone(val);
                                             }}
                                             className="w-full pl-24 pr-4 py-4 bg-white/5 border border-white/10 rounded-sm text-white text-sm tracking-widest font-mono outline-none focus:border-brand-sand focus:bg-white/10 transition-all placeholder:text-white/20" 
                                         />
-                                        {/* Hidden input to inject the full formatted phone into FormData seamlessly */}
-                                        <input type="hidden" name="phone" />
-                                        <script dangerouslySetInnerHTML={{__html: `
-                                            document.currentScript.parentElement.querySelector('input[type="tel"]').addEventListener('input', function(e) {
-                                                const clean = e.target.value.replace(/\\D/g, '');
-                                                document.currentScript.parentElement.querySelector('input[type="hidden"]').value = clean.length > 0 ? '+56 9 ' + clean : '';
-                                            });
-                                        `}} />
+                                        <input type="hidden" name="phone" value={phone ? `+56 9 ${phone.replace(/\D/g, '')}` : ''} />
                                     </div>
                                 </div>
                             </div>
@@ -154,7 +166,12 @@ function RegistrationContent() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-[9px] uppercase tracking-widest font-bold text-brand-sand/50 ml-1">Estilo Favorito</label>
-                                    <select name="style_preference" className="w-full p-4 bg-white/5 border border-white/10 rounded-sm text-[10px] font-bold uppercase tracking-widest text-white outline-none focus:border-brand-sand focus:bg-white/10 shadow-sm appearance-none cursor-pointer">
+                                    <select 
+                                        name="style_preference" 
+                                        value={stylePreference}
+                                        onChange={(e) => setStylePreference(e.target.value)}
+                                        className="w-full p-4 bg-white/5 border border-white/10 rounded-sm text-[10px] font-bold uppercase tracking-widest text-white outline-none focus:border-brand-sand focus:bg-white/10 shadow-sm appearance-none cursor-pointer"
+                                    >
                                         <option value="Minimalista" className="bg-brand-charcoal text-white">Minimalista</option>
                                         <option value="Clásico" className="bg-brand-charcoal text-white">Clásico</option>
                                         <option value="Moderno" className="bg-brand-charcoal text-white">Moderno</option>
@@ -163,7 +180,12 @@ function RegistrationContent() {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[9px] uppercase tracking-widest font-bold text-brand-sand/50 ml-1">Ocasión Principal</label>
-                                    <select name="typical_occasion" className="w-full p-4 bg-white/5 border border-white/10 rounded-sm text-[10px] font-bold uppercase tracking-widest text-white outline-none focus:border-brand-sand focus:bg-white/10 shadow-sm appearance-none cursor-pointer">
+                                    <select 
+                                        name="typical_occasion" 
+                                        value={typicalOccasion}
+                                        onChange={(e) => setTypicalOccasion(e.target.value)}
+                                        className="w-full p-4 bg-white/5 border border-white/10 rounded-sm text-[10px] font-bold uppercase tracking-widest text-white outline-none focus:border-brand-sand focus:bg-white/10 shadow-sm appearance-none cursor-pointer"
+                                    >
                                         <option value="Daily" className="bg-brand-charcoal text-white">Daily Wear</option>
                                         <option value="Gala" className="bg-brand-charcoal text-white">Gala / Fiesta</option>
                                         <option value="Novia" className="bg-brand-charcoal text-white">Novia</option>

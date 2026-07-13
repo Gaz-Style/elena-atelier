@@ -1020,4 +1020,126 @@ export async function generateBridalPaymentLinksAction(projectId: string) {
     }
 }
 
+export async function updateMilestoneDateAction(
+    milestoneId: string,
+    projectId: string,
+    newDateStr: string,
+    notifyClient: boolean
+) {
+    try {
+        const supabase = getAdminClient();
+        
+        // 1. Get milestone details
+        const { data: milestone, error: milestoneErr } = await supabase
+            .from('bridal_milestones')
+            .select('*')
+            .eq('id', milestoneId)
+            .single();
+            
+        if (milestoneErr || !milestone) {
+            throw new Error('Hito no encontrado');
+        }
+
+        // 2. Get project and customer details
+        const { data: project, error: projectErr } = await supabase
+            .from('bridal_projects')
+            .select('*, customers(id, full_name, email, phone)')
+            .eq('id', projectId)
+            .single();
+
+        if (projectErr || !project) {
+            throw new Error('Proyecto no encontrado');
+        }
+
+        const dateIso = new Date(`${newDateStr}T12:00:00-04:00`).toISOString();
+        let agendaEventId = milestone.agenda_event_id;
+
+        // 3. Sync with agendamientos (agenda)
+        if (agendaEventId) {
+            // Update existing agenda event
+            const { error: updateError } = await supabase
+                .from('agendamientos')
+                .update({
+                    fecha_hora: dateIso,
+                    notas: `Prueba coordinada: ${milestone.title}`
+                })
+                .eq('id', agendaEventId);
+                
+            if (updateError) {
+                console.error('Error updating agenda event:', updateError);
+            }
+        } else {
+            // Insert new agenda event
+            const fullName = project.customers?.full_name || 'Novia';
+            const nameParts = fullName.trim().split(/\s+/);
+            const nombre = nameParts[0] || 'Novia';
+            const apellido = nameParts.slice(1).join(' ') || '';
+
+            const { data: newEvent, error: insertError } = await supabase
+                .from('agendamientos')
+                .insert([{
+                    nombre,
+                    apellido,
+                    celular: project.customers?.phone || '',
+                    correo: project.customers?.email || '',
+                    fecha_hora: dateIso,
+                    origen: 'admin',
+                    tipo_evento: 'cita_cliente',
+                    estado: 'confirmado',
+                    notas: `Prueba coordinada: ${milestone.title}`
+                }])
+                .select()
+                .single();
+
+            if (insertError) {
+                console.error('Error inserting agenda event:', insertError);
+            } else if (newEvent) {
+                agendaEventId = newEvent.id;
+            }
+        }
+
+        // 4. Update the milestone record with new date and agenda_event_id
+        const { error: milestoneUpdateErr } = await supabase
+            .from('bridal_milestones')
+            .update({
+                scheduled_date: dateIso,
+                agenda_event_id: agendaEventId
+            })
+            .eq('id', milestoneId);
+
+        if (milestoneUpdateErr) {
+            throw milestoneUpdateErr;
+        }
+
+        // 5. Send notifications if checked
+        if (notifyClient && project.customers?.email) {
+            try {
+                const { enviar_correo_confirmacion } = await import('@/lib/agenda');
+                const fullName = project.customers?.full_name || 'Novia';
+                const nameParts = fullName.trim().split(/\s+/);
+                const nombre = nameParts[0] || 'Novia';
+                const apellido = nameParts.slice(1).join(' ') || '';
+
+                await enviar_correo_confirmacion(
+                    nombre,
+                    apellido,
+                    project.customers?.phone || '',
+                    project.customers?.email || '',
+                    dateIso
+                );
+            } catch (notifyErr) {
+                console.error('Error sending confirmation email/whatsapp:', notifyErr);
+            }
+        }
+
+        revalidatePath(`/admin/novias/${projectId}`);
+        revalidatePath('/admin/agenda');
+        return { success: true };
+    } catch (e: any) {
+        console.error('Error in updateMilestoneDateAction:', e);
+        return { success: false, error: e.message || 'Error al actualizar la fecha' };
+    }
+}
+
+
 
