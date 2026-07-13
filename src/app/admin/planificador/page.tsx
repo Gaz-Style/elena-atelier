@@ -162,7 +162,9 @@ export default function PlanificadorPage() {
         });
         setActiveBridalMilestones(mappedMilestones);
 
-        const activeProd = (ords || []).filter((o: any) => o.status !== 'delivered');
+        const activeProd = (ords || []).filter((o: any) => 
+            ['scheduled', 'draft', 'sewing', 'finishing', 'ready'].includes(o.status)
+        );
         setActiveProductionOrders(activeProd);
 
         const startStr = dateStr(activeDays[0]);
