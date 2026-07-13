@@ -82,6 +82,9 @@ export default function PlanificadorPage() {
     const [orders, setOrders]         = useState<any[]>([]);
     const [planner, setPlanner]       = useState<PlannerData>({});
     const [loading, setLoading]       = useState(true);
+    const [activeBridalMilestones, setActiveBridalMilestones] = useState<any[]>([]);
+    const [activeBridalProjects, setActiveBridalProjects] = useState<any[]>([]);
+    const [activeProductionOrders, setActiveProductionOrders] = useState<any[]>([]);
     const [previewMode, setPreviewMode] = useState(false);
     const [viewMode, setViewMode]     = useState<'day'|'week'|'month'|'year'>('week');
     const [anchor, setAnchor]         = useState(new Date());
@@ -130,6 +133,37 @@ export default function PlanificadorPage() {
         const activeOrds = (ords || []).filter((o: any) => o.production_start_date);
         setOperators(activeOps);
         setOrders(activeOrds);
+
+        // Fetch active bridal projects & milestones
+        const { data: bProjData } = await supabase
+            .from('bridal_projects')
+            .select('*, customers(full_name, phone, email)')
+            .neq('status', 'cancelado')
+            .neq('status', 'entregado')
+            .order('event_date', { ascending: true });
+
+        const { data: bMilestones } = await supabase
+            .from('bridal_milestones')
+            .select('*')
+            .neq('status', 'completed')
+            .order('scheduled_date', { ascending: true });
+
+        setActiveBridalProjects(bProjData || []);
+
+        const mappedMilestones = (bMilestones || []).map((m: any) => {
+            const proj = (bProjData || []).find((p: any) => p.id === m.project_id);
+            return {
+                ...m,
+                customer: proj?.customers,
+                projectType: proj?.project_type,
+                serviceType: proj?.service_type,
+                eventDate: proj?.event_date
+            };
+        });
+        setActiveBridalMilestones(mappedMilestones);
+
+        const activeProd = (ords || []).filter((o: any) => o.status !== 'delivered');
+        setActiveProductionOrders(activeProd);
 
         const startStr = dateStr(activeDays[0]);
         const endStr   = dateStr(activeDays[activeDays.length - 1]);
@@ -649,6 +683,150 @@ export default function PlanificadorPage() {
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── PANEL DE TRABAJOS Y ENTREGAS EN TIEMPO REAL ───────────────────── */}
+                {!loading && (
+                    <div className="mt-8 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+                        <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-xl font-serif font-bold text-slate-800 flex items-center gap-2">
+                                    📋 Seguimiento de Trabajos y Entregas (Tiempo Real)
+                                </h2>
+                                <p className="text-xs text-slate-500 mt-1">
+                                    Vista unificada de pruebas programadas de alta costura y estado de confecciones del taller.
+                                </p>
+                            </div>
+                            <span className="text-[10px] bg-slate-100 font-bold uppercase tracking-widest px-3 py-1 rounded-full text-slate-600">
+                                {activeBridalMilestones.length + activeProductionOrders.length} trabajos activos
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            {/* Columna 1: Pruebas y Entregas de Alta Costura */}
+                            <div className="space-y-4">
+                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2 pb-2 border-b border-slate-100">
+                                    👗 Agenda de Pruebas y Vestidos (Alta Costura)
+                                </h3>
+                                {activeBridalMilestones.length === 0 ? (
+                                    <p className="text-sm text-slate-400 italic py-4">No hay pruebas o entregas pendientes programadas.</p>
+                                ) : (
+                                    <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                                        {activeBridalMilestones.map((m: any) => {
+                                            const daysDiff = m.scheduled_date 
+                                                ? Math.ceil((new Date(m.scheduled_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                                                : null;
+                                            const urgencyText = daysDiff !== null 
+                                                ? daysDiff < 0 ? 'Atrasado' : daysDiff === 0 ? 'Hoy' : `En ${daysDiff} días`
+                                                : '';
+                                            const urgencyColor = daysDiff !== null
+                                                ? daysDiff < 0 ? 'bg-red-100 text-red-700' : daysDiff <= 7 ? 'bg-amber-100 text-amber-700 font-bold' : 'bg-slate-100 text-slate-600'
+                                                : 'bg-slate-100 text-slate-600';
+
+                                            return (
+                                                <div key={m.id} className="p-4 bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-xl flex justify-between items-start gap-4 transition-all">
+                                                    <div>
+                                                        <span className={`text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full ${m.projectType === 'novia' ? 'bg-rose-50 text-rose-600 border border-rose-100' : m.projectType === 'madrina' ? 'bg-violet-50 text-violet-600 border border-violet-100' : 'bg-sky-50 text-sky-600 border border-sky-100'}`}>
+                                                            {m.projectType || 'Novia'}
+                                                        </span>
+                                                        <h4 className="font-bold text-[14px] text-slate-800 mt-2">
+                                                            {m.customer?.full_name || 'Cliente sin nombre'}
+                                                        </h4>
+                                                        <p className="text-xs text-slate-600 font-medium mt-1">
+                                                            {m.title}
+                                                        </p>
+                                                        {m.eventDate && (
+                                                            <p className="text-[10px] text-slate-400 mt-1">
+                                                                Matrimonio/Evento: {new Date(m.eventDate).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-right flex flex-col items-end gap-1.5 shrink-0">
+                                                        <span className="text-[11px] font-mono font-bold text-slate-700">
+                                                            {m.scheduled_date ? new Date(m.scheduled_date).toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Sin fecha'}
+                                                        </span>
+                                                        {urgencyText && (
+                                                            <span className={`text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-sm ${urgencyColor}`}>
+                                                                {urgencyText}
+                                                            </span>
+                                                        )}
+                                                        <Link 
+                                                            href={`/admin/novias/${m.project_id}`}
+                                                            className="text-[10px] uppercase font-bold tracking-wider text-rose-500 hover:text-rose-700 mt-2 block"
+                                                        >
+                                                            Ver Ficha →
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Columna 2: Órdenes de Confección del Taller */}
+                            <div className="space-y-4">
+                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2 pb-2 border-b border-slate-100">
+                                    ✂️ Órdenes de Producción Activas (Taller)
+                                </h3>
+                                {activeProductionOrders.length === 0 ? (
+                                    <p className="text-sm text-slate-400 italic py-4">No hay órdenes de confección activas.</p>
+                                ) : (
+                                    <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                                        {activeProductionOrders.map((o: any) => {
+                                            let statusLabel = '';
+                                            let statusColor = '';
+                                            if (o.status === 'draft') { statusLabel = 'Ingresado'; statusColor = 'bg-slate-100 text-slate-700'; }
+                                            else if (o.status === 'sewing') { statusLabel = 'Confección'; statusColor = 'bg-blue-50 text-blue-700 border border-blue-100'; }
+                                            else if (o.status === 'finishing') { statusLabel = 'Prueba / Fitting'; statusColor = 'bg-indigo-50 text-indigo-700 border border-indigo-100'; }
+                                            else if (o.status === 'ready') { statusLabel = 'Listo QC'; statusColor = 'bg-emerald-50 text-emerald-700 border border-emerald-100'; }
+                                            else { statusLabel = o.status; statusColor = 'bg-gray-100 text-gray-700'; }
+
+                                            return (
+                                                <div key={o.id} className="p-4 bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-xl flex justify-between items-start gap-4 transition-all">
+                                                    <div>
+                                                        <span className={`text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full ${statusColor}`}>
+                                                            {statusLabel}
+                                                        </span>
+                                                        <h4 className="font-bold text-[14px] text-slate-800 mt-2">
+                                                            {o.customers?.full_name || 'Sin cliente'}
+                                                        </h4>
+                                                        <p className="text-xs text-slate-500 line-clamp-2 mt-1">
+                                                            {o.description}
+                                                        </p>
+                                                        <div className="flex flex-wrap gap-2 mt-2">
+                                                            {o.atelier_operators && (
+                                                                <span className="text-[10px] bg-white border border-slate-200/80 px-2 py-0.5 rounded text-slate-600 font-medium">
+                                                                    👤 {o.atelier_operators.name}
+                                                                </span>
+                                                            )}
+                                                            {o.estimated_hours > 0 && (
+                                                                <span className="text-[10px] bg-white border border-slate-200/80 px-2 py-0.5 rounded text-slate-600 font-medium">
+                                                                    ⏱ {o.estimated_hours}h
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right flex flex-col items-end gap-1.5 shrink-0">
+                                                        <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Entrega</span>
+                                                        <span className="text-[11px] font-mono font-bold text-slate-700">
+                                                            {o.deadline ? new Date(o.deadline).toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Sin fecha'}
+                                                        </span>
+                                                        <Link 
+                                                            href={`/admin/production`}
+                                                            className="text-[10px] uppercase font-bold tracking-wider text-slate-600 hover:text-slate-900 mt-4 block"
+                                                        >
+                                                            Ver Tablero →
+                                                        </Link>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
