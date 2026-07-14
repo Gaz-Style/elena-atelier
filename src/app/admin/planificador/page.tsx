@@ -23,6 +23,7 @@ type Task = {
     label: string;
     type: TaskType;
     orderId?: string;
+    sortValue?: number;
 };
 
 type DayCell = {
@@ -205,6 +206,7 @@ export default function PlanificadorPage() {
                     label: order.description || 'Orden sin nombre',
                     type: 'costura',
                     orderId: order.id,
+                    sortValue: 9999 // Flexible tasks go at the end
                 });
             });
 
@@ -218,20 +220,31 @@ export default function PlanificadorPage() {
                 const duration = durMin >= 60 
                     ? `${Math.floor(durMin/60)}${durMin%60 > 0 ? `.${Math.round(durMin%60/6*10)/10}` : ''}h`
                     : `${durMin}min`;
+                
+                // Extract clock time for clear UI display
+                const startTimeStr = agDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+                const sortValue = agDate.getHours() * 60 + agDate.getMinutes();
+
                 p[firstOpId][ds].tasks.push({
                     id: `agenda-${ag.id}`,
-                    time: duration,
+                    time: `${startTimeStr} (${duration})`,
                     label: ag.tipo_evento === 'tarea_interna'
                         ? (ag.notas || 'Bloqueo')
                         : `Cita: ${ag.nombre} ${ag.apellido||''}`.trim(),
                     type: ag.tipo_evento === 'tarea_interna' ? 'bloqueo' : 'cita',
+                    sortValue
                 });
             });
 
-            // Sort by label alphabetically (no longer sorted by clock time)
+            // Sort tasks chronologically, then alphabetically for flexible production tasks
             Object.values(p).forEach(opDays =>
                 Object.values(opDays).forEach(cell =>
-                    cell.tasks.sort((a,b) => a.label.localeCompare(b.label))
+                    cell.tasks.sort((a,b) => {
+                        const valA = a.sortValue ?? 9999;
+                        const valB = b.sortValue ?? 9999;
+                        if (valA !== valB) return valA - valB;
+                        return a.label.localeCompare(b.label);
+                    })
                 )
             );
         }
