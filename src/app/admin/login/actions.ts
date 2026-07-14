@@ -18,7 +18,7 @@ export async function loginAction(formData: FormData) {
     return { error: 'Clave o usuario incorrecto. Por favor, inténtalo de nuevo.' };
   }
 
-  redirect('/admin');
+  redirect('/admin/pos');
 }
 
 export async function logoutAction() {
