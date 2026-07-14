@@ -154,6 +154,7 @@ export default function Step4Payment() {
 
   const handleProcessPayment = async () => {
     if (initialPaymentType !== 'zero' && !paymentMethod) return alert("Selecciona un método de pago");
+    if (posMode === 'new_sale' && !selectedCustomer) return alert("Selecciona un cliente para continuar");
     
     setIsProcessing(true);
     try {
