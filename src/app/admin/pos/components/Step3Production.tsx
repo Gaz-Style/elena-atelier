@@ -115,6 +115,16 @@ export default function Step3Production() {
 
   const allAssigned = cart.every(item => item.assignedOperatorId && item.assignedOperatorId !== 'unassigned');
 
+  if (isLoadingOps) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4 animate-in fade-in duration-500">
+        <div className="w-12 h-12 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin"></div>
+        <h3 className="font-serif text-xl text-zinc-800">Calculando disponibilidad...</h3>
+        <p className="text-zinc-500 text-sm">Consultando agendas de costureras y carga de taller</p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="text-center">
