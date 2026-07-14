@@ -165,7 +165,7 @@ export default function Step4Payment() {
           return;
         }
         try {
-          const check = await checkDesignExclusivityAction(exclusivityType, exclusivityEventId, exclusivityDesignName);
+          const check = await checkDesignExclusivityAction(exclusivityType as 'graduacion' | 'novias', exclusivityEventId, exclusivityDesignName);
           if (check.success && !check.available) {
             alert(`⚠️ Conflicto de Exclusividad: El diseño "${exclusivityDesignName}" ya está registrado para "${exclusivityEventId}".`);
             setIsProcessing(false);

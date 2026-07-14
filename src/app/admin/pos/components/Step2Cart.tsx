@@ -144,11 +144,11 @@ export default function Step2Cart() {
             </div>
             <Button 
               variant={showManual ? "default" : "outline"}
-              className={showManual ? "bg-zinc-900 text-white" : ""}
+              className={`px-4 ${showManual ? "bg-zinc-900 text-white" : ""}`}
               onClick={() => setShowManual(!showManual)}
             >
-              <Plus className="w-4 h-4 md:mr-2" />
-              <span className="hidden md:inline">Manual</span>
+              <Plus className="w-4 h-4 mr-2" />
+              <span>Manual</span>
             </Button>
             <Button 
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
