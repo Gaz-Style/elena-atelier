@@ -208,7 +208,7 @@ export default function Step4Payment() {
 
       // Pay balance (existing order)
       if (posMode === 'pay_balance' && pendingOrderToPay) {
-        finalOrderIdStr = pendingOrderToPay.pos_order_id;
+        finalOrderIdStr = pendingOrderToPay.internal_id;
         const res = await payOrderBalanceAction(
           finalOrderIdStr,
           amountToPay,
