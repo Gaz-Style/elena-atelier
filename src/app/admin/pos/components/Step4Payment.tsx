@@ -62,9 +62,9 @@ export default function Step4Payment() {
         cart: cart.map(item => ({ ...item, images: undefined })),
         total: total,
         date: new Date().toISOString(),
-        customerId: selectedCustomer ? selectedCustomer.id : null,
-        customerName: selectedCustomer ? selectedCustomer.full_name : null,
-        customerEmail: selectedCustomer ? selectedCustomer.email : null,
+        customerId: selectedCustomer ? selectedCustomer?.id : null,
+        customerName: selectedCustomer ? selectedCustomer?.full_name : null,
+        customerEmail: selectedCustomer ? selectedCustomer?.email : null,
         customerPhone: selectedCustomer ? selectedCustomer.phone : null,
         posOrderId: posOrderId,
       };
@@ -77,13 +77,13 @@ export default function Step4Payment() {
         setGeneratedLink(link);
         if (selectedCustomer) {
           setClientPhone(selectedCustomer.phone || '');
-          setClientEmail(selectedCustomer.email || '');
+          setClientEmail(selectedCustomer?.email || '');
           // Auto-send email if customer has email
-          if (selectedCustomer.email) {
+          if (selectedCustomer?.email) {
             setIsSendingEmail(true);
             sendBudgetEmailAction({
-              customerEmail: selectedCustomer.email,
-              customerName: selectedCustomer.full_name || 'Estimada Clienta',
+              customerEmail: selectedCustomer?.email,
+              customerName: selectedCustomer?.full_name || 'Estimada Clienta',
               budgetLink: link,
               items: cart.map(item => ({
                 name: item.name,
@@ -227,8 +227,8 @@ export default function Step4Payment() {
         // Send confirmation email with payment link for transbank balance payments
         if (selectedCustomer?.email) {
           sendOrderConfirmationEmailAction({
-            customerEmail: selectedCustomer.email,
-            customerName: selectedCustomer.full_name,
+            customerEmail: selectedCustomer?.email,
+            customerName: selectedCustomer?.full_name,
             orderId: Number(finalOrderIdStr.replace('order_', '')) || 0,
             items: cart.map(item => ({ name: item.name, price: item.price, category: item.category, notes: item.details?.notes || '' })),
             total: amountToPay,
@@ -249,7 +249,7 @@ export default function Step4Payment() {
       // New sale: Contra Entrega
       if (initialPaymentType === 'zero') {
         const orderData = {
-          customerId: selectedCustomer.id,
+          customerId: selectedCustomer?.id,
           posOrderId: finalOrderIdStr,
           paymentMethod: finalPaymentMethodStr,
           paymentStatus: 'pending',
@@ -268,8 +268,8 @@ export default function Step4Payment() {
           // Email WITH payment link for Contra Entrega
           if (selectedCustomer?.email) {
             sendOrderConfirmationEmailAction({
-              customerEmail: selectedCustomer.email,
-              customerName: selectedCustomer.full_name,
+              customerEmail: selectedCustomer?.email,
+              customerName: selectedCustomer?.full_name,
               orderId: newOrderIdNumber,
               items: cart.map(item => ({ name: item.name, price: item.price, category: item.category, notes: item.details?.notes || '' })),
               total: total,
@@ -296,7 +296,7 @@ export default function Step4Payment() {
       }
 
       const orderData = {
-        customerId: selectedCustomer.id,
+        customerId: selectedCustomer?.id,
         posOrderId: finalOrderIdStr,
         paymentMethod: finalPaymentMethodStr || undefined,
         paymentStatus: finalPaymentStatus,
@@ -319,8 +319,8 @@ export default function Step4Payment() {
         // Email WITHOUT payment link for normal paid methods (except mercadopago_point, which waits for confirmation in Step 5)
         if (selectedCustomer?.email && paymentMethod !== 'mercadopago_point') {
           sendOrderConfirmationEmailAction({
-            customerEmail: selectedCustomer.email,
-            customerName: selectedCustomer.full_name,
+            customerEmail: selectedCustomer?.email,
+            customerName: selectedCustomer?.full_name,
             orderId: newOrderIdNumber,
             items: cart.map(item => ({ name: item.name, price: item.price, category: item.category, notes: item.details?.notes || '' })),
             total: amountToPay,
