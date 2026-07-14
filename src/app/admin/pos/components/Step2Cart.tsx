@@ -33,6 +33,7 @@ export default function Step2Cart() {
   const [manualPrice, setManualPrice] = useState('');
   const [manualHours, setManualHours] = useState('2');
   const [manualNotes, setManualNotes] = useState('');
+  const [showPrendaDropdown, setShowPrendaDropdown] = useState(false);
   
   const hourlyRate = atelierConfig?.labor_hourly_rate || 25000;
   const marginPercentage = atelierConfig?.default_margin_percentage || 0;
@@ -193,31 +194,38 @@ export default function Step2Cart() {
               </div>
 
               <div className="grid grid-cols-1 gap-4">
-                <div>
+                <div className="relative">
                   <label className="block text-xs font-medium text-zinc-700 mb-1">Prenda / Artículo</label>
                   <input 
                     type="text" 
-                    list="prendas-autocomplete"
                     className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                     placeholder="Ej: Pantalón, Vestido, Blusa..."
                     value={manualName}
-                    onChange={e => setManualName(e.target.value)}
+                    onChange={e => {
+                      setManualName(e.target.value);
+                      setShowPrendaDropdown(true);
+                    }}
+                    onFocus={() => setShowPrendaDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowPrendaDropdown(false), 200)}
                   />
-                  <datalist id="prendas-autocomplete">
-                    <option value="Pantalón" />
-                    <option value="Blusa" />
-                    <option value="Polera" />
-                    <option value="Vestido" />
-                    <option value="Chaqueta" />
-                    <option value="Abrigo" />
-                    <option value="Falda" />
-                    <option value="Traje" />
-                    <option value="Camisa" />
-                    <option value="Jeans" />
-                    <option value="Parka" />
-                    <option value="Short" />
-                    <option value="Enterito" />
-                  </datalist>
+                  {showPrendaDropdown && manualName.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg max-h-48 overflow-y-auto custom-scrollbar">
+                      {["Pantalón", "Blusa", "Polera", "Vestido", "Chaqueta", "Abrigo", "Falda", "Traje", "Camisa", "Jeans", "Parka", "Short", "Enterito"]
+                        .filter(p => p.toLowerCase().includes(manualName.toLowerCase()))
+                        .map(prenda => (
+                          <div 
+                            key={prenda}
+                            className="px-3 py-2 text-sm hover:bg-emerald-50 cursor-pointer transition-colors"
+                            onClick={() => {
+                              setManualName(prenda);
+                              setShowPrendaDropdown(false);
+                            }}
+                          >
+                            {prenda}
+                          </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
