@@ -249,7 +249,7 @@ export default function Step4Payment() {
       // New sale: Contra Entrega
       if (initialPaymentType === 'zero') {
         const orderData = {
-          customerId: selectedCustomer?.id,
+          customerId: selectedCustomer!.id,
           posOrderId: finalOrderIdStr,
           paymentMethod: finalPaymentMethodStr,
           paymentStatus: 'pending',
@@ -296,7 +296,7 @@ export default function Step4Payment() {
       }
 
       const orderData = {
-        customerId: selectedCustomer?.id,
+        customerId: selectedCustomer!.id,
         posOrderId: finalOrderIdStr,
         paymentMethod: finalPaymentMethodStr || undefined,
         paymentStatus: finalPaymentStatus,
