@@ -24,6 +24,8 @@ type Task = {
     type: TaskType;
     orderId?: string;
     sortValue?: number;
+    startHour?: number;
+    durationHours?: number;
 };
 
 type DayCell = {
@@ -89,7 +91,19 @@ export default function PlanificadorPage() {
     const [previewMode, setPreviewMode] = useState(false);
     const [viewMode, setViewMode]     = useState<'day'|'week'|'month'|'year'>('week');
     const [anchor, setAnchor]         = useState(new Date());
+    const [workshopStart, setWorkshopStart] = useState('09:00');
+    const [workshopEnd, setWorkshopEnd] = useState('18:00');
     const todayStr = dateStr(new Date());
+
+    const hoursArray = useMemo(() => {
+        const [startH] = workshopStart.split(':').map(Number);
+        const [endH] = workshopEnd.split(':').map(Number);
+        const arr = [];
+        for (let h = startH; h < endH; h++) {
+            arr.push(h);
+        }
+        return arr;
+    }, [workshopStart, workshopEnd]);
 
     // Generate days based on viewMode
     const activeDays = useMemo(() => {
@@ -134,6 +148,16 @@ export default function PlanificadorPage() {
         const activeOrds = (ords || []).filter((o: any) => o.production_start_date);
         setOperators(activeOps);
         setOrders(activeOrds);
+
+        // Fetch workshop configuration
+        const { data: configData } = await supabase
+            .from('atelier_config')
+            .select('workshop_working_hour_start, workshop_working_hour_end')
+            .limit(1);
+        if (configData && configData[0]) {
+            setWorkshopStart(configData[0].workshop_working_hour_start?.slice(0, 5) || '09:00');
+            setWorkshopEnd(configData[0].workshop_working_hour_end?.slice(0, 5) || '18:00');
+        }
 
         // Fetch active bridal projects & milestones
         const { data: bProjData } = await supabase
@@ -200,13 +224,20 @@ export default function PlanificadorPage() {
                 const duration = hours
                     ? hours >= 1 ? `${hours}h` : `${Math.round(hours * 60)}min`
                     : '';
+                
+                const startDate = new Date(order.production_start_date);
+                const startHour = startDate.getHours();
+                const durationHours = Math.max(1, Math.round(hours || 1));
+
                 p[opId][ds].tasks.push({
                     id: `order-${order.id}`,
                     time: duration,
                     label: order.description || 'Orden sin nombre',
                     type: 'costura',
                     orderId: order.id,
-                    sortValue: 9999 // Flexible tasks go at the end
+                    sortValue: startHour * 60,
+                    startHour,
+                    durationHours
                 });
             });
 
@@ -221,9 +252,10 @@ export default function PlanificadorPage() {
                     ? `${Math.floor(durMin/60)}${durMin%60 > 0 ? `.${Math.round(durMin%60/6*10)/10}` : ''}h`
                     : `${durMin}min`;
                 
-                // Extract clock time for clear UI display
                 const startTimeStr = agDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
                 const sortValue = agDate.getHours() * 60 + agDate.getMinutes();
+                const startHour = agDate.getHours();
+                const durationHours = Math.max(1, Math.round(durMin / 60));
 
                 p[firstOpId][ds].tasks.push({
                     id: `agenda-${ag.id}`,
@@ -232,11 +264,13 @@ export default function PlanificadorPage() {
                         ? (ag.notas || 'Bloqueo')
                         : `Cita: ${ag.nombre} ${ag.apellido||''}`.trim(),
                     type: ag.tipo_evento === 'tarea_interna' ? 'bloqueo' : 'cita',
-                    sortValue
+                    sortValue,
+                    startHour,
+                    durationHours
                 });
             });
 
-            // Sort tasks chronologically, then alphabetically for flexible production tasks
+            // Sort tasks chronologically
             Object.values(p).forEach(opDays =>
                 Object.values(opDays).forEach(cell =>
                     cell.tasks.sort((a,b) => {
@@ -522,64 +556,105 @@ export default function PlanificadorPage() {
 
                                                     return (
                                                         <td key={op.id} className="p-3 align-top border-r border-slate-100 hover:bg-slate-50/50 transition-colors min-h-[120px] relative">
-                                                            <div className="flex flex-col gap-2">
-                                                                {/* Task slots */}
-                                                                {cell.tasks.map(task => {
-                                                                    const style = TASK_ROW_STYLE[task.type];
-                                                                    return (
-                                                                        <div
-                                                                            key={task.id}
-                                                                            className={`relative group/task flex items-start gap-3 p-3 rounded-xl border border-slate-100 shadow-sm transition-all ${!previewMode ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5' : ''}`}
-                                                                            style={{ backgroundColor: style.background, borderLeft: style.borderLeft }}
-                                                                            onClick={() => !previewMode && openEdit(op.id, ds, task)}
-                                                                        >
-                                                                            {task.time && (
-                                                                                <div className="font-mono text-[11px] font-bold pt-0.5 bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 whitespace-nowrap">
-                                                                                    ⏱ {task.time}
+                                                            <div className="flex flex-col gap-2.5">
+                                                                {/* Hourly slots */}
+                                                                {hoursArray.map(hour => {
+                                                                    const hourStr = `${hour.toString().padStart(2, '0')}:00`;
+                                                                    
+                                                                    // Find tasks starting at this hour
+                                                                    const tasksInHour = cell.tasks.filter(t => {
+                                                                        const tStart = t.startHour ?? 9;
+                                                                        return tStart === hour;
+                                                                    });
+
+                                                                    // Check if this hour is covered by a spanning task
+                                                                    const isHourCovered = cell.tasks.some(t => {
+                                                                        const tStart = t.startHour ?? 9;
+                                                                        const tEnd = tStart + (t.durationHours ?? 1);
+                                                                        return hour > tStart && hour < tEnd;
+                                                                    });
+
+                                                                    if (isHourCovered) return null;
+
+                                                                    if (tasksInHour.length > 0) {
+                                                                        return (
+                                                                            <div key={hour} className="space-y-1 bg-white/40 p-1.5 rounded-xl border border-slate-50">
+                                                                                <div className="text-[10px] font-bold text-slate-400 mb-1 flex items-center gap-1.5">
+                                                                                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                                                                                    {hourStr}
                                                                                 </div>
-                                                                            )}
-                                                                            <div className="text-[13px] text-slate-700 leading-snug flex-1 break-words font-medium">
-                                                                                {task.label}
+                                                                                {tasksInHour.map(task => {
+                                                                                    const style = TASK_ROW_STYLE[task.type];
+                                                                                    const minHeight = task.durationHours && task.durationHours > 1 
+                                                                                        ? `${task.durationHours * 50}px` 
+                                                                                        : 'auto';
+                                                                                    return (
+                                                                                        <div
+                                                                                            key={task.id}
+                                                                                            className={`relative group/task flex items-start gap-3 p-3 rounded-xl border border-slate-100 shadow-sm transition-all ${!previewMode ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5' : ''}`}
+                                                                                            style={{ backgroundColor: style.background, borderLeft: style.borderLeft, minHeight }}
+                                                                                            onClick={() => !previewMode && openEdit(op.id, ds, task)}
+                                                                                        >
+                                                                                            {task.time && (
+                                                                                                <div className="font-mono text-[11px] font-bold pt-0.5 bg-slate-100 text-slate-500 rounded px-1.5 py-0.5 whitespace-nowrap">
+                                                                                                    ⏱ {task.time}
+                                                                                                </div>
+                                                                                            )}
+                                                                                            <div className="text-[13px] text-slate-700 leading-snug flex-1 break-words font-medium">
+                                                                                                {task.label}
+                                                                                            </div>
+                                                                                            {!previewMode && (
+                                                                                                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover/task:opacity-100 transition-all">
+                                                                                                    <button
+                                                                                                        className="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-md"
+                                                                                                        onClick={e => { e.stopPropagation(); openEdit(op.id, ds, task); }}
+                                                                                                        title="Editar"
+                                                                                                    >
+                                                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                                                                                                    </button>
+                                                                                                    <button
+                                                                                                        className="p-1.5 text-red-400 hover:bg-red-100 hover:text-red-600 rounded-md"
+                                                                                                        onClick={e => { e.stopPropagation(); deleteTask(op.id, ds, task.id); }}
+                                                                                                        title="Eliminar"
+                                                                                                    >
+                                                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                                                                                    </button>
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    );
+                                                                                })}
                                                                             </div>
-                                                                            {!previewMode && (
-                                                                                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover/task:opacity-100 transition-all">
-                                                                                    <button
-                                                                                        className="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 rounded-md"
-                                                                                        onClick={e => { e.stopPropagation(); openEdit(op.id, ds, task); }}
-                                                                                        title="Editar"
-                                                                                    >
-                                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                                                                                    </button>
-                                                                                    <button
-                                                                                        className="p-1.5 text-red-400 hover:bg-red-100 hover:text-red-600 rounded-md"
-                                                                                        onClick={e => { e.stopPropagation(); deleteTask(op.id, ds, task.id); }}
-                                                                                        title="Eliminar"
-                                                                                    >
-                                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                                                                                    </button>
-                                                                                </div>
-                                                                            )}
+                                                                        );
+                                                                    }
+
+                                                                    return (
+                                                                        <div key={hour} className="flex flex-col gap-1 py-1.5 border-t border-slate-100/50 opacity-40 hover:opacity-100 transition-opacity">
+                                                                            <div className="flex items-center justify-between text-[10px] font-bold text-slate-400">
+                                                                                <span>{hourStr}</span>
+                                                                                <span className="text-[9px] uppercase tracking-widest text-emerald-600 font-extrabold bg-emerald-50/50 px-1.5 py-0.5 rounded border border-emerald-100/30">Disponible</span>
+                                                                            </div>
                                                                         </div>
                                                                     );
                                                                 })}
 
                                                                 {/* Add button */}
                                                                 {!previewMode && (
-                                                                    <>
-                                                                    <button 
-                                                                        className="mt-1 w-full flex items-center justify-center gap-1.5 p-2.5 border border-dashed border-slate-300 rounded-xl text-xs font-bold text-slate-400 hover:border-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all"
-                                                                        onClick={() => openAdd(op.id, ds)}
-                                                                    >
-                                                                        ＋ Añadir tarea o cita
-                                                                    </button>
-                                                                    
-                                                                    <button 
-                                                                        className="w-full text-center p-1.5 text-[10px] font-bold text-slate-300 uppercase tracking-widest hover:text-red-400 transition-colors"
-                                                                        onClick={() => toggleBlock(op.id, ds)}
-                                                                    >
-                                                                        Bloquear día
-                                                                    </button>
-                                                                    </>
+                                                                    <div className="border-t border-slate-100 pt-2.5 mt-1">
+                                                                        <button 
+                                                                            className="w-full flex items-center justify-center gap-1.5 p-2.5 border border-dashed border-slate-300 rounded-xl text-xs font-bold text-slate-400 hover:border-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all"
+                                                                            onClick={() => openAdd(op.id, ds)}
+                                                                        >
+                                                                            ＋ Añadir tarea o cita
+                                                                        </button>
+                                                                        
+                                                                        <button 
+                                                                            className="mt-1.5 w-full text-center p-1.5 text-[10px] font-bold text-slate-300 uppercase tracking-widest hover:text-red-400 transition-colors"
+                                                                            onClick={() => toggleBlock(op.id, ds)}
+                                                                        >
+                                                                            Bloquear día
+                                                                        </button>
+                                                                    </div>
                                                                 )}
                                                             </div>
                                                         </td>
