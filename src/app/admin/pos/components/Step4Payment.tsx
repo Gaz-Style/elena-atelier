@@ -261,7 +261,7 @@ export default function Step4Payment() {
             scheduledStartDate: item.scheduledStartDate || undefined
           })),
           deadline: deadline || null,
-          exclusividad: exclusivityType !== 'none' ? { tipo: exclusivityType, identificador: exclusivityEventId, diseno: exclusivityDesignName } : undefined
+          exclusividad: exclusivityType !== 'none' ? { tipo: exclusivityType as 'graduacion' | 'novias', identificador: exclusivityEventId, diseno: exclusivityDesignName } : undefined
         };
         const result = await createPOSOrdersAction(orderData);
         if (result.success) {
@@ -310,7 +310,7 @@ export default function Step4Payment() {
         deadline: deadline || null,
         splitCashAmount: isMixedTerminal ? splitCashAmount : undefined,
         splitCardAmount: isMixedTerminal ? splitCardAmount : undefined,
-        exclusividad: exclusivityType !== 'none' ? { tipo: exclusivityType, identificador: exclusivityEventId, diseno: exclusivityDesignName } : undefined
+        exclusividad: exclusivityType !== 'none' ? { tipo: exclusivityType as 'graduacion' | 'novias', identificador: exclusivityEventId, diseno: exclusivityDesignName } : undefined
       };
 
       const result = await createPOSOrdersAction(orderData);
