@@ -793,6 +793,8 @@ export async function createPOSOrdersAction(payload: {
         isCustom?: boolean;
         hours?: number;
         assignedOperatorId?: string;
+        productionStartDate?: string | null;
+        productionEndDate?: string | null;
         bomItems?: { itemId: string; estimatedQty: number; notes: string }[];
     }[];
     deadline?: string | null;
@@ -897,8 +899,8 @@ export async function createPOSOrdersAction(payload: {
                 notes: item.notes || '',
                 deadline: finalDeliveryDate || deadline || null,
                 estimated_hours: item.hours || 0,
-                production_start_date: productionStartDate || null,
-                production_end_date: productionEndDate || null,
+                production_start_date: item.productionStartDate || productionStartDate || null,
+                production_end_date: item.productionEndDate || productionEndDate || null,
                 final_delivery_date: finalDeliveryDate || null,
                 assigned_operator_id: item.assignedOperatorId && item.assignedOperatorId !== 'unassigned' ? item.assignedOperatorId : null,
                 pos_order_id: posOrderId || null,

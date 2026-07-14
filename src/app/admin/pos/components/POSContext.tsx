@@ -20,6 +20,8 @@ export interface CartItem {
   isCustom?: boolean;
   assignedOperatorId?: string;
   scheduledStartDate?: string;
+  productionStartDate?: string;
+  productionEndDate?: string;
   details?: any;
 }
 

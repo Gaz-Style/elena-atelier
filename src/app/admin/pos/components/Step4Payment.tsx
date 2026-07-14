@@ -258,7 +258,9 @@ export default function Step4Payment() {
             name: item.name, price: item.price, category: item.category,
             hours: Number(item.details?.hours || 2), notes: item.details?.notes || '',
             isCustom: !!item.isCustom, assignedOperatorId: item.assignedOperatorId || 'unassigned',
-            scheduledStartDate: item.scheduledStartDate || undefined
+            scheduledStartDate: item.scheduledStartDate || undefined,
+            productionStartDate: item.productionStartDate || undefined,
+            productionEndDate: item.productionEndDate || undefined
           })),
           deadline: deadline || null,
           exclusividad: exclusivityType !== 'none' ? { tipo: exclusivityType as 'graduacion' | 'novias', identificador: exclusivityEventId, diseno: exclusivityDesignName } : undefined

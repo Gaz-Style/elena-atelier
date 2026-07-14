@@ -45,17 +45,19 @@ export default function Step3Production() {
 
   useEffect(() => {
     // Agrupar horas por costurera
-    const groupMap: Record<string, { hours: number, opId: string, scheduledDate?: string }> = {};
-    cart.forEach(item => {
+    const groupMap: Record<string, { hours: number, opId: string, scheduledDate?: string, itemIndices: number[] }> = {};
+    
+    cart.forEach((item, idx) => {
       const opId = item.assignedOperatorId || 'unassigned';
       const scheduledDate = item.scheduledStartDate;
       const key = `${opId}_${scheduledDate || 'auto'}`;
       const hours = Number(item.details?.hours || 2);
       
       if (!groupMap[key]) {
-        groupMap[key] = { hours: 0, opId, scheduledDate: scheduledDate || undefined };
+        groupMap[key] = { hours: 0, opId, scheduledDate: scheduledDate || undefined, itemIndices: [] };
       }
       groupMap[key].hours += hours;
+      groupMap[key].itemIndices.push(idx);
     });
 
     const totalCartHours = Object.values(groupMap).reduce((sum, g) => sum + g.hours, 0);
@@ -68,22 +70,35 @@ export default function Step3Production() {
 
     setIsCalculatingDates(true);
     
-    const promises = Object.values(groupMap).map(group => {
+    const groups = Object.values(groupMap);
+    const promises = groups.map(group => {
       return getEstimatedDatesAction(group.hours, group.opId, group.scheduledDate);
     });
 
     Promise.all(promises).then(results => {
       let latestResult = results[0];
-      for (let i = 1; i < results.length; i++) {
-        if (new Date(results[i].finalDeliveryDate) > new Date(latestResult.finalDeliveryDate)) {
-          latestResult = results[i];
+      
+      results.forEach((res, i) => {
+        if (new Date(res.finalDeliveryDate) > new Date(latestResult.finalDeliveryDate)) {
+          latestResult = res;
         }
-      }
+        
+        // Update cart items with their specific block dates
+        groups[i].itemIndices.forEach(idx => {
+          const item = cart[idx];
+          if (item.productionStartDate !== res.productionStartDate || item.productionEndDate !== res.productionEndDate) {
+            updateCartItem(idx, { 
+              productionStartDate: res.productionStartDate,
+              productionEndDate: res.productionEndDate
+            });
+          }
+        });
+      });
+      
       setEstimatedDates(latestResult);
       if (!adminOverride) {
         setDeadline(latestResult.finalDeliveryDate);
       }
-      setIsCalculatingDates(true);
     }).catch(console.error).finally(() => setIsCalculatingDates(false));
 
   }, [cart, adminOverride, setEstimatedDates, setDeadline]);
