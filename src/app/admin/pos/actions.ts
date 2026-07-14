@@ -13,6 +13,34 @@ const getAdminClient = () => {
     );
 };
 
+export async function getPendingBalancesAction() {
+    const supabase = await createClient();
+    const { data: sales, error } = await supabase
+        .from('sales_ledger')
+        .select('id, internal_id, customer_id, total_amount, paid_amount')
+        .eq('status', 'partial')
+        .not('customer_id', 'is', null);
+
+    if (error) return { success: false, error: error.message };
+    
+    const balancesByCustomer: Record<string, { internal_id: string, balance: number, sale_id: number }[]> = {};
+    if (sales) {
+        for (const sale of sales) {
+            const balance = Number(sale.total_amount || 0) - Number(sale.paid_amount || 0);
+            if (balance > 0 && sale.customer_id) {
+                if (!balancesByCustomer[sale.customer_id]) balancesByCustomer[sale.customer_id] = [];
+                balancesByCustomer[sale.customer_id].push({
+                    sale_id: sale.id,
+                    internal_id: sale.internal_id,
+                    balance
+                });
+            }
+        }
+    }
+    
+    return { success: true, balancesByCustomer };
+}
+
 import fs from 'fs';
 import path from 'path';
 const backgroundImgBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGUlEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAA8F8bGgABxZqVdgAAAABJRU5ErkJggg==';
@@ -833,6 +861,28 @@ export async function createPOSOrdersAction(payload: {
 
     const saleId = saleData.id;
 
+    // 1.5 Insert Master Work Order (DUAL WRITE)
+    const { data: woData, error: woError } = await supabase
+        .from('work_orders')
+        .insert([{
+            sale_id: saleId,
+            customer_id: finalCustomerId,
+            order_type: items.some(i => i.isCustom) ? 'bespoke' : 'b2b_batch',
+            order_category: 'confeccion',
+            status: derivedStatus === 'paid' ? 'en_produccion' : 'contrato',
+            priority: 'normal',
+            total_amount: totalAmount,
+            deadline: finalDeliveryDate || deadline || null,
+            source: 'pos'
+        }])
+        .select('id')
+        .single();
+
+    if (woError) {
+        console.error('Error creating work_order:', woError);
+    }
+    const workOrderId = woData?.id;
+
     // 2. Insert Production Orders linked to Sales Ledger
     const insertPromises = items.map(async item => {
         const orderType = item.isCustom ? 'bespoke' : 'b2b_batch';
@@ -871,6 +921,20 @@ export async function createPOSOrdersAction(payload: {
             }));
             const { error: bomError } = await supabase.from('erp_order_bom').insert(bomInserts);
             if (bomError) console.error('Error inserting BOM:', bomError);
+        }
+
+        // DUAL-WRITE to work_order_items
+        if (workOrderId) {
+            const { error: woiError } = await supabase.from('work_order_items').insert([{
+                work_order_id: workOrderId,
+                description: item.name,
+                status: 'pendiente',
+                assigned_operator_id: item.assignedOperatorId && item.assignedOperatorId !== 'unassigned' ? item.assignedOperatorId : null,
+                estimated_hours: item.hours || 0,
+                production_start: productionStartDate || null,
+                production_end: productionEndDate || null
+            }]);
+            if (woiError) console.error('Error inserting work_order_items:', woiError);
         }
 
         return { success: true, data: pOrder };
@@ -1055,7 +1119,15 @@ export async function getAtelierConfigAction() {
         console.error('Error fetching atelier config:', error);
         return null;
     }
-    return data && data.length > 0 ? data[0] : null;
+    
+    let baseConfig = data && data.length > 0 ? data[0] : null;
+    if (baseConfig) {
+        const { data: costData } = await supabase.from('company_settings').select('value').eq('key', 'cost_structure').maybeSingle();
+        if (costData && costData.value) {
+            baseConfig = { ...baseConfig, ...costData.value };
+        }
+    }
+    return baseConfig;
 }
 
 
@@ -1126,14 +1198,22 @@ export async function getEstimatedDatesAction(newHours: number, assignedOperator
     const backlogHours = activeOrders?.reduce((sum, o) => sum + Number(o.estimated_hours || 0), 0) || 0;
     
     // 3. Timezone helper to get Chile Offset dynamically
-    const now = scheduledStartDate ? new Date(scheduledStartDate) : new Date();
+    let now = new Date();
+    if (scheduledStartDate) {
+        const parsed = new Date(scheduledStartDate);
+        if (!isNaN(parsed.getTime())) {
+            now = parsed;
+        }
+    }
+
+    const formatter = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Santiago",
+        year: "numeric", month: "numeric", day: "numeric",
+        hour: "numeric", minute: "numeric", second: "numeric",
+        hour12: false
+    });
+
     const getChileOffsetString = (date: Date) => {
-        const formatter = new Intl.DateTimeFormat("en-US", {
-            timeZone: "America/Santiago",
-            year: "numeric", month: "numeric", day: "numeric",
-            hour: "numeric", minute: "numeric", second: "numeric",
-            hour12: false
-        });
         const parts = formatter.formatToParts(date);
         const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
         const chileUTC = Date.UTC(
@@ -1154,6 +1234,9 @@ export async function getEstimatedDatesAction(newHours: number, assignedOperator
     const chileOffset = getChileOffsetString(now);
 
     const formatChileLocalToISO = (chileDate: Date): string => {
+        if (isNaN(chileDate.getTime())) {
+            return new Date().toISOString();
+        }
         const y = chileDate.getFullYear();
         const mo = String(chileDate.getMonth() + 1).padStart(2, '0');
         const d = String(chileDate.getDate()).padStart(2, '0');
@@ -1163,7 +1246,16 @@ export async function getEstimatedDatesAction(newHours: number, assignedOperator
     };
 
     // Get current Chilean local time as a standard Date object
-    const nowInChile = new Date(now.toLocaleString("en-US", { timeZone: "America/Santiago" }));
+    const partsNow = formatter.formatToParts(now);
+    const mapNow = Object.fromEntries(partsNow.map(p => [p.type, p.value]));
+    const nowInChile = new Date(
+        Number(mapNow.year),
+        Number(mapNow.month) - 1,
+        Number(mapNow.day),
+        Number(mapNow.hour),
+        Number(mapNow.minute),
+        Number(mapNow.second)
+    );
 
     // 4. Align start date to workshop working hours (09:00 - 18:00 or customized)
     function alignToWorkingHours(date: Date): Date {

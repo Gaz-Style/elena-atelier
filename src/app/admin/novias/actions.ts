@@ -149,6 +149,35 @@ export async function createBridalProject(formData: FormData) {
         return { success: false, error: projError?.message || 'Error al crear el proyecto' };
     }
     
+    // 1.5 DUAL WRITE TO work_orders
+    let woId = undefined;
+    if (project) {
+        const paymentPlan = { cuotas: [] as any[] };
+        if (payment1 > 0) paymentPlan.cuotas.push({ numero: 1, monto: payment1, status: 'pending' });
+        if (payment2 > 0) paymentPlan.cuotas.push({ numero: 2, monto: payment2, status: 'pending' });
+        if (payment3 > 0) paymentPlan.cuotas.push({ numero: 3, monto: payment3, status: 'pending' });
+        
+        const { data: woData } = await supabase.from('work_orders').insert([{
+            customer_id: customerId || null,
+            order_type: projectType,
+            order_category: 'alta_costura',
+            status: 'contrato_pendiente',
+            description: description || `Vestido de ${projectType}`,
+            total_amount: totalAmount,
+            paid_amount: 0,
+            payment_status: 'pending',
+            payment_plan: paymentPlan,
+            event_date: eventDate?.toISOString() || null,
+            event_venue: eventVenue || null,
+            project_type: projectType,
+            service_type: serviceType,
+            contract_notes: contractNotes || null,
+            materials_notes: materialsNotes || null,
+            legacy_bridal_project_id: project.id
+        }]).select('id').single();
+        if (woData) woId = woData.id;
+    }
+    
     // 2. Generate milestones from event date
     if (eventDate) {
         const milestoneTemplates = calculateMilestoneDates(eventDate);
@@ -172,6 +201,19 @@ export async function createBridalProject(formData: FormData) {
         
         if (milestoneError) {
             console.error('Error creating milestones:', milestoneError);
+        }
+
+        // Dual write milestones to work_order_milestones
+        if (woId) {
+            const woMilestoneInserts = milestoneInserts.map(m => ({
+                work_order_id: woId,
+                milestone_type: m.milestone_type,
+                title: m.title,
+                scheduled_date: m.scheduled_date,
+                status: m.status,
+                required_payment: m.required_payment
+            }));
+            await supabase.from('work_order_milestones').insert(woMilestoneInserts);
         }
     }
     
@@ -216,10 +258,42 @@ export async function updateBridalProject(id: string, formData: FormData) {
         return { success: false, error: error.message };
     }
     
+    // 1.5 DUAL WRITE TO work_orders
+    const woUpdates: Record<string, any> = {};
+    if (updates.description !== undefined) woUpdates.description = updates.description;
+    if (updates.materials_notes !== undefined) woUpdates.materials_notes = updates.materials_notes;
+    if (updates.internal_notes !== undefined) woUpdates.internal_notes = updates.internal_notes;
+    if (updates.contract_notes !== undefined) woUpdates.contract_notes = updates.contract_notes;
+    if (updates.event_venue !== undefined) woUpdates.event_venue = updates.event_venue;
+    if (updates.status !== undefined) woUpdates.status = updates.status;
+    if (updates.total_amount !== undefined) woUpdates.total_amount = updates.total_amount;
+    if (updates.event_date !== undefined) woUpdates.event_date = updates.event_date;
+    
+    if (Object.keys(woUpdates).length > 0) {
+        // Find existing work_order to update payment_plan if total_amount changed
+        if (updates.total_amount !== undefined) {
+            const { data: woData } = await supabase.from('work_orders').select('payment_plan, paid_amount').eq('legacy_bridal_project_id', id).maybeSingle();
+            if (woData && woData.payment_plan && woData.payment_plan.cuotas) {
+                const plan = woData.payment_plan;
+                if (plan.cuotas[0]) plan.cuotas[0].monto = updates.payment_1_amount;
+                if (plan.cuotas[1]) plan.cuotas[1].monto = updates.payment_2_amount;
+                if (plan.cuotas[2]) plan.cuotas[2].monto = updates.payment_3_amount;
+                woUpdates.payment_plan = plan;
+                
+                let paid = woData.paid_amount || 0;
+                if (paid >= updates.total_amount && updates.total_amount > 0) woUpdates.payment_status = 'paid';
+                else if (paid > 0) woUpdates.payment_status = 'partial';
+                else woUpdates.payment_status = 'pending';
+            }
+        }
+        await supabase.from('work_orders').update(woUpdates).eq('legacy_bridal_project_id', id);
+    }
+    
     revalidatePath('/admin/novias');
     revalidatePath(`/admin/novias/${id}`);
     return { success: true };
 }
+
 
 export async function registerPayment(projectId: string, paymentNumber: 1 | 2 | 3, paymentMethod: string = 'Efectivo/Transferencia') {
     const supabase = getAdminClient();
@@ -254,6 +328,37 @@ export async function registerPayment(projectId: string, paymentNumber: 1 | 2 | 
     if (error) {
         console.error('Error registering payment:', error);
         return { success: false, error: error.message };
+    }
+    
+    // 1.5 DUAL WRITE TO work_orders
+    const { data: woData } = await supabase.from('work_orders').select('payment_plan, paid_amount, total_amount, status').eq('legacy_bridal_project_id', projectId).maybeSingle();
+    
+    if (woData && woData.payment_plan && woData.payment_plan.cuotas) {
+        const plan = woData.payment_plan;
+        let amountPaid = 0;
+        if (plan.cuotas[paymentNumber - 1]) {
+            plan.cuotas[paymentNumber - 1].status = 'paid';
+            plan.cuotas[paymentNumber - 1].fecha = updates[`payment_${paymentNumber}_date`];
+            amountPaid = plan.cuotas[paymentNumber - 1].monto;
+        }
+        
+        let newPaidAmount = (woData.paid_amount || 0) + amountPaid;
+        let newPaymentStatus = 'pending';
+        if (newPaidAmount >= (woData.total_amount || 0) && (woData.total_amount || 0) > 0) newPaymentStatus = 'paid';
+        else if (newPaidAmount > 0) newPaymentStatus = 'partial';
+        
+        const woUpdates: any = {
+            payment_plan: plan,
+            paid_amount: newPaidAmount,
+            payment_status: newPaymentStatus,
+            updated_at: new Date().toISOString()
+        };
+        
+        if (paymentNumber === 1 && (woData.status === 'contrato_pendiente' || woData.status === 'consulta')) {
+            woUpdates.status = 'draft';
+        }
+        
+        await supabase.from('work_orders').update(woUpdates).eq('legacy_bridal_project_id', projectId);
     }
 
     // Registrar en sales_ledger

@@ -48,7 +48,7 @@ export default function AdminHeader({ hasUser }: AdminHeaderProps) {
   if (isPlanificador) return null;
 
   return (
-    <header className="sticky top-0 w-full h-20 bg-white/80 backdrop-blur-md border-b border-zinc-200/60 z-40 flex items-center justify-between px-6 md:px-8 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
+    <header className="hidden lg:flex sticky top-0 w-full h-20 bg-white/80 backdrop-blur-md border-b border-zinc-200/60 z-40 items-center justify-between px-6 md:px-8 shadow-[0_1px_3px_rgba(0,0,0,0.01)]">
       <div className="flex items-center gap-4">
         {/* Navigation Breadcrumb / Module Indicator */}
         <div className="flex items-center gap-2">
