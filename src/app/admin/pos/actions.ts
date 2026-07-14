@@ -1940,13 +1940,13 @@ export async function requestDiscountAuthorizationAction(payload: {
 
 export async function getOperatorsDailyLoadAction() {
     const supabase = await createClient();
-    const todayStr = new Date().toDateString();
 
+    // Traer órdenes activas que están pendientes o en proceso
     const { data: activeOrders } = await supabase
         .from('production_orders')
         .select('assigned_operator_id, estimated_hours, status, production_start_date, deadline')
         .not('assigned_operator_id', 'is', null)
-        .in('status', ['draft', 'cutting', 'sewing', 'finishing']);
+        .in('status', ['draft', 'pending', 'pendiente', 'cutting', 'sewing', 'finishing', 'en_produccion']);
 
     const { data: operators } = await supabase
         .from('atelier_operators')
@@ -1960,14 +1960,8 @@ export async function getOperatorsDailyLoadAction() {
         if (activeOrders) {
             activeOrders.forEach(o => {
                 if (o.assigned_operator_id === op.id) {
-                    const targetDateStr = o.production_start_date || o.deadline;
-                    if (!targetDateStr) {
-                        backlog += Number(o.estimated_hours || 0);
-                    } else {
-                        if (new Date(targetDateStr).toDateString() === todayStr) {
-                            backlog += Number(o.estimated_hours || 0);
-                        }
-                    }
+                    // Sumamos todas las horas estimadas de órdenes activas
+                    backlog += Number(o.estimated_hours || 0);
                 }
             });
         }
