@@ -90,23 +90,12 @@ export default function Step3Production() {
 
   const handleAssignOp = (itemIndex: number, opId: string) => {
     if (opId === 'unassigned') {
-      updateCartItem(itemIndex, { assignedOperatorId: opId });
+      updateCartItem(itemIndex, { assignedOperatorId: undefined });
       return;
     }
-    const targetOp = operatorsLoad.find(o => o.id === opId);
-    if (targetOp && targetOp.workloadPercentage > 100) {
-      const alternatives = operatorsLoad.filter(o => o.id !== opId && o.workloadPercentage < 100);
-      setLoadBalancerModal({
-        show: true,
-        targetOpId: opId,
-        itemIndex,
-        targetName: targetOp.name,
-        targetLoad: targetOp.workloadPercentage,
-        alternatives
-      });
-    } else {
-      updateCartItem(itemIndex, { assignedOperatorId: opId });
-    }
+    
+    // Asignación directa, sin modal de porcentaje
+    updateCartItem(itemIndex, { assignedOperatorId: opId });
   };
 
   const handleSetDate = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,7 +144,20 @@ export default function Step3Production() {
                   <option value="unassigned">Sin asignar</option>
                   {operators.map(op => {
                     const opLoad = operatorsLoad.find(o => o.id === op.id);
-                    const loadText = opLoad ? ` (Carga: ${opLoad.workloadPercentage}%)` : '';
+                    let loadText = '';
+                    if (opLoad?.availableFromDate) {
+                      const d = new Date(opLoad.availableFromDate);
+                      const today = new Date();
+                      const isToday = d.toDateString() === today.toDateString();
+                      
+                      if (isToday) {
+                        loadText = ` (Libre desde Hoy ${d.toLocaleTimeString('es-CL', {hour: '2-digit', minute: '2-digit'})})`;
+                      } else {
+                        const dow = d.toLocaleDateString('es-CL', { weekday: 'short' });
+                        const day = d.getDate();
+                        loadText = ` (Libre ${dow} ${day}, ${d.toLocaleTimeString('es-CL', {hour: '2-digit', minute: '2-digit'})})`;
+                      }
+                    }
                     return (
                       <option key={op.id} value={op.id}>
                         {op.name}{loadText}

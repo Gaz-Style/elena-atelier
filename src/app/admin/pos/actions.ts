@@ -1941,7 +1941,7 @@ export async function requestDiscountAuthorizationAction(payload: {
 export async function getOperatorsDailyLoadAction() {
     const supabase = await createClient();
 
-    // Traer órdenes activas que están pendientes o en proceso
+    // Traer órdenes activas
     const { data: activeOrders } = await supabase
         .from('production_orders')
         .select('assigned_operator_id, estimated_hours, status, production_start_date, deadline')
@@ -1950,30 +1950,108 @@ export async function getOperatorsDailyLoadAction() {
 
     const { data: operators } = await supabase
         .from('atelier_operators')
-        .select('id, name, daily_hours_capacity, status')
+        .select('id, name, daily_hours_capacity, status, working_days')
         .eq('status', 'active');
 
+    // Traer config del taller para horarios (simplificado para la disponibilidad rápida)
+    const { data: configData } = await supabase.from('atelier_config').select('*').limit(1);
+    const c = configData?.[0] || {};
+    const startStr = c.workshop_working_hour_start || '09:00:00';
+    const endStr = c.workshop_working_hour_end || '18:00:00';
+    
+    // Función auxiliar para calcular la fecha final dado un backlog en horas
+    function calculateAvailabilityDate(start: Date, backlogHours: number, capacity: number, workingDays: number[]): Date {
+        let result = new Date(start.getTime());
+        const [startH, startM] = startStr.split(':').map(Number);
+        const [endH, endM] = endStr.split(':').map(Number);
+        const W = ((endH || 18) - (startH || 9) + ((endM || 0) - (startM || 0)) / 60) || 9;
+        const rate = (capacity || 7) / W;
+        let remaining = backlogHours;
+        let safeguard = 0;
+
+        // Alinear a horario de inicio si está fuera de rango
+        while (safeguard < 100) {
+            safeguard++;
+            if (!workingDays.includes(result.getDay() === 0 ? 7 : result.getDay())) {
+                result.setDate(result.getDate() + 1);
+                result.setHours(startH || 9, startM || 0, 0, 0);
+                continue;
+            }
+            const currentH = result.getHours();
+            if (currentH < (startH || 9)) {
+                result.setHours(startH || 9, startM || 0, 0, 0);
+            }
+            if (currentH >= (endH || 18)) {
+                result.setDate(result.getDate() + 1);
+                result.setHours(startH || 9, startM || 0, 0, 0);
+                continue;
+            }
+            break;
+        }
+
+        if (remaining <= 0) return result;
+
+        safeguard = 0;
+        while (remaining > 0 && safeguard < 100) {
+            safeguard++;
+            const currentWorkDayEnd = new Date(result.getTime());
+            currentWorkDayEnd.setHours(endH || 18, endM || 0, 0, 0);
+            
+            const clockHoursLeftToday = (currentWorkDayEnd.getTime() - result.getTime()) / (1000 * 60 * 60);
+            const personHoursLeftToday = clockHoursLeftToday * rate;
+            
+            if (remaining <= personHoursLeftToday) {
+                const clockHoursRequired = remaining / rate;
+                result.setTime(result.getTime() + clockHoursRequired * 60 * 60 * 1000);
+                remaining = 0;
+            } else {
+                result.setDate(result.getDate() + 1);
+                result.setHours(startH || 9, startM || 0, 0, 0);
+                remaining -= personHoursLeftToday;
+                
+                // Si el nuevo día no es laborable, saltarlo
+                while (!workingDays.includes(result.getDay() === 0 ? 7 : result.getDay())) {
+                    result.setDate(result.getDate() + 1);
+                }
+            }
+        }
+        return result;
+    }
+
     if (!operators) return [];
+    
+    // Configurar zona horaria de Chile para el inicio
+    const formatter = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Santiago",
+        year: "numeric", month: "numeric", day: "numeric",
+        hour: "numeric", minute: "numeric", second: "numeric", hour12: false
+    });
+    const partsNow = formatter.formatToParts(new Date());
+    const mapNow = Object.fromEntries(partsNow.map(p => [p.type, p.value]));
+    const nowInChile = new Date(Number(mapNow.year), Number(mapNow.month) - 1, Number(mapNow.day), Number(mapNow.hour), Number(mapNow.minute), 0);
 
     return operators.map(op => {
         let backlog = 0;
         if (activeOrders) {
             activeOrders.forEach(o => {
                 if (o.assigned_operator_id === op.id) {
-                    // Sumamos todas las horas estimadas de órdenes activas
                     backlog += Number(o.estimated_hours || 0);
                 }
             });
         }
+        
+        const wDays = op.working_days || [1, 2, 3, 4, 5, 6];
+        const availableFrom = calculateAvailabilityDate(nowInChile, backlog, op.daily_hours_capacity || 7, wDays);
+
         return {
             id: op.id,
             name: op.name,
             dailyCapacity: op.daily_hours_capacity || 7,
             backlog,
             workloadPercentage: Math.round((backlog / (op.daily_hours_capacity || 7)) * 100),
-            loadDays: (backlog / (op.daily_hours_capacity || 7)).toFixed(1)
+            availableFromDate: availableFrom.toISOString()
         };
-    }).sort((a, b) => a.workloadPercentage - b.workloadPercentage);
+    }).sort((a, b) => new Date(a.availableFromDate).getTime() - new Date(b.availableFromDate).getTime());
 }
 
 import { enviar_correo_confirmacion } from '@/lib/agenda';
