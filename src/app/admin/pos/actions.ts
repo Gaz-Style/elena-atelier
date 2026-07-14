@@ -1350,12 +1350,13 @@ export async function getEstimatedDatesAction(newHours: number, assignedOperator
     }
     
     // 6. Execute scheduling math
-    // Si se agendó un inicio específico, asumimos que no hace cola tras el backlog actual
-    const totalHoursToComplete = scheduledStartDate ? newHours : backlogHours + newHours;
+    // Primero, encontramos la fecha de inicio REAL (después de terminar el backlog, y alineada al horario laboral)
+    const productionStartDate = scheduledStartDate 
+        ? new Date(scheduledStartDate) 
+        : addWorkHours(nowInChile, backlogHours, CD);
     
-    // We start from nowInChile to find when production finishes
-    const productionStartDate = scheduledStartDate ? new Date(scheduledStartDate) : nowInChile;
-    const productionEndDate = addWorkHours(productionStartDate, totalHoursToComplete, CD);
+    // Luego, la fecha de término es sumar las nuevas horas a partir de esa fecha de inicio real
+    const productionEndDate = addWorkHours(productionStartDate, newHours, CD);
     
     let finalDeliveryDate = addBufferDays(productionEndDate, bufferDays);
     
