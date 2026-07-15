@@ -545,6 +545,24 @@ export default function PlanificadorPage() {
                                         const ds      = dateStr(day);
                                         const dow     = day.getDay();
                                         const isToday = ds === todayStr;
+                                        
+                                        // Calculate dynamic max end hour for the day
+                                        let dayMaxEndHour = workshopEnd ? Number(workshopEnd.split(':')[0]) : 18;
+                                        operators.forEach(op => {
+                                            const cell = planner[op.id]?.[ds];
+                                            if (cell && cell.tasks) {
+                                                cell.tasks.forEach(t => {
+                                                    const taskEnd = (t.startHour || 9) + (t.durationHours || 1);
+                                                    if (taskEnd > dayMaxEndHour) dayMaxEndHour = taskEnd;
+                                                });
+                                            }
+                                        });
+                                        const startH = workshopStart ? Number(workshopStart.split(':')[0]) : 9;
+                                        const dayHoursArray = [];
+                                        for (let h = startH; h < dayMaxEndHour; h++) {
+                                            dayHoursArray.push(h);
+                                        }
+
                                         return (
                                             <React.Fragment key={ds}>
                                                 {/* Day Header Row */}
@@ -572,16 +590,19 @@ export default function PlanificadorPage() {
                                                     
                                                     {/* TIMELINE CELL */}
                                                 <td className="w-16 align-top border-r border-slate-100 bg-slate-50/30">
-                                                    <div className="relative w-full" style={{ height: `${hoursArray.length * 60}px` }}>
-                                                        {hoursArray.map((hour, i) => (
-                                                            <div 
-                                                                key={hour} 
-                                                                className="absolute w-full h-[60px] flex items-center justify-center text-[10px] font-bold text-slate-400"
-                                                                style={{ top: `${i * 60}px` }}
-                                                            >
-                                                                {hour.toString().padStart(2, '0')}:00
-                                                            </div>
-                                                        ))}
+                                                    <div className="relative w-full" style={{ height: `${dayHoursArray.length * 60}px` }}>
+                                                        {dayHoursArray.map((hour, i) => {
+                                                            const isOvertime = hour >= 18;
+                                                            return (
+                                                                <div 
+                                                                    key={hour} 
+                                                                    className={`absolute w-full h-[60px] flex items-center justify-center text-[10px] font-bold ${isOvertime ? 'bg-rose-50/50 text-rose-400 border-b border-rose-100/50' : 'text-slate-400'}`}
+                                                                    style={{ top: `${i * 60}px` }}
+                                                                >
+                                                                    {hour.toString().padStart(2, '0')}:00
+                                                                </div>
+                                                            );
+                                                        })}
                                                     </div>
                                                 </td>
 
@@ -616,19 +637,22 @@ export default function PlanificadorPage() {
                                                     return (
                                                         <td key={op.id} className="p-3 align-top border-r border-slate-100 hover:bg-slate-50/50 transition-colors min-h-[120px] relative">
                                                             
-                                                            <div className="relative w-full" style={{ height: `${hoursArray.length * 60}px` }}>
+                                                            <div className="relative w-full" style={{ height: `${dayHoursArray.length * 60}px` }}>
                                                                 {/* Grid Lines */}
-                                                                {hoursArray.map((hour, i) => (
-                                                                    <div 
-                                                                        key={hour} 
-                                                                        className="absolute w-full border-t border-slate-100/70"
-                                                                        style={{ top: `${i * 60}px`, left: 0, right: 0 }}
-                                                                    />
-                                                                ))}
+                                                                {dayHoursArray.map((hour, i) => {
+                                                                    const isOvertime = hour >= 18;
+                                                                    return (
+                                                                        <div 
+                                                                            key={hour} 
+                                                                            className={`absolute w-full border-t border-slate-100/70 ${isOvertime ? 'bg-rose-50/30' : ''}`}
+                                                                            style={{ top: `${i * 60}px`, height: '60px', left: 0, right: 0 }}
+                                                                        />
+                                                                    );
+                                                                })}
                                                                 
                                                                 {/* Tasks */}
                                                                 {cell.tasks.map((task, taskIdx) => {
-                                                                    const startIdx = task.startHour - (hoursArray[0] || 9);
+                                                                    const startIdx = (task.startHour || 9) - (dayHoursArray[0] || 9);
                                                                     const top = Math.max(0, startIdx * 60);
                                                                     const height = (task.durationHours || 1) * 60;
                                                                     const style = TASK_ROW_STYLE[task.type];
@@ -649,11 +673,9 @@ export default function PlanificadorPage() {
                                                                             <div className="text-[11px] font-bold leading-tight text-slate-700 truncate">
                                                                                 {task.label}
                                                                             </div>
-                                                                            {task.time && (
-                                                                                <div className="text-[9px] font-medium text-slate-500 mt-0.5 truncate">
-                                                                                    ⏱ {task.time}
-                                                                                </div>
-                                                                            )}
+                                                                            <div className="text-[9px] font-medium text-slate-500 mt-0.5 truncate">
+                                                                                ⏱ {(task.startHour || 9).toString().padStart(2, '0')}:00 ({task.durationHours || 1}h)
+                                                                            </div>
                                                                             {!previewMode && (
                                                                                 <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover/task:opacity-100 transition-opacity bg-white/80 rounded backdrop-blur-sm p-0.5">
                                                                                     <button className="p-1 text-slate-400 hover:text-slate-600 rounded" onClick={e => { e.stopPropagation(); openEdit(op.id, ds, task); }}><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
