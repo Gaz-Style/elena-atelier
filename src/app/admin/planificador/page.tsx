@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, ChevronLeft, ChevronRight, Printer, RefreshCw } from 'lucide-react';
 import { getOperatorsAction } from '../pos/actions';
 import { getProductionOrders } from '../production/actions';
+import { getPlannerTasks, savePlannerTask, deletePlannerTask } from './actions';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -145,7 +146,7 @@ export default function PlanificadorPage() {
         setLoading(true);
         const [ops, ords] = await Promise.all([getOperatorsAction(), getProductionOrders()]);
         const activeOps: Operator[] = (ops || []).filter((o: Operator) => o.status === 'active');
-        const activeOrds = (ords || []).filter((o: any) => o.production_start_date);
+        const activeOrds = (ords || []).filter((o: any) => o.status !== 'delivered');
         setOperators(activeOps);
         setOrders(activeOrds);
 
@@ -158,6 +159,25 @@ export default function PlanificadorPage() {
             setWorkshopStart(configData[0].workshop_working_hour_start?.slice(0, 5) || '09:00');
             setWorkshopEnd(configData[0].workshop_working_hour_end?.slice(0, 5) || '18:00');
         }
+
+        if (activeDays.length === 0 || activeOps.length === 0) {
+            setPlanner({});
+            setLoading(false);
+            return;
+        }
+
+        const startStr = dateStr(activeDays[0]);
+        const endStr   = dateStr(activeDays[activeDays.length - 1]);
+        
+        const [agendaRes, customTasks] = await Promise.all([
+            supabase.from('agendamientos').select('*')
+                .gte('fecha_hora', `${startStr}T00:00:00`)
+                .lte('fecha_hora', `${endStr}T23:59:59`)
+                .neq('estado', 'cancelado'),
+            getPlannerTasks(startStr, endStr)
+        ]);
+
+        const agenda = agendaRes.data || [];
 
         // Fetch active bridal projects & milestones
         const { data: bProjData } = await supabase
@@ -191,14 +211,6 @@ export default function PlanificadorPage() {
             ['scheduled', 'draft', 'sewing', 'finishing', 'ready'].includes(o.status)
         );
         setActiveProductionOrders(activeProd);
-
-        const startStr = dateStr(activeDays[0]);
-        const endStr   = dateStr(activeDays[activeDays.length - 1]);
-        const { data: agenda } = await supabase
-            .from('agendamientos').select('*')
-            .gte('fecha_hora', `${startStr}T00:00:00`)
-            .lte('fecha_hora', `${endStr}T23:59:59`)
-            .neq('estado', 'cancelado');
 
         // Build planner
         const p: PlannerData = {};
@@ -300,53 +312,51 @@ export default function PlanificadorPage() {
         setMOpId(opId); setMDay(day);
         setModal({ opId, day, task });
     }
-    function saveTask() {
+    async function saveTask() {
         if (!modal || !mLabel.trim()) return;
-        const { opId: oldOpId, day: oldDay, task } = modal;
         
-        setPlanner(prev => {
-            const next = { ...prev };
-            
-            // If it's an edit and moved cell
-            if (task && (oldOpId !== mOpId || oldDay !== mDay)) {
-                // remove from old
-                if (next[oldOpId]?.[oldDay]) {
-                    next[oldOpId][oldDay] = {
-                        ...next[oldOpId][oldDay],
-                        tasks: next[oldOpId][oldDay].tasks.filter(t => t.id !== task.id)
-                    };
-                }
-                // add to new
-                if (!next[mOpId]) next[mOpId] = {};
-                if (!next[mOpId][mDay]) next[mOpId][mDay] = { tasks: [], blocked: false };
-                const newCell = { ...next[mOpId][mDay] };
-                newCell.tasks = [...newCell.tasks, { ...task, type: mType, time: mTime, label: mLabel }];
-                newCell.tasks.sort((a,b) => a.label.localeCompare(b.label));
-                next[mOpId][mDay] = newCell;
-                return next;
+        const parseDuration = (t: string) => {
+            const lower = t.toLowerCase();
+            if (lower.includes('min')) {
+                const val = parseFloat(lower.replace('min','').trim());
+                return val ? val / 60 : 1;
             }
-            
-            // Same cell (add or edit without moving)
-            const cell = next[mOpId]?.[mDay] || { tasks: [], blocked: false };
-            let tasks: Task[];
-            if (task) {
-                tasks = cell.tasks.map(t => t.id === task.id ? { ...t, type: mType, time: mTime, label: mLabel } : t);
-            } else {
-                tasks = [...cell.tasks, { id: uid(), type: mType, time: mTime, label: mLabel }];
+            if (lower.includes('h')) {
+                const val = parseFloat(lower.replace('h','').trim());
+                return val || 1;
             }
-            tasks.sort((a,b) => a.label.localeCompare(b.label));
-            if (!next[mOpId]) next[mOpId] = {};
-            next[mOpId][mDay] = { ...cell, tasks };
-            return next;
-        });
+            return parseFloat(t) || 1;
+        };
+
+        const taskData = {
+            id: modal.task?.id && modal.task.id.includes('-') ? modal.task.id : undefined,
+            type: mType,
+            date: mDay,
+            startHour: 9, // Podríamos hacerlo seleccionable después
+            durationHours: parseDuration(mTime),
+            operatorId: mOpId,
+            orderId: modal.task?.orderId || (orders.find(o => o.description === mLabel)?.id),
+            label: mLabel,
+            time: mTime
+        };
+
+        const res = await savePlannerTask(taskData);
+        if (!res.success) {
+            alert(res.error || 'Asegúrate de haber creado la tabla planner_tasks en Supabase primero.');
+        } else {
+            load();
+        }
         setModal(null);
     }
-    function deleteTask(opId: string, day: string, taskId: string) {
-        setPlanner(prev => {
-            const cell = prev[opId]?.[day];
-            if (!cell) return prev;
-            return { ...prev, [opId]: { ...prev[opId], [day]: { ...cell, tasks: cell.tasks.filter(t => t.id !== taskId) } } };
-        });
+    
+    async function deleteTask(opId: string, day: string, taskId: string) {
+        if (taskId.includes('-') && !taskId.startsWith('order-') && !taskId.startsWith('ag-')) {
+            await deletePlannerTask(taskId);
+            load();
+        } else {
+            // Tareas automáticas no se borran desde aquí
+            alert("Las tareas automáticas de Novias/Citas no se pueden eliminar desde el planificador. Elimínalas desde sus respectivos módulos.");
+        }
     }
     function toggleBlock(opId: string, day: string) {
         setPlanner(prev => {
