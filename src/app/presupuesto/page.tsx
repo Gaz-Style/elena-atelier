@@ -199,7 +199,7 @@ function BudgetContent() {
                     name: item.name,
                     price: item.price,
                     category: item.category,
-                    notes: item.notes || '',
+                    notes: item.notes || item.details?.notes || '',
                     isCustom: !!item.isCustom,
                     hours: item.details?.hours || 0,
                     assignedOperatorId: item.assignedOperatorId || 'unassigned'
@@ -330,10 +330,12 @@ function BudgetContent() {
                                                 <td className="py-6 pr-8 md:pr-12 align-top">
                                                     <p className="font-serif text-lg text-white">{item.name}</p>
                                                     <p className="text-[10px] text-white/40 mt-1 uppercase tracking-widest font-bold">{item.category}</p>
-                                                    {item.notes && (
-                                                        <p className="text-xs text-white/70 mt-2 whitespace-pre-line border-l border-brand-sand/30 pl-3 italic">
-                                                            {item.notes}
-                                                        </p>
+                                                    {(item.notes || item.details?.notes) && (
+                                                        <div className="mt-4 p-4 bg-white/5 border-l-2 border-brand-sand/50 rounded-r-sm">
+                                                            <p className="text-xs text-white/80 whitespace-pre-line leading-relaxed font-sans">
+                                                                {item.notes || item.details?.notes}
+                                                            </p>
+                                                        </div>
                                                     )}
                                                     {item.costBreakdown && (
                                                         <div className="mt-4 flex gap-2">

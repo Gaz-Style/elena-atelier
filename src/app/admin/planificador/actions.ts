@@ -86,3 +86,65 @@ export async function deletePlannerTask(taskId: string) {
 
   return { success: true };
 }
+
+// 4. Get timeline data for tracking active production
+export async function getProductionTimeline() {
+  const supabase = getAdminClient();
+  
+  // 1. Fetch active production orders (not delivered, not cancelled)
+  const { data: orders, error: ordersErr } = await supabase
+    .from('production_orders')
+    .select(`
+      id,
+      description,
+      status,
+      estimated_hours,
+      deadline,
+      customer_id,
+      customers (
+        full_name
+      )
+    `)
+    .not('status', 'in', '("delivered","cancelled")')
+    .order('deadline', { ascending: true, nullsFirst: false });
+
+  if (ordersErr) {
+    console.error("Error fetching production orders for timeline:", ordersErr);
+    return [];
+  }
+
+  const orderIds = (orders || []).map(o => o.id);
+  
+  // 2. Fetch all planner tasks mapped to these active orders
+  let tasks: any[] = [];
+  if (orderIds.length > 0) {
+    const { data: ptData, error: ptErr } = await supabase
+      .from('planner_tasks')
+      .select('id, task_date, duration_hours, order_id, operator_id')
+      .in('order_id', orderIds);
+      
+    if (!ptErr && ptData) {
+      tasks = ptData;
+    }
+  }
+
+  // 3. Process data
+  const result = (orders || []).map((order: any) => {
+    const orderTasks = tasks.filter(t => t.order_id === order.id);
+    const scheduledHours = orderTasks.reduce((sum, t) => sum + (Number(t.duration_hours) || 0), 0);
+    const estimatedHours = Number(order.estimated_hours) || 0;
+    
+    return {
+      id: order.id,
+      customerName: order.customers?.full_name || 'Sin Cliente',
+      description: order.description || 'Sin Descripción',
+      status: order.status,
+      estimatedHours,
+      scheduledHours,
+      deadline: order.deadline,
+      tasks: orderTasks
+    };
+  });
+
+  return result;
+}

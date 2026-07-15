@@ -45,6 +45,7 @@ export const sidebarSections = [
             { name: 'Órdenes de Trabajo', href: '/admin/production', icon: Package },
             { name: 'Tablero Producción', href: '/admin/production-board', icon: LayoutDashboard },
             { name: 'Planificador Semanal', href: '/admin/planificador', icon: Calendar },
+            { name: 'Seguimiento Taller', href: '/admin/planificador/seguimiento', icon: Activity },
             { name: 'Inventario & Mat.', href: '/admin/inventory', icon: ShoppingBag },
         ]
     },

@@ -112,7 +112,6 @@ export async function sendBudgetEmailAction(payload: {
                 <td style="padding: 10px 0; text-align: left; vertical-align: top; font-family: 'Inter', sans-serif;">
                     <p style="margin: 0; font-size: 11px; font-weight: 500; color: #FFFFFF; line-height: 1.3; letter-spacing: 0.5px;">${item.name}</p>
                     <span style="font-size: 8px; text-transform: uppercase; color: #8A857D; font-weight: 500; letter-spacing: 1.5px; display: inline-block; margin-top: 2px;">${item.category}</span>
-                    ${item.notes ? `<p style="margin: 4px 0 0 0; font-size: 9px; color: #8A857D; font-style: italic; font-weight: 300;">"${item.notes}"</p>` : ''}
                 </td>
                 <td style="padding: 10px 0; text-align: right; vertical-align: top; font-family: 'Playfair Display', Georgia, serif; font-size: 12px; font-weight: bold; color: #C17F5F;">
                     ${formatCurrency(item.price)}

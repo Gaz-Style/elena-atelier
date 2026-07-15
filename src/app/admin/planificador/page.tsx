@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ChevronLeft, ChevronRight, Printer, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Printer, RefreshCw, Activity } from 'lucide-react';
 import { getOperatorsAction } from '../pos/actions';
 import { getProductionOrders } from '../production/actions';
 import { getPlannerTasks, savePlannerTask, deletePlannerTask } from './actions';
@@ -430,6 +430,9 @@ export default function PlanificadorPage() {
                     <h1 className="m-0 text-xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
                         Planificación Semanal <span className="hidden sm:inline text-slate-400 font-medium">| Taller</span>
                     </h1>
+                    <Link href="/admin/planificador/seguimiento" className="hidden lg:flex items-center gap-1.5 ml-4 px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-md text-xs font-bold uppercase tracking-widest transition-colors">
+                        <Activity className="w-3.5 h-3.5" /> Seguimiento Gantt
+                    </Link>
                 </div>
 
                 <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg">
