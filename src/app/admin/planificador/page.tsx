@@ -332,7 +332,7 @@ export default function PlanificadorPage() {
             id: modal.task?.id && modal.task.id.includes('-') ? modal.task.id : undefined,
             type: mType,
             date: mDay,
-            startHour: 9, // Podríamos hacerlo seleccionable después
+            startHour: modal.task?.startHour || hoursArray[0] || 9,
             durationHours: parseDuration(mTime),
             operatorId: mOpId,
             orderId: modal.task?.orderId || (orders.find(o => o.description === mLabel)?.id),
