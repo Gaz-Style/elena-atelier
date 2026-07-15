@@ -1103,7 +1103,10 @@ export default function PlanificadorPage() {
                                         className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-[#0f172a] transition-colors appearance-none bg-white cursor-pointer"
                                         onChange={e => {
                                             const o = orders.find(o => o.id === e.target.value);
-                                            if (o) setMLabel(o.description || '');
+                                            if (o) {
+                                                const customer = o.customers?.full_name ? `${o.customers.full_name} - ` : '';
+                                                setMLabel(`${customer}${o.description || ''}`);
+                                            }
                                         }}
                                     >
                                         <option value="">— Sin vincular (entrada manual) —</option>
