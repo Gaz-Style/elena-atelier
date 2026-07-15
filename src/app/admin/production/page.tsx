@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { 
     ArrowLeft, Clock, CheckCircle2, AlertCircle, Scissors, Search, 
     Loader2, Plus, X, User, Calendar, ChevronLeft, ChevronRight, 
-    History, BarChart2, CheckCircle, Flame, DollarSign, Award, PieChart, ShieldCheck
+    History, BarChart2, CheckCircle, Flame, DollarSign, Award, PieChart, ShieldCheck, Filter
 } from 'lucide-react';
 import { getProductionOrders, updateOrderStatus, getWorkloadForecastAction, getOperatorPerformanceAction, assignOperatorToOrder } from './actions';
 import { getDashboardData } from '../actions';
@@ -29,6 +29,7 @@ export default function ProductionPage() {
     // Calendar Navigation States
     const [calendarDate, setCalendarDate] = useState<Date>(new Date());
     const [calendarView, setCalendarView] = useState<'monthly' | 'weekly' | 'daily'>('monthly');
+    const [timeFilter, setTimeFilter] = useState<'week' | 'month' | 'all'>('week');
 
     const stages = [
         { id: 'scheduled', label: 'Por Recibir (Presupuestos)' },
@@ -142,10 +143,37 @@ export default function ProductionPage() {
     const activeOrders = orders.filter(o => o.status !== 'delivered');
     const completedOrders = orders.filter(o => o.status === 'delivered');
 
+    // --- FILTRO DE HORIZONTE TEMPORAL ---
+    const isWithinTimeFilter = (order: any) => {
+        if (timeFilter === 'all') return true;
+        const targetDate = order.production_start_date || order.deadline;
+        if (!targetDate) return true;
+        const d = new Date(targetDate);
+        const today = new Date();
+        if (timeFilter === 'week') {
+            const endOfWeek = new Date(today);
+            endOfWeek.setDate(today.getDate() + (7 - today.getDay()));
+            endOfWeek.setHours(23, 59, 59, 999);
+            return d <= endOfWeek;
+        }
+        if (timeFilter === 'month') {
+            const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+            return d <= endOfMonth;
+        }
+        return true;
+    };
+
     const filteredActiveOrders = activeOrders.filter(o => 
-        o.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        o.customers?.full_name.toLowerCase().includes(searchTerm.toLowerCase())
+        (o.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        o.customers?.full_name.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        isWithinTimeFilter(o)
     );
+
+    const hiddenCount = activeOrders.filter(o => 
+        (o.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        o.customers?.full_name.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        !isWithinTimeFilter(o)
+    ).length;
 
     const filteredCompletedOrders = completedOrders.filter(o => 
         o.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -380,6 +408,36 @@ export default function ProductionPage() {
                     <>
                         {/* TAB 1: KANBAN BOARD */}
                         {activeTab === 'kanban' && (
+                            <>
+                            {/* Filtro de horizonte temporal */}
+                            <div className="flex items-center gap-3 mb-4 bg-white/60 border border-gray-200 p-3 rounded-sm shadow-sm">
+                                <Filter className="w-4 h-4 text-gray-400 shrink-0" />
+                                <span className="text-[9px] uppercase tracking-widest font-bold text-gray-500 hidden md:inline">Horizonte:</span>
+                                <div className="flex gap-2">
+                                    {[
+                                        { key: 'week' as const, label: 'Esta Semana' },
+                                        { key: 'month' as const, label: 'Este Mes' },
+                                        { key: 'all' as const, label: 'Todo' }
+                                    ].map(f => (
+                                        <button
+                                            key={f.key}
+                                            onClick={() => setTimeFilter(f.key)}
+                                            className={`px-4 py-1.5 text-[9px] uppercase tracking-widest font-bold rounded-sm border transition-all ${
+                                                timeFilter === f.key
+                                                    ? 'bg-brand-charcoal text-white border-brand-charcoal shadow-sm'
+                                                    : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400 hover:text-gray-600'
+                                            }`}
+                                        >
+                                            {f.label}
+                                        </button>
+                                    ))}
+                                </div>
+                                {hiddenCount > 0 && timeFilter !== 'all' && (
+                                    <span className="text-[9px] text-gray-400 ml-auto hidden md:inline">
+                                        {hiddenCount} trabajo{hiddenCount !== 1 ? 's' : ''} futuro{hiddenCount !== 1 ? 's' : ''} oculto{hiddenCount !== 1 ? 's' : ''}
+                                    </span>
+                                )}
+                            </div>
                             <div className="flex overflow-x-auto snap-x md:grid md:grid-cols-5 gap-6 h-[700px] pb-4">
                                 {stages.map(stage => {
                                     const stageOrders = filteredActiveOrders.filter(o => o.status === stage.id);
@@ -468,6 +526,7 @@ export default function ProductionPage() {
                                     );
                                 })}
                             </div>
+                            </>
                         )}
 
                         {/* TAB 4: PREDICCIONES DE CARGA */}

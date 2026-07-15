@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { 
     ArrowLeft, Clock, CheckCircle2, AlertCircle, Settings, X, 
-    User, Calendar, RefreshCw, Sparkles, Save, Check, Flame, ChevronRight, Activity, Scissors, Plus, UserCheck, BarChart2
+    User, Calendar, RefreshCw, Sparkles, Save, Check, Flame, ChevronRight, Activity, Scissors, Plus, UserCheck, BarChart2, Filter
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { updateOrderStatus, getProductionOrders, assignOperatorToOrder } from '../production/actions';
@@ -54,6 +54,7 @@ export default function LiveProductionBoard() {
     const [savingConfig, setSavingConfig] = useState(false);
     const [savingOperator, setSavingOperator] = useState(false);
     const [configMessage, setConfigMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [timeFilter, setTimeFilter] = useState<'week' | 'month' | 'all'>('week');
 
     // Cargar órdenes, costureras y configuración inicial
     useEffect(() => {
@@ -302,17 +303,44 @@ export default function LiveProductionBoard() {
     // --- CLASIFICACIÓN DE COLUMNAS DE PRODUCCIÓN EN TIEMPO REAL ---
     const now = new Date();
 
+    // Helper: Determinar si una orden cae dentro del filtro de tiempo seleccionado
+    const isWithinTimeFilter = (order: any) => {
+        if (timeFilter === 'all') return true;
+        const targetDate = order.production_start_date || order.deadline;
+        if (!targetDate) return true; // Sin fecha = mostrar siempre (urgente)
+        const d = new Date(targetDate);
+        
+        if (timeFilter === 'week') {
+            const endOfWeek = new Date(now);
+            endOfWeek.setDate(now.getDate() + (7 - now.getDay())); // Domingo de esta semana
+            endOfWeek.setHours(23, 59, 59, 999);
+            return d <= endOfWeek;
+        }
+        if (timeFilter === 'month') {
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+            return d <= endOfMonth;
+        }
+        return true;
+    };
+
+    // Contador de órdenes futuras ocultas
+    const allActiveCount = orders.filter(o => 
+        o.status === 'draft' || o.status === 'cutting' || o.status === 'sewing'
+    ).length;
+
     // 1. Confección Activa: Órdenes en borrador, corte o costura
     const activeProduction = orders.filter(o => 
-        o.status === 'draft' || o.status === 'cutting' || o.status === 'sewing'
+        (o.status === 'draft' || o.status === 'cutting' || o.status === 'sewing') && isWithinTimeFilter(o)
     ).sort((a, b) => {
         const dateA = new Date(a.production_end_date || a.deadline || '2099-01-01').getTime();
         const dateB = new Date(b.production_end_date || b.deadline || '2099-01-01').getTime();
         return dateA - dateB;
     });
 
+    const hiddenCount = allActiveCount - activeProduction.length;
+
     // 2. Control de Calidad / Pruebas: Órdenes en Fitting/QC (finishing)
-    const qcAndFitting = orders.filter(o => o.status === 'finishing').sort((a, b) => {
+    const qcAndFitting = orders.filter(o => o.status === 'finishing' && isWithinTimeFilter(o)).sort((a, b) => {
         const dateA = new Date(a.production_end_date || a.deadline || '2099-01-01').getTime();
         const dateB = new Date(b.production_end_date || b.deadline || '2099-01-01').getTime();
         return dateA - dateB;
@@ -387,6 +415,38 @@ export default function LiveProductionBoard() {
 
             {/* Main content grid */}
             <main className="max-w-[1600px] mx-auto px-6 py-6 space-y-6">
+                
+                {/* 🕒 FILTRO DE HORIZONTE TEMPORAL */}
+                {!loading && (
+                    <div className="flex items-center gap-3 bg-[#12131C] border border-gray-800 p-3 rounded-sm shadow-lg">
+                        <Filter className="w-4 h-4 text-gray-500 shrink-0" />
+                        <span className="text-[9px] uppercase tracking-widest font-bold text-gray-500 hidden md:inline">Horizonte:</span>
+                        <div className="flex gap-2">
+                            {[
+                                { key: 'week' as const, label: 'Esta Semana' },
+                                { key: 'month' as const, label: 'Este Mes' },
+                                { key: 'all' as const, label: 'Todo' }
+                            ].map(f => (
+                                <button
+                                    key={f.key}
+                                    onClick={() => setTimeFilter(f.key)}
+                                    className={`px-4 py-1.5 text-[9px] uppercase tracking-widest font-bold rounded-sm border transition-all ${
+                                        timeFilter === f.key
+                                            ? 'bg-[#C5A880] text-[#0B0C10] border-[#C5A880] shadow-[0_0_12px_rgba(197,168,128,0.3)]'
+                                            : 'bg-transparent text-gray-400 border-gray-700 hover:border-gray-500 hover:text-gray-300'
+                                    }`}
+                                >
+                                    {f.label}
+                                </button>
+                            ))}
+                        </div>
+                        {hiddenCount > 0 && timeFilter !== 'all' && (
+                            <span className="text-[9px] text-gray-500 ml-auto hidden md:inline">
+                                {hiddenCount} trabajo{hiddenCount !== 1 ? 's' : ''} futuro{hiddenCount !== 1 ? 's' : ''} oculto{hiddenCount !== 1 ? 's' : ''}
+                            </span>
+                        )}
+                    </div>
+                )}
                 
                 {/* 📊 SECCIÓN DE CARGA DE TRABAJO POR COSTURERA (MONITOREO) */}
                 {!loading && operators.length > 0 && (
