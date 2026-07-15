@@ -138,6 +138,7 @@ export default function PlanificadorPage() {
     const [mType, setMType]   = useState<TaskType>('costura');
     const [mTime, setMTime]   = useState('');
     const [mLabel, setMLabel] = useState('');
+    const [mStartHour, setMStartHour] = useState(10);
     const [mOpId, setMOpId]   = useState('');
     const [mDay, setMDay]     = useState('');
 
@@ -304,11 +305,13 @@ export default function PlanificadorPage() {
     // ── Modal helpers ─────────────────────────────────────────────────────────
     function openAdd(opId: string, day: string) {
         setMType('costura'); setMTime(''); setMLabel('');
+        setMStartHour(hoursArray[0] || 10);
         setMOpId(opId); setMDay(day);
         setModal({ opId, day });
     }
     function openEdit(opId: string, day: string, task: Task) {
         setMType(task.type); setMTime(task.time); setMLabel(task.label);
+        setMStartHour(task.startHour || hoursArray[0] || 10);
         setMOpId(opId); setMDay(day);
         setModal({ opId, day, task });
     }
@@ -332,7 +335,7 @@ export default function PlanificadorPage() {
             id: modal.task?.id && modal.task.id.includes('-') ? modal.task.id : undefined,
             type: mType,
             date: mDay,
-            startHour: modal.task?.startHour || hoursArray[0] || 9,
+            startHour: mStartHour,
             durationHours: parseDuration(mTime),
             operatorId: mOpId,
             orderId: modal.task?.orderId || (orders.find(o => o.description === mLabel)?.id),
@@ -1019,18 +1022,37 @@ export default function PlanificadorPage() {
                                 </div>
                             </div>
 
-                            {/* Duration */}
-                            <div>
-                                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                    <span className="text-slate-400">⏱</span> Tiempo de Producción
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Ej: 2h, 30min, 1.5h, 45min"
-                                    value={mTime}
-                                    onChange={e => setMTime(e.target.value)}
-                                    className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-[#0f172a] transition-colors"
-                                />
+                            {/* Duration and Start Hour */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                        <span className="text-slate-400">⏱</span> Tiempo (Ej: 2h, 45min)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="Ej: 3h o 45min"
+                                        value={mTime}
+                                        onChange={e => setMTime(e.target.value)}
+                                        onKeyDown={e => e.key === 'Enter' && mLabel.trim() && saveTask()}
+                                        className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-[#0f172a] transition-colors"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                        <span className="text-slate-400">⏰</span> Hora de Inicio
+                                    </label>
+                                    <select
+                                        value={mStartHour}
+                                        onChange={e => setMStartHour(Number(e.target.value))}
+                                        className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-[#0f172a] transition-colors appearance-none bg-white cursor-pointer"
+                                    >
+                                        {hoursArray.map(h => (
+                                            <option key={h} value={h}>
+                                                {h.toString().padStart(2, '0')}:00
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
 
                             {/* Label */}
