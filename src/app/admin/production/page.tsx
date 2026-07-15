@@ -11,6 +11,7 @@ import { getProductionOrders, updateOrderStatus, getWorkloadForecastAction, getO
 import { getDashboardData } from '../actions';
 import { getOperatorsAction } from '../pos/actions';
 import { supabase } from '@/lib/supabase';
+import { getPlannerTasks } from '../planificador/actions';
 
 export default function ProductionPage() {
     const [orders, setOrders] = useState<any[]>([]);
@@ -22,6 +23,7 @@ export default function ProductionPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isAdding, setIsAdding] = useState(false);
     const [isDesktop, setIsDesktop] = useState(false);
+    const [plannerTasks, setPlannerTasks] = useState<any[]>([]);
     
     // Navigation Tabs: kanban, calendar, history, forecast, kpis
     const [activeTab, setActiveTab] = useState<'kanban' | 'calendar' | 'history' | 'forecast' | 'kpis'>('kanban');
@@ -66,12 +68,19 @@ export default function ProductionPage() {
         setDashboardData(data);
     }
 
+    async function fetchPlannerTasks() {
+        // Fetch tasks for a broad range to cover the calendar views
+        const tasks = await getPlannerTasks('2024-01-01', '2028-12-31');
+        setPlannerTasks(tasks);
+    }
+
     useEffect(() => {
         fetchOrders();
         fetchOperators();
         fetchForecast();
         fetchPerformance();
         fetchDashboard();
+        fetchPlannerTasks();
         setIsDesktop(window.innerWidth >= 768);
         const handleResize = () => setIsDesktop(window.innerWidth >= 768);
         window.addEventListener('resize', handleResize);
@@ -248,10 +257,21 @@ export default function ProductionPage() {
                    targetDate.getDate() === d.getDate();
         });
     };
+    const getTasksForDate = (d: Date) => {
+        return plannerTasks.filter(pt => {
+            if (!pt.task_date) return false;
+            // pt.task_date is YYYY-MM-DD
+            const [y, m, day] = pt.task_date.split('-').map(Number);
+            return y === d.getFullYear() && (m - 1) === d.getMonth() && day === d.getDate();
+        });
+    };
 
     const getHoursForDate = (d: Date) => {
         const dateOrders = getOrdersForDate(d);
-        return dateOrders.reduce((sum, o) => sum + Number(o.estimated_hours || 0), 0);
+        const orderHours = dateOrders.reduce((sum, o) => sum + Number(o.estimated_hours || 0), 0);
+        const dateTasks = getTasksForDate(d);
+        const taskHours = dateTasks.reduce((sum, t) => sum + Number(t.duration_hours || 0), 0);
+        return orderHours + taskHours;
     };
 
     const handlePrevMonth = () => {
@@ -910,16 +930,21 @@ export default function ProductionPage() {
                                                             )}
                                                         </div>
 
-                                                        {/* Preview of orders */}
+                                                        {/* Preview of orders and tasks */}
                                                         <div className="flex-1 overflow-y-auto space-y-1 mt-1 pr-1 select-none pointer-events-none">
                                                             {dateOrders.slice(0, 2).map(order => (
                                                                 <div key={order.id} className="text-[8px] bg-brand-sand/20 border-l border-brand-charcoal/30 px-1 py-0.5 truncate text-brand-charcoal">
                                                                     {order.description}
                                                                 </div>
                                                             ))}
-                                                            {dateOrders.length > 2 && (
+                                                            {getTasksForDate(date).slice(0, 2).map(task => (
+                                                                <div key={task.id} className="text-[8px] bg-blue-50/50 border-l border-blue-200 px-1 py-0.5 truncate text-blue-800">
+                                                                    [TAREA] {task.description}
+                                                                </div>
+                                                            ))}
+                                                            {(dateOrders.length + getTasksForDate(date).length) > 4 && (
                                                                 <div className="text-[7px] font-bold uppercase text-gray-400 tracking-wider">
-                                                                    + {dateOrders.length - 2} más
+                                                                    + {(dateOrders.length + getTasksForDate(date).length) - 4} más
                                                                 </div>
                                                             )}
                                                         </div>
@@ -978,26 +1003,50 @@ export default function ProductionPage() {
 
                                                     {/* Work list */}
                                                     <div className="flex-1 overflow-y-auto space-y-3">
-                                                        {dateOrders.length === 0 ? (
+                                                        {dateOrders.length === 0 && getTasksForDate(date).length === 0 ? (
                                                             <p className="text-[10px] italic text-gray-300 py-6 text-center">Sin trabajos</p>
                                                         ) : (
-                                                            dateOrders.map(order => (
-                                                                <div 
-                                                                    key={order.id} 
-                                                                    onClick={() => {
-                                                                        setCalendarDate(date);
-                                                                        setCalendarView('daily');
-                                                                    }}
-                                                                    className="bg-gray-50 hover:bg-brand-sand/10 border border-gray-200/60 p-2.5 cursor-pointer rounded-sm space-y-1 transition-all"
-                                                                >
-                                                                    <div className="flex justify-between text-[8px] font-bold text-gray-400">
-                                                                        <span>#{order.id.slice(0, 6)}</span>
-                                                                        <span className="text-brand-terracotta">{order.estimated_hours}h</span>
+                                                            <>
+                                                                {dateOrders.map(order => (
+                                                                    <div 
+                                                                        key={order.id} 
+                                                                        onClick={() => {
+                                                                            setCalendarDate(date);
+                                                                            setCalendarView('daily');
+                                                                        }}
+                                                                        className="bg-gray-50 hover:bg-brand-sand/10 border border-gray-200/60 p-2.5 cursor-pointer rounded-sm space-y-1 transition-all"
+                                                                    >
+                                                                        <div className="flex justify-between text-[8px] font-bold text-gray-400">
+                                                                            <span>#{order.id.slice(0, 6)}</span>
+                                                                            <span className="text-brand-terracotta">{order.estimated_hours}h</span>
+                                                                        </div>
+                                                                        <h5 className="font-serif text-[11px] leading-tight text-brand-charcoal">{order.description}</h5>
+                                                                        <p className="text-[9px] text-gray-500 truncate">{order.customers?.full_name || 'Sin cliente'}</p>
                                                                     </div>
-                                                                    <h5 className="font-serif text-[11px] leading-tight text-brand-charcoal">{order.description}</h5>
-                                                                    <p className="text-[9px] text-gray-500 truncate">{order.customers?.full_name || 'Sin cliente'}</p>
-                                                                </div>
-                                                            ))
+                                                                ))}
+                                                                {getTasksForDate(date).map(task => {
+                                                                    const opName = operators.find(o => o.id === task.operator_id)?.name || 'Sin asignar';
+                                                                    return (
+                                                                        <div 
+                                                                            key={task.id} 
+                                                                            onClick={() => {
+                                                                                setCalendarDate(date);
+                                                                                setCalendarView('daily');
+                                                                            }}
+                                                                            className="bg-blue-50/20 hover:bg-blue-50 border border-blue-200/60 p-2.5 cursor-pointer rounded-sm space-y-1 transition-all"
+                                                                        >
+                                                                            <div className="flex justify-between text-[8px] font-bold text-blue-400">
+                                                                                <span className="uppercase">{task.task_type}</span>
+                                                                                <span className="text-blue-600">{task.duration_hours}h</span>
+                                                                            </div>
+                                                                            <h5 className="font-serif text-[11px] leading-tight text-brand-charcoal">{task.description}</h5>
+                                                                            <p className="text-[9px] text-blue-500 truncate flex items-center gap-1">
+                                                                                <User className="w-2.5 h-2.5" /> {opName}
+                                                                            </p>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </>
                                                         )}
                                                     </div>
                                                 </div>
