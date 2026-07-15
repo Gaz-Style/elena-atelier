@@ -558,7 +558,7 @@ export default function PlanificadorPage() {
                                             }
                                         });
                                         const startH = workshopStart ? Number(workshopStart.split(':')[0]) : 9;
-                                        const dayHoursArray = [];
+                                        const dayHoursArray: number[] = [];
                                         for (let h = startH; h < dayMaxEndHour; h++) {
                                             dayHoursArray.push(h);
                                         }
