@@ -229,31 +229,8 @@ export default function PlanificadorPage() {
         });
 
         if (viewMode !== 'year') {
-            // Inject production orders
-            activeOrds.forEach((order: any) => {
-                const ds   = order.production_start_date?.split('T')[0] ?? null;
-                const opId = order.assigned_operator_id;
-                if (!ds || !opId || !p[opId]?.[ds] || p[opId][ds].blocked) return;
-                const hours = order.estimated_hours;
-                const duration = hours
-                    ? hours >= 1 ? `${hours}h` : `${Math.round(hours * 60)}min`
-                    : '';
-                
-                const startDate = new Date(order.production_start_date);
-                const startHour = startDate.getHours();
-                const durationHours = Math.max(1, Math.round(hours || 1));
-
-                p[opId][ds].tasks.push({
-                    id: `order-${order.id}`,
-                    time: duration,
-                    label: order.description || 'Orden sin nombre',
-                    type: 'costura',
-                    orderId: order.id,
-                    sortValue: startHour * 60,
-                    startHour,
-                    durationHours
-                });
-            });
+            // Note: We no longer auto-inject production orders into the planner.
+            // The planner is now the source of truth, and hours are distributed manually via planner_tasks.
 
             // Inject agendamientos → first operator
             const firstOpId = activeOps[0]?.id;
