@@ -945,17 +945,34 @@ export default function PlanificadorPage() {
                                                         <p className="text-xs text-slate-500 line-clamp-2 mt-1">
                                                             {o.description}
                                                         </p>
-                                                        <div className="flex flex-wrap gap-2 mt-2">
+                                                        <div className="flex flex-col gap-2 mt-2">
                                                             {o.atelier_operators && (
-                                                                <span className="text-[10px] bg-white border border-slate-200/80 px-2 py-0.5 rounded text-slate-600 font-medium">
+                                                                <span className="text-[10px] bg-white border border-slate-200/80 px-2 py-0.5 rounded text-slate-600 font-medium self-start">
                                                                     👤 {o.atelier_operators.name}
                                                                 </span>
                                                             )}
-                                                            {o.estimated_hours > 0 && (
-                                                                <span className="text-[10px] bg-white border border-slate-200/80 px-2 py-0.5 rounded text-slate-600 font-medium">
-                                                                    ⏱ {o.estimated_hours}h
-                                                                </span>
-                                                            )}
+                                                            {o.estimated_hours > 0 && (() => {
+                                                                const scheduled = o.scheduled_hours || 0;
+                                                                const total = o.estimated_hours;
+                                                                const pct = Math.min(100, Math.round((scheduled / total) * 100));
+                                                                const isComplete = scheduled >= total;
+                                                                return (
+                                                                    <div className="w-full">
+                                                                        <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider mb-1">
+                                                                            <span className={isComplete ? "text-emerald-600" : "text-slate-500"}>
+                                                                                {isComplete ? 'Distribución Completa' : 'Horas Agendadas'}
+                                                                            </span>
+                                                                            <span className="text-slate-700">{scheduled}h / {total}h</span>
+                                                                        </div>
+                                                                        <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                                                                            <div 
+                                                                                className={`h-full transition-all ${isComplete ? 'bg-emerald-500' : 'bg-blue-500'}`}
+                                                                                style={{ width: `${pct}%` }}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })()}
                                                         </div>
                                                     </div>
                                                     <div className="text-right flex flex-col items-end gap-1.5 shrink-0">
@@ -1117,15 +1134,23 @@ export default function PlanificadorPage() {
                                             if (o) {
                                                 const customer = o.customers?.full_name ? `${o.customers.full_name} - ` : '';
                                                 setMLabel(`${customer}${o.description || ''}`);
+                                                
+                                                const remaining = Math.max(0, (o.estimated_hours || 0) - (o.scheduled_hours || 0));
+                                                if (remaining > 0) {
+                                                    setMTime(`${Math.min(remaining, 8)}h`);
+                                                }
                                             }
                                         }}
                                     >
                                         <option value="">— Sin vincular (entrada manual) —</option>
-                                        {orders.map(o => (
-                                            <option key={o.id} value={o.id}>
-                                                {o.description}{o.customers?.full_name ? ` — ${o.customers.full_name}` : ''}{o.estimated_hours ? ` (${o.estimated_hours}h)` : ''}
-                                            </option>
-                                        ))}
+                                        {orders.map(o => {
+                                            const remaining = Math.max(0, (o.estimated_hours || 0) - (o.scheduled_hours || 0));
+                                            return (
+                                                <option key={o.id} value={o.id}>
+                                                    {o.description}{o.customers?.full_name ? ` — ${o.customers.full_name}` : ''}{o.estimated_hours ? ` (${remaining}h de ${o.estimated_hours}h por agendar)` : ''}
+                                                </option>
+                                            );
+                                        })}
                                     </select>
                                 </div>
                             )}

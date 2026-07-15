@@ -1137,10 +1137,7 @@ export async function getEstimatedDatesAction(newHours: number, assignedOperator
     const supabase = await createClient();
     
     // 1. Fetch config with RLS disabled
-    const { data: configData, error: configError } = await supabase
-        .from('atelier_config')
-        .select('*')
-        .limit(1);
+    const { data: configData } = await supabase.from('atelier_config').select('*').limit(1);
         
     let laborCapacity = 7;
     let activeOperators = 3;
@@ -1148,11 +1145,11 @@ export async function getEstimatedDatesAction(newHours: number, assignedOperator
     let windowStart = '15:00:00';
     let windowEnd = '18:00:00';
     let allowedDays = [2, 4]; // Martes (2), Jueves (4)
-    let workshopWorkingDays = [1, 2, 3, 4, 5, 6]; // Lunes a Sábado por defecto (1-6)
+    let workshopWorkingDays = [1, 2, 3, 4, 5, 6];
     let workshopHourStart = '09:00:00';
     let workshopHourEnd = '18:00:00';
     
-    if (!configError && configData && configData.length > 0) {
+    if (configData && configData.length > 0) {
         const c = configData[0];
         laborCapacity = Number(c.labor_capacity_per_operator_daily ?? 7);
         activeOperators = Number(c.total_active_operators ?? 3);
@@ -1168,27 +1165,22 @@ export async function getEstimatedDatesAction(newHours: number, assignedOperator
     let usingOperator = false;
     let operatorName = '';
     if (assignedOperatorId && assignedOperatorId !== 'unassigned') {
-        const { data: opData } = await supabase
-            .from('atelier_operators')
-            .select('*')
-            .eq('id', assignedOperatorId)
-            .single();
-
+        const { data: opData } = await supabase.from('atelier_operators').select('*').eq('id', assignedOperatorId).single();
         if (opData) {
             laborCapacity = Number(opData.daily_hours_capacity ?? 7);
             workshopWorkingDays = opData.working_days ?? [1, 2, 3, 4, 5, 6];
-            activeOperators = 1; // Queue calculation for this operator
+            activeOperators = 1; 
             operatorName = opData.name;
             usingOperator = true;
         }
     }
     
-    const CD = laborCapacity * activeOperators; // Total daily capacity in hours
+    const CD = laborCapacity * activeOperators; 
     
-    // 2. Fetch active backlog (orders currently in-progress or in queue)
+    // 2. Fetch active backlog orders
     let backlogQuery = supabase
         .from('production_orders')
-        .select('estimated_hours')
+        .select('id, estimated_hours')
         .in('status', ['draft', 'cutting', 'sewing', 'finishing']);
 
     if (usingOperator) {
@@ -1196,10 +1188,56 @@ export async function getEstimatedDatesAction(newHours: number, assignedOperator
     }
         
     const { data: activeOrders } = await backlogQuery;
-        
-    const backlogHours = activeOrders?.reduce((sum, o) => sum + Number(o.estimated_hours || 0), 0) || 0;
     
-    // 3. Timezone helper to get Chile Offset dynamically
+    // 3. Fetch planner tasks to find both scheduled hours and calendar gaps
+    const activeOrderIds = activeOrders?.map(o => o.id) || [];
+    
+    // We need two things: 
+    // a) Total scheduled hours for active orders (past and future) to find the unscheduled backlog.
+    let unscheduledBacklogHours = 0;
+    if (activeOrderIds.length > 0) {
+        const { data: allOrderTasks } = await supabase
+            .from('planner_tasks')
+            .select('order_id, duration_hours')
+            .in('order_id', activeOrderIds);
+            
+        const scheduledMap: Record<string, number> = {};
+        if (allOrderTasks) {
+            allOrderTasks.forEach(t => {
+                if (t.order_id) {
+                    scheduledMap[t.order_id] = (scheduledMap[t.order_id] || 0) + Number(t.duration_hours || 0);
+                }
+            });
+        }
+        
+        activeOrders?.forEach(o => {
+            const scheduled = scheduledMap[o.id] || 0;
+            const remaining = Math.max(0, Number(o.estimated_hours || 0) - scheduled);
+            unscheduledBacklogHours += remaining;
+        });
+    }
+
+    // b) Future tasks to know which days/hours are occupied
+    let futureTasksQuery = supabase
+        .from('planner_tasks')
+        .select('task_date, duration_hours')
+        .gte('task_date', new Date().toISOString().split('T')[0]);
+
+    if (usingOperator) {
+        futureTasksQuery = futureTasksQuery.eq('operator_id', assignedOperatorId);
+    }
+    
+    const { data: futureTasks } = await futureTasksQuery;
+    
+    const dailyOccupiedHours: Record<string, number> = {};
+    if (futureTasks) {
+        futureTasks.forEach(t => {
+            const dateKey = t.task_date; 
+            dailyOccupiedHours[dateKey] = (dailyOccupiedHours[dateKey] || 0) + Number(t.duration_hours || 0);
+        });
+    }
+
+    // 4. Timezone helper
     let now = new Date();
     if (scheduledStartDate) {
         const parsed = new Date(scheduledStartDate);
@@ -1218,14 +1256,7 @@ export async function getEstimatedDatesAction(newHours: number, assignedOperator
     const getChileOffsetString = (date: Date) => {
         const parts = formatter.formatToParts(date);
         const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
-        const chileUTC = Date.UTC(
-            Number(map.year),
-            Number(map.month) - 1,
-            Number(map.day),
-            Number(map.hour),
-            Number(map.minute),
-            Number(map.second)
-        );
+        const chileUTC = Date.UTC(Number(map.year), Number(map.month) - 1, Number(map.day), Number(map.hour), Number(map.minute), Number(map.second));
         const diffMs = chileUTC - date.getTime();
         const diffHours = Math.round(diffMs / (1000 * 60 * 60));
         const sign = diffHours >= 0 ? "+" : "-";
@@ -1236,9 +1267,7 @@ export async function getEstimatedDatesAction(newHours: number, assignedOperator
     const chileOffset = getChileOffsetString(now);
 
     const formatChileLocalToISO = (chileDate: Date): string => {
-        if (isNaN(chileDate.getTime())) {
-            return new Date().toISOString();
-        }
+        if (isNaN(chileDate.getTime())) return new Date().toISOString();
         const y = chileDate.getFullYear();
         const mo = String(chileDate.getMonth() + 1).padStart(2, '0');
         const d = String(chileDate.getDate()).padStart(2, '0');
@@ -1247,96 +1276,95 @@ export async function getEstimatedDatesAction(newHours: number, assignedOperator
         return `${y}-${mo}-${d}T${h}:${mi}:00${chileOffset}`;
     };
 
-    // Get current Chilean local time as a standard Date object
     const partsNow = formatter.formatToParts(now);
     const mapNow = Object.fromEntries(partsNow.map(p => [p.type, p.value]));
-    const nowInChile = new Date(
-        Number(mapNow.year),
-        Number(mapNow.month) - 1,
-        Number(mapNow.day),
-        Number(mapNow.hour),
-        Number(mapNow.minute),
-        Number(mapNow.second)
-    );
+    const nowInChile = new Date(Number(mapNow.year), Number(mapNow.month) - 1, Number(mapNow.day), Number(mapNow.hour), Number(mapNow.minute), Number(mapNow.second));
 
-    // 4. Align start date to workshop working hours (09:00 - 18:00 or customized)
     function alignToWorkingHours(date: Date): Date {
         let res = new Date(date.getTime());
         const [startH, startM] = workshopHourStart.split(':').map(Number);
         const [endH, endM] = workshopHourEnd.split(':').map(Number);
-        
         let safeguard = 0;
         while (safeguard < 30) {
             safeguard++;
-            
             if (!workshopWorkingDays.includes(res.getDay())) {
                 res.setDate(res.getDate() + 1);
                 res.setHours(startH || 9, startM || 0, 0, 0);
                 continue;
             }
-            
             const currentH = res.getHours();
             const currentM = res.getMinutes();
-            
             if (currentH < (startH || 9) || (currentH === (startH || 9) && currentM < (startM || 0))) {
                 res.setHours(startH || 9, startM || 0, 0, 0);
                 break;
             }
-            
             if (currentH > (endH || 18) || (currentH === (endH || 18) && currentM > (endM || 0))) {
                 res.setDate(res.getDate() + 1);
                 res.setHours(startH || 9, startM || 0, 0, 0);
                 continue;
             }
-            
             break;
         }
         return res;
     }
 
-    // 5. Calculate scheduling based on workload rate
-    function addWorkHours(start: Date, hours: number, dailyCapacity: number): Date {
+    // 5. Calendar-aware scheduling function
+    function addCalendarAwareWorkHours(start: Date, totalHoursToSchedule: number, dailyCapacity: number): Date {
         let result = new Date(start.getTime());
-        
         result = alignToWorkingHours(result);
-        if (hours <= 0) return result;
         
-        let remaining = hours;
+        let remaining = totalHoursToSchedule;
+        if (remaining <= 0) return result;
+        
+        let safeguard = 0;
         const [startH, startM] = workshopHourStart.split(':').map(Number);
         const [endH, endM] = workshopHourEnd.split(':').map(Number);
         
-        const workingDayClockHours = (endH || 18) - (startH || 9) + ((endM || 0) - (startM || 0)) / 60;
-        const W = workingDayClockHours > 0 ? workingDayClockHours : 9;
-        
-        const rate = dailyCapacity / W;
-        
-        let safeguard = 0;
-        while (remaining > 0 && safeguard < 100) {
+        while (remaining > 0 && safeguard < 200) {
             safeguard++;
-            
             result = alignToWorkingHours(result);
+            
+            // local string to check occupied hours
+            const y = result.getFullYear();
+            const mo = String(result.getMonth() + 1).padStart(2, '0');
+            const d = String(result.getDate()).padStart(2, '0');
+            const dateStr = `${y}-${mo}-${d}`;
+            
+            const occupiedToday = dailyOccupiedHours[dateStr] || 0;
             
             const currentWorkDayEnd = new Date(result.getTime());
             currentWorkDayEnd.setHours(endH || 18, endM || 0, 0, 0);
             
             const clockHoursLeftToday = (currentWorkDayEnd.getTime() - result.getTime()) / (1000 * 60 * 60);
-            const personHoursLeftToday = clockHoursLeftToday * rate;
+            const capacityLeftToday = Math.max(0, dailyCapacity - occupiedToday);
             
-            if (remaining <= personHoursLeftToday) {
-                const clockHoursRequired = remaining / rate;
-                result.setTime(result.getTime() + clockHoursRequired * 60 * 60 * 1000);
+            const availableHoursToday = Math.min(clockHoursLeftToday, capacityLeftToday);
+            
+            if (availableHoursToday <= 0) {
+                result.setDate(result.getDate() + 1);
+                result.setHours(startH || 9, startM || 0, 0, 0);
+                continue;
+            }
+            
+            if (remaining <= availableHoursToday) {
+                result.setTime(result.getTime() + remaining * 60 * 60 * 1000);
+                
+                // Track that we consumed these hours so subsequent calls in the same run don't reuse them
+                dailyOccupiedHours[dateStr] = occupiedToday + remaining;
                 remaining = 0;
             } else {
                 result.setDate(result.getDate() + 1);
                 result.setHours(startH || 9, startM || 0, 0, 0);
-                remaining -= personHoursLeftToday;
+                
+                // We consumed all available capacity for today
+                dailyOccupiedHours[dateStr] = occupiedToday + availableHoursToday;
+                remaining -= availableHoursToday;
             }
         }
         
         return alignToWorkingHours(result);
     }
     
-    // 6. Logistic Buffer calculation
     function addBufferDays(date: Date, days: number): Date {
         let result = new Date(date.getTime());
         let remainingDays = days;
@@ -1349,14 +1377,14 @@ export async function getEstimatedDatesAction(newHours: number, assignedOperator
         return result;
     }
     
-    // 6. Execute scheduling math
-    // Primero, encontramos la fecha de inicio REAL (después de terminar el backlog, y alineada al horario laboral)
+    // First, schedule the unscheduled backlog (the tasks that are pending but not on calendar)
+    // This pushes the "real" free time out to the future.
     const productionStartDate = scheduledStartDate 
         ? new Date(scheduledStartDate) 
-        : addWorkHours(nowInChile, backlogHours, CD);
+        : addCalendarAwareWorkHours(nowInChile, unscheduledBacklogHours, CD);
     
-    // Luego, la fecha de término es sumar las nuevas horas a partir de esa fecha de inicio real
-    const productionEndDate = addWorkHours(productionStartDate, newHours, CD);
+    // Then schedule the NEW hours
+    const productionEndDate = addCalendarAwareWorkHours(productionStartDate, newHours, CD);
     
     let finalDeliveryDate = addBufferDays(productionEndDate, bufferDays);
     
@@ -1369,25 +1397,21 @@ export async function getEstimatedDatesAction(newHours: number, assignedOperator
     const [startH, startM] = windowStart.split(':').map(Number);
     finalDeliveryDate.setHours(startH || 15, startM || 0, 0, 0);
     
+    // Backlog hours metric to show in UI
+    const totalBacklogHoursForUI = unscheduledBacklogHours;
+
     return {
         productionStartDate: formatChileLocalToISO(productionStartDate),
         productionEndDate: formatChileLocalToISO(productionEndDate),
         finalDeliveryDate: formatChileLocalToISO(finalDeliveryDate),
-        backlogHours,
+        backlogHours: totalBacklogHoursForUI,
         dailyCapacity: CD,
-        operatorWorkloadPercentage: usingOperator ? Math.round((backlogHours / laborCapacity) * 100) : null,
-        operatorWorkloadDays: usingOperator ? (backlogHours / laborCapacity).toFixed(1) : null,
+        operatorWorkloadPercentage: usingOperator ? Math.round((totalBacklogHoursForUI / laborCapacity) * 100) : null,
+        operatorWorkloadDays: usingOperator ? (totalBacklogHoursForUI / laborCapacity).toFixed(1) : null,
         operatorName: usingOperator ? operatorName : null,
         config: {
-            laborCapacity,
-            activeOperators,
-            bufferDays,
-            windowStart,
-            windowEnd,
-            allowedDays,
-            workshopWorkingDays,
-            workshopHourStart,
-            workshopHourEnd
+            laborCapacity, activeOperators, bufferDays, windowStart, windowEnd,
+            allowedDays, workshopWorkingDays, workshopHourStart, workshopHourEnd
         }
     };
 }

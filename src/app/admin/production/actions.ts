@@ -22,7 +22,25 @@ export async function getProductionOrders() {
     console.error('Error fetching production orders:', error);
     return [];
   }
-  return data;
+
+  const { data: tasks } = await supabase
+    .from('planner_tasks')
+    .select('order_id, duration_hours')
+    .not('order_id', 'is', null);
+    
+  const hoursMap: Record<string, number> = {};
+  if (tasks) {
+      tasks.forEach(t => {
+          if (t.order_id) {
+              hoursMap[t.order_id] = (hoursMap[t.order_id] || 0) + Number(t.duration_hours || 0);
+          }
+      });
+  }
+
+  return (data || []).map(o => ({
+      ...o,
+      scheduled_hours: hoursMap[o.id] || 0
+  }));
 }
 
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
