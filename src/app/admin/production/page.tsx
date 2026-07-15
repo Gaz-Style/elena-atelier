@@ -7,7 +7,7 @@ import {
     Loader2, Plus, X, User, Calendar, ChevronLeft, ChevronRight, 
     History, BarChart2, CheckCircle, Flame, DollarSign, Award, PieChart, ShieldCheck
 } from 'lucide-react';
-import { getProductionOrders, updateOrderStatus, getWorkloadForecastAction, getOperatorPerformanceAction } from './actions';
+import { getProductionOrders, updateOrderStatus, getWorkloadForecastAction, getOperatorPerformanceAction, assignOperatorToOrder } from './actions';
 import { getDashboardData } from '../actions';
 import { getOperatorsAction } from '../pos/actions';
 import { supabase } from '@/lib/supabase';
@@ -126,6 +126,15 @@ export default function ProductionPage() {
         } else {
             alert(result.error || "Ocurrió un error al cambiar el estado");
             fetchOrders();
+        }
+    }
+
+    async function handleAssignOperator(id: string, operatorId: string) {
+        const result = await assignOperatorToOrder(id, operatorId === 'unassigned' ? null : operatorId);
+        if (result.success) {
+            fetchOrders();
+        } else {
+            alert(result.error || "Ocurrió un error al asignar costurera.");
         }
     }
 
@@ -415,15 +424,16 @@ export default function ProductionPage() {
                                                         </div>
 
                                                         <div className="mb-3 text-[10px] flex items-center gap-1">
-                                                            {order.atelier_operators ? (
-                                                                <span className="bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-sm font-semibold inline-flex items-center gap-1">
-                                                                    👤 {order.atelier_operators.name}
-                                                                </span>
-                                                            ) : (
-                                                                <span className="bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded-sm font-semibold inline-flex items-center gap-1 animate-pulse">
-                                                                    ⚠ Sin Costurera
-                                                                </span>
-                                                            )}
+                                                            <select 
+                                                                value={order.assigned_operator_id || 'unassigned'}
+                                                                onChange={(e) => handleAssignOperator(order.id, e.target.value)}
+                                                                className={`px-2 py-0.5 rounded-sm font-semibold border focus:ring-0 outline-none cursor-pointer ${order.assigned_operator_id ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200 animate-pulse'}`}
+                                                            >
+                                                                <option value="unassigned">⚠ Sin Costurera</option>
+                                                                {operators.filter(op => op.status === 'active').map(op => (
+                                                                    <option key={op.id} value={op.id}>👤 {op.name}</option>
+                                                                ))}
+                                                            </select>
                                                         </div>
 
                                                         {/* Hour / Workload Indicator in Card */}

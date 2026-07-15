@@ -7,7 +7,7 @@ import {
     User, Calendar, RefreshCw, Sparkles, Save, Check, Flame, ChevronRight, Activity, Scissors, Plus, UserCheck, BarChart2
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { updateOrderStatus, getProductionOrders } from '../production/actions';
+import { updateOrderStatus, getProductionOrders, assignOperatorToOrder } from '../production/actions';
 import { updateAtelierConfigAction, getEstimatedDatesAction, getOperatorsAction, updateOperatorAction } from '../pos/actions';
 
 // Días de la semana para mapear números [1..0] a strings
@@ -152,6 +152,15 @@ export default function LiveProductionBoard() {
             fetchOrdersOnly();
         } else {
             alert(res.error || "Ocurrió un error al completar la entrega.");
+        }
+    }
+
+    async function handleAssignOperator(id: string, operatorId: string) {
+        const res = await assignOperatorToOrder(id, operatorId === 'unassigned' ? null : operatorId);
+        if (res.success) {
+            fetchOrdersOnly();
+        } else {
+            alert(res.error || "Ocurrió un error al asignar costurera.");
         }
     }
 
@@ -544,10 +553,19 @@ export default function LiveProductionBoard() {
 
                                                 {/* Visual assigned operator badge */}
                                                 <div className="flex justify-between items-center pt-2 border-t border-gray-850">
-                                                    <span className="text-[10px] text-gray-400 bg-[#151723] border border-gray-800 px-2 py-1 rounded-sm inline-flex items-center gap-1.5">
-                                                        <UserCheck className="w-3.5 h-3.5 text-brand-sand" />
-                                                        {assignedOp ? `Asignada: ${assignedOp.name}` : 'Sin asignar (Taller)'}
-                                                    </span>
+                                                    <div className="flex items-center gap-1.5 w-full text-[10px] text-gray-400 bg-[#151723] border border-gray-800 px-2 py-1 rounded-sm">
+                                                        <UserCheck className="w-3.5 h-3.5 text-brand-sand shrink-0" />
+                                                        <select 
+                                                            value={order.assigned_operator_id || 'unassigned'}
+                                                            onChange={(e) => handleAssignOperator(order.id, e.target.value)}
+                                                            className="w-full bg-transparent border-none outline-none focus:ring-0 cursor-pointer appearance-none text-gray-300"
+                                                        >
+                                                            <option value="unassigned">Sin asignar (Taller)</option>
+                                                            {operators.filter(op => op.status === 'active').map(op => (
+                                                                <option key={op.id} value={op.id}>Asignada: {op.name}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
                                                 </div>
 
                                                 {/* Action to advance stage */}
@@ -642,10 +660,19 @@ export default function LiveProductionBoard() {
                                                 </div>
 
                                                 <div className="flex justify-between items-center pt-2 border-t border-gray-850">
-                                                    <span className="text-[10px] text-gray-400 bg-[#151723] border border-gray-800 px-2 py-1 rounded-sm inline-flex items-center gap-1.5">
-                                                        <UserCheck className="w-3.5 h-3.5 text-brand-sand" />
-                                                        {assignedOp ? `Asignada: ${assignedOp.name}` : 'Sin asignar (Taller)'}
-                                                    </span>
+                                                    <div className="flex items-center gap-1.5 w-full text-[10px] text-gray-400 bg-[#151723] border border-gray-800 px-2 py-1 rounded-sm">
+                                                        <UserCheck className="w-3.5 h-3.5 text-brand-sand shrink-0" />
+                                                        <select 
+                                                            value={order.assigned_operator_id || 'unassigned'}
+                                                            onChange={(e) => handleAssignOperator(order.id, e.target.value)}
+                                                            className="w-full bg-transparent border-none outline-none focus:ring-0 cursor-pointer appearance-none text-gray-300"
+                                                        >
+                                                            <option value="unassigned">Sin asignar (Taller)</option>
+                                                            {operators.filter(op => op.status === 'active').map(op => (
+                                                                <option key={op.id} value={op.id}>Asignada: {op.name}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
                                                 </div>
 
                                                 {/* Action to advance stage */}
@@ -747,10 +774,19 @@ export default function LiveProductionBoard() {
                                                 </div>
 
                                                 <div className="flex justify-between items-center pt-2 border-t border-gray-850">
-                                                    <span className="text-[10px] text-gray-400 bg-[#151723] border border-gray-800 px-2 py-1 rounded-sm inline-flex items-center gap-1.5">
-                                                        <UserCheck className="w-3.5 h-3.5 text-brand-sand" />
-                                                        {assignedOp ? `Asignada: ${assignedOp.name}` : 'Sin asignar (Taller)'}
-                                                    </span>
+                                                    <div className="flex items-center gap-1.5 w-full text-[10px] text-gray-400 bg-[#151723] border border-gray-800 px-2 py-1 rounded-sm">
+                                                        <UserCheck className="w-3.5 h-3.5 text-brand-sand shrink-0" />
+                                                        <select 
+                                                            value={order.assigned_operator_id || 'unassigned'}
+                                                            onChange={(e) => handleAssignOperator(order.id, e.target.value)}
+                                                            className="w-full bg-transparent border-none outline-none focus:ring-0 cursor-pointer appearance-none text-gray-300"
+                                                        >
+                                                            <option value="unassigned">Sin asignar (Taller)</option>
+                                                            {operators.filter(op => op.status === 'active').map(op => (
+                                                                <option key={op.id} value={op.id}>Asignada: {op.name}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
                                                 </div>
 
                                                 {/* Action: Complete delivery and archive */}

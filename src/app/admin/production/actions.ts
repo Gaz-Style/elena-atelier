@@ -101,6 +101,20 @@ export async function updateOrderStatus(id: string, newStatus: string) {
   return { success: true };
 }
 
+export async function assignOperatorToOrder(orderId: string, operatorId: string | null) {
+  const supabase = getAdminClient();
+  const { error } = await supabase
+    .from('production_orders')
+    .update({ assigned_operator_id: operatorId })
+    .eq('id', orderId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath('/admin/production');
+  revalidatePath('/admin/production-board');
+  return { success: true };
+}
+
 export async function createProductionOrder(formData: FormData) {
     const customer_id = formData.get('customer_id') as string;
     const description = formData.get('description') as string;
