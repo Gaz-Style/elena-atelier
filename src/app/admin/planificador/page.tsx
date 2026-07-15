@@ -673,8 +673,19 @@ export default function PlanificadorPage() {
                                                                             <div className="text-[11px] font-bold leading-tight text-slate-700 truncate">
                                                                                 {task.label}
                                                                             </div>
-                                                                            <div className="text-[9px] font-medium text-slate-500 mt-0.5 truncate">
-                                                                                ⏱ {(task.startHour || 9).toString().padStart(2, '0')}:00 ({task.durationHours || 1}h)
+                                                                            <div className="text-[9px] font-medium text-slate-500 mt-0.5 truncate flex flex-wrap gap-x-1">
+                                                                                {(() => {
+                                                                                    const sH = task.startHour || 9;
+                                                                                    const eH = sH + (task.durationHours || 1);
+                                                                                    let text = `⏱ ${sH.toString().padStart(2, '0')}:00 a ${eH.toString().padStart(2, '0')}:00 (${task.durationHours || 1}h`;
+                                                                                    if (task.orderId) {
+                                                                                        const o = orders.find(ord => ord.id === task.orderId);
+                                                                                        if (o && o.estimated_hours) {
+                                                                                            text += ` de ${o.estimated_hours}h`;
+                                                                                        }
+                                                                                    }
+                                                                                    return text + ')';
+                                                                                })()}
                                                                             </div>
                                                                             {!previewMode && (
                                                                                 <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover/task:opacity-100 transition-opacity bg-white/80 rounded backdrop-blur-sm p-0.5">
