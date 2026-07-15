@@ -86,6 +86,11 @@ export default function Step2Cart() {
     const finalName = manualName.trim() || workType;
     const finalPrice = Number(manualPrice.replace(/\./g, '')) || 0;
 
+    if (finalPrice <= 0) {
+      alert('Debes ingresar un precio mayor a $0 para añadir el trabajo manual.');
+      return;
+    }
+
     addToCart({
       id: crypto.randomUUID(),
       name: finalName,
@@ -257,7 +262,11 @@ export default function Step2Cart() {
 
               <div className="flex justify-end pt-2 border-t border-zinc-100 mt-2 gap-2">
                 <Button variant="ghost" onClick={() => setShowManual(false)}>Cancelar</Button>
-                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={handleAddManual}>
+                <Button 
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white disabled:bg-emerald-600/50 disabled:cursor-not-allowed" 
+                  onClick={handleAddManual}
+                  disabled={!manualPrice || Number(manualPrice.replace(/\./g, '')) <= 0}
+                >
                   Añadir al Carrito
                 </Button>
               </div>
