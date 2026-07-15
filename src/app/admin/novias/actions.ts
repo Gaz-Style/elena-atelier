@@ -116,10 +116,11 @@ export async function createBridalProject(formData: FormData) {
     const materialsNotes = formData.get('materials_notes') as string;
     const contractNotes = formData.get('contract_notes') as string;
     
-    // Calculate payment splits: 50% / 25% / 25%
+    // Calculate payment splits: Novias = 50/25/25, Madrinas/Graduación = 50/50
+    const isNovia = projectType === 'novia';
     const payment1 = Math.round(totalAmount * 0.5);
-    const payment2 = Math.round(totalAmount * 0.25);
-    const payment3 = totalAmount - payment1 - payment2; // Remainder to avoid rounding issues
+    const payment2 = isNovia ? Math.round(totalAmount * 0.25) : totalAmount - payment1;
+    const payment3 = isNovia ? totalAmount - payment1 - payment2 : 0;
     
     const eventDate = eventDateStr ? new Date(`${eventDateStr}T12:00:00-04:00`) : null;
     
@@ -249,10 +250,16 @@ export async function updateBridalProject(id: string, formData: FormData) {
     const totalAmount = formData.get('total_amount');
     if (totalAmount !== null) {
         const total = parseInt(totalAmount as string) || 0;
+        
+        // Fetch project to get project_type if not updating it
+        const { data: projData } = await supabase.from('bridal_projects').select('project_type').eq('id', id).single();
+        const pType = projData?.project_type || 'novia';
+        const isNovia = pType === 'novia';
+
         updates.total_amount = total;
         updates.payment_1_amount = Math.round(total * 0.5);
-        updates.payment_2_amount = Math.round(total * 0.25);
-        updates.payment_3_amount = total - updates.payment_1_amount - updates.payment_2_amount;
+        updates.payment_2_amount = isNovia ? Math.round(total * 0.25) : total - updates.payment_1_amount;
+        updates.payment_3_amount = isNovia ? total - updates.payment_1_amount - updates.payment_2_amount : 0;
     }
     
     const eventDate = formData.get('event_date');

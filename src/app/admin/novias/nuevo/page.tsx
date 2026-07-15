@@ -64,16 +64,20 @@ export default function NuevoProyectoPage() {
     const [serviceType, setServiceType] = useState('modificacion_tienda');
     const [eventDate, setEventDate] = useState('');
     const [eventVenue, setEventVenue] = useState('');
-    const [totalAmount, setTotalAmount] = useState(0);
+    const [subtotal, setSubtotal] = useState(0);
+    const [discountType, setDiscountType] = useState('');
+    const [discountAmount, setDiscountAmount] = useState(0);
     const [description, setDescription] = useState('');
     const [materialsNotes, setMaterialsNotes] = useState('');
     const [contractNotes, setContractNotes] = useState('');
     const [referenceImages, setReferenceImages] = useState<{url: string}[]>([]);
 
     // Derived
+    const totalAmount = Math.max(0, subtotal - discountAmount);
+    const isNovia = projectType === 'novia';
     const payment1 = Math.round(totalAmount * 0.5);
-    const payment2 = Math.round(totalAmount * 0.25);
-    const payment3 = totalAmount - payment1 - payment2;
+    const payment2 = isNovia ? Math.round(totalAmount * 0.25) : totalAmount - payment1;
+    const payment3 = isNovia ? totalAmount - payment1 - payment2 : 0;
 
     // Calculate milestone dates
     const milestones = eventDate ? [
@@ -170,9 +174,13 @@ export default function NuevoProyectoPage() {
                 finalMaterialsNotes += `\n\n![Referencia ${idx + 1}](${img.url})`;
             });
         }
+        let finalContractNotes = contractNotes;
+        if (discountAmount > 0) {
+            finalContractNotes += `\n\nDescuento aplicado: ${discountType} (-$${discountAmount})`;
+        }
         
         formData.set('materials_notes', finalMaterialsNotes);
-        formData.set('contract_notes', contractNotes);
+        formData.set('contract_notes', finalContractNotes);
 
         const result = await createBridalProject(formData);
 
@@ -458,11 +466,11 @@ export default function NuevoProyectoPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs text-zinc-500 mb-1 font-medium">Monto Total del Proyecto (CLP) *</label>
+                                    <label className="block text-xs text-zinc-500 mb-1 font-medium">Monto Base del Proyecto (CLP) *</label>
                                     <input
                                         type="number"
-                                        value={totalAmount || ''}
-                                        onChange={(e) => setTotalAmount(parseInt(e.target.value) || 0)}
+                                        value={subtotal || ''}
+                                        onChange={(e) => setSubtotal(parseInt(e.target.value) || 0)}
                                         required
                                         min={0}
                                         placeholder="500000"
@@ -481,6 +489,40 @@ export default function NuevoProyectoPage() {
                                 </div>
                             </div>
 
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 bg-zinc-50 border border-zinc-200 p-4 rounded-xl">
+                                <div>
+                                    <label className="block text-xs text-zinc-500 mb-1 font-medium">Tipo de Descuento (Opcional)</label>
+                                    <select
+                                        value={discountType}
+                                        onChange={(e) => {
+                                            setDiscountType(e.target.value);
+                                            if (!e.target.value) setDiscountAmount(0);
+                                        }}
+                                        className="w-full border border-zinc-200 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-rose-300 outline-none bg-white"
+                                    >
+                                        <option value="">— Sin descuento —</option>
+                                        <option value="Embajadora">Embajadora</option>
+                                        <option value="Influencer / Canje">Influencer / Canje</option>
+                                        <option value="Familiar / Amiga">Familiar / Amiga</option>
+                                        <option value="Campaña Especial">Campaña Especial</option>
+                                        <option value="Otro">Otro</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-zinc-500 mb-1 font-medium">Monto del Descuento (CLP)</label>
+                                    <input
+                                        type="number"
+                                        value={discountAmount || ''}
+                                        onChange={(e) => setDiscountAmount(parseInt(e.target.value) || 0)}
+                                        min={0}
+                                        max={subtotal}
+                                        placeholder="0"
+                                        disabled={!discountType}
+                                        className="w-full border border-zinc-200 rounded-lg px-4 py-2.5 text-sm focus:ring-1 focus:ring-rose-300 outline-none disabled:bg-zinc-100 disabled:text-zinc-400"
+                                    />
+                                </div>
+                            </div>
+
                             {/* Payment Preview */}
                             {totalAmount > 0 && (
                                 <div className="mt-6 bg-gradient-to-r from-zinc-50 to-rose-50/30 border border-zinc-200 rounded-xl p-5">
@@ -493,16 +535,21 @@ export default function NuevoProyectoPage() {
                                             <span className="font-bold text-zinc-800">{formatCurrency(payment1)}</span>
                                         </div>
                                         <div className="flex justify-between items-center text-sm">
-                                            <span className="text-zinc-600">Cuota 2 — Prueba Intermedia (25%)</span>
+                                            <span className="text-zinc-600">Cuota 2 — {isNovia ? 'Prueba Intermedia (25%)' : 'Contra Entrega (50%)'}</span>
                                             <span className="font-bold text-zinc-800">{formatCurrency(payment2)}</span>
                                         </div>
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-zinc-600">Cuota 3 — Contra Entrega (25%)</span>
-                                            <span className="font-bold text-zinc-800">{formatCurrency(payment3)}</span>
-                                        </div>
+                                        {isNovia && (
+                                            <div className="flex justify-between items-center text-sm">
+                                                <span className="text-zinc-600">Cuota 3 — Contra Entrega (25%)</span>
+                                                <span className="font-bold text-zinc-800">{formatCurrency(payment3)}</span>
+                                            </div>
+                                        )}
                                         <div className="flex justify-between items-center text-sm pt-3 mt-2 border-t border-zinc-300 font-bold">
-                                            <span>Total</span>
-                                            <span className="text-lg">{formatCurrency(totalAmount)}</span>
+                                            <span>Total a Pagar</span>
+                                            <div className="text-right">
+                                                {discountAmount > 0 && <span className="text-xs text-zinc-400 line-through mr-2">{formatCurrency(subtotal)}</span>}
+                                                <span className="text-lg text-zinc-900">{formatCurrency(totalAmount)}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
