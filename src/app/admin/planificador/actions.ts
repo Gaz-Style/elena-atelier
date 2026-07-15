@@ -61,7 +61,10 @@ export async function savePlannerTask(taskData: any) {
     return { success: false, error: error.message };
   }
 
-  revalidatePath('/admin/planificador');
+  try {
+    revalidatePath('/admin/planificador');
+  } catch(e) {}
+  
   return { success: true, data };
 }
 
@@ -77,6 +80,9 @@ export async function deletePlannerTask(taskId: string) {
     return { success: false, error: error.message };
   }
 
-  revalidatePath('/admin/planificador');
+  try {
+    revalidatePath('/admin/planificador');
+  } catch(e) {}
+
   return { success: true };
 }

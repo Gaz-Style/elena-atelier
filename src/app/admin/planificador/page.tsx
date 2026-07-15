@@ -340,19 +340,30 @@ export default function PlanificadorPage() {
             time: mTime
         };
 
-        const res = await savePlannerTask(taskData);
-        if (!res.success) {
-            alert(res.error || 'Asegúrate de haber creado la tabla planner_tasks en Supabase primero.');
-        } else {
-            load();
+        try {
+            const res = await savePlannerTask(taskData);
+            if (!res.success) {
+                alert(res.error || 'Asegúrate de haber creado la tabla planner_tasks en Supabase primero.');
+            } else {
+                load();
+                setModal(null);
+            }
+        } catch (e: any) {
+            console.error("Error saving task:", e);
+            alert("Hubo un error inesperado al guardar la tarea. " + e.message);
+            setModal(null);
         }
-        setModal(null);
     }
     
     async function deleteTask(opId: string, day: string, taskId: string) {
         if (taskId.includes('-') && !taskId.startsWith('order-') && !taskId.startsWith('ag-')) {
-            await deletePlannerTask(taskId);
-            load();
+            try {
+                await deletePlannerTask(taskId);
+                load();
+            } catch (e) {
+                console.error("Error deleting task:", e);
+                alert("Hubo un error al eliminar.");
+            }
         } else {
             // Tareas automáticas no se borran desde aquí
             alert("Las tareas automáticas de Novias/Citas no se pueden eliminar desde el planificador. Elimínalas desde sus respectivos módulos.");
