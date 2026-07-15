@@ -507,7 +507,7 @@ export default function PlanificadorPage() {
                             <table className="w-full border-collapse text-left">
                                 <thead>
                                     <tr className="bg-[#0f172a] text-white">
-                                        <th colSpan={operators.length + 2} className="p-5 border-b border-[#1e293b]">
+                                        <th colSpan={operators.length + 1} className="p-5 border-b border-[#1e293b]">
                                             <div className="flex items-center justify-between">
                                                 <h2 className="text-xl font-serif uppercase tracking-widest flex items-center gap-2">
                                                     Planificación Semanal de Taller
@@ -519,9 +519,6 @@ export default function PlanificadorPage() {
                                         </th>
                                     </tr>
                                     <tr className="bg-slate-50 border-b border-slate-200">
-                                        <th className="w-32 p-4 text-center border-r border-slate-200 font-extrabold text-[#0f172a] uppercase text-[12px] tracking-widest">
-                                            Día
-                                        </th>
                                         <th className="w-16 p-4 text-center border-r border-slate-200 font-extrabold text-slate-400 uppercase text-[10px] tracking-widest">
                                             Hora
                                         </th>
@@ -549,14 +546,6 @@ export default function PlanificadorPage() {
                                         const dow     = day.getDay();
                                         const isToday = ds === todayStr;
                                         return (
-                                            <tr key={ds} className="border-b border-slate-100 last:border-0 group">
-                                                
-                                                {/* Day cell */}
-                                                <td className={`p-4 align-top text-center border-r border-slate-100 transition-colors ${isToday ? 'bg-amber-50/50' : 'group-hover:bg-slate-50/50'}`}>
-                                                    <div className="flex flex-col items-center justify-center pt-2">
-                                                        <span className={`text-[11px] font-extrabold uppercase tracking-widest mb-1 ${isToday ? 'text-amber-600' : 'text-slate-400'}`}>
-                                                            {DAY_NAMES[dow]}
-                                                        </span>
                                                         <span className={`text-3xl font-light leading-none mb-1 ${isToday ? 'text-amber-600 font-medium' : 'text-slate-700'}`}>
                                                             {day.getDate()}
                                                         </span>
@@ -686,7 +675,8 @@ export default function PlanificadorPage() {
                                                         </td>
                                                     );
                                                 })}
-                                            </tr>
+                                                </tr>
+                                            </React.Fragment>
                                         );
                                     })}
 
