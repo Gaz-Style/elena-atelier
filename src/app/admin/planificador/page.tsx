@@ -592,7 +592,7 @@ export default function PlanificadorPage() {
                                                 <td className="w-16 align-top border-r border-slate-100 bg-slate-50/30">
                                                     <div className="relative w-full" style={{ height: `${dayHoursArray.length * 60}px` }}>
                                                         {dayHoursArray.map((hour, i) => {
-                                                            const isOvertime = hour >= 18;
+                                                            const isOvertime = hour > 18;
                                                             return (
                                                                 <div 
                                                                     key={hour} 
@@ -640,7 +640,7 @@ export default function PlanificadorPage() {
                                                             <div className="relative w-full" style={{ height: `${dayHoursArray.length * 60}px` }}>
                                                                 {/* Grid Lines */}
                                                                 {dayHoursArray.map((hour, i) => {
-                                                                    const isOvertime = hour >= 18;
+                                                                    const isOvertime = hour > 18;
                                                                     return (
                                                                         <div 
                                                                             key={hour} 
