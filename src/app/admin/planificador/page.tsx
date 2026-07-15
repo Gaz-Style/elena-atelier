@@ -141,6 +141,7 @@ export default function PlanificadorPage() {
     const [mStartHour, setMStartHour] = useState(10);
     const [mOpId, setMOpId]   = useState('');
     const [mDay, setMDay]     = useState('');
+    const [mOrderId, setMOrderId] = useState('');
 
     // ── Load ─────────────────────────────────────────────────────────────────
     const load = useCallback(async () => {
@@ -324,13 +325,13 @@ export default function PlanificadorPage() {
     function openAdd(opId: string, day: string) {
         setMType('costura'); setMTime(''); setMLabel('');
         setMStartHour(hoursArray[0] || 10);
-        setMOpId(opId); setMDay(day);
+        setMOpId(opId); setMDay(day); setMOrderId('');
         setModal({ opId, day });
     }
     function openEdit(opId: string, day: string, task: Task) {
         setMType(task.type); setMTime(task.time); setMLabel(task.label);
         setMStartHour(task.startHour || hoursArray[0] || 10);
-        setMOpId(opId); setMDay(day);
+        setMOpId(opId); setMDay(day); setMOrderId(task.orderId || '');
         setModal({ opId, day, task });
     }
     async function saveTask() {
@@ -356,7 +357,7 @@ export default function PlanificadorPage() {
             startHour: mStartHour,
             durationHours: parseDuration(mTime),
             operatorId: mOpId,
-            orderId: modal.task?.orderId || (orders.find(o => o.description === mLabel)?.id),
+            orderId: mOrderId || undefined,
             label: mLabel,
             time: mTime
         };
@@ -1128,9 +1129,12 @@ export default function PlanificadorPage() {
                                         🔗 Vincular a Orden del Sistema (opcional)
                                     </label>
                                     <select
+                                        value={mOrderId}
                                         className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-[#0f172a] transition-colors appearance-none bg-white cursor-pointer"
                                         onChange={e => {
-                                            const o = orders.find(o => o.id === e.target.value);
+                                            const val = e.target.value;
+                                            setMOrderId(val);
+                                            const o = orders.find(o => o.id === val);
                                             if (o) {
                                                 const customer = o.customers?.full_name ? `${o.customers.full_name} - ` : '';
                                                 setMLabel(`${customer}${o.description || ''}`);
