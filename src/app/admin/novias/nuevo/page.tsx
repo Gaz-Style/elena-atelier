@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Heart, Crown, GraduationCap, Calendar, DollarSign, FileText, Loader2, CheckCircle2, Sparkles, User, Camera, X } from 'lucide-react';
+import { ArrowLeft, Heart, Crown, GraduationCap, Calendar, DollarSign, FileText, Loader2, CheckCircle2, Sparkles, User, Camera, X, Search, Plus, ArrowRight } from 'lucide-react';
 import { createBridalProject } from '../actions';
-import { getCustomers } from '../../crm/actions';
+import { getCustomers, createCustomer } from '../../crm/actions';
 
 const formatCurrency = (val: number) =>
     new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val);
@@ -54,6 +54,12 @@ export default function NuevoProyectoPage() {
 
     // Form state
     const [customerId, setCustomerId] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredCustomers, setFilteredCustomers] = useState<any[]>([]);
+    const [isRegistering, setIsRegistering] = useState(false);
+    const [isSavingClient, setIsSavingClient] = useState(false);
+    const [newClientData, setNewClientData] = useState({ name: '', phone: '56', email: '' });
+    
     const [projectType, setProjectType] = useState('novia');
     const [serviceType, setServiceType] = useState('modificacion_tienda');
     const [eventDate, setEventDate] = useState('');
@@ -90,6 +96,59 @@ export default function NuevoProyectoPage() {
         }
         load();
     }, []);
+
+    useEffect(() => {
+        if (searchTerm.trim().length < 2) {
+            setFilteredCustomers([]);
+        } else {
+            const term = searchTerm.toLowerCase();
+            setFilteredCustomers(customers.filter(c => 
+                c.full_name?.toLowerCase().includes(term) ||
+                c.email?.toLowerCase().includes(term) ||
+                c.phone?.toLowerCase().includes(term)
+            ));
+        }
+    }, [searchTerm, customers]);
+
+    const handleRegisterClient = async () => {
+        const formattedName = newClientData.name.trim().replace(/\b\w/g, c => c.toUpperCase());
+        if (formattedName.split(/\s+/).length < 2) {
+            alert("Por favor ingrese al menos nombre y apellido.");
+            return;
+        }
+        const cleanPhone = newClientData.phone.replace(/\D/g, "");
+        if (cleanPhone.length < 8 || cleanPhone.length > 12) {
+            alert("El teléfono debe tener entre 8 y 12 dígitos.");
+            return;
+        }
+        if (newClientData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newClientData.email)) {
+            alert("Por favor ingrese un correo válido.");
+            return;
+        }
+
+        setIsSavingClient(true);
+        try {
+            const formData = new FormData();
+            formData.append('full_name', newClientData.name);
+            formData.append('phone', newClientData.phone);
+            formData.append('email', newClientData.email);
+
+            const res = await createCustomer(formData);
+            if (res.success && res.data) {
+                setCustomers([...customers, res.data]);
+                setCustomerId(res.data.id);
+                setIsRegistering(false);
+                setSearchTerm('');
+            } else {
+                alert("Error al crear cliente: " + (res.error || ''));
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error al crear cliente");
+        } finally {
+            setIsSavingClient(false);
+        }
+    };
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -161,33 +220,144 @@ export default function NuevoProyectoPage() {
                     <form onSubmit={handleSubmit} className="space-y-8">
 
                         {/* Step 1: Client Selection */}
-                        <section className="bg-white border border-zinc-200/80 rounded-xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
+                        <section className="bg-white border border-zinc-200/80 rounded-xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.01)] relative z-10">
                             <h2 className="text-xs uppercase tracking-widest font-bold text-zinc-400 mb-4 flex items-center gap-2">
                                 <User className="w-4 h-4" /> 1. Seleccionar Clienta
                             </h2>
-                            <select
-                                value={customerId}
-                                onChange={(e) => setCustomerId(e.target.value)}
-                                required
-                                className="w-full border border-zinc-200 rounded-lg px-4 py-3 text-sm focus:ring-1 focus:ring-rose-300 outline-none bg-white"
-                            >
-                                <option value="">— Selecciona una clienta del CRM —</option>
-                                {customers.map(c => (
-                                    <option key={c.id} value={c.id}>{c.full_name} {c.phone ? `(${c.phone})` : ''}</option>
-                                ))}
-                            </select>
-                            {selectedCustomer && (
-                                <div className="mt-3 bg-zinc-50 border border-zinc-200 rounded-lg p-4 text-sm">
-                                    <div className="flex gap-4 text-zinc-500">
-                                        <span>📧 {selectedCustomer.email || 'Sin correo'}</span>
-                                        <span>📱 {selectedCustomer.phone || 'Sin teléfono'}</span>
-                                        {selectedCustomer.rut && <span>🪪 {selectedCustomer.rut}</span>}
+                            
+                            {selectedCustomer ? (
+                                <div className="mt-3 bg-zinc-50 border border-zinc-200 rounded-lg p-4 flex flex-col gap-3">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h3 className="font-bold text-zinc-900">{selectedCustomer.full_name}</h3>
+                                            <div className="flex flex-wrap gap-4 text-zinc-500 text-sm mt-1">
+                                                <span>📧 {selectedCustomer.email || 'Sin correo'}</span>
+                                                <span>📱 {selectedCustomer.phone || 'Sin teléfono'}</span>
+                                                {selectedCustomer.rut && <span>🪪 {selectedCustomer.rut}</span>}
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setCustomerId('')}
+                                            className="text-[10px] uppercase font-bold text-zinc-500 hover:text-zinc-900 bg-white border border-zinc-200 px-3 py-1.5 rounded-lg transition-colors"
+                                        >
+                                            Cambiar Clienta
+                                        </button>
                                     </div>
                                 </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="flex flex-col md:flex-row gap-4 relative">
+                                        <div className="relative flex-1">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4" />
+                                            <input
+                                                type="text"
+                                                className="w-full pl-9 pr-4 py-2.5 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-400 transition-shadow"
+                                                placeholder="Buscar por nombre, teléfono o correo..."
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                            
+                                            {searchTerm.trim().length >= 2 && (
+                                                <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-white border border-zinc-200 shadow-xl rounded-xl max-h-64 overflow-y-auto custom-scrollbar">
+                                                    <div className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 border-b border-zinc-100 bg-zinc-50 rounded-t-xl">Clientes Encontrados</div>
+                                                    
+                                                    {filteredCustomers.length > 0 ? (
+                                                        filteredCustomers.map(c => (
+                                                            <div 
+                                                                key={c.id} 
+                                                                className="flex items-center justify-between p-3 border-b border-zinc-50 hover:bg-zinc-50 cursor-pointer transition-all last:border-0 group"
+                                                                onClick={() => {
+                                                                    setCustomerId(c.id);
+                                                                    setSearchTerm('');
+                                                                }}
+                                                            >
+                                                                <div>
+                                                                    <p className="font-medium text-sm text-zinc-900">{c.full_name}</p>
+                                                                    <p className="text-xs text-zinc-500 tracking-tighter">{c.email || 'Sin correo'} | {c.phone}</p>
+                                                                </div>
+                                                                <ArrowRight className="w-4 h-4 text-zinc-300 group-hover:text-zinc-600 transition-all" />
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <div className="p-4 text-center">
+                                                            <p className="text-xs text-zinc-500 italic mb-2">No se encontró cliente con "{searchTerm}"</p>
+                                                            <button 
+                                                                type="button"
+                                                                onClick={() => { setIsRegistering(true); setSearchTerm(''); }} 
+                                                                className="text-[10px] uppercase tracking-widest font-bold text-rose-500 hover:text-rose-600 hover:underline"
+                                                            >
+                                                                + Crear ficha de cliente nuevo
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className={`md:w-auto w-full transition-all flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-bold text-sm border-2 ${isRegistering ? 'border-red-200 bg-red-50 text-red-600 hover:bg-red-100' : 'border-zinc-900 bg-zinc-900 text-white hover:bg-zinc-800'}`}
+                                            onClick={() => {
+                                                setIsRegistering(!isRegistering);
+                                                if (!isRegistering) setNewClientData({ name: '', phone: '56', email: '' });
+                                            }}
+                                        >
+                                            {isRegistering ? 'Cancelar' : <><Plus className="w-4 h-4" /> Nuevo Cliente</>}
+                                        </button>
+                                    </div>
+
+                                    {isRegistering && (
+                                        <div className="pt-4 border-t border-zinc-100">
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div>
+                                                    <label className="block text-xs font-medium text-zinc-700 mb-1">Nombre Completo *</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-rose-300"
+                                                        value={newClientData.name}
+                                                        onChange={(e) => setNewClientData({...newClientData, name: e.target.value})}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-medium text-zinc-700 mb-1">Teléfono (WhatsApp) *</label>
+                                                    <input
+                                                        type="text"
+                                                        className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-rose-300"
+                                                        value={newClientData.phone}
+                                                        onChange={(e) => {
+                                                            const raw = e.target.value.replace(/\D/g, "");
+                                                            setNewClientData({...newClientData, phone: raw});
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-medium text-zinc-700 mb-1">Correo Electrónico</label>
+                                                    <input
+                                                        type="email"
+                                                        className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-rose-300"
+                                                        value={newClientData.email}
+                                                        onChange={(e) => setNewClientData({...newClientData, email: e.target.value})}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <button 
+                                                type="button"
+                                                className="w-full md:w-auto mt-4 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                                onClick={handleRegisterClient}
+                                                disabled={
+                                                    isSavingClient || 
+                                                    !newClientData.name || 
+                                                    newClientData.name.trim().split(/\s+/).length < 2 || 
+                                                    newClientData.phone.replace(/\D/g, "").length < 8
+                                                }
+                                            >
+                                                {isSavingClient ? <Loader2 className="w-4 h-4 animate-spin" /> : <User className="w-4 h-4" />}
+                                                {isSavingClient ? 'Guardando...' : 'Guardar y Seleccionar'}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             )}
-                            <p className="text-[10px] text-zinc-400 mt-2">
-                                ¿No está registrada? <Link href="/admin/crm/nueva" className="text-rose-500 hover:underline" target="_blank">Crear nueva clienta</Link>
-                            </p>
                         </section>
 
                         {/* Step 2: Project Type */}
