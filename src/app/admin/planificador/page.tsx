@@ -378,7 +378,7 @@ export default function PlanificadorPage() {
     }
     
     async function deleteTask(opId: string, day: string, taskId: string) {
-        if (taskId.includes('-') && !taskId.startsWith('order-') && !taskId.startsWith('ag-')) {
+        if (!taskId.toString().startsWith('order-') && !taskId.toString().startsWith('ag-')) {
             try {
                 await deletePlannerTask(taskId);
                 load();
