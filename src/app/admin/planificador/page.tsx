@@ -283,6 +283,24 @@ export default function PlanificadorPage() {
                 });
             });
 
+            // Inject manual planner tasks from DB
+            (customTasks || []).forEach((ct: any) => {
+                const ds = ct.task_date;
+                const opId = ct.operator_id;
+                if (!p[opId]?.[ds]) return;
+
+                p[opId][ds].tasks.push({
+                    id: ct.id,
+                    time: ct.time_label || `${ct.duration_hours}h`,
+                    label: ct.description,
+                    type: ct.task_type as any,
+                    orderId: ct.order_id,
+                    sortValue: ct.start_hour * 60,
+                    startHour: ct.start_hour,
+                    durationHours: ct.duration_hours
+                });
+            });
+
             // Sort tasks chronologically
             Object.values(p).forEach(opDays =>
                 Object.values(opDays).forEach(cell =>
