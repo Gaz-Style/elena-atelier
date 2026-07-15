@@ -576,8 +576,8 @@ export default function PlanificadorPage() {
                                                         {hoursArray.map((hour, i) => (
                                                             <div 
                                                                 key={hour} 
-                                                                className="absolute w-full text-right pr-2 text-[10px] font-bold text-slate-400"
-                                                                style={{ top: `${i * 60 - 7}px` }}
+                                                                className="absolute w-full h-[60px] flex items-center justify-center text-[10px] font-bold text-slate-400"
+                                                                style={{ top: `${i * 60}px` }}
                                                             >
                                                                 {hour.toString().padStart(2, '0')}:00
                                                             </div>
