@@ -217,6 +217,20 @@ export async function createBridalProject(formData: FormData) {
         }
     }
     
+    // 3. TERCER DUAL WRITE: production_orders (Para que aparezca en el Tablero Kanban de Producción)
+    if (project) {
+        await supabase.from('production_orders').insert([{
+            customer_id: customerId || null,
+            description: description || `Alta Costura: ${projectType}`,
+            order_type: 'bespoke',
+            status: 'draft', // Empieza como 'draft' para que la jefa de taller sepa que ingresó
+            notes: materialsNotes || '',
+            deadline: eventDate?.toISOString() || null,
+            estimated_hours: 10, // Horas base genéricas para Alta Costura (se ajustará luego)
+            pos_order_id: project.id // Usamos esta columna para vincularla internamente si es necesario
+        }]);
+    }
+    
     revalidatePath('/admin/novias');
     return { success: true, projectId: project.id };
 }
