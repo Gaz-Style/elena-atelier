@@ -115,6 +115,20 @@ export async function assignOperatorToOrder(orderId: string, operatorId: string 
   return { success: true };
 }
 
+export async function updateEstimatedHours(orderId: string, hours: number) {
+  const supabase = getAdminClient();
+  const { error } = await supabase
+    .from('production_orders')
+    .update({ estimated_hours: hours })
+    .eq('id', orderId);
+
+  if (error) return { error: error.message };
+
+  revalidatePath('/admin/production');
+  revalidatePath('/admin/production-board');
+  return { success: true };
+}
+
 export async function createProductionOrder(formData: FormData) {
     const customer_id = formData.get('customer_id') as string;
     const description = formData.get('description') as string;

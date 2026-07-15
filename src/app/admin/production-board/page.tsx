@@ -7,7 +7,7 @@ import {
     User, Calendar, RefreshCw, Sparkles, Save, Check, Flame, ChevronRight, Activity, Scissors, Plus, UserCheck, BarChart2, Filter
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { updateOrderStatus, getProductionOrders, assignOperatorToOrder } from '../production/actions';
+import { updateOrderStatus, getProductionOrders, assignOperatorToOrder, updateEstimatedHours } from '../production/actions';
 import { updateAtelierConfigAction, getEstimatedDatesAction, getOperatorsAction, updateOperatorAction } from '../pos/actions';
 
 // Días de la semana para mapear números [1..0] a strings
@@ -162,6 +162,14 @@ export default function LiveProductionBoard() {
             fetchOrdersOnly();
         } else {
             alert(res.error || "Ocurrió un error al asignar costurera.");
+        }
+    }
+
+    async function handleUpdateHours(id: string, hours: number) {
+        if (hours < 0.5 || hours > 200) return;
+        const res = await updateEstimatedHours(id, hours);
+        if (res.success) {
+            fetchOrdersOnly();
         }
     }
 
@@ -594,7 +602,17 @@ export default function LiveProductionBoard() {
                                                         <span className="text-[8px] uppercase font-bold text-gray-500 tracking-wider block">Carga Estimada</span>
                                                         <span className="font-bold text-[#C5A880] mt-0.5 inline-flex items-center gap-1">
                                                             <Clock className="w-3.5 h-3.5 text-[#C5A880]" />
-                                                            {order.estimated_hours || 1} horas
+                                                            <input
+                                                                type="number"
+                                                                min="0.5"
+                                                                max="200"
+                                                                step="0.5"
+                                                                defaultValue={order.estimated_hours || 1}
+                                                                onBlur={(e) => handleUpdateHours(order.id, parseFloat(e.target.value))}
+                                                                onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                                                                className="w-10 bg-transparent border-b border-[#C5A880]/40 text-center font-bold outline-none focus:border-[#C5A880] text-[#C5A880]"
+                                                            />
+                                                            horas
                                                         </span>
                                                     </div>
                                                 </div>

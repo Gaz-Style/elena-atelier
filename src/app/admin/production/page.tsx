@@ -7,7 +7,7 @@ import {
     Loader2, Plus, X, User, Calendar, ChevronLeft, ChevronRight, 
     History, BarChart2, CheckCircle, Flame, DollarSign, Award, PieChart, ShieldCheck, Filter
 } from 'lucide-react';
-import { getProductionOrders, updateOrderStatus, getWorkloadForecastAction, getOperatorPerformanceAction, assignOperatorToOrder } from './actions';
+import { getProductionOrders, updateOrderStatus, getWorkloadForecastAction, getOperatorPerformanceAction, assignOperatorToOrder, updateEstimatedHours } from './actions';
 import { getDashboardData } from '../actions';
 import { getOperatorsAction } from '../pos/actions';
 import { supabase } from '@/lib/supabase';
@@ -136,6 +136,14 @@ export default function ProductionPage() {
             fetchOrders();
         } else {
             alert(result.error || "Ocurrió un error al asignar costurera.");
+        }
+    }
+
+    async function handleUpdateHours(id: string, hours: number) {
+        if (hours < 0.5 || hours > 200) return;
+        const result = await updateEstimatedHours(id, hours);
+        if (result.success) {
+            fetchOrders();
         }
     }
 
@@ -494,13 +502,22 @@ export default function ProductionPage() {
                                                             </select>
                                                         </div>
 
-                                                        {/* Hour / Workload Indicator in Card */}
-                                                        {order.estimated_hours > 0 && (
-                                                            <div className="bg-brand-sand/30 text-[9px] font-bold uppercase tracking-wider text-brand-charcoal py-1 px-2.5 rounded-full inline-flex items-center gap-1 mb-4">
-                                                                <Clock className="w-3 h-3" />
-                                                                Tiempo: {order.estimated_hours} {Number(order.estimated_hours) === 1 ? 'hora' : 'horas'}
-                                                            </div>
-                                                        )}
+                                                        {/* Hour / Workload Indicator in Card — EDITABLE */}
+                                                        <div className="bg-brand-sand/30 text-[9px] font-bold uppercase tracking-wider text-brand-charcoal py-1 px-2.5 rounded-full inline-flex items-center gap-1 mb-4">
+                                                            <Clock className="w-3 h-3" />
+                                                            Tiempo:
+                                                            <input
+                                                                type="number"
+                                                                min="0.5"
+                                                                max="200"
+                                                                step="0.5"
+                                                                defaultValue={order.estimated_hours || 1}
+                                                                onBlur={(e) => handleUpdateHours(order.id, parseFloat(e.target.value))}
+                                                                onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                                                                className="w-10 bg-transparent border-b border-brand-charcoal/30 text-center font-bold outline-none focus:border-brand-terracotta mx-0.5"
+                                                            />
+                                                            {Number(order.estimated_hours) === 1 ? 'hora' : 'horas'}
+                                                        </div>
 
                                                         <div className="flex justify-between items-center pt-3 border-t border-gray-50">
                                                             <div className="flex items-center gap-1 text-[10px] text-gray-400">
