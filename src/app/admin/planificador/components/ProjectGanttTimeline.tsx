@@ -196,8 +196,7 @@ export default function ProjectGanttTimeline() {
             {/* ── Scrollable Gantt Area ──────────────────────────────── */}
             <div 
                 ref={scrollContainerRef}
-                className="overflow-auto gantt-scroll relative"
-                style={{ maxHeight: '600px' }}
+                className="overflow-auto gantt-scroll relative w-full"
             >
                 <div className="inline-block min-w-full">
                     {/* Header Row (Sticky Top) */}
