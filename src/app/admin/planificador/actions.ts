@@ -115,7 +115,11 @@ export async function getProductionTimeline() {
   }
 
   const orderIds = (orders || []).map(o => o.id);
-  const projectIds = (orders || []).map(o => o.pos_order_id).filter(Boolean);
+  
+  // Filter only valid UUIDs to prevent Supabase type syntax errors when querying UUID columns
+  const projectIds = (orders || [])
+    .map(o => o.pos_order_id)
+    .filter((id): id is string => !!id && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id));
   
   // 2. Fetch all planner tasks mapped to these active orders
   let tasks: any[] = [];

@@ -13,7 +13,10 @@ function addDays(date: Date, days: number) {
 }
 
 function formatDateKey(date: Date) {
-    return date.toISOString().split('T')[0];
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
 }
 
 function getDaysDiff(deadline: string) {
@@ -326,7 +329,8 @@ export default function ProjectGanttTimeline({
                                                 
                                                 const milestonesOnDay = project.milestones?.filter((m: any) => {
                                                     if (!m.scheduled_date) return false;
-                                                    return m.scheduled_date.split('T')[0] === dateKey;
+                                                    const mDate = new Date(m.scheduled_date);
+                                                    return formatDateKey(mDate) === dateKey;
                                                 }) || [];
 
                                                 const isToday = dateKey === todayKey;
