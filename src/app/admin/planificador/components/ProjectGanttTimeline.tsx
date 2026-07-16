@@ -28,32 +28,10 @@ function getDaysDiff(deadline: string) {
 // ── Zoom levels ───────────────────────────────────────────────────────────────
 
 const ZOOM_LEVELS = [
-    { key: 'week',    label: '1 Sem',   days: 14,  colWidth: 64 },
-    { key: 'month',   label: '1 Mes',   days: 31,  colWidth: 48 },
-    { key: 'quarter', label: '3 Meses', days: 90,  colWidth: 28 },
-    { key: 'half',    label: '6 Meses', days: 180, colWidth: 18 },
-    { key: 'year',    label: '1 Año',   days: 365, colWidth: 10 },
+    { key: '4w',  label: '4 Sem',   days: 28,  colWidth: 48 },
+    { key: '3m',  label: '3 Mes',   days: 90,  colWidth: 24 },
+    { key: '6m',  label: '6 Mes',   days: 180, colWidth: 14 },
 ] as const;
-
-type ZoomKey = typeof ZOOM_LEVELS[number]['key'];
-
-// ── Month navigation bar ───────────────────────────────────────────────────
-
-function buildMonthChips(referenceYear: number): { label: string; shortLabel: string; date: Date }[] {
-    const chips = [];
-    // 6 months back + 18 months forward from current
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth() - 6, 1);
-    for (let i = 0; i < 24; i++) {
-        const d = new Date(start.getFullYear(), start.getMonth() + i, 1);
-        chips.push({
-            label: d.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' }),
-            shortLabel: d.toLocaleDateString('es-CL', { month: 'short', year: '2-digit' }),
-            date: d,
-        });
-    }
-    return chips;
-}
 
 // ── Main component ────────────────────────────────────────────────────────────
 
@@ -65,11 +43,8 @@ export default function ProjectGanttTimeline() {
         d.setHours(0, 0, 0, 0);
         return d;
     });
-    const [zoomIndex, setZoomIndex] = useState(1); // default = "1 Mes"
-
-    const monthNavRef = useRef<HTMLDivElement>(null);
+    const [zoomIndex, setZoomIndex] = useState(0);
     const zoom = ZOOM_LEVELS[zoomIndex];
-    const monthChips = useMemo(() => buildMonthChips(new Date().getFullYear()), []);
 
     useEffect(() => {
         async function load() {
@@ -79,14 +54,6 @@ export default function ProjectGanttTimeline() {
             setLoading(false);
         }
         load();
-    }, []);
-
-    // Scroll "Hoy" chip into view on mount
-    useEffect(() => {
-        if (monthNavRef.current) {
-            const todayBtn = monthNavRef.current.querySelector('[data-today="true"]');
-            todayBtn?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-        }
     }, []);
 
     // Calendar days based on zoom
@@ -103,15 +70,17 @@ export default function ProjectGanttTimeline() {
         if (!calendarDays.length) return [];
         const result: { label: string; count: number; isEven: boolean }[] = [];
         let curMonth = calendarDays[0].getMonth();
+        let curYear = calendarDays[0].getFullYear();
         let curLabel = calendarDays[0].toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
         let count = 0;
         let idx = 0;
         calendarDays.forEach(date => {
-            if (date.getMonth() === curMonth) {
+            if (date.getMonth() === curMonth && date.getFullYear() === curYear) {
                 count++;
             } else {
                 result.push({ label: curLabel, count, isEven: idx % 2 === 0 });
                 curMonth = date.getMonth();
+                curYear = date.getFullYear();
                 curLabel = date.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
                 count = 1;
                 idx++;
@@ -132,23 +101,30 @@ export default function ProjectGanttTimeline() {
 
     const todayKey = formatDateKey(new Date());
 
-    const jumpToMonth = (date: Date) => {
-        const d = new Date(date);
-        d.setHours(0, 0, 0, 0);
-        setStartDate(d);
-    };
-
+    // Navigation: jump by the visible range
+    const jumpPrev = () => setStartDate(prev => addDays(prev, -Math.round(zoom.days / 2)));
+    const jumpNext = () => setStartDate(prev => addDays(prev, Math.round(zoom.days / 2)));
     const jumpToToday = () => {
         const d = new Date();
         d.setHours(0, 0, 0, 0);
         setStartDate(d);
     };
 
+    // Range label
+    const rangeLabel = useMemo(() => {
+        const first = calendarDays[0];
+        const last = calendarDays[calendarDays.length - 1];
+        if (!first || !last) return '';
+        const fMonth = first.toLocaleDateString('es-CL', { month: 'short' });
+        const lMonth = last.toLocaleDateString('es-CL', { month: 'short', year: 'numeric' });
+        return `${first.getDate()} ${fMonth} — ${last.getDate()} ${lMonth}`;
+    }, [calendarDays]);
+
     if (loading) {
         return (
-            <div className="min-h-[400px] bg-slate-50/50 flex flex-col items-center justify-center rounded-2xl border border-slate-200">
+            <div className="min-h-[300px] bg-slate-50/50 flex flex-col items-center justify-center rounded-2xl border border-slate-200">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mb-4"></div>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest animate-pulse">Cargando seguimiento Gantt...</p>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest animate-pulse">Cargando Gantt...</p>
             </div>
         );
     }
@@ -156,95 +132,77 @@ export default function ProjectGanttTimeline() {
     return (
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
 
-            {/* ── Header ───────────────────────────────────────────────── */}
-            <div className="border-b border-slate-100 p-4 md:p-5 flex flex-col gap-3">
-                {/* Title row */}
-                <div className="flex items-start justify-between">
-                    <div>
-                        <h2 className="text-xl font-serif font-bold text-slate-800 flex items-center gap-2">
-                            📋 Seguimiento Gantt de Órdenes (Tiempo Real)
-                        </h2>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                            Vista unificada del progreso de proyectos y carga en el taller.
-                        </p>
-                    </div>
+            {/* ── Compact Header ─────────────────────────────────────── */}
+            <div className="border-b border-slate-100 px-4 py-3 md:px-5 md:py-4 flex items-center justify-between gap-3 flex-wrap">
+                {/* Left: Title */}
+                <h2 className="text-base md:text-lg font-serif font-bold text-slate-800 flex items-center gap-2 shrink-0">
+                    📋 Seguimiento Gantt
+                </h2>
 
-                    {/* Zoom control */}
-                    <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl p-1 shrink-0">
-                        <button
-                            onClick={() => setZoomIndex(prev => Math.max(0, prev - 1))}
-                            disabled={zoomIndex === 0}
-                            className="p-1.5 rounded-lg text-slate-500 hover:bg-white hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                            title="Acercar (menos días)"
-                        >
-                            <ZoomIn className="w-4 h-4" />
-                        </button>
-                        <span className="text-[10px] md:text-xs font-bold text-slate-600 uppercase tracking-widest px-2 min-w-[52px] text-center">
-                            {zoom.label}
-                        </span>
-                        <button
-                            onClick={() => setZoomIndex(prev => Math.min(ZOOM_LEVELS.length - 1, prev + 1))}
-                            disabled={zoomIndex === ZOOM_LEVELS.length - 1}
-                            className="p-1.5 rounded-lg text-slate-500 hover:bg-white hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                            title="Alejar (más días)"
-                        >
-                            <ZoomOut className="w-4 h-4" />
-                        </button>
-                    </div>
-                </div>
-
-                {/* Month navigation bar */}
-                <div className="flex items-center gap-2">
-                    {/* Today button */}
+                {/* Center: Navigation */}
+                <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl p-0.5 order-last md:order-none w-full md:w-auto justify-center">
+                    <button onClick={jumpPrev} className="px-2.5 py-1.5 text-slate-500 hover:bg-white hover:shadow-sm rounded-lg transition-all text-xs font-bold">
+                        ‹
+                    </button>
                     <button
                         onClick={jumpToToday}
-                        className="shrink-0 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg bg-[#0f172a] text-white hover:bg-slate-700 transition-all"
+                        className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-[#0f172a] text-white rounded-lg hover:bg-slate-700 transition-all"
                     >
                         Hoy
                     </button>
+                    <span className="text-[10px] md:text-xs font-bold text-slate-600 px-2 capitalize min-w-[140px] md:min-w-[180px] text-center truncate">
+                        {rangeLabel}
+                    </span>
+                    <button onClick={jumpNext} className="px-2.5 py-1.5 text-slate-500 hover:bg-white hover:shadow-sm rounded-lg transition-all text-xs font-bold">
+                        ›
+                    </button>
+                </div>
 
-                    {/* Scrollable month chips */}
-                    <div
-                        ref={monthNavRef}
-                        className="flex gap-1.5 overflow-x-auto pb-0.5 flex-1"
-                        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                {/* Right: Zoom */}
+                <div className="flex items-center gap-1 shrink-0">
+                    <button
+                        onClick={() => setZoomIndex(prev => Math.max(0, prev - 1))}
+                        disabled={zoomIndex === 0}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        title="Acercar"
                     >
-                        {monthChips.map((chip, i) => {
-                            const chipKey = `${chip.date.getFullYear()}-${chip.date.getMonth()}`;
-                            const curKey = `${startDate.getFullYear()}-${startDate.getMonth()}`;
-                            const isNowMonth = `${new Date().getFullYear()}-${new Date().getMonth()}` === chipKey;
-                            const isSelected = chipKey === curKey;
-
-                            return (
-                                <button
-                                    key={i}
-                                    data-today={isNowMonth ? 'true' : undefined}
-                                    onClick={() => jumpToMonth(chip.date)}
-                                    className={`shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap border ${
-                                        isSelected
-                                            ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
-                                            : isNowMonth
-                                            ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
-                                            : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300 hover:text-slate-700'
-                                    }`}
-                                >
-                                    {chip.shortLabel}
-                                </button>
-                            );
-                        })}
+                        <ZoomIn className="w-4 h-4" />
+                    </button>
+                    <div className="flex gap-0.5">
+                        {ZOOM_LEVELS.map((z, i) => (
+                            <button
+                                key={z.key}
+                                onClick={() => setZoomIndex(i)}
+                                className={`px-2 py-1 text-[9px] font-bold uppercase tracking-wider rounded-md transition-all ${
+                                    i === zoomIndex
+                                        ? 'bg-slate-800 text-white shadow-sm'
+                                        : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                                }`}
+                            >
+                                {z.label}
+                            </button>
+                        ))}
                     </div>
+                    <button
+                        onClick={() => setZoomIndex(prev => Math.min(ZOOM_LEVELS.length - 1, prev + 1))}
+                        disabled={zoomIndex === ZOOM_LEVELS.length - 1}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        title="Alejar"
+                    >
+                        <ZoomOut className="w-4 h-4" />
+                    </button>
                 </div>
             </div>
 
-            {/* ── Gantt Table Header ────────────────────────────────────── */}
+            {/* ── Gantt Table Header ────────────────────────────────── */}
             <div className="flex border-b border-slate-200 bg-slate-50/50">
-                {/* Fixed left panel header */}
-                <div className="w-56 md:w-72 shrink-0 border-r border-slate-200 p-3 flex flex-col justify-end">
-                    <span className="text-[9px] md:text-[10px] uppercase tracking-widest font-bold text-slate-400">Cliente y Proyecto</span>
+                {/* Fixed left */}
+                <div className="w-52 md:w-64 shrink-0 border-r border-slate-200 p-2.5 md:p-3 flex flex-col justify-end">
+                    <span className="text-[9px] uppercase tracking-widest font-bold text-slate-400">Cliente y Proyecto</span>
                 </div>
 
-                {/* Scrollable date columns */}
-                <div className="flex-1 overflow-x-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 transparent' }}>
+                {/* Scrollable columns */}
+                <div className="flex-1 overflow-x-auto gantt-scroll">
                     <div className="flex flex-col" style={{ minWidth: calendarDays.length * zoom.colWidth }}>
                         {/* Months row */}
                         <div className="flex border-b border-slate-200">
@@ -252,7 +210,7 @@ export default function ProjectGanttTimeline() {
                                 <div
                                     key={i}
                                     style={{ width: m.count * zoom.colWidth }}
-                                    className={`px-2 py-1.5 text-[9px] font-bold uppercase tracking-widest border-r border-slate-200 truncate ${m.isEven ? 'bg-slate-100 text-slate-500' : 'bg-amber-50/60 text-amber-600'}`}
+                                    className={`px-1.5 py-1 text-[8px] md:text-[9px] font-bold uppercase tracking-widest border-r border-slate-200 truncate ${m.isEven ? 'bg-slate-100 text-slate-500' : 'bg-amber-50/60 text-amber-600'}`}
                                 >
                                     {m.label}
                                 </div>
@@ -263,23 +221,24 @@ export default function ProjectGanttTimeline() {
                             {calendarDays.map((date, i) => {
                                 const isToday = formatDateKey(date) === todayKey;
                                 const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                                const isEven = isEvenMonthAt(i);
-                                const baseBg = isEven ? 'bg-slate-50/30' : 'bg-white';
+                                const baseBg = isEvenMonthAt(i) ? 'bg-slate-50/30' : 'bg-white';
 
                                 return (
                                     <div
                                         key={i}
                                         style={{ width: zoom.colWidth, minWidth: zoom.colWidth }}
-                                        className={`shrink-0 border-r border-slate-100 flex flex-col items-center justify-center py-1.5 ${isToday ? 'bg-amber-50/80' : isWeekend ? 'bg-slate-100/60' : baseBg}`}
+                                        className={`shrink-0 border-r border-slate-100 flex flex-col items-center justify-center py-1 ${isToday ? 'bg-amber-50/80' : isWeekend ? 'bg-slate-100/50' : baseBg}`}
                                     >
-                                        {zoom.colWidth >= 28 && (
-                                            <span className={`text-[8px] uppercase font-bold ${isToday ? 'text-amber-500' : 'text-slate-400'}`}>
-                                                {date.toLocaleDateString('es-CL', { weekday: 'short' })}
+                                        {zoom.colWidth >= 24 && (
+                                            <span className={`text-[7px] uppercase font-bold leading-none ${isToday ? 'text-amber-500' : 'text-slate-400'}`}>
+                                                {date.toLocaleDateString('es-CL', { weekday: 'narrow' })}
                                             </span>
                                         )}
-                                        <span className={`text-[9px] font-bold ${isToday ? 'text-amber-600' : 'text-slate-600'}`}>
-                                            {zoom.colWidth >= 18 ? date.getDate() : ''}
-                                        </span>
+                                        {zoom.colWidth >= 14 && (
+                                            <span className={`text-[8px] font-bold leading-none mt-0.5 ${isToday ? 'text-amber-600' : 'text-slate-600'}`}>
+                                                {date.getDate()}
+                                            </span>
+                                        )}
                                     </div>
                                 );
                             })}
@@ -288,10 +247,10 @@ export default function ProjectGanttTimeline() {
                 </div>
             </div>
 
-            {/* ── Gantt Table Body ──────────────────────────────────────── */}
-            <div className="flex-1 overflow-y-auto max-h-[600px]">
+            {/* ── Gantt Table Body ──────────────────────────────────── */}
+            <div className="flex-1 overflow-y-auto max-h-[500px]">
                 {projects.length === 0 ? (
-                    <div className="p-12 text-center text-slate-400 font-bold uppercase tracking-widest">
+                    <div className="p-10 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">
                         No hay proyectos de producción activos.
                     </div>
                 ) : (
@@ -304,52 +263,45 @@ export default function ProjectGanttTimeline() {
 
                         return (
                             <div key={project.id} className="flex border-b border-slate-100 hover:bg-slate-50/30 transition-colors">
-                                {/* Left info panel */}
-                                <div className="w-56 md:w-72 shrink-0 border-r border-slate-100 p-3 flex flex-col justify-center gap-2 bg-white">
+                                {/* Left info */}
+                                <div className="w-52 md:w-64 shrink-0 border-r border-slate-100 p-2.5 md:p-3 flex flex-col justify-center gap-1.5 bg-white">
                                     <div>
-                                        <h3 className="font-extrabold text-xs md:text-sm text-slate-800 truncate" title={project.customerName}>
+                                        <h3 className="font-extrabold text-[11px] md:text-xs text-slate-800 truncate" title={project.customerName}>
                                             {project.customerName}
                                         </h3>
-                                        <p className="text-[9px] text-slate-500 uppercase font-bold tracking-widest truncate mt-0.5">
+                                        <p className="text-[8px] md:text-[9px] text-slate-500 uppercase font-bold tracking-widest truncate">
                                             {project.description}
                                         </p>
                                     </div>
 
                                     <div className="space-y-1">
-                                        <div className="flex justify-between items-center text-[9px] font-bold">
+                                        <div className="flex justify-between items-center text-[8px] md:text-[9px] font-bold">
                                             <span className="text-slate-500 flex items-center gap-1 uppercase tracking-widest">
-                                                <Clock className="w-3 h-3" /> Horas
+                                                <Clock className="w-2.5 h-2.5" /> Horas
                                             </span>
                                             <span className={isOverbooked ? 'text-rose-600' : 'text-emerald-600'}>
                                                 {project.scheduledHours} / {project.estimatedHours}h
                                             </span>
                                         </div>
-                                        <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                        <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
                                             <div
                                                 className={`h-full rounded-full transition-all duration-500 ${isOverbooked ? 'bg-rose-500' : progressPercent === 100 ? 'bg-emerald-500' : 'bg-emerald-400'}`}
                                                 style={{ width: `${progressPercent}%` }}
                                             />
                                         </div>
-                                        {isOverbooked && (
-                                            <p className="text-[9px] text-rose-500 font-bold flex items-center gap-1">
-                                                <AlertTriangle className="w-3 h-3" /> Excede {project.scheduledHours - project.estimatedHours}h
-                                            </p>
-                                        )}
                                     </div>
 
                                     {project.deadline && (
-                                        <div className="flex items-center gap-1">
-                                            <CalendarIcon className="w-3 h-3 text-slate-400" />
-                                            <span className={`text-[9px] font-bold ${daysDiff !== null && daysDiff < 7 ? 'text-rose-500' : 'text-slate-500'}`}>
-                                                {new Date(project.deadline).toLocaleDateString('es-CL')}
-                                                {daysDiff !== null && ` (${daysDiff > 0 ? `faltan ${daysDiff}d` : 'HOY'})`}
-                                            </span>
-                                        </div>
+                                        <span className={`text-[8px] font-bold flex items-center gap-1 ${daysDiff !== null && daysDiff < 7 ? 'text-rose-500' : 'text-slate-400'}`}>
+                                            <CalendarIcon className="w-2.5 h-2.5" />
+                                            {new Date(project.deadline).toLocaleDateString('es-CL')}
+                                            {daysDiff !== null && ` (${daysDiff > 0 ? `${daysDiff}d` : 'HOY'})`}
+                                        </span>
                                     )}
                                 </div>
 
                                 {/* Gantt bars */}
-                                <div className="flex-1 overflow-x-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 transparent' }}>
+                                <div className="flex-1 overflow-x-auto gantt-scroll">
                                     <div className="flex items-stretch" style={{ minWidth: calendarDays.length * zoom.colWidth }}>
                                         {calendarDays.map((date, i) => {
                                             const dateKey = formatDateKey(date);
@@ -357,24 +309,30 @@ export default function ProjectGanttTimeline() {
                                             const hoursOnDay = tasksOnDay.reduce((sum: number, t: any) => sum + (Number(t.duration_hours) || 0), 0);
                                             const isToday = dateKey === todayKey;
                                             const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                                            const isEven = isEvenMonthAt(i);
-                                            const baseBg = isEven ? 'bg-slate-50/30' : 'bg-white';
+                                            const baseBg = isEvenMonthAt(i) ? 'bg-slate-50/30' : 'bg-white';
+
+                                            // Deadline marker
+                                            const isDeadline = project.deadline && dateKey === formatDateKey(new Date(project.deadline));
 
                                             return (
                                                 <div
                                                     key={i}
                                                     style={{ width: zoom.colWidth, minWidth: zoom.colWidth }}
-                                                    className={`shrink-0 border-r border-slate-100 flex items-center justify-center p-0.5 ${isToday ? 'bg-amber-50/40' : isWeekend ? 'bg-slate-100/60' : baseBg}`}
+                                                    className={`shrink-0 border-r border-slate-100/80 flex items-center justify-center relative ${isToday ? 'bg-amber-50/40' : isWeekend ? 'bg-slate-100/40' : baseBg}`}
                                                 >
                                                     {hoursOnDay > 0 && (
                                                         <div
-                                                            className="w-full bg-[#0f172a] hover:bg-slate-700 transition-colors text-white rounded flex items-center justify-center shadow-sm cursor-help py-1"
+                                                            className="w-[85%] bg-[#0f172a] hover:bg-slate-700 transition-colors text-white rounded-sm flex items-center justify-center cursor-help"
+                                                            style={{ height: Math.max(16, Math.min(28, zoom.colWidth - 4)) }}
                                                             title={`${project.customerName}: ${hoursOnDay}h`}
                                                         >
                                                             {zoom.colWidth >= 28 && (
-                                                                <span className="text-[9px] font-bold leading-none">{hoursOnDay}h</span>
+                                                                <span className="text-[8px] font-bold leading-none">{hoursOnDay}h</span>
                                                             )}
                                                         </div>
+                                                    )}
+                                                    {isDeadline && (
+                                                        <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-rose-500 z-10" title="Fecha de entrega" />
                                                     )}
                                                 </div>
                                             );
@@ -386,6 +344,13 @@ export default function ProjectGanttTimeline() {
                     })
                 )}
             </div>
+
+            <style jsx>{`
+                .gantt-scroll::-webkit-scrollbar { height: 6px; }
+                .gantt-scroll::-webkit-scrollbar-track { background: transparent; }
+                .gantt-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+                .gantt-scroll { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+            `}</style>
         </div>
     );
 }
