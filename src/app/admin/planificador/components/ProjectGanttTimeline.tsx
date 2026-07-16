@@ -25,18 +25,31 @@ function getDaysDiff(deadline: string) {
     return Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 }
 
+// ── Zoom levels ───────────────────────────────────────────────────────────────
+
+const ZOOM_LEVELS = [
+    { key: 'detail',  label: 'Detalle',  colWidth: 48 },
+    { key: 'medium',  label: 'Medio',    colWidth: 24 },
+    { key: 'compact', label: 'Compacto', colWidth: 14 },
+] as const;
+
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function ProjectGanttTimeline() {
+interface ProjectGanttTimelineProps {
+    className?: string;
+    bodyHeightStyle?: React.CSSProperties;
+}
+
+export default function ProjectGanttTimeline({ 
+    className = "", 
+    bodyHeightStyle = { maxHeight: '500px' } 
+}: ProjectGanttTimelineProps) {
     const [loading, setLoading] = useState(true);
     const [projects, setProjects] = useState<any[]>([]);
-    
-    // colWidth state: from 4px (1 Year view) to 120px (Day/Detail view)
     const [colWidth, setColWidth] = useState(32); 
     
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-    // Static calendar array: 30 days in the past, 335 days in the future (365 days total)
     const DAYS_PAST = 30;
     const DAYS_TOTAL = 365;
     
@@ -66,16 +79,13 @@ export default function ProjectGanttTimeline() {
         }
     };
 
-    // Auto-scroll to today on initial load or when colWidth changes
     useEffect(() => {
         if (!loading) {
-            // Use requestAnimationFrame or small timeout to ensure DOM update is painted
             const timer = setTimeout(jumpToToday, 50);
             return () => clearTimeout(timer);
         }
     }, [colWidth, loading]);
 
-    // Month grouping for header
     const months = useMemo(() => {
         if (!calendarDays.length) return [];
         const result: { label: string; count: number; isEven: boolean }[] = [];
@@ -112,12 +122,11 @@ export default function ProjectGanttTimeline() {
 
     const todayKey = formatDateKey(new Date());
 
-    // Preset zooms
     const applyPreset = (type: 'year' | 'month' | 'week' | 'day') => {
-        if (type === 'year') setColWidth(4);      // ~1460px total width
-        if (type === 'month') setColWidth(16);    // ~5800px total width
-        if (type === 'week') setColWidth(48);     // ~17500px total width
-        if (type === 'day') setColWidth(100);     // ~36500px total width
+        if (type === 'year') setColWidth(4);
+        if (type === 'month') setColWidth(16);
+        if (type === 'week') setColWidth(48);
+        if (type === 'day') setColWidth(100);
     };
 
     if (loading) {
@@ -130,10 +139,10 @@ export default function ProjectGanttTimeline() {
     }
 
     return (
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+        <div className={`bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col ${className}`}>
 
-            {/* ── Header Controls (Sticky Top) ─────────────────────────── */}
-            <div className="sticky top-0 z-30 border-b border-slate-100 px-4 py-3 md:px-5 md:py-4 flex items-center justify-between gap-4 flex-wrap bg-white shadow-sm">
+            {/* ── Header Controls (Always Fixed at the Top of the Component) ── */}
+            <div className="border-b border-slate-100 px-4 py-3 md:px-5 md:py-4 flex items-center justify-between gap-4 flex-wrap bg-white z-30 relative shrink-0">
                 <div className="flex items-center gap-3">
                     <h2 className="text-base md:text-lg font-serif font-bold text-slate-800 flex items-center gap-2 shrink-0">
                         📋 Seguimiento Gantt
@@ -148,7 +157,6 @@ export default function ProjectGanttTimeline() {
 
                 {/* Dynamic Zoom Panel */}
                 <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
-                    {/* Presets */}
                     <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
                         <button
                             onClick={() => applyPreset('year')}
@@ -176,7 +184,6 @@ export default function ProjectGanttTimeline() {
                         </button>
                     </div>
 
-                    {/* Slider Control */}
                     <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 shrink-0">
                         <ZoomOut className="w-3.5 h-3.5 text-slate-400" />
                         <input 
@@ -196,12 +203,13 @@ export default function ProjectGanttTimeline() {
             {/* ── Scrollable Gantt Area ──────────────────────────────── */}
             <div 
                 ref={scrollContainerRef}
-                className="overflow-auto gantt-scroll relative w-full"
+                className="overflow-auto gantt-scroll relative w-full flex-1"
+                style={bodyHeightStyle}
             >
                 <div className="inline-block min-w-full">
-                    {/* Header Row (Sticky Top, stacked below control header) */}
-                    <div className="sticky top-[57px] md:top-[69px] z-20 flex bg-slate-50 border-b border-slate-200 shadow-sm w-fit">
-                        {/* Top-Left Corner (Sticky Top & Left) */}
+                    {/* Calendar Header Row (Sticky to top of scrolling viewport) */}
+                    <div className="sticky top-0 z-20 flex bg-slate-50 border-b border-slate-200 shadow-sm w-fit">
+                        {/* Top-Left Corner (Sticky Left & Top) */}
                         <div className="sticky left-0 z-30 w-52 md:w-64 shrink-0 bg-slate-50 border-r border-slate-200 p-2.5 md:p-3 flex flex-col justify-end shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
                             <span className="text-[9px] uppercase tracking-widest font-bold text-slate-400">Cliente y Proyecto</span>
                         </div>
@@ -212,7 +220,7 @@ export default function ProjectGanttTimeline() {
                             <div className="flex border-b border-slate-200">
                                 {months.map((m, i) => {
                                     const width = m.count * colWidth;
-                                    const showText = width > 50; // Hide text if too narrow
+                                    const showText = width > 50;
                                     return (
                                         <div
                                             key={i}
