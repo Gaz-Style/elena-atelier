@@ -343,7 +343,14 @@ export default function ProjectGanttTimeline() {
                                                             </div>
                                                         )}
                                                         {isDeadline && (
-                                                            <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-rose-500 z-10 opacity-70" title="Fecha de entrega" />
+                                                            <>
+                                                                <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-rose-500 z-10" title="Fecha de entrega" />
+                                                                {colWidth >= 20 && daysDiff !== null && (
+                                                                    <div className="absolute top-1 right-0 transform translate-x-1/2 z-20 bg-rose-600 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap pointer-events-none select-none">
+                                                                        Entrega {daysDiff > 0 ? `(Faltan ${daysDiff}d)` : daysDiff === 0 ? '(Hoy)' : `(Hace ${Math.abs(daysDiff)}d)`}
+                                                                    </div>
+                                                                )}
+                                                            </>
                                                         )}
                                                     </div>
                                                 );
