@@ -25,27 +25,20 @@ function getDaysDiff(deadline: string) {
     return Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-// ── Zoom levels ───────────────────────────────────────────────────────────────
-
-const ZOOM_LEVELS = [
-    { key: 'detail',  label: 'Detalle',  colWidth: 48 },
-    { key: 'medium',  label: 'Medio',    colWidth: 24 },
-    { key: 'compact', label: 'Compacto', colWidth: 14 },
-] as const;
-
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function ProjectGanttTimeline() {
     const [loading, setLoading] = useState(true);
     const [projects, setProjects] = useState<any[]>([]);
-    const [zoomIndex, setZoomIndex] = useState(0);
-    const zoom = ZOOM_LEVELS[zoomIndex];
+    
+    // colWidth state: from 4px (1 Year view) to 120px (Day/Detail view)
+    const [colWidth, setColWidth] = useState(32); 
     
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-    // Static calendar array: 60 days in the past, 300 days in the future (360 days total)
-    const DAYS_PAST = 60;
-    const DAYS_TOTAL = 360;
+    // Static calendar array: 30 days in the past, 335 days in the future (365 days total)
+    const DAYS_PAST = 30;
+    const DAYS_TOTAL = 365;
     
     const calendarDays = useMemo(() => {
         const days: Date[] = [];
@@ -68,18 +61,19 @@ export default function ProjectGanttTimeline() {
 
     const jumpToToday = () => {
         if (scrollContainerRef.current) {
-            const scrollX = (DAYS_PAST * zoom.colWidth) - 150; // Center 'Today' roughly
-            scrollContainerRef.current.scrollTo({ left: scrollX, behavior: 'smooth' });
+            const scrollX = (DAYS_PAST * colWidth) - (scrollContainerRef.current.clientWidth / 2) + (colWidth / 2);
+            scrollContainerRef.current.scrollTo({ left: Math.max(0, scrollX), behavior: 'smooth' });
         }
     };
 
-    // Auto-scroll to today on mount and when zoom changes
+    // Auto-scroll to today on initial load or when colWidth changes
     useEffect(() => {
         if (!loading) {
-            // Small timeout to ensure DOM is fully rendered before scrolling
-            setTimeout(jumpToToday, 10);
+            // Use requestAnimationFrame or small timeout to ensure DOM update is painted
+            const timer = setTimeout(jumpToToday, 50);
+            return () => clearTimeout(timer);
         }
-    }, [zoom.colWidth, loading]);
+    }, [colWidth, loading]);
 
     // Month grouping for header
     const months = useMemo(() => {
@@ -118,6 +112,14 @@ export default function ProjectGanttTimeline() {
 
     const todayKey = formatDateKey(new Date());
 
+    // Preset zooms
+    const applyPreset = (type: 'year' | 'month' | 'week' | 'day') => {
+        if (type === 'year') setColWidth(4);      // ~1460px total width
+        if (type === 'month') setColWidth(16);    // ~5800px total width
+        if (type === 'week') setColWidth(48);     // ~17500px total width
+        if (type === 'day') setColWidth(100);     // ~36500px total width
+    };
+
     if (loading) {
         return (
             <div className="min-h-[300px] bg-slate-50/50 flex flex-col items-center justify-center rounded-2xl border border-slate-200">
@@ -131,51 +133,62 @@ export default function ProjectGanttTimeline() {
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
 
             {/* ── Header Controls ─────────────────────────────────────── */}
-            <div className="border-b border-slate-100 px-4 py-3 md:px-5 md:py-4 flex items-center justify-between gap-3 flex-wrap bg-white z-30 relative">
-                <h2 className="text-base md:text-lg font-serif font-bold text-slate-800 flex items-center gap-2 shrink-0">
-                    📋 Seguimiento Gantt
-                </h2>
-
+            <div className="border-b border-slate-100 px-4 py-3 md:px-5 md:py-4 flex items-center justify-between gap-4 flex-wrap bg-white z-30 relative">
                 <div className="flex items-center gap-3">
+                    <h2 className="text-base md:text-lg font-serif font-bold text-slate-800 flex items-center gap-2 shrink-0">
+                        📋 Seguimiento Gantt
+                    </h2>
                     <button
                         onClick={jumpToToday}
-                        className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest bg-[#0f172a] text-white rounded-lg hover:bg-slate-700 transition-all shadow-sm"
+                        className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest bg-[#0f172a] text-white rounded-lg hover:bg-slate-700 transition-all shadow-sm"
                     >
-                        Ir a Hoy
+                        Hoy
                     </button>
+                </div>
 
-                    <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl p-0.5 shrink-0">
+                {/* Dynamic Zoom Panel */}
+                <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
+                    {/* Presets */}
+                    <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
                         <button
-                            onClick={() => setZoomIndex(prev => Math.max(0, prev - 1))}
-                            disabled={zoomIndex === 0}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-white hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                            title="Acercar"
+                            onClick={() => applyPreset('year')}
+                            className={`px-2 py-1 text-[9px] font-bold uppercase rounded-md transition-all ${colWidth <= 6 ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
                         >
-                            <ZoomIn className="w-4 h-4" />
+                            1 Año
                         </button>
-                        <div className="flex gap-0.5">
-                            {ZOOM_LEVELS.map((z, i) => (
-                                <button
-                                    key={z.key}
-                                    onClick={() => setZoomIndex(i)}
-                                    className={`px-2 py-1 text-[9px] font-bold uppercase tracking-wider rounded-md transition-all ${
-                                        i === zoomIndex
-                                            ? 'bg-slate-800 text-white shadow-sm'
-                                            : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
-                                    }`}
-                                >
-                                    {z.label}
-                                </button>
-                            ))}
-                        </div>
                         <button
-                            onClick={() => setZoomIndex(prev => Math.min(ZOOM_LEVELS.length - 1, prev + 1))}
-                            disabled={zoomIndex === ZOOM_LEVELS.length - 1}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-white hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                            title="Alejar"
+                            onClick={() => applyPreset('month')}
+                            className={`px-2 py-1 text-[9px] font-bold uppercase rounded-md transition-all ${(colWidth > 6 && colWidth <= 24) ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
                         >
-                            <ZoomOut className="w-4 h-4" />
+                            Trimestre
                         </button>
+                        <button
+                            onClick={() => applyPreset('week')}
+                            className={`px-2 py-1 text-[9px] font-bold uppercase rounded-md transition-all ${(colWidth > 24 && colWidth <= 64) ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                        >
+                            Mes
+                        </button>
+                        <button
+                            onClick={() => applyPreset('day')}
+                            className={`px-2 py-1 text-[9px] font-bold uppercase rounded-md transition-all ${colWidth > 64 ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                        >
+                            Día/Detalle
+                        </button>
+                    </div>
+
+                    {/* Slider Control */}
+                    <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 shrink-0">
+                        <ZoomOut className="w-3.5 h-3.5 text-slate-400" />
+                        <input 
+                            type="range" 
+                            min="4" 
+                            max="120" 
+                            value={colWidth} 
+                            onChange={(e) => setColWidth(Number(e.target.value))}
+                            className="w-24 md:w-36 accent-amber-500 cursor-pointer h-1 bg-slate-200 rounded-lg appearance-none"
+                            title="Desliza para zoom dinámico"
+                        />
+                        <ZoomIn className="w-3.5 h-3.5 text-slate-400" />
                     </div>
                 </div>
             </div>
@@ -195,18 +208,22 @@ export default function ProjectGanttTimeline() {
                         </div>
 
                         {/* Timeline Header (Months + Days) */}
-                        <div className="flex flex-col" style={{ width: calendarDays.length * zoom.colWidth }}>
+                        <div className="flex flex-col" style={{ width: calendarDays.length * colWidth }}>
                             {/* Months row */}
                             <div className="flex border-b border-slate-200">
-                                {months.map((m, i) => (
-                                    <div
-                                        key={i}
-                                        style={{ width: m.count * zoom.colWidth }}
-                                        className={`px-1.5 py-1 text-[8px] md:text-[9px] font-bold uppercase tracking-widest border-r border-slate-200 truncate ${m.isEven ? 'bg-slate-100 text-slate-500' : 'bg-amber-50/60 text-amber-600'}`}
-                                    >
-                                        {m.label}
-                                    </div>
-                                ))}
+                                {months.map((m, i) => {
+                                    const width = m.count * colWidth;
+                                    const showText = width > 50; // Hide text if too narrow
+                                    return (
+                                        <div
+                                            key={i}
+                                            style={{ width }}
+                                            className={`px-1.5 py-1 text-[8px] md:text-[9px] font-bold uppercase tracking-widest border-r border-slate-200 truncate ${m.isEven ? 'bg-slate-100 text-slate-500' : 'bg-amber-50/60 text-amber-600'}`}
+                                        >
+                                            {showText ? m.label : ''}
+                                        </div>
+                                    );
+                                })}
                             </div>
                             {/* Days row */}
                             <div className="flex">
@@ -218,15 +235,15 @@ export default function ProjectGanttTimeline() {
                                     return (
                                         <div
                                             key={i}
-                                            style={{ width: zoom.colWidth, minWidth: zoom.colWidth }}
-                                            className={`shrink-0 border-r border-slate-100 flex flex-col items-center justify-center py-1 ${isToday ? 'bg-amber-50/80' : isWeekend ? 'bg-slate-100/50' : baseBg}`}
+                                            style={{ width: colWidth, minWidth: colWidth }}
+                                            className={`shrink-0 border-r border-slate-100 flex flex-col items-center justify-center py-1 ${isToday ? 'bg-amber-50/85' : isWeekend ? 'bg-slate-100/50' : baseBg}`}
                                         >
-                                            {zoom.colWidth >= 24 && (
+                                            {colWidth >= 24 && (
                                                 <span className={`text-[7px] uppercase font-bold leading-none ${isToday ? 'text-amber-500' : 'text-slate-400'}`}>
                                                     {date.toLocaleDateString('es-CL', { weekday: 'narrow' })}
                                                 </span>
                                             )}
-                                            {zoom.colWidth >= 14 && (
+                                            {colWidth >= 12 && (
                                                 <span className={`text-[8px] font-bold leading-none mt-0.5 ${isToday ? 'text-amber-600' : 'text-slate-600'}`}>
                                                     {date.getDate()}
                                                 </span>
@@ -294,7 +311,7 @@ export default function ProjectGanttTimeline() {
                                         </div>
 
                                         {/* Gantt Bars Layer */}
-                                        <div className="flex items-stretch bg-white group-hover:bg-slate-50/50 transition-colors" style={{ width: calendarDays.length * zoom.colWidth }}>
+                                        <div className="flex items-stretch bg-white group-hover:bg-slate-50/50 transition-colors" style={{ width: calendarDays.length * colWidth }}>
                                             {calendarDays.map((date, i) => {
                                                 const dateKey = formatDateKey(date);
                                                 const tasksOnDay = project.tasks.filter((t: any) => t.task_date === dateKey);
@@ -308,16 +325,19 @@ export default function ProjectGanttTimeline() {
                                                 return (
                                                     <div
                                                         key={i}
-                                                        style={{ width: zoom.colWidth, minWidth: zoom.colWidth }}
+                                                        style={{ width: colWidth, minWidth: colWidth }}
                                                         className={`shrink-0 border-r border-slate-100/80 flex items-center justify-center relative ${isToday ? 'bg-amber-50/40' : isWeekend ? 'bg-slate-100/40' : baseBg}`}
                                                     >
                                                         {hoursOnDay > 0 && (
                                                             <div
-                                                                className="w-[85%] bg-[#0f172a] hover:bg-slate-700 transition-colors text-white rounded-sm flex items-center justify-center cursor-help shadow-sm"
-                                                                style={{ height: Math.max(16, Math.min(28, zoom.colWidth - 4)) }}
+                                                                className="bg-[#0f172a] hover:bg-slate-700 transition-colors text-white rounded-sm flex items-center justify-center cursor-help shadow-sm"
+                                                                style={{ 
+                                                                    width: colWidth >= 8 ? '85%' : '100%', 
+                                                                    height: Math.max(12, Math.min(28, colWidth - 2)) 
+                                                                }}
                                                                 title={`${project.customerName}: ${hoursOnDay}h`}
                                                             >
-                                                                {zoom.colWidth >= 28 && (
+                                                                {colWidth >= 28 && (
                                                                     <span className="text-[8px] font-bold leading-none">{hoursOnDay}h</span>
                                                                 )}
                                                             </div>
