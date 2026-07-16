@@ -3,10 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LogOut, ArrowLeft, Bell, Search, Menu } from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { sidebarItems } from "./Sidebar";
-import { cn } from "@/lib/utils";
+import { LogOut, ArrowLeft, Bell, Search } from 'lucide-react';
+
 import { logoutAction } from '@/app/admin/login/actions';
 
 interface AdminHeaderProps {
@@ -52,37 +50,6 @@ export default function AdminHeader({ hasUser }: AdminHeaderProps) {
       <div className="flex items-center gap-4">
         {/* Navigation Breadcrumb / Module Indicator */}
         <div className="flex items-center gap-2">
-          <div className="block lg:hidden mr-2">
-            <Sheet>
-              <SheetTrigger>
-                <div className="p-2 rounded-lg border border-zinc-200 bg-white text-zinc-500 hover:text-zinc-800 hover:bg-zinc-50 transition-colors shadow-sm cursor-pointer">
-                  <Menu className="w-5 h-5" />
-                </div>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
-                <div className="p-6 border-b border-zinc-100 flex flex-col">
-                  <span className="font-serif text-xl text-zinc-900 font-bold tracking-tight">ELENA</span>
-                  <span className="text-[9px] uppercase text-zinc-400 font-bold tracking-widest mt-0.5">OS System</span>
-                </div>
-                <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1.5">
-                  {sidebarItems.map((item) => {
-                    const isActive = pathname === item.href || (item.href !== '/admin' && pathname?.startsWith(item.href));
-                    return (
-                        <Link key={item.href} href={item.href} className="block">
-                            <div className={cn(
-                                "flex items-center gap-4 px-3.5 py-3 rounded-xl transition-all duration-200 group cursor-pointer relative overflow-hidden",
-                                isActive ? "text-zinc-900 bg-zinc-100/60 border border-zinc-100/50" : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
-                            )}>
-                                <item.icon size={18} className={cn("flex-shrink-0 transition-colors", isActive ? "text-zinc-900" : "text-zinc-400 group-hover:text-zinc-700")} />
-                                <span className="text-[13px] font-medium whitespace-nowrap">{item.name}</span>
-                            </div>
-                        </Link>
-                    )
-                  })}
-                </nav>
-              </SheetContent>
-            </Sheet>
-          </div>
           {hasUser && isSubpage && (
             <Link 
               href="/admin" 
