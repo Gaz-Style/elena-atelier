@@ -7,7 +7,7 @@ import ProjectGanttTimeline from '../components/ProjectGanttTimeline';
 
 export default function TimelinePage() {
     return (
-        <div className="min-h-screen bg-zinc-50 font-sans text-zinc-800 p-4 md:p-6 lg:pt-24 w-full">
+        <div className="min-h-screen bg-zinc-50 font-sans text-zinc-800 p-4 md:p-6 w-full">
             {/* Header */}
             <div className="w-full mb-6">
                 <Link 
