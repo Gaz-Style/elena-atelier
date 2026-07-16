@@ -132,8 +132,8 @@ export default function ProjectGanttTimeline() {
     return (
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
 
-            {/* ── Header Controls ─────────────────────────────────────── */}
-            <div className="border-b border-slate-100 px-4 py-3 md:px-5 md:py-4 flex items-center justify-between gap-4 flex-wrap bg-white z-30 relative">
+            {/* ── Header Controls (Sticky Top) ─────────────────────────── */}
+            <div className="sticky top-0 z-30 border-b border-slate-100 px-4 py-3 md:px-5 md:py-4 flex items-center justify-between gap-4 flex-wrap bg-white shadow-sm">
                 <div className="flex items-center gap-3">
                     <h2 className="text-base md:text-lg font-serif font-bold text-slate-800 flex items-center gap-2 shrink-0">
                         📋 Seguimiento Gantt
@@ -199,8 +199,8 @@ export default function ProjectGanttTimeline() {
                 className="overflow-auto gantt-scroll relative w-full"
             >
                 <div className="inline-block min-w-full">
-                    {/* Header Row (Sticky Top) */}
-                    <div className="sticky top-0 z-20 flex bg-slate-50 border-b border-slate-200 shadow-sm w-fit">
+                    {/* Header Row (Sticky Top, stacked below control header) */}
+                    <div className="sticky top-[57px] md:top-[69px] z-20 flex bg-slate-50 border-b border-slate-200 shadow-sm w-fit">
                         {/* Top-Left Corner (Sticky Top & Left) */}
                         <div className="sticky left-0 z-30 w-52 md:w-64 shrink-0 bg-slate-50 border-r border-slate-200 p-2.5 md:p-3 flex flex-col justify-end shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
                             <span className="text-[9px] uppercase tracking-widest font-bold text-slate-400">Cliente y Proyecto</span>
