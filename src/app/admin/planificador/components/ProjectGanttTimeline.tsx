@@ -323,6 +323,12 @@ export default function ProjectGanttTimeline({
                                                 const dateKey = formatDateKey(date);
                                                 const tasksOnDay = project.tasks.filter((t: any) => t.task_date === dateKey);
                                                 const hoursOnDay = tasksOnDay.reduce((sum: number, t: any) => sum + (Number(t.duration_hours) || 0), 0);
+                                                
+                                                const milestonesOnDay = project.milestones?.filter((m: any) => {
+                                                    if (!m.scheduled_date) return false;
+                                                    return m.scheduled_date.split('T')[0] === dateKey;
+                                                }) || [];
+
                                                 const isToday = dateKey === todayKey;
                                                 const isWeekend = date.getDay() === 0 || date.getDay() === 6;
                                                 const baseBg = isEvenMonthAt(i) ? 'bg-slate-50/30' : 'bg-transparent';
@@ -333,7 +339,7 @@ export default function ProjectGanttTimeline({
                                                     <div
                                                         key={i}
                                                         style={{ width: colWidth, minWidth: colWidth }}
-                                                        className={`shrink-0 border-r border-slate-100/80 flex items-center justify-center relative ${isToday ? 'bg-amber-50/40' : isWeekend ? 'bg-slate-100/40' : baseBg}`}
+                                                        className={`shrink-0 border-r border-slate-100/80 flex flex-col items-center justify-center gap-0.5 relative ${isToday ? 'bg-amber-50/40' : isWeekend ? 'bg-slate-100/40' : baseBg}`}
                                                     >
                                                         {hoursOnDay > 0 && (
                                                             <div
@@ -342,13 +348,43 @@ export default function ProjectGanttTimeline({
                                                                     width: colWidth >= 8 ? '85%' : '100%', 
                                                                     height: Math.max(12, Math.min(28, colWidth - 2)) 
                                                                 }}
-                                                                title={`${project.customerName}: ${hoursOnDay}h`}
+                                                                title={`${project.customerName} (Trabajo): ${hoursOnDay}h`}
                                                             >
                                                                 {colWidth >= 28 && (
                                                                     <span className="text-[8px] font-bold leading-none">{hoursOnDay}h</span>
                                                                 )}
                                                             </div>
                                                         )}
+
+                                                        {milestonesOnDay.map((m: any) => {
+                                                            const isConfirmed = m.status === 'completed' || m.agenda_event_id !== null;
+                                                            
+                                                            const getAbbr = (title: string) => {
+                                                                if (title.includes('Prueba 1')) return 'P1 📏';
+                                                                if (title.includes('Prueba 2')) return 'P2 🧵';
+                                                                if (title.includes('Prueba 3')) return 'P3 🪡';
+                                                                if (title.includes('Prueba 4')) return 'P4 👗';
+                                                                if (title.includes('Entrega')) return 'EF 🎁';
+                                                                return 'Cita 📅';
+                                                            };
+
+                                                            return (
+                                                                <div
+                                                                    key={m.id}
+                                                                    className={`rounded-sm flex items-center justify-center cursor-help shadow-sm text-white text-[8px] font-bold transition-all ${
+                                                                        isConfirmed ? 'bg-rose-500 hover:bg-rose-600' : 'bg-slate-400 hover:bg-slate-500'
+                                                                    }`}
+                                                                    style={{
+                                                                        width: colWidth >= 8 ? '85%' : '100%',
+                                                                        height: Math.max(12, Math.min(28, colWidth - 2))
+                                                                    }}
+                                                                    title={`${project.customerName} - ${m.title} (${m.status === 'completed' ? 'Realizada' : isConfirmed ? 'Confirmada en Agenda' : 'Sugerida/Pendiente'})`}
+                                                                >
+                                                                    {colWidth >= 28 ? getAbbr(m.title) : '📅'}
+                                                                </div>
+                                                            );
+                                                        })}
+
                                                         {isDeadline && (
                                                             <>
                                                                 <div className="absolute right-0 top-0 bottom-0 w-[2px] bg-rose-500 z-10" title="Fecha de entrega" />

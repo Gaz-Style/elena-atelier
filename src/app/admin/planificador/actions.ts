@@ -101,6 +101,7 @@ export async function getProductionTimeline() {
       estimated_hours,
       deadline,
       customer_id,
+      pos_order_id,
       customers (
         full_name
       )
@@ -114,6 +115,7 @@ export async function getProductionTimeline() {
   }
 
   const orderIds = (orders || []).map(o => o.id);
+  const projectIds = (orders || []).map(o => o.pos_order_id).filter(Boolean);
   
   // 2. Fetch all planner tasks mapped to these active orders
   let tasks: any[] = [];
@@ -128,9 +130,23 @@ export async function getProductionTimeline() {
     }
   }
 
-  // 3. Process data
+  // 3. Fetch bridal milestones (appointments/citas) associated with these projects
+  let milestones: any[] = [];
+  if (projectIds.length > 0) {
+    const { data: mData, error: mErr } = await supabase
+      .from('bridal_milestones')
+      .select('id, project_id, title, scheduled_date, status, milestone_type')
+      .in('project_id', projectIds);
+      
+    if (!mErr && mData) {
+      milestones = mData;
+    }
+  }
+
+  // 4. Process data
   const result = (orders || []).map((order: any) => {
     const orderTasks = tasks.filter(t => t.order_id === order.id);
+    const orderMilestones = milestones.filter(m => m.project_id === order.pos_order_id);
     const scheduledHours = orderTasks.reduce((sum, t) => sum + (Number(t.duration_hours) || 0), 0);
     const estimatedHours = Number(order.estimated_hours) || 0;
     
@@ -142,7 +158,8 @@ export async function getProductionTimeline() {
       estimatedHours,
       scheduledHours,
       deadline: order.deadline,
-      tasks: orderTasks
+      tasks: orderTasks,
+      milestones: orderMilestones
     };
   });
 
