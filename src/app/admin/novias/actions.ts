@@ -34,7 +34,15 @@ function getAdminClient() {
 }
 
 /** Calculate milestone dates backwards from event date */
-function calculateMilestoneDates(eventDate: Date): { type: string; title: string; weeksBeforeEvent: number; requiredPayment: number }[] {
+function calculateMilestoneDates(eventDate: Date, projectType: string): { type: string; title: string; weeksBeforeEvent: number; requiredPayment: number }[] {
+    if (projectType === 'madrina' || projectType === 'graduacion') {
+        return [
+            { type: 'toma_medidas', title: 'Prueba 1 — Toma de Medidas y Diseño', weeksBeforeEvent: 8, requiredPayment: 0 },
+            { type: 'prueba_estructura', title: 'Prueba 2 — Estructura y Calce Base', weeksBeforeEvent: 4, requiredPayment: 0 },
+            { type: 'entrega', title: 'Entrega Final', weeksBeforeEvent: 1, requiredPayment: 0 },
+        ];
+    }
+    
     return [
         { type: 'toma_medidas', title: 'Prueba 1 — Toma de Medidas y Diseño', weeksBeforeEvent: 12, requiredPayment: 0 },
         { type: 'prueba_estructura', title: 'Prueba 2 — Estructura y Calce Base', weeksBeforeEvent: 8, requiredPayment: 0 },
@@ -115,6 +123,7 @@ export async function createBridalProject(formData: FormData) {
     const description = formData.get('description') as string;
     const materialsNotes = formData.get('materials_notes') as string;
     const contractNotes = formData.get('contract_notes') as string;
+    const customMilestonesJson = formData.get('custom_milestones_json') as string;
     
     // Calculate payment splits: Novias = 50/25/25, Madrinas/Graduación = 50/50
     const isNovia = projectType === 'novia';
@@ -181,20 +190,46 @@ export async function createBridalProject(formData: FormData) {
     
     // 2. Generate milestones from event date
     if (eventDate) {
-        const milestoneTemplates = calculateMilestoneDates(eventDate);
-        const milestoneInserts = milestoneTemplates.map(m => {
-            const scheduledDate = new Date(eventDate);
-            scheduledDate.setDate(scheduledDate.getDate() - (m.weeksBeforeEvent * 7));
-            
-            return {
-                project_id: project.id,
-                milestone_type: m.type,
-                title: m.title,
-                scheduled_date: scheduledDate.toISOString(),
-                status: 'pending',
-                required_payment: m.requiredPayment,
-            };
-        });
+        let milestoneInserts = [];
+        
+        if (customMilestonesJson) {
+            try {
+                const customDates = JSON.parse(customMilestonesJson);
+                for (const m of customDates) {
+                    const scheduledDate = new Date(m.date);
+                    milestoneInserts.push({
+                        project_id: project.id,
+                        milestone_type: m.type,
+                        title: m.title,
+                        scheduled_date: scheduledDate.toISOString(),
+                        status: 'pending',
+                        required_payment: m.requiredPayment,
+                        agenda_event_id: null
+                    });
+                }
+            } catch (e) {
+                console.error("Error parsing custom milestones", e);
+            }
+        }
+        
+        // Fallback to calculation if no custom JSON was provided or it failed
+        if (milestoneInserts.length === 0) {
+            const milestoneTemplates = calculateMilestoneDates(eventDate, projectType);
+            for (const m of milestoneTemplates) {
+                const scheduledDate = new Date(eventDate);
+                scheduledDate.setDate(scheduledDate.getDate() - (m.weeksBeforeEvent * 7));
+                
+                milestoneInserts.push({
+                    project_id: project.id,
+                    milestone_type: m.type,
+                    title: m.title,
+                    scheduled_date: scheduledDate.toISOString(),
+                    status: 'pending',
+                    required_payment: m.requiredPayment,
+                    agenda_event_id: null
+                });
+            }
+        }
         
         const { error: milestoneError } = await supabase
             .from('bridal_milestones')
@@ -1177,22 +1212,41 @@ export async function updateMilestoneDateAction(
             throw new Error('Proyecto no encontrado');
         }
 
-        const dateIso = new Date(`${newDateStr}T12:00:00-04:00`).toISOString();
+        let dateIso = new Date(`${newDateStr}T12:00:00-04:00`).toISOString();
         let agendaEventId = milestone.agenda_event_id;
 
         // 3. Sync with agendamientos (agenda)
         if (agendaEventId) {
             // Update existing agenda event
-            const { error: updateError } = await supabase
-                .from('agendamientos')
-                .update({
-                    fecha_hora: dateIso,
-                    notas: `Prueba coordinada: ${milestone.title}`
-                })
-                .eq('id', agendaEventId);
-                
-            if (updateError) {
-                console.error('Error updating agenda event:', updateError);
+            let attempts = 0;
+            let success = false;
+            let updateDateIso = dateIso;
+            
+            while (attempts < 8 && !success) {
+                const { error: updateError } = await supabase
+                    .from('agendamientos')
+                    .update({
+                        fecha_hora: updateDateIso,
+                        notas: `Prueba coordinada: ${milestone.title}`
+                    })
+                    .eq('id', agendaEventId);
+                    
+                if (!updateError) {
+                    success = true;
+                } else if (updateError.code === '23505') {
+                    const d = new Date(updateDateIso);
+                    d.setHours(d.getHours() + 1);
+                    updateDateIso = d.toISOString();
+                    attempts++;
+                } else {
+                    console.error('Error updating agenda event:', updateError);
+                    break;
+                }
+            }
+            if (success) {
+                dateIso = updateDateIso;
+            } else {
+                throw new Error('No se pudo guardar en la agenda (conflicto de horario o error de conexión).');
             }
         } else {
             // Insert new agenda event
@@ -1201,26 +1255,44 @@ export async function updateMilestoneDateAction(
             const nombre = nameParts[0] || 'Novia';
             const apellido = nameParts.slice(1).join(' ') || '';
 
-            const { data: newEvent, error: insertError } = await supabase
-                .from('agendamientos')
-                .insert([{
-                    nombre,
-                    apellido,
-                    celular: project.customers?.phone || '',
-                    correo: project.customers?.email || '',
-                    fecha_hora: dateIso,
-                    origen: 'admin',
-                    tipo_evento: 'cita_cliente',
-                    estado: 'confirmado',
-                    notas: `Prueba coordinada: ${milestone.title}`
-                }])
-                .select()
-                .single();
+            let attempts = 0;
+            let success = false;
+            let updateDateIso = dateIso;
 
-            if (insertError) {
-                console.error('Error inserting agenda event:', insertError);
-            } else if (newEvent) {
-                agendaEventId = newEvent.id;
+            while (attempts < 8 && !success) {
+                const { data: newEvent, error: insertError } = await supabase
+                    .from('agendamientos')
+                    .insert([{
+                        nombre,
+                        apellido,
+                        celular: project.customers?.phone || '',
+                        correo: project.customers?.email || '',
+                        fecha_hora: updateDateIso,
+                        origen: 'admin',
+                        tipo_evento: 'cita_cliente',
+                        estado: 'confirmado',
+                        notas: `Prueba coordinada: ${milestone.title}`
+                    }])
+                    .select()
+                    .maybeSingle();
+
+                if (!insertError && newEvent) {
+                    agendaEventId = newEvent.id;
+                    success = true;
+                } else if (insertError?.code === '23505') {
+                    const d = new Date(updateDateIso);
+                    d.setHours(d.getHours() + 1);
+                    updateDateIso = d.toISOString();
+                    attempts++;
+                } else {
+                    console.error('Error inserting agenda event:', insertError);
+                    break;
+                }
+            }
+            if (success) {
+                dateIso = updateDateIso;
+            } else {
+                throw new Error('No se pudo crear en la agenda (conflicto de horario o error de conexión).');
             }
         }
 

@@ -79,18 +79,43 @@ export default function NuevoProyectoPage() {
     const payment2 = isNovia ? Math.round(totalAmount * 0.25) : totalAmount - payment1;
     const payment3 = isNovia ? totalAmount - payment1 - payment2 : 0;
 
-    // Calculate milestone dates
-    const milestones = eventDate ? [
-        { title: 'Prueba 1 — Toma de Medidas y Diseño', weeks: 12 },
-        { title: 'Prueba 2 — Estructura y Calce Base', weeks: 8 },
-        { title: 'Prueba 3 — Ajustes y Detalles', weeks: 5 },
-        { title: 'Prueba 4 — Prueba Final (Milimétrica)', weeks: 3 },
-        { title: 'Entrega Final', weeks: 1 },
-    ].map(m => {
-        const date = new Date(`${eventDate}T12:00:00`);
-        date.setDate(date.getDate() - (m.weeks * 7));
-        return { ...m, date };
-    }) : [];
+    const [customMilestones, setCustomMilestones] = useState<{type: string, title: string, date: string, requiredPayment: number}[]>([]);
+
+    useEffect(() => {
+        if (!eventDate) {
+            setCustomMilestones([]);
+            return;
+        }
+        
+        let templates = [];
+        if (projectType === 'madrina' || projectType === 'graduacion') {
+            templates = [
+                { type: 'toma_medidas', title: 'Prueba 1 — Toma de Medidas y Diseño', weeks: 8, requiredPayment: 0 },
+                { type: 'prueba_estructura', title: 'Prueba 2 — Estructura y Calce Base', weeks: 4, requiredPayment: 0 },
+                { type: 'entrega', title: 'Entrega Final', weeks: 1, requiredPayment: 0 },
+            ];
+        } else {
+            templates = [
+                { type: 'toma_medidas', title: 'Prueba 1 — Toma de Medidas y Diseño', weeks: 12, requiredPayment: 0 },
+                { type: 'prueba_estructura', title: 'Prueba 2 — Estructura y Calce Base', weeks: 8, requiredPayment: 0 },
+                { type: 'prueba_ajustes', title: 'Prueba 3 — Ajustes y Detalles', weeks: 5, requiredPayment: 0 },
+                { type: 'prueba_final', title: 'Prueba 4 — Prueba Final (Milimétrica)', weeks: 3, requiredPayment: 0 },
+                { type: 'entrega', title: 'Entrega Final', weeks: 1, requiredPayment: 0 },
+            ];
+        }
+
+        const newMilestones = templates.map(m => {
+            const dateObj = new Date(`${eventDate}T12:00:00`);
+            dateObj.setDate(dateObj.getDate() - (m.weeks * 7));
+            return {
+                type: m.type,
+                title: m.title,
+                requiredPayment: m.requiredPayment,
+                date: dateObj.toISOString().split('T')[0]
+            };
+        });
+        setCustomMilestones(newMilestones);
+    }, [eventDate, projectType]);
 
     useEffect(() => {
         async function load() {
@@ -181,6 +206,7 @@ export default function NuevoProyectoPage() {
         
         formData.set('materials_notes', finalMaterialsNotes);
         formData.set('contract_notes', finalContractNotes);
+        formData.set('custom_milestones_json', JSON.stringify(customMilestones));
 
         const result = await createBridalProject(formData);
 
@@ -557,30 +583,57 @@ export default function NuevoProyectoPage() {
                         </section>
 
                         {/* Step 5: Timeline Preview */}
-                        {milestones.length > 0 && (
+                        {customMilestones.length > 0 && (
                             <section className="bg-white border border-zinc-200/80 rounded-xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
-                                <h2 className="text-xs uppercase tracking-widest font-bold text-zinc-400 mb-4 flex items-center gap-2">
-                                    <Calendar className="w-4 h-4" /> 5. Cronograma Automático de Pruebas
-                                </h2>
-                                <div className="space-y-3">
-                                    {milestones.map((m, i) => (
-                                        <div key={i} className="flex items-center gap-4 bg-zinc-50 border border-zinc-200 px-4 py-3 rounded-lg">
-                                            <span className="w-7 h-7 rounded-full bg-zinc-800 text-white text-xs flex items-center justify-center font-bold shrink-0">{i + 1}</span>
-                                            <div className="flex-1">
-                                                <p className="font-medium text-sm text-zinc-800">{m.title}</p>
-                                                <p className="text-xs text-zinc-500">{m.weeks} semanas antes del evento</p>
-                                            </div>
-                                            <span className="text-sm text-zinc-600 font-medium">
-                                                {m.date.toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                            </span>
-                                        </div>
-                                    ))}
+                                <div className="flex items-start justify-between mb-4">
+                                    <h2 className="text-xs uppercase tracking-widest font-bold text-zinc-400 flex items-center gap-2">
+                                        <Calendar className="w-4 h-4" /> 5. Cronograma de Pruebas
+                                    </h2>
+                                    <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 font-bold uppercase tracking-wider px-2.5 py-1 rounded-full flex items-center gap-1">
+                                        ✎ Editable
+                                    </span>
                                 </div>
-                                <p className="text-[10px] text-zinc-400 mt-3 italic">
-                                    * Las fechas se calculan automáticamente desde la fecha del evento. Se podrán ajustar manualmente después.
+
+                                <p className="text-xs text-zinc-500 mb-4 bg-zinc-50 border border-zinc-100 rounded-lg px-4 py-3">
+                                    Estas fechas son una <strong>sugerencia automática</strong> calculada desde la fecha del evento. 
+                                    Puedes ajustarlas ahora mismo antes de crear el proyecto haciendo clic en cualquier fecha.
+                                </p>
+
+                                <div className="space-y-2.5">
+                                    {customMilestones.map((m, i) => {
+                                        const isLast = i === customMilestones.length - 1;
+                                        return (
+                                            <div key={i} className={`flex items-center gap-3 border rounded-xl px-4 py-3 transition-all group hover:shadow-sm ${isLast ? 'border-rose-200 bg-rose-50/40' : 'border-zinc-200 bg-white hover:border-zinc-300'}`}>
+                                                <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold shrink-0 ${isLast ? 'bg-rose-500 text-white' : 'bg-zinc-800 text-white'}`}>
+                                                    {i + 1}
+                                                </span>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className={`font-semibold text-sm truncate ${isLast ? 'text-rose-700' : 'text-zinc-800'}`}>{m.title}</p>
+                                                </div>
+                                                <div className="flex flex-col items-end gap-1 shrink-0">
+                                                    <label className="text-[9px] uppercase tracking-widest font-bold text-zinc-400">Fecha</label>
+                                                    <input
+                                                        type="date"
+                                                        value={m.date}
+                                                        onChange={(e) => {
+                                                            const newMilestones = [...customMilestones];
+                                                            newMilestones[i] = { ...newMilestones[i], date: e.target.value };
+                                                            setCustomMilestones(newMilestones);
+                                                        }}
+                                                        className={`border-2 rounded-lg px-3 py-1.5 text-sm font-bold focus:outline-none focus:ring-2 w-[160px] cursor-pointer ${isLast ? 'border-rose-300 bg-rose-50 text-rose-700 focus:ring-rose-300 focus:border-rose-400' : 'border-zinc-300 bg-white text-zinc-700 focus:ring-rose-300 focus:border-rose-400 hover:border-zinc-400'}`}
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <p className="text-[10px] text-zinc-400 mt-4 italic">
+                                    * Las fechas modificadas aquí quedarán guardadas como borrador. No se notificará a la clienta ni aparecerán en la Agenda principal hasta que confirmes cada una desde la ficha del proyecto.
                                 </p>
                             </section>
                         )}
+
 
                         {/* Step 6: Additional Notes */}
                         <section className="bg-white border border-zinc-200/80 rounded-xl p-6 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
@@ -598,6 +651,15 @@ export default function NuevoProyectoPage() {
                                 </div>
                                 <div>
                                     <label className="block text-xs text-zinc-500 mb-2 font-medium">Fotos de Referencia (Se adjuntarán a los materiales)</label>
+                                    {/* Form State Pass-through */}
+                                    <input type="hidden" name="customer_id" value={customerId} />
+                                    <input type="hidden" name="project_type" value={projectType} />
+                                    <input type="hidden" name="service_type" value={serviceType} />
+                                    <input type="hidden" name="total_amount" value={totalAmount} />
+                                    {referenceImages.map((img, i) => (
+                                        <input key={i} type="hidden" name="reference_images" value={img.url} />
+                                    ))}
+                                    <input type="hidden" name="custom_milestones_json" value={JSON.stringify(customMilestones)} />
                                     <div className="flex flex-wrap gap-2">
                                         {referenceImages.map((img, idx) => (
                                             <div key={idx} className="relative w-16 h-16 border border-zinc-200 rounded-lg overflow-hidden group">

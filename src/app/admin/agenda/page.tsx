@@ -408,12 +408,13 @@ export default async function AgendaPage({
                                 </Link>
                             </div>
 
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto w-full">
-                                <div className="min-w-[700px]">
+                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 w-full overflow-hidden">
+                                <div className="min-w-0 md:min-w-[700px]">
                                     <div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50">
                                         {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
-                                            <div key={d} className="py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-widest border-r border-gray-100 last:border-r-0">
-                                                {d}
+                                            <div key={d} className="py-2 md:py-3 text-center text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest border-r border-gray-100 last:border-r-0">
+                                                <span className="hidden md:inline">{d}</span>
+                                                <span className="md:hidden">{d[0]}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -433,19 +434,21 @@ export default async function AgendaPage({
                                             <Link 
                                                 key={idx}
                                                 href={`/admin/agenda?view=day&date=${dateStr}`}
-                                                className={`min-h-[120px] p-3 border-r border-b border-gray-100 hover:bg-gray-50 transition-colors flex flex-col ${isCurrentMonth ? 'bg-white' : 'bg-gray-50 text-gray-400'}`}
+                                                className={`min-h-[70px] md:min-h-[120px] p-1.5 md:p-3 border-r border-b border-gray-100 hover:bg-gray-50 transition-colors flex flex-col justify-between ${isCurrentMonth ? 'bg-white' : 'bg-gray-50 text-gray-400'}`}
                                             >
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <span className={`text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'bg-brand-charcoal text-white' : ''}`}>
+                                                <div className="flex justify-between items-center md:items-start mb-1 md:mb-2">
+                                                    <span className={`text-xs md:text-sm font-bold w-5 h-5 md:w-7 md:h-7 flex items-center justify-center rounded-full ${isToday ? 'bg-brand-charcoal text-white' : ''}`}>
                                                         {day.getDate()}
                                                     </span>
                                                     {dayEvents.length > 0 && (
-                                                        <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-full font-bold">
+                                                        <span className="text-[9px] md:text-[10px] bg-gray-100 text-gray-600 px-1 md:px-2 py-0.5 rounded-full font-bold">
                                                             {dayEvents.length}
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="flex-1 space-y-1 overflow-hidden">
+                                                
+                                                {/* Desktop events list */}
+                                                <div className="hidden md:block flex-1 space-y-1 overflow-hidden">
                                                     {dayEvents.slice(0, 3).map((e) => (
                                                         <div key={e.id} className={`text-[10px] truncate px-1.5 py-0.5 rounded ${e.tipo_evento === 'tarea_interna' ? 'bg-gray-200 text-gray-700' : 'bg-brand-sand text-brand-charcoal'}`}>
                                                             {new Date(e.fecha_hora).toLocaleTimeString('es-CL', {hour: '2-digit', minute:'2-digit', timeZone: 'America/Santiago'})} - {e.tipo_evento === 'tarea_interna' ? 'Bloqueo' : e.nombre}
@@ -455,6 +458,21 @@ export default async function AgendaPage({
                                                         <div className="text-[10px] text-gray-400 font-medium px-1">
                                                             +{dayEvents.length - 3} más
                                                         </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Mobile indicator dots */}
+                                                <div className="flex md:hidden flex-wrap gap-0.5 justify-center mt-1">
+                                                    {dayEvents.slice(0, 3).map((e) => (
+                                                        <span 
+                                                            key={e.id} 
+                                                            className={`w-1.5 h-1.5 rounded-full ${
+                                                                e.tipo_evento === 'tarea_interna' ? 'bg-gray-400' : 'bg-black'
+                                                            }`} 
+                                                        />
+                                                    ))}
+                                                    {dayEvents.length > 3 && (
+                                                        <span className="text-[8px] text-gray-400 leading-none">+</span>
                                                     )}
                                                 </div>
                                             </Link>
@@ -500,7 +518,7 @@ export default async function AgendaPage({
                                                 <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold md:mb-1">{dayName}</p>
                                                 <p className={`text-lg font-serif ${isToday ? 'text-brand-terracotta' : 'text-brand-charcoal'}`}>{day.getDate()}</p>
                                             </div>
-                                            <div className="p-2 space-y-2 h-[200px] md:h-[450px] overflow-y-auto">
+                                            <div className="p-2 space-y-2 h-auto md:h-[450px] overflow-y-visible md:overflow-y-auto">
                                                 {/* Enlace para ir a la vista diaria */}
                                                 <Link href={`/admin/agenda?view=day&date=${dateStr}`} className="block text-center text-[10px] text-gray-400 hover:text-black mb-3 pb-2 border-b border-gray-50 transition-colors">
                                                     Añadir/Detalle +
@@ -527,16 +545,23 @@ export default async function AgendaPage({
                     {/* VISTA DIARIA */}
                     {view === 'day' && (
                         <>
-                            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between mb-8">
-                                <Link href={`/admin/agenda?view=day&date=${prevDay.toISOString().split('T')[0]}`} className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm">
-                                    ← Anterior
+                            <div className="bg-white p-3 md:p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between mb-8 gap-2">
+                                <Link href={`/admin/agenda?view=day&date=${prevDay.toISOString().split('T')[0]}`} className="p-2 md:px-4 md:py-2 border rounded-lg hover:bg-gray-50 text-xs md:text-sm flex items-center gap-1 shrink-0">
+                                    <ChevronLeft className="w-4 h-4" />
+                                    <span className="hidden sm:inline">Anterior</span>
                                 </Link>
-                                <div className="flex items-center gap-2 font-medium">
-                                    <CalendarIcon className="w-4 h-4 text-gray-400" />
-                                    {selectedDate.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase()}
+                                <div className="flex items-center gap-1.5 md:gap-2 font-medium text-xs md:text-sm text-center">
+                                    <CalendarIcon className="w-4 h-4 text-gray-400 shrink-0 hidden sm:block" />
+                                    <span className="uppercase tracking-wide font-semibold block truncate sm:hidden">
+                                        {selectedDate.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' })}
+                                    </span>
+                                    <span className="uppercase tracking-wide font-semibold hidden sm:block">
+                                        {selectedDate.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                    </span>
                                 </div>
-                                <Link href={`/admin/agenda?view=day&date=${nextDay.toISOString().split('T')[0]}`} className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm">
-                                    Siguiente →
+                                <Link href={`/admin/agenda?view=day&date=${nextDay.toISOString().split('T')[0]}`} className="p-2 md:px-4 md:py-2 border rounded-lg hover:bg-gray-50 text-xs md:text-sm flex items-center gap-1 shrink-0">
+                                    <span className="hidden sm:inline">Siguiente</span>
+                                    <ChevronRight className="w-4 h-4" />
                                 </Link>
                             </div>
 
@@ -546,16 +571,16 @@ export default async function AgendaPage({
                                     <h2 className="font-serif text-lg mb-4">Citas y Tareas ({eventos?.length || 0})</h2>
                                     
                                     {eventos?.length === 0 ? (
-                            <div className="text-center py-12 bg-white rounded-2xl border border-gray-100 border-dashed">
+                                        <div className="text-center py-12 bg-white rounded-2xl border border-gray-100 border-dashed">
                                             <CalendarIcon className="w-8 h-8 mx-auto text-gray-300 mb-2" />
                                             <p className="text-gray-500 text-sm">No hay eventos para este día.</p>
                                         </div>
                                     ) : (
                                         eventos?.map((evento) => (
-                                            <div key={evento.id} className={`p-4 rounded-xl border flex flex-col sm:flex-row items-start gap-4 ${evento.tipo_evento === 'tarea_interna' ? 'bg-gray-50 border-gray-200' : evento.tipo_evento === 'retiro_encargo' ? 'bg-blue-50 border-blue-200 shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
-                                                <div className="flex sm:flex-col items-center justify-center p-3 bg-gray-100 rounded-lg sm:min-w-[80px] w-full sm:w-auto gap-2 sm:gap-0">
-                                                    <Clock className="w-4 h-4 text-gray-500 sm:mb-1" />
-                                                    <span className="font-bold text-sm">
+                                            <div key={evento.id} className={`p-4 rounded-xl border flex flex-row items-start gap-3 sm:gap-4 ${evento.tipo_evento === 'tarea_interna' ? 'bg-gray-50 border-gray-200' : evento.tipo_evento === 'retiro_encargo' ? 'bg-blue-50 border-blue-200 shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
+                                                <div className="flex flex-col items-center justify-center p-2 sm:p-3 bg-gray-100 rounded-lg sm:min-w-[80px] w-[65px] sm:w-auto shrink-0">
+                                                    <Clock className="w-3.5 h-3.5 text-gray-500 mb-1" />
+                                                    <span className="font-bold text-[11px] sm:text-sm text-center">
                                                         {new Date(evento.fecha_hora).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' })}
                                                     </span>
                                                 </div>

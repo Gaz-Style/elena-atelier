@@ -70,8 +70,24 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
     async function loadProject(id: string) {
         setLoading(true);
-        const data = await getBridalProjectById(id);
-        setProject(data);
+        const project = await getBridalProjectById(id);
+        if (!project) {
+            setLoading(false);
+            return;
+        }
+
+        const logicalOrder = ['toma_medidas', 'prueba_estructura', 'prueba_ajustes', 'prueba_final', 'entrega'];
+        if (project.milestones) {
+            project.milestones.sort((a: any, b: any) => {
+                let indexA = logicalOrder.indexOf(a.milestone_type);
+                let indexB = logicalOrder.indexOf(b.milestone_type);
+                if (indexA === -1) indexA = 99;
+                if (indexB === -1) indexB = 99;
+                return indexA - indexB;
+            });
+        }
+
+        setProject(project);
         setLoading(false);
     }
 
@@ -387,10 +403,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                         </div>
 
                                         {/* Content */}
-                                        <div className="flex-1">
-                                            <div className="flex justify-between items-start">
-                                                <div>
-                                                    <h3 className={`font-bold text-sm ${isCompleted ? 'text-emerald-700 line-through' : isPast ? 'text-red-700' : 'text-zinc-800'}`}>
+                                        <div className="flex-1 w-full overflow-hidden">
+                                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                                <div className="w-full">
+                                                    <h3 className={`font-bold text-sm truncate ${isCompleted ? 'text-emerald-700 line-through' : isPast ? 'text-red-700' : 'text-zinc-800'}`}>
                                                         {milestone.title}
                                                     </h3>
                                                     {editingMilestoneId === milestone.id ? (
@@ -454,7 +470,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                                     <button
                                                         onClick={() => handleCompleteMilestone(milestone.id)}
                                                         disabled={saving}
-                                                        className="text-[10px] uppercase tracking-widest font-bold bg-zinc-900 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-zinc-300"
+                                                        className="w-full sm:w-auto text-[10px] uppercase tracking-widest font-bold bg-zinc-900 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-zinc-300"
                                                     >
                                                         Completar
                                                     </button>
@@ -507,12 +523,12 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             ))}
 
                             {/* Summary */}
-                            <div className="bg-zinc-900 text-white p-6 rounded-xl flex justify-between items-center">
+                            <div className="bg-zinc-900 text-white p-6 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                 <div>
                                     <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Saldo Pendiente</p>
                                     <p className="text-2xl font-serif mt-1">{formatCurrency(project.total_amount - paidAmount)}</p>
                                 </div>
-                                <div className="text-right">
+                                <div className="sm:text-right">
                                     <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Total Pagado</p>
                                     <p className="text-2xl font-serif mt-1 text-emerald-400">{formatCurrency(paidAmount)}</p>
                                 </div>

@@ -45,7 +45,10 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
   const currentModuleName = currentModuleKey ? moduleNames[currentModuleKey] : 'Administración';
   
   return (
-    <div className="flex min-h-screen w-full bg-zinc-50 text-zinc-800 font-sans selection:bg-zinc-200/60 lg:-mt-20">
+    <div className={cn(
+      "flex min-h-screen w-full bg-zinc-50 text-zinc-800 font-sans selection:bg-zinc-200/60",
+      !isPlanificador && "lg:-mt-20"
+    )}>
       
       {/* Mobile Top Bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-zinc-200/80 z-40 flex items-center justify-between px-4">

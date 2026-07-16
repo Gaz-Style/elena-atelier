@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ChevronLeft, ChevronRight, Printer, RefreshCw, Activity } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Printer, RefreshCw, Activity, Settings } from 'lucide-react';
 import { getOperatorsAction } from '../pos/actions';
 import { getProductionOrders } from '../production/actions';
 import { getPlannerTasks, savePlannerTask, deletePlannerTask } from './actions';
 import { createClient } from '@supabase/supabase-js';
+import ProjectGanttTimeline from './components/ProjectGanttTimeline';
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -89,7 +90,7 @@ export default function PlanificadorPage() {
     const [activeBridalMilestones, setActiveBridalMilestones] = useState<any[]>([]);
     const [activeBridalProjects, setActiveBridalProjects] = useState<any[]>([]);
     const [activeProductionOrders, setActiveProductionOrders] = useState<any[]>([]);
-    const [previewMode, setPreviewMode] = useState(false);
+    const [previewMode, setPreviewMode] = useState(true);
     const [viewMode, setViewMode]     = useState<'day'|'week'|'month'|'year'>('week');
     const [anchor, setAnchor]         = useState(new Date());
     const [workshopStart, setWorkshopStart] = useState('09:00');
@@ -418,55 +419,76 @@ export default function PlanificadorPage() {
     // ─────────────────────────────────────────────────────────────────────────
     return (
         <>
-        <div className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-12">
+        <div className="h-[calc(100vh-64px)] lg:h-screen bg-slate-50 text-slate-800 font-sans flex flex-col overflow-hidden">
 
             {/* ── NAV ───────────────────────────────────────────────────────── */}
-            <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-200 shadow-sm px-6 py-4 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                    <Link href="/admin" className="text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1.5 text-sm font-semibold">
-                        <ArrowLeft className="w-4 h-4" /> Volver
-                    </Link>
-                    <div className="h-6 w-px bg-slate-200"></div>
-                    <h1 className="m-0 text-xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
-                        Planificación Semanal <span className="hidden sm:inline text-slate-400 font-medium">| Taller</span>
-                    </h1>
-                    <Link href="/admin/planificador/seguimiento" className="hidden lg:flex items-center gap-1.5 ml-4 px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-md text-xs font-bold uppercase tracking-widest transition-colors">
-                        <Activity className="w-3.5 h-3.5" /> Seguimiento Gantt
-                    </Link>
+            <nav className="relative w-full bg-white border-b border-slate-200 shadow-sm px-4 py-2.5 md:px-6 md:py-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 md:gap-4 shrink-0">
+                <div className="hidden md:flex items-center justify-between md:justify-start gap-4">
+                    <div className="flex items-center gap-2.5">
+                        <Link href="/admin" className="text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1.5 text-xs md:text-sm font-semibold">
+                            <ArrowLeft className="w-4 h-4" /> Volver
+                        </Link>
+                        <div className="h-5 w-px bg-slate-200"></div>
+                        <h1 className="m-0 text-base md:text-xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
+                            Planificación Semanal <span className="hidden sm:inline text-slate-400 font-medium">| Taller</span>
+                        </h1>
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg">
-                    <button onClick={prevRange} className="p-1.5 rounded-md text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all"><ChevronLeft className="w-4 h-4" /></button>
-                    <span className="text-sm font-bold px-2 capitalize text-slate-700 min-w-[140px] text-center">{rangeLabel}</span>
-                    <button onClick={nextRange} className="p-1.5 rounded-md text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all"><ChevronRight className="w-4 h-4" /></button>
+                <div className="hidden md:flex items-center justify-between sm:justify-center gap-2 bg-slate-100 p-1 rounded-lg">
+                    <button onClick={prevRange} className="p-1 rounded-md text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all"><ChevronLeft className="w-4 h-4" /></button>
+                    <span className="text-xs md:text-sm font-bold px-2 capitalize text-slate-700 min-w-[120px] md:min-w-[140px] text-center">{rangeLabel}</span>
+                    <button onClick={nextRange} className="p-1 rounded-md text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all"><ChevronRight className="w-4 h-4" /></button>
                 </div>
 
-                <div className="flex bg-slate-100 p-1 rounded-lg">
+                <div className="flex bg-slate-100 p-1 rounded-lg justify-between sm:justify-start">
                     {['day', 'week', 'month', 'year'].map((mode) => (
                         <button
                             key={mode}
                             onClick={() => setViewMode(mode as any)}
-                            className={`px-4 py-1.5 text-xs font-bold rounded-md capitalize transition-all ${viewMode === mode ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 sm:flex-none px-3 py-1.5 md:px-4 md:py-1.5 text-[10px] md:text-xs font-bold rounded-md capitalize transition-all ${viewMode === mode ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             {mode === 'day' ? 'Día' : mode === 'week' ? 'Semana' : mode === 'month' ? 'Mes' : 'Año'}
                         </button>
                     ))}
                 </div>
 
-                <div className="flex gap-2">
-                    <button 
-                        className={`px-4 py-2 border rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-sm ${previewMode ? 'bg-[#0f172a] text-white border-[#0f172a] hover:bg-slate-800' : 'bg-amber-500 text-white border-amber-500 hover:bg-amber-600'}`}
-                        onClick={() => setPreviewMode(!previewMode)}
-                    >
-                        {previewMode ? '✓ Vista Previa' : '✎ Código / Editar'}
-                    </button>
-                    <button className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center gap-2 shadow-sm" onClick={load} title="Recargar">
-                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-blue-500' : ''}`} />
-                        <span className="hidden sm:inline">{loading ? 'Cargando...' : 'Resetear'}</span>
-                    </button>
-                    <button className="px-4 py-2 bg-[#0f172a] border border-[#0f172a] rounded-lg text-sm font-bold text-white hover:bg-slate-800 transition-all flex items-center gap-2 shadow-sm" onClick={() => window.print()}>
-                        <Printer className="w-4 h-4" /> <span className="hidden sm:inline">Imprimir en A4 / PDF</span>
-                    </button>
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 shrink-0 w-full md:w-auto justify-between md:justify-start">
+                    {/* Mobile Calendar (hidden on desktop) */}
+                    <div className="flex md:hidden items-center gap-1 bg-slate-100 p-0.5 rounded-lg shrink-0">
+                        <button onClick={prevRange} className="p-1 rounded-md text-slate-500 hover:bg-white hover:text-slate-800 transition-all"><ChevronLeft className="w-3.5 h-3.5" /></button>
+                        <span className="text-[10px] font-bold px-1 capitalize text-slate-750 max-w-[95px] overflow-hidden text-ellipsis whitespace-nowrap text-center">{rangeLabel}</span>
+                        <button onClick={nextRange} className="p-1 rounded-md text-slate-500 hover:bg-white hover:text-slate-800 transition-all"><ChevronRight className="w-3.5 h-3.5" /></button>
+                    </div>
+
+                    <div className="flex gap-1.5 items-center">
+                        <button 
+                            className={`px-2.5 py-1.5 md:px-4 md:py-2 border rounded-lg text-[10px] md:text-sm font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap ${previewMode ? 'bg-[#0f172a] text-white border-[#0f172a] hover:bg-slate-800' : 'bg-amber-500 text-white border-amber-500 hover:bg-amber-600'}`}
+                            onClick={() => setPreviewMode(!previewMode)}
+                        >
+                            {previewMode ? <><span className="hidden md:inline">✓ Vista Previa</span><span className="md:hidden">✓ Vista</span></> : '✎ Editar'}
+                        </button>
+                        <Link 
+                            href="/admin/planificador/seguimiento"
+                            className="px-2.5 py-1.5 md:px-4 md:py-2 bg-rose-50 text-rose-600 border border-rose-200/60 hover:bg-rose-100 rounded-lg text-[10px] md:text-sm font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap"
+                        >
+                            <Activity className="w-3.5 h-3.5" /> <span className="text-[10px] md:text-sm"><span className="hidden md:inline">Seguimiento </span>Gantt</span>
+                        </Link>
+                        <Link 
+                            href="/admin/production"
+                            className="px-2.5 py-1.5 md:px-4 md:py-2 bg-amber-50 text-amber-700 border border-amber-200/60 hover:bg-amber-100 rounded-lg text-[10px] md:text-sm font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap"
+                            title="Gobernanza del Taller"
+                        >
+                            <Settings className="w-3.5 h-3.5" /> <span className="hidden md:inline">Gobernanza del Taller</span>
+                        </Link>
+                        <button className="hidden md:flex px-2.5 py-1.5 md:px-4 md:py-2 bg-white border border-slate-200 rounded-lg text-[10px] md:text-sm font-bold text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all items-center gap-1.5 shadow-sm whitespace-nowrap" onClick={load} title="Recargar">
+                            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-blue-500' : ''}`} />
+                            <span>Resetear</span>
+                        </button>
+                        <button className="hidden md:flex px-2.5 py-1.5 md:px-4 md:py-2 bg-[#0f172a] border border-[#0f172a] rounded-lg text-[10px] md:text-sm font-bold text-white hover:bg-slate-800 transition-all items-center gap-1.5 shadow-sm whitespace-nowrap" onClick={() => window.print()}>
+                            <Printer className="w-3.5 h-3.5" /> <span>Imprimir</span>
+                        </button>
+                    </div>
                 </div>
             </nav>
 
@@ -477,7 +499,7 @@ export default function PlanificadorPage() {
             </div>
 
             {/* ── TABLE ─────────────────────────────────────────────────────── */}
-            <div className="pt-[85px] p-6 max-w-[1600px] mx-auto print:p-0">
+            <div className="flex-grow overflow-auto w-full print:overflow-visible px-0 pt-0 pb-4">
                 {loading ? (
                     <div className="text-center py-24 text-slate-400 text-sm font-bold uppercase tracking-widest animate-pulse">
                         Cargando planificación...
@@ -487,27 +509,15 @@ export default function PlanificadorPage() {
                         <div className="overflow-x-auto">
                             <table className="w-full border-collapse text-left">
                                 <thead>
-                                    <tr className="bg-[#0f172a] text-white">
-                                        <th colSpan={operators.length + 1} className="p-5 border-b border-[#1e293b]">
-                                            <div className="flex items-center justify-between">
-                                                <h2 className="text-xl font-serif uppercase tracking-widest flex items-center gap-2">
-                                                    Planificación Semanal de Taller
-                                                </h2>
-                                                <span className="bg-[#1e293b] text-slate-300 text-xs px-3 py-1.5 rounded-md border border-slate-700 flex items-center gap-1.5">
-                                                    📅 Vista Semanal Actualizable
-                                                </span>
-                                            </div>
-                                        </th>
-                                    </tr>
                                     <tr className="bg-slate-50 border-b border-slate-200">
-                                        <th className="w-16 p-4 text-center border-r border-slate-200 font-extrabold text-slate-400 uppercase text-[10px] tracking-widest">
+                                        <th className="w-10 md:w-12 p-1.5 md:p-2.5 text-center border-r border-slate-200 font-extrabold text-slate-400 uppercase text-[9px] md:text-[10px] tracking-widest">
                                             Hora
                                         </th>
                                         {operators.map(op => (
-                                            <th key={op.id} className="p-4 border-r border-slate-200 last:border-0 min-w-[280px]">
+                                            <th key={op.id} className="p-2 md:p-4 border-r border-slate-200 last:border-0 min-w-[220px] md:min-w-[280px]">
                                                 <div className="flex flex-col">
-                                                    <span className="font-extrabold text-slate-800 text-sm">{op.name}</span>
-                                                    <span className="text-[11px] font-bold text-slate-400 mt-0.5 flex items-center gap-1">
+                                                    <span className="font-extrabold text-slate-800 text-xs md:text-sm">{op.name}</span>
+                                                    <span className="text-[9px] md:text-[11px] font-bold text-slate-400 md:mt-0.5 flex items-center gap-1">
                                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                                                         {op.daily_hours_capacity || 8}h disponibles / día
                                                     </span>
@@ -515,7 +525,7 @@ export default function PlanificadorPage() {
                                             </th>
                                         ))}
                                         {operators.length === 0 && (
-                                            <th className="p-4 text-slate-400 italic font-medium text-sm">
+                                            <th className="p-2 md:p-4 text-slate-400 italic font-medium text-xs md:text-sm">
                                                 Sin costureras activas
                                             </th>
                                         )}
@@ -548,18 +558,18 @@ export default function PlanificadorPage() {
                                             <React.Fragment key={ds}>
                                                 {/* Day Header Row */}
                                                 <tr className="bg-slate-50 border-b border-slate-200">
-                                                    <td colSpan={operators.length + 1} className="p-3 border-r border-slate-100">
-                                                        <div className="flex items-center gap-4 pl-2">
-                                                            <div className="flex items-baseline gap-2">
-                                                                <span className={`text-sm font-extrabold uppercase tracking-widest ${isToday ? 'text-amber-600' : 'text-slate-700'}`}>
+                                                    <td colSpan={operators.length + 1} className="py-1.5 px-2 md:p-3 border-r border-slate-100">
+                                                        <div className="flex items-center gap-2 md:gap-4 pl-1 md:pl-2">
+                                                            <div className="flex items-baseline gap-1.5 md:gap-2">
+                                                                <span className={`text-xs md:text-sm font-extrabold uppercase tracking-widest ${isToday ? 'text-amber-600' : 'text-slate-700'}`}>
                                                                     {DAY_NAMES[dow]}
                                                                 </span>
-                                                                <span className={`text-lg font-light ${isToday ? 'text-amber-600' : 'text-slate-600'}`}>
+                                                                <span className={`text-sm md:text-lg font-light ${isToday ? 'text-amber-600' : 'text-slate-600'}`}>
                                                                     {day.getDate()} {day.toLocaleDateString('es-CL',{month:'short'})}
                                                                 </span>
                                                             </div>
                                                             {isToday && (
-                                                                <span className="px-2.5 py-1 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-full shadow-sm">
+                                                                <span className="px-2 py-0.5 md:px-2.5 md:py-1 bg-amber-500 text-white text-[9px] md:text-[10px] font-bold uppercase tracking-widest rounded-full shadow-sm">
                                                                     Hoy
                                                                 </span>
                                                             )}
@@ -570,15 +580,15 @@ export default function PlanificadorPage() {
                                                 <tr className="border-b border-slate-100 last:border-0 group">
                                                     
                                                     {/* TIMELINE CELL */}
-                                                <td className="w-16 align-top border-r border-slate-100 bg-slate-50/30">
-                                                    <div className="relative w-full" style={{ height: `${dayHoursArray.length * 60}px` }}>
+                                                <td className="w-12 align-top border-r border-slate-100 bg-slate-50/30">
+                                                    <div className="relative w-full" style={{ height: `${dayHoursArray.length * 40}px` }}>
                                                         {dayHoursArray.map((hour, i) => {
                                                             const isOvertime = hour > 18;
                                                             return (
                                                                 <div 
                                                                     key={hour} 
-                                                                    className={`absolute w-full h-[60px] flex items-center justify-center text-[10px] font-bold ${isOvertime ? 'bg-rose-50/50 text-rose-400 border-b border-rose-100/50' : 'text-slate-400'}`}
-                                                                    style={{ top: `${i * 60}px` }}
+                                                                    className={`absolute w-full h-[40px] flex items-center justify-center text-[10px] font-bold ${isOvertime ? 'bg-rose-50/50 text-rose-400 border-b border-rose-100/50' : 'text-slate-400'}`}
+                                                                    style={{ top: `${i * 40}px` }}
                                                                 >
                                                                     {hour.toString().padStart(2, '0')}:00
                                                                 </div>
@@ -618,7 +628,7 @@ export default function PlanificadorPage() {
                                                     return (
                                                         <td key={op.id} className="p-3 align-top border-r border-slate-100 hover:bg-slate-50/50 transition-colors min-h-[120px] relative">
                                                             
-                                                            <div className="relative w-full" style={{ height: `${dayHoursArray.length * 60}px` }}>
+                                                            <div className="relative w-full" style={{ height: `${dayHoursArray.length * 40}px` }}>
                                                                 {/* Grid Lines */}
                                                                 {dayHoursArray.map((hour, i) => {
                                                                     const isOvertime = hour > 18;
@@ -626,7 +636,7 @@ export default function PlanificadorPage() {
                                                                         <div 
                                                                             key={hour} 
                                                                             className={`absolute w-full border-t border-slate-100/70 ${isOvertime ? 'bg-rose-50/30' : ''}`}
-                                                                            style={{ top: `${i * 60}px`, height: '60px', left: 0, right: 0 }}
+                                                                            style={{ top: `${i * 40}px`, height: '40px', left: 0, right: 0 }}
                                                                         />
                                                                     );
                                                                 })}
@@ -634,13 +644,15 @@ export default function PlanificadorPage() {
                                                                 {/* Tasks */}
                                                                 {cell.tasks.map((task, taskIdx) => {
                                                                     const startIdx = (task.startHour || 9) - (dayHoursArray[0] || 9);
-                                                                    const top = Math.max(0, startIdx * 60);
-                                                                    const height = (task.durationHours || 1) * 60;
+                                                                    const top = Math.max(0, startIdx * 40);
+                                                                    const height = (task.durationHours || 1) * 40;
                                                                     const style = TASK_ROW_STYLE[task.type];
+                                                                    const isShort = (task.durationHours || 1) <= 1;
+                                                                    const isLong = (task.durationHours || 1) >= 4;
                                                                     return (
                                                                         <div
                                                                             key={task.id}
-                                                                            className={`absolute left-1 right-1 rounded-lg border shadow-sm flex flex-col p-2 overflow-hidden bg-opacity-90 ${!previewMode ? 'cursor-pointer hover:shadow-md hover:z-20 transition-all group/task' : ''}`}
+                                                                            className={`absolute left-1 right-1 rounded-lg border shadow-sm flex overflow-hidden bg-opacity-90 ${!previewMode ? 'cursor-pointer hover:shadow-md hover:z-20 transition-all group/task' : ''} ${isShort ? 'flex-row items-center px-2 py-1 gap-1.5' : 'flex-col p-2.5'}`}
                                                                             style={{ 
                                                                                 top: `${top + 1}px`,
                                                                                 height: `${height - 2}px`,
@@ -651,23 +663,32 @@ export default function PlanificadorPage() {
                                                                             }}
                                                                             onClick={() => !previewMode && openEdit(op.id, ds, task)}
                                                                         >
-                                                                            <div className="text-[11px] font-bold leading-tight text-slate-700 truncate">
+                                                                            <div className={`font-bold leading-tight text-slate-800 ${isShort ? 'text-[10.5px] truncate max-w-[50%]' : isLong ? 'text-sm mb-1' : 'text-xs mb-0.5'}`}>
                                                                                 {task.label}
                                                                             </div>
-                                                                            <div className="text-[9px] font-medium text-slate-500 mt-0.5 truncate flex flex-wrap gap-x-1">
+                                                                            <div className={`font-semibold text-slate-500/90 flex flex-wrap gap-x-1 ${isShort ? 'text-[9px] truncate flex-1' : 'text-[10px]'}`}>
                                                                                 {(() => {
                                                                                     const sH = task.startHour || 9;
                                                                                     const eH = sH + (task.durationHours || 1);
-                                                                                    let text = `⏱ ${sH.toString().padStart(2, '0')}:00 a ${eH.toString().padStart(2, '0')}:00 (${task.durationHours || 1}h`;
-                                                                                    if (task.orderId) {
-                                                                                        const o = orders.find(ord => ord.id === task.orderId);
-                                                                                        if (o && o.estimated_hours) {
-                                                                                            text += ` de ${o.estimated_hours}h`;
+                                                                                    let text = `⏱ ${sH.toString().padStart(2, '0')}:00 - ${eH.toString().padStart(2, '0')}:00`;
+                                                                                    if (!isShort) {
+                                                                                        text += ` (${task.durationHours || 1}h`;
+                                                                                        if (task.orderId) {
+                                                                                            const o = orders.find(ord => ord.id === task.orderId);
+                                                                                            if (o && o.estimated_hours) {
+                                                                                                text += ` / ${o.estimated_hours}h est.`;
+                                                                                            }
                                                                                         }
+                                                                                        text += ')';
                                                                                     }
-                                                                                    return text + ')';
+                                                                                    return text;
                                                                                 })()}
                                                                             </div>
+                                                                            {isLong && (
+                                                                                <div className="mt-auto pt-2 border-t border-slate-200/50 text-[10px] text-slate-400 font-medium opacity-60">
+                                                                                    Bloque extendido de {task.durationHours} horas
+                                                                                </div>
+                                                                            )}
                                                                             {!previewMode && (
                                                                                 <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover/task:opacity-100 transition-opacity bg-white/80 rounded backdrop-blur-sm p-0.5">
                                                                                     <button className="p-1 text-slate-400 hover:text-slate-600 rounded" onClick={e => { e.stopPropagation(); openEdit(op.id, ds, task); }}><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
@@ -819,162 +840,8 @@ export default function PlanificadorPage() {
 
                 {/* ── PANEL DE TRABAJOS Y ENTREGAS EN TIEMPO REAL ───────────────────── */}
                 {!loading && (
-                    <div className="mt-8 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
-                        <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
-                            <div>
-                                <h2 className="text-xl font-serif font-bold text-slate-800 flex items-center gap-2">
-                                    📋 Seguimiento de Trabajos y Entregas (Tiempo Real)
-                                </h2>
-                                <p className="text-xs text-slate-500 mt-1">
-                                    Vista unificada de pruebas programadas de alta costura y estado de confecciones del taller.
-                                </p>
-                            </div>
-                            <span className="text-[10px] bg-slate-100 font-bold uppercase tracking-widest px-3 py-1 rounded-full text-slate-600">
-                                {activeBridalMilestones.length + activeProductionOrders.length} trabajos activos
-                            </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            {/* Columna 1: Pruebas y Entregas de Alta Costura */}
-                            <div className="space-y-4">
-                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2 pb-2 border-b border-slate-100">
-                                    👗 Agenda de Pruebas y Vestidos (Alta Costura)
-                                </h3>
-                                {activeBridalMilestones.length === 0 ? (
-                                    <p className="text-sm text-slate-400 italic py-4">No hay pruebas o entregas pendientes programadas.</p>
-                                ) : (
-                                    <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
-                                        {activeBridalMilestones.map((m: any) => {
-                                            const daysDiff = m.scheduled_date 
-                                                ? Math.ceil((new Date(m.scheduled_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-                                                : null;
-                                            const urgencyText = daysDiff !== null 
-                                                ? daysDiff < 0 ? 'Atrasado' : daysDiff === 0 ? 'Hoy' : `En ${daysDiff} días`
-                                                : '';
-                                            const urgencyColor = daysDiff !== null
-                                                ? daysDiff < 0 ? 'bg-red-100 text-red-700' : daysDiff <= 7 ? 'bg-amber-100 text-amber-700 font-bold' : 'bg-slate-100 text-slate-600'
-                                                : 'bg-slate-100 text-slate-600';
-
-                                            return (
-                                                <div key={m.id} className="p-4 bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-xl flex justify-between items-start gap-4 transition-all">
-                                                    <div>
-                                                        <span className={`text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full ${m.projectType === 'novia' ? 'bg-rose-50 text-rose-600 border border-rose-100' : m.projectType === 'madrina' ? 'bg-violet-50 text-violet-600 border border-violet-100' : 'bg-sky-50 text-sky-600 border border-sky-100'}`}>
-                                                            {m.projectType || 'Novia'}
-                                                        </span>
-                                                        <h4 className="font-bold text-[14px] text-slate-800 mt-2">
-                                                            {m.customer?.full_name || 'Cliente sin nombre'}
-                                                        </h4>
-                                                        <p className="text-xs text-slate-600 font-medium mt-1">
-                                                            {m.title}
-                                                        </p>
-                                                        {m.eventDate && (
-                                                            <p className="text-[10px] text-slate-400 mt-1">
-                                                                Matrimonio/Evento: {new Date(m.eventDate).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                    <div className="text-right flex flex-col items-end gap-1.5 shrink-0">
-                                                        <span className="text-[11px] font-mono font-bold text-slate-700">
-                                                            {m.scheduled_date ? new Date(m.scheduled_date).toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Sin fecha'}
-                                                        </span>
-                                                        {urgencyText && (
-                                                            <span className={`text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-sm ${urgencyColor}`}>
-                                                                {urgencyText}
-                                                            </span>
-                                                        )}
-                                                        <Link 
-                                                            href={`/admin/novias/${m.project_id}`}
-                                                            className="text-[10px] uppercase font-bold tracking-wider text-rose-500 hover:text-rose-700 mt-2 block"
-                                                        >
-                                                            Ver Ficha →
-                                                        </Link>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Columna 2: Órdenes de Confección del Taller */}
-                            <div className="space-y-4">
-                                <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center gap-2 pb-2 border-b border-slate-100">
-                                    ✂️ Órdenes de Producción Activas (Taller)
-                                </h3>
-                                {activeProductionOrders.length === 0 ? (
-                                    <p className="text-sm text-slate-400 italic py-4">No hay órdenes de confección activas.</p>
-                                ) : (
-                                    <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
-                                        {activeProductionOrders.map((o: any) => {
-                                            let statusLabel = '';
-                                            let statusColor = '';
-                                            if (o.status === 'draft') { statusLabel = 'Ingresado'; statusColor = 'bg-slate-100 text-slate-700'; }
-                                            else if (o.status === 'sewing') { statusLabel = 'Confección'; statusColor = 'bg-blue-50 text-blue-700 border border-blue-100'; }
-                                            else if (o.status === 'finishing') { statusLabel = 'Prueba / Fitting'; statusColor = 'bg-indigo-50 text-indigo-700 border border-indigo-100'; }
-                                            else if (o.status === 'ready') { statusLabel = 'Listo QC'; statusColor = 'bg-emerald-50 text-emerald-700 border border-emerald-100'; }
-                                            else { statusLabel = o.status; statusColor = 'bg-gray-100 text-gray-700'; }
-
-                                            return (
-                                                <div key={o.id} className="p-4 bg-slate-50/50 hover:bg-slate-50 border border-slate-100 rounded-xl flex justify-between items-start gap-4 transition-all">
-                                                    <div>
-                                                        <span className={`text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full ${statusColor}`}>
-                                                            {statusLabel}
-                                                        </span>
-                                                        <h4 className="font-bold text-[14px] text-slate-800 mt-2">
-                                                            {o.customers?.full_name || 'Sin cliente'}
-                                                        </h4>
-                                                        <p className="text-xs text-slate-500 line-clamp-2 mt-1">
-                                                            {o.description}
-                                                        </p>
-                                                        <div className="flex flex-col gap-2 mt-2">
-                                                            {o.atelier_operators && (
-                                                                <span className="text-[10px] bg-white border border-slate-200/80 px-2 py-0.5 rounded text-slate-600 font-medium self-start">
-                                                                    👤 {o.atelier_operators.name}
-                                                                </span>
-                                                            )}
-                                                            {o.estimated_hours > 0 && (() => {
-                                                                const scheduled = o.scheduled_hours || 0;
-                                                                const total = o.estimated_hours;
-                                                                const pct = Math.min(100, Math.round((scheduled / total) * 100));
-                                                                const isComplete = scheduled >= total;
-                                                                return (
-                                                                    <div className="w-full">
-                                                                        <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-wider mb-1">
-                                                                            <span className={isComplete ? "text-emerald-600" : "text-slate-500"}>
-                                                                                {isComplete ? 'Distribución Completa' : 'Horas Agendadas'}
-                                                                            </span>
-                                                                            <span className="text-slate-700">{scheduled}h / {total}h</span>
-                                                                        </div>
-                                                                        <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                                                                            <div 
-                                                                                className={`h-full transition-all ${isComplete ? 'bg-emerald-500' : 'bg-blue-500'}`}
-                                                                                style={{ width: `${pct}%` }}
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                );
-                                                            })()}
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right flex flex-col items-end gap-1.5 shrink-0">
-                                                        <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Entrega</span>
-                                                        <span className="text-[11px] font-mono font-bold text-slate-700">
-                                                            {o.deadline ? new Date(o.deadline).toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' }) : 'Sin fecha'}
-                                                        </span>
-                                                        <Link 
-                                                            href={`/admin/production`}
-                                                            className="text-[10px] uppercase font-bold tracking-wider text-slate-600 hover:text-slate-900 mt-4 block"
-                                                        >
-                                                            Ver Tablero →
-                                                        </Link>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                    <div className="mt-8">
+                        <ProjectGanttTimeline />
                     </div>
                 )}
             </div>

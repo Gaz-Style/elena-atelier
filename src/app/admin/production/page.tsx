@@ -380,6 +380,12 @@ export default function ProductionPage() {
                                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-sm text-sm focus:ring-1 focus:ring-brand-terracotta outline-none bg-white" 
                             />
                         </div>
+                        <Link 
+                            href="/admin/planificador"
+                            className="bg-white border border-gray-200 text-brand-charcoal px-6 py-2.5 text-[10px] uppercase tracking-widest font-bold hover:bg-gray-50 transition-all whitespace-nowrap flex items-center justify-center gap-2"
+                        >
+                            <Calendar className="w-4 h-4" /> Planificador
+                        </Link>
                         <button 
                             onClick={() => setIsAdding(true)}
                             className="bg-brand-charcoal text-white px-6 py-2.5 text-[10px] uppercase tracking-widest font-bold hover:bg-brand-terracotta transition-all whitespace-nowrap flex items-center justify-center gap-2"
