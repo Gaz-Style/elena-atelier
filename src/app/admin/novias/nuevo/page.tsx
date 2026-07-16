@@ -111,7 +111,8 @@ export default function NuevoProyectoPage() {
                 type: m.type,
                 title: m.title,
                 requiredPayment: m.requiredPayment,
-                date: dateObj.toISOString().split('T')[0]
+                date: dateObj.toISOString().split('T')[0],
+                time: '11:00'
             };
         });
         setCustomMilestones(newMilestones);
@@ -206,7 +207,19 @@ export default function NuevoProyectoPage() {
         
         formData.set('materials_notes', finalMaterialsNotes);
         formData.set('contract_notes', finalContractNotes);
-        formData.set('custom_milestones_json', JSON.stringify(customMilestones));
+
+        const combinedMilestones = customMilestones.map(m => {
+            // Combine Date & Time into single timestamp string expected by Supabase
+            const timeVal = (m as any).time || '11:00';
+            const combinedDateStr = `${m.date}T${timeVal}:00`;
+            return {
+                type: m.type,
+                title: m.title,
+                requiredPayment: m.requiredPayment,
+                date: combinedDateStr
+            };
+        });
+        formData.set('custom_milestones_json', JSON.stringify(combinedMilestones));
 
         const result = await createBridalProject(formData);
 
@@ -610,18 +623,33 @@ export default function NuevoProyectoPage() {
                                                 <div className="flex-1 min-w-0">
                                                     <p className={`font-semibold text-sm truncate ${isLast ? 'text-rose-700' : 'text-zinc-800'}`}>{m.title}</p>
                                                 </div>
-                                                <div className="flex flex-col items-end gap-1 shrink-0">
-                                                    <label className="text-[9px] uppercase tracking-widest font-bold text-zinc-400">Fecha</label>
-                                                    <input
-                                                        type="date"
-                                                        value={m.date}
-                                                        onChange={(e) => {
-                                                            const newMilestones = [...customMilestones];
-                                                            newMilestones[i] = { ...newMilestones[i], date: e.target.value };
-                                                            setCustomMilestones(newMilestones);
-                                                        }}
-                                                        className={`border-2 rounded-lg px-3 py-1.5 text-sm font-bold focus:outline-none focus:ring-2 w-[160px] cursor-pointer ${isLast ? 'border-rose-300 bg-rose-50 text-rose-700 focus:ring-rose-300 focus:border-rose-400' : 'border-zinc-300 bg-white text-zinc-700 focus:ring-rose-300 focus:border-rose-400 hover:border-zinc-400'}`}
-                                                    />
+                                                <div className="flex flex-row items-end gap-2.5 shrink-0">
+                                                    <div className="flex flex-col items-end gap-1">
+                                                        <label className="text-[9px] uppercase tracking-widest font-bold text-zinc-400">Fecha</label>
+                                                        <input
+                                                            type="date"
+                                                            value={m.date}
+                                                            onChange={(e) => {
+                                                                const newMilestones = [...customMilestones];
+                                                                newMilestones[i] = { ...newMilestones[i], date: e.target.value };
+                                                                setCustomMilestones(newMilestones);
+                                                            }}
+                                                            className={`border-2 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 w-[140px] cursor-pointer ${isLast ? 'border-rose-300 bg-rose-50 text-rose-700 focus:ring-rose-300 focus:border-rose-400' : 'border-zinc-300 bg-white text-zinc-700 focus:ring-rose-300 focus:border-rose-400 hover:border-zinc-400'}`}
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col items-end gap-1">
+                                                        <label className="text-[9px] uppercase tracking-widest font-bold text-zinc-400">Hora</label>
+                                                        <input
+                                                            type="time"
+                                                            value={(m as any).time || '11:00'}
+                                                            onChange={(e) => {
+                                                                const newMilestones = [...customMilestones];
+                                                                (newMilestones[i] as any).time = e.target.value;
+                                                                setCustomMilestones(newMilestones);
+                                                            }}
+                                                            className={`border-2 rounded-lg px-2.5 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 w-[100px] cursor-pointer ${isLast ? 'border-rose-300 bg-rose-50 text-rose-700 focus:ring-rose-300 focus:border-rose-400' : 'border-zinc-300 bg-white text-zinc-700 focus:ring-rose-300 focus:border-rose-400 hover:border-zinc-400'}`}
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
                                         );
