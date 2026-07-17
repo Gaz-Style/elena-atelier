@@ -1778,7 +1778,9 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
 
 export async function wakeUpMercadoPagoTerminalAction(amount: number, description: string, posOrderId: string) {
     const mpToken = process.env.MP_ACCESS_TOKEN;
+    console.log(`[Terminal] Intentando despertar terminal para orden ${posOrderId} por monto $${amount}`);
     if (!mpToken) {
+        console.error('[Terminal] Error: Token de MP no configurado');
         return { success: false, error: 'Token de MP no configurado' };
     }
 
@@ -1789,12 +1791,14 @@ export async function wakeUpMercadoPagoTerminalAction(amount: number, descriptio
         });
 
         if (!terminalsResponse.ok) {
-            console.error('Error al obtener terminales:', await terminalsResponse.text());
+            const errorText = await terminalsResponse.text();
+            console.error('[Terminal] Error al obtener terminales:', errorText);
             return { success: false, error: 'No se pudo validar el terminal físico.' };
         }
 
         const terminalsData = await terminalsResponse.json();
         const devices = terminalsData?.data?.terminals || [];
+        console.log(`[Terminal] Dispositivos Point encontrados: ${devices.length}`);
         
         // Buscar el terminal que contenga el SN proporcionado, o usar el primero
         let terminalId = '';
@@ -1803,9 +1807,12 @@ export async function wakeUpMercadoPagoTerminalAction(amount: number, descriptio
         
         if (foundDevice) {
             terminalId = foundDevice.id;
+            console.log(`[Terminal] Dispositivo SN ${targetSN} encontrado. ID: ${terminalId}`);
         } else if (devices.length > 0) {
             terminalId = devices[0].id;
+            console.log(`[Terminal] SN ${targetSN} no encontrado. Usando primer dispositivo disponible ID: ${terminalId}`);
         } else {
+            console.error('[Terminal] Error: No hay dispositivos vinculados');
             return { success: false, error: 'No hay maquinitas Mercado Pago Point vinculadas a esta cuenta.' };
         }
 
