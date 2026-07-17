@@ -222,6 +222,11 @@ export default function Step4Payment() {
           return;
         }
         if (paymentMethod === 'mercadopago_point') {
+          if (amountToPay < 100) {
+            alert("⚠️ Mercado Pago exige un monto mínimo de $100 CLP para transacciones con tarjeta. Por favor, selecciona otro método de pago (Efectivo/Transferencia).");
+            setIsProcessing(false);
+            return;
+          }
           wakeUpMercadoPagoTerminalAction(amountToPay, "Pago Saldo - " + finalOrderIdStr, finalOrderIdStr).catch(console.error);
         }
         // Send confirmation email with payment link for transbank balance payments
@@ -294,6 +299,11 @@ export default function Step4Payment() {
       // New sale: paid methods
       if (paymentMethod === 'mercadopago_point' || isMixedTerminal) {
         const amountForTerminal = isMixedTerminal ? splitCardAmount : amountToPay;
+        if (amountForTerminal < 100) {
+          alert(`⚠️ Mercado Pago exige un monto mínimo de $100 CLP para transacciones con tarjeta. Estás intentando cobrar $${amountForTerminal} CLP. Por favor, aumenta el abono o selecciona otro método de pago.`);
+          setIsProcessing(false);
+          return;
+        }
         wakeUpMercadoPagoTerminalAction(amountForTerminal, "Orden #" + newOrderIdNumber, finalOrderIdStr).catch(console.error);
       }
 
