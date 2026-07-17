@@ -173,7 +173,8 @@ async function updateDatabaseAndNotify(
         })
         .eq('internal_id', externalRef);
 
-    if (isFullyPaidLedger) {
+    const isFirstPayment = newLedgerPaidAmount === safeAmount;
+    if (isFullyPaidLedger || isFirstPayment) {
         try {
             const emailRes = await sendOrderConfirmationEmailByOrderIdAction(externalRef);
             if (!emailRes?.success) {

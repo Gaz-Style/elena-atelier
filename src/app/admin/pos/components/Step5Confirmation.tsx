@@ -43,7 +43,8 @@ export default function Step5Confirmation() {
         const res = await checkOrderStatusAction(posOrderId);
         
         if (res.success) {
-          if (res.status === 'paid' || res.status === 'completed' || (res.paidAmount !== undefined && checkoutResult.total !== undefined && res.paidAmount >= checkoutResult.total)) {
+          const hasNewPayment = res.paidAmount !== undefined && res.paidAmount > (checkoutResult.paidAmount ?? 0);
+          if (res.status === 'paid' || res.status === 'completed' || res.status === 'partial' || hasNewPayment) {
             setIsPaymentConfirmed(true);
             setConfirmedPaidAmount(res.paidAmount ?? checkoutResult.total);
           } else if (res.status === 'canceled' || res.status === 'rejected' || res.status === 'abandoned') {
