@@ -284,18 +284,22 @@ export async function sendOrderConfirmationEmailAction(payload: {
         let finalItems = items;
         let originalTotal = total;
         let isBalancePayment = subject?.toLowerCase().includes('saldo') || false;
+        let dbPaidAmount = total;
+        let dbBalance = 0;
+
+        const { createClient } = await import('@/lib/supabase/server');
+        const supabase = await createClient();
+        
+        const { data: sale } = await supabase.from('sales_ledger').select('total_amount, paid_amount').eq('internal_id', `order_${orderId}`).single();
+        if (sale) {
+            originalTotal = sale.total_amount;
+            dbPaidAmount = sale.paid_amount || 0;
+            dbBalance = Math.max(0, originalTotal - dbPaidAmount);
+        }
 
         // Detect if it's a balance payment by checking the cart items
         if (items.length === 1 && (items[0].category === 'pago_saldo' || items[0].name.toLowerCase().includes('pago saldo'))) {
             isBalancePayment = true;
-            const { createClient } = await import('@/lib/supabase/server');
-            const supabase = await createClient();
-            
-            // Get original sale total
-            const { data: sale } = await supabase.from('sales_ledger').select('total_amount').eq('internal_id', `order_${orderId}`).single();
-            if (sale) {
-                originalTotal = sale.total_amount;
-            }
 
             // Get original items
             const { data: prodOrders } = await supabase.from('production_orders').select('*').eq('pos_order_id', `order_${orderId}`);
@@ -404,14 +408,27 @@ export async function sendOrderConfirmationEmailAction(payload: {
                     ${formatCurrency(originalTotal)}
                   </td>
                 </tr>
-                ${isBalancePayment ? `
+                ${dbPaidAmount < originalTotal ? `
                 <tr>
-                  <td style="padding: 4px 0; text-align: left; font-size: 8px; font-weight: 600; color: #C17F5F; letter-spacing: 2px; text-transform: uppercase; font-family: 'Inter', sans-serif;">Saldo a Pagar</td>
-                  <td style="padding: 4px 0; text-align: right; font-family: 'Playfair Display', Georgia, serif; font-size: 16px; font-weight: bold; color: #C17F5F;">
-                    ${formatCurrency(total)}
+                  <td style="padding: 4px 0; text-align: left; font-size: 8px; font-weight: 600; color: #8A857D; letter-spacing: 2px; text-transform: uppercase; font-family: 'Inter', sans-serif;">Monto Abonado</td>
+                  <td style="padding: 4px 0; text-align: right; font-family: 'Playfair Display', Georgia, serif; font-size: 14px; font-weight: bold; color: #E5E0D8;">
+                    ${formatCurrency(dbPaidAmount)}
                   </td>
                 </tr>
-                ` : ''}
+                <tr>
+                  <td style="padding: 4px 0; text-align: left; font-size: 8px; font-weight: 600; color: #C17F5F; letter-spacing: 2px; text-transform: uppercase; font-family: 'Inter', sans-serif;">Saldo Pendiente</td>
+                  <td style="padding: 4px 0; text-align: right; font-family: 'Playfair Display', Georgia, serif; font-size: 14px; font-weight: bold; color: #C17F5F;">
+                    ${formatCurrency(dbBalance)}
+                  </td>
+                </tr>
+                ` : `
+                <tr>
+                  <td style="padding: 4px 0; text-align: left; font-size: 8px; font-weight: 600; color: #8A857D; letter-spacing: 2px; text-transform: uppercase; font-family: 'Inter', sans-serif;">Monto Pagado</td>
+                  <td style="padding: 4px 0; text-align: right; font-family: 'Playfair Display', Georgia, serif; font-size: 14px; font-weight: bold; color: #E5E0D8;">
+                    ${formatCurrency(originalTotal)}
+                  </td>
+                </tr>
+                `}
                 ${splitCashAmount || splitCardAmount ? `
                 <tr>
                   <td style="padding: 4px 0; text-align: left; font-size: 8px; font-weight: 600; color: #8A857D; letter-spacing: 2px; text-transform: uppercase; font-family: 'Inter', sans-serif;">Pagado en Efectivo / Transf.</td>
