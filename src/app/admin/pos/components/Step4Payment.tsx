@@ -343,7 +343,7 @@ export default function Step4Payment() {
             .catch(err => console.error('Error enviando WhatsApp:', err));
         }
 
-        setCheckoutResult({ ...result, orderId: finalOrderIdStr.replace('order_', ''), customer: selectedCustomer, total, paidAmount: paymentMethod === 'mercadopago_point' ? 0 : amountToPay, items: cart, paymentUrl, date: dateStr, deliveryDate: deliveryDateStr, method: paymentMethod });
+        setCheckoutResult({ ...result, orderId: finalOrderIdStr.replace('order_', ''), customer: selectedCustomer, total, paidAmount: paymentMethod === 'mercadopago_point' ? 0 : amountToPay, items: cart, paymentUrl, date: dateStr, deliveryDate: deliveryDateStr, method: paymentMethod, isMixedTerminal, splitCardAmount: isMixedTerminal ? splitCardAmount : 0 });
         setCurrentStep(5);
       } else {
         alert("Error al procesar la orden en producción: " + result.error);

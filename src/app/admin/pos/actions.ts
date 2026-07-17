@@ -1647,11 +1647,13 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
         .update({ status: isFullPayment ? 'completed' : 'partial', paid_amount: finalPaid })
         .eq('internal_id', internalId);
         
+    const baseOrderId = posOrderId.split('_balance_')[0];
+        
     // Actualizar production_orders con el paid_amount también
     const { error: prodError } = await supabase
         .from('production_orders')
         .update({ payment_status: isFullPayment ? 'paid' : 'partial', status: 'pending', paid_amount: finalPaid }) // Pasamos status a pending ya que estaba en draft
-        .eq('pos_order_id', posOrderId);
+        .eq('pos_order_id', baseOrderId);
         
     if (prodError) {
         console.error('Error updating order to paid:', prodError);
@@ -1665,7 +1667,7 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
     
     // --- WhatsApp Confirmation ---
     try {
-        const { data: orderInfo } = await supabase.from('production_orders').select('customer_id').eq('pos_order_id', posOrderId).single();
+        const { data: orderInfo } = await supabase.from('production_orders').select('customer_id').eq('pos_order_id', baseOrderId).single();
         if (orderInfo && orderInfo.customer_id && orderInfo.customer_id !== 'unassigned') {
             const { data: custInfo } = await supabase.from('customers').select('phone, full_name').eq('id', orderInfo.customer_id).single();
             if (custInfo && custInfo.phone) {

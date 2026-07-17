@@ -63,7 +63,7 @@ async function updateDatabaseAndNotify(
     let { data: existingOrders } = await supabase
         .from('production_orders')
         .select('payment_status, payment_method, paid_amount')
-        .eq('pos_order_id', externalRef)
+        .eq('pos_order_id', externalRef.split('_balance_')[0])
         .limit(1);
 
     const safeAmount = Number(amount || 0);
@@ -91,7 +91,7 @@ async function updateDatabaseAndNotify(
                 const ledgerRes = await supabase.from('sales_ledger').select('external_transaction_id, paid_amount, total_amount').eq('internal_id', externalRef).single();
                 existingLedger = ledgerRes.data;
                 
-                const ordersRes = await supabase.from('production_orders').select('payment_status, payment_method, paid_amount').eq('pos_order_id', externalRef).limit(1);
+                const ordersRes = await supabase.from('production_orders').select('payment_status, payment_method, paid_amount').eq('pos_order_id', externalRef.split('_balance_')[0]).limit(1);
                 existingOrders = ordersRes.data;
             }
         }
@@ -149,7 +149,7 @@ async function updateDatabaseAndNotify(
             payment_method: finalPaymentMethodLabel,
             paid_amount: newProdPaidAmount
         })
-        .eq('pos_order_id', externalRef);
+        .eq('pos_order_id', externalRef.split('_balance_')[0]);
         
     if (error) {
         console.error('Error actualizando estado en BD:', error);
@@ -246,7 +246,7 @@ async function updateDatabaseAndNotify(
                     phone
                 )
             `)
-            .eq('pos_order_id', externalRef)
+            .eq('pos_order_id', externalRef.split('_balance_')[0])
             .limit(1);
 
         if (orders && orders.length > 0) {

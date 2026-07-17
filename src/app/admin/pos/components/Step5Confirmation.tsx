@@ -19,11 +19,12 @@ export default function Step5Confirmation() {
 
   const [isSending, setIsSending] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [isPaymentConfirmed, setIsPaymentConfirmed] = useState(checkoutResult?.method !== 'mercadopago_point');
+  const isTerminal = checkoutResult?.method === 'mercadopago_point' || checkoutResult?.isMixedTerminal;
+  const [isPaymentConfirmed, setIsPaymentConfirmed] = useState(!isTerminal);
   const [confirmedPaidAmount, setConfirmedPaidAmount] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!checkoutResult || checkoutResult.method !== 'mercadopago_point' || isPaymentConfirmed) return;
+    if (!checkoutResult || !isTerminal || isPaymentConfirmed) return;
 
     const checkStatus = async () => {
       try {
