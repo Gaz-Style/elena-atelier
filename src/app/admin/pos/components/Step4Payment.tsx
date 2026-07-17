@@ -222,7 +222,7 @@ export default function Step4Payment() {
           return;
         }
         if (paymentMethod === 'mercadopago_point') {
-          wakeUpMercadoPagoTerminalAction(amountToPay, "Pago Saldo - " + finalOrderIdStr, "POS-" + Date.now()).catch(console.error);
+          wakeUpMercadoPagoTerminalAction(amountToPay, "Pago Saldo - " + finalOrderIdStr, finalOrderIdStr).catch(console.error);
         }
         // Send confirmation email with payment link for transbank balance payments
         if (selectedCustomer?.email) {
@@ -294,7 +294,7 @@ export default function Step4Payment() {
       // New sale: paid methods
       if (paymentMethod === 'mercadopago_point' || isMixedTerminal) {
         const amountForTerminal = isMixedTerminal ? splitCardAmount : amountToPay;
-        wakeUpMercadoPagoTerminalAction(amountForTerminal, "Orden #" + newOrderIdNumber, "POS-" + Date.now()).catch(console.error);
+        wakeUpMercadoPagoTerminalAction(amountForTerminal, "Orden #" + newOrderIdNumber, finalOrderIdStr).catch(console.error);
       }
 
       const orderData = {
