@@ -19,9 +19,17 @@ export default function Step5Confirmation() {
 
   const [isSending, setIsSending] = useState(false);
   const [copied, setCopied] = useState(false);
-  const isTerminal = checkoutResult?.method === 'mercadopago_point' || checkoutResult?.isMixedTerminal;
-  const [isPaymentConfirmed, setIsPaymentConfirmed] = useState(!isTerminal);
+  const [isPaymentConfirmed, setIsPaymentConfirmed] = useState(false);
   const [confirmedPaidAmount, setConfirmedPaidAmount] = useState<number | null>(null);
+
+  const isTerminal = checkoutResult?.method === 'mercadopago_point' || checkoutResult?.isMixedTerminal;
+
+  useEffect(() => {
+    if (checkoutResult) {
+      const terminal = checkoutResult.method === 'mercadopago_point' || checkoutResult.isMixedTerminal;
+      setIsPaymentConfirmed(!terminal);
+    }
+  }, [checkoutResult]);
 
   useEffect(() => {
     if (!checkoutResult || !isTerminal || isPaymentConfirmed) return;
@@ -51,7 +59,16 @@ export default function Step5Confirmation() {
 
     const intervalId = setInterval(checkStatus, 3000);
     return () => clearInterval(intervalId);
-  }, [checkoutResult, isPaymentConfirmed]);
+  }, [checkoutResult, isPaymentConfirmed, isTerminal]);
+
+  if (!checkoutResult) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[30vh] space-y-4">
+        <Loader2 className="w-8 h-8 animate-spin text-[#C17B5C]" />
+        <p className="text-zinc-500 text-sm">Cargando información del pago...</p>
+      </div>
+    );
+  }
 
   const handleNewSale = () => {
     setSelectedCustomer(null);
