@@ -180,6 +180,10 @@ export default function Step4Payment() {
       const newOrderIdNumber = Math.floor(Math.random() * 90000) + 10000;
       let finalOrderIdStr = `order_${newOrderIdNumber}`;
 
+      if (posMode === 'pay_balance' && pendingOrderToPay) {
+        finalOrderIdStr = pendingOrderToPay.internal_id;
+      }
+
       let finalPaymentMethodStr = initialPaymentType === 'zero'
         ? 'Pago Contra Entrega'
         : paymentMethod === 'cash' && splitCardAmount > 0 
@@ -209,7 +213,6 @@ export default function Step4Payment() {
 
       // Pay balance (existing order)
       if (posMode === 'pay_balance' && pendingOrderToPay) {
-        finalOrderIdStr = pendingOrderToPay.internal_id;
         const res = await payOrderBalanceAction(
           finalOrderIdStr,
           amountToPay,
