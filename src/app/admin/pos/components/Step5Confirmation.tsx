@@ -37,26 +37,6 @@ export default function Step5Confirmation() {
           if (res.status === 'paid' || res.status === 'completed' || (res.paidAmount !== undefined && checkoutResult.total !== undefined && res.paidAmount >= checkoutResult.total)) {
             setIsPaymentConfirmed(true);
             setConfirmedPaidAmount(res.paidAmount ?? checkoutResult.total);
-            
-            // Auto-send email upon successful terminal payment
-            if (checkoutResult.customer?.email) {
-              sendOrderConfirmationEmailAction({
-                customerEmail: checkoutResult.customer.email,
-                customerName: checkoutResult.customer.full_name,
-                orderId: orderIdStr,
-                items: (checkoutResult.items || []).map((item: any) => ({
-                  name: item.name,
-                  price: item.price,
-                  category: item.category,
-                  notes: item.details?.notes || item.notes || '',
-                })),
-                total: checkoutResult.total,
-                paymentMethod: checkoutResult.method || '',
-                date: checkoutResult.date || new Date().toLocaleDateString('es-CL'),
-                deliveryDate: checkoutResult.deliveryDate || '',
-                paymentUrl: checkoutResult.paymentUrl || '',
-              }).catch(console.error);
-            }
           } else if (res.status === 'canceled' || res.status === 'rejected' || res.status === 'abandoned') {
             alert('El pago fue rechazado o cancelado en el terminal. Por favor, inténtelo de nuevo o seleccione otro método de pago.');
             clearInterval(intervalId);

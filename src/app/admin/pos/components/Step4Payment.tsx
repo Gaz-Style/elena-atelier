@@ -225,7 +225,7 @@ export default function Step4Payment() {
           wakeUpMercadoPagoTerminalAction(amountToPay, "Pago Saldo - " + finalOrderIdStr, finalOrderIdStr).catch(console.error);
         }
         // Send confirmation email with payment link for transbank balance payments
-        if (selectedCustomer?.email) {
+        if (selectedCustomer?.email && paymentMethod !== 'mercadopago_point') {
           sendOrderConfirmationEmailAction({
             customerEmail: selectedCustomer?.email,
             customerName: selectedCustomer?.full_name,

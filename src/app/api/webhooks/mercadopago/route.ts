@@ -18,11 +18,12 @@ async function logSystemEvent(supabase: any, level: string, message: string, pay
 
 async function updateDatabaseAndNotify(
     supabase: any,
-    externalRef: string,
+    externalRefParam: string,
     paymentId: string,
     paymentMethodLabel: string,
     amount: number | null
 ) {
+    let externalRef = externalRefParam;
     console.log(`Procesando pago aprobado para external_reference: ${externalRef}`);
     await logSystemEvent(supabase, 'INFO', `Procesando pago aprobado MP`, { paymentId, externalRef });
 
@@ -53,17 +54,48 @@ async function updateDatabaseAndNotify(
     // --- END BRIDAL PROJECTS INTERCEPT ---
 
     // Check idempotency with external_transaction_id in sales_ledger
-    const { data: existingLedger } = await supabase
+    let { data: existingLedger } = await supabase
         .from('sales_ledger')
         .select('external_transaction_id, paid_amount, total_amount')
         .eq('internal_id', externalRef)
         .single();
         
-    const { data: existingOrders } = await supabase
+    let { data: existingOrders } = await supabase
         .from('production_orders')
         .select('payment_status, payment_method, paid_amount')
         .eq('pos_order_id', externalRef)
         .limit(1);
+
+    const safeAmount = Number(amount || 0);
+
+    // --- FALLBACK PARA PAGOS MANUALES EN TERMINAL POINT ---
+    // Si la referencia externa (ej: POS-12345) no existe en la BD, buscamos una orden reciente esperando pago en terminal
+    if (!existingLedger && (!existingOrders || existingOrders.length === 0) && externalRef.startsWith('POS-')) {
+        const { data: pendingSales } = await supabase
+            .from('sales_ledger')
+            .select('internal_id, total_amount, paid_amount')
+            .eq('status', 'pending')
+            .gte('created_at', new Date(Date.now() - 15 * 60000).toISOString())
+            .order('created_at', { ascending: false });
+
+        if (pendingSales && pendingSales.length > 0) {
+            const match = pendingSales.find((s: any) => 
+                Number(s.total_amount) === safeAmount || 
+                (Number(s.total_amount) - Number(s.paid_amount || 0)) === safeAmount
+            );
+
+            if (match) {
+                console.log(`Fallback Match: Encontrada orden ${match.internal_id} esperando pago manual por ${safeAmount}`);
+                externalRef = match.internal_id; // Reasignar la referencia para continuar el flujo normalmente
+                
+                const ledgerRes = await supabase.from('sales_ledger').select('external_transaction_id, paid_amount, total_amount').eq('internal_id', externalRef).single();
+                existingLedger = ledgerRes.data;
+                
+                const ordersRes = await supabase.from('production_orders').select('payment_status, payment_method, paid_amount').eq('pos_order_id', externalRef).limit(1);
+                existingOrders = ordersRes.data;
+            }
+        }
+    }
 
     // Preserve "Mixto" payment method if it exists
     let finalPaymentMethodLabel = paymentMethodLabel;
@@ -96,8 +128,6 @@ async function updateDatabaseAndNotify(
         await logSystemEvent(supabase, 'INFO', `Orden ya estaba pagada con este ID, ignorando webhook duplicado`, { externalRef, paymentId });
         return true;
     }
-
-    const safeAmount = Number(amount || 0);
 
     // 1. Actualizar todas las filas de la orden en producción (usando ledger como fuente principal)
     const previousPaidAmount = existingLedger 
