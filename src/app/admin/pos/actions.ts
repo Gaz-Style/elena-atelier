@@ -659,11 +659,12 @@ export async function sendOrderConfirmationEmailByOrderIdAction(posOrderId: stri
 export async function sendWhatsAppPaymentConfirmationAction(posOrderId: string, amount: number, paymentMethod: string) {
     const supabase = await createClient();
     try {
+        const searchId = posOrderId.startsWith('order_') || posOrderId.startsWith('WO-') || posOrderId.startsWith('ERP-') ? posOrderId : `order_${posOrderId}`;
         // 1. Obtener los detalles de la venta
         const { data: sale } = await supabase
             .from('sales_ledger')
             .select('*')
-            .eq('internal_id', posOrderId)
+            .eq('internal_id', searchId)
             .single();
 
         if (!sale) return { success: false, error: 'Venta no encontrada en registros' };
@@ -672,7 +673,7 @@ export async function sendWhatsAppPaymentConfirmationAction(posOrderId: string, 
         const { data: prodOrders } = await supabase
             .from('production_orders')
             .select('description, customer_id')
-            .eq('pos_order_id', posOrderId)
+            .eq('pos_order_id', searchId)
             .limit(1);
 
         const prenda = prodOrders?.[0]?.description || 'Servicio';
