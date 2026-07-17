@@ -24,6 +24,14 @@ const formatDateLong = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 };
 
+const formatMilestoneDate = (dateStr: string) => {
+    if (!dateStr) return '—';
+    const dateObj = new Date(dateStr);
+    const datePart = dateObj.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const timePart = dateObj.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
+    return `${datePart} a las ${timePart} hs`;
+};
+
 const projectTypeConfig: Record<string, { label: string; icon: any; color: string; gradient: string }> = {
     novia: { label: 'Novia', icon: Heart, color: 'text-rose-600', gradient: 'from-rose-500 to-pink-500' },
     madrina: { label: 'Madrina', icon: Crown, color: 'text-violet-600', gradient: 'from-violet-500 to-purple-500' },
@@ -58,6 +66,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     const [projectId, setProjectId] = useState('');
     const [editingMilestoneId, setEditingMilestoneId] = useState<string | null>(null);
     const [editingDate, setEditingDate] = useState<string>('');
+    const [editingTime, setEditingTime] = useState<string>('12:00');
     const [notifyClientOnEdit, setNotifyClientOnEdit] = useState<boolean>(false);
     const contractRef = useRef<HTMLDivElement>(null);
 
@@ -103,7 +112,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     async function handleUpdateMilestoneDate(milestoneId: string) {
         if (!editingDate) return;
         setSaving(true);
-        const res = await updateMilestoneDateAction(milestoneId, projectId, editingDate, notifyClientOnEdit);
+        const res = await updateMilestoneDateAction(milestoneId, projectId, editingDate, editingTime, notifyClientOnEdit);
         if (!res.success) {
             alert('Error al actualizar fecha: ' + res.error);
         } else {
@@ -411,13 +420,24 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                                     </h3>
                                                     {editingMilestoneId === milestone.id ? (
                                                         <div className="mt-3 p-3 bg-zinc-50 rounded-lg border border-zinc-200/80 max-w-sm space-y-3">
-                                                            <label className="block text-[9px] uppercase tracking-widest font-bold text-zinc-400">Nueva Fecha de Prueba</label>
-                                                            <input 
-                                                                type="date" 
-                                                                value={editingDate}
-                                                                onChange={(e) => setEditingDate(e.target.value)}
-                                                                className="w-full bg-white border border-zinc-200 rounded px-2.5 py-1.5 text-xs text-zinc-800 focus:outline-none focus:ring-1 focus:ring-rose-300"
-                                                            />
+                                                            <div>
+                                                                <label className="block text-[9px] uppercase tracking-widest font-bold text-zinc-400 mb-1">Nueva Fecha de Prueba</label>
+                                                                <input 
+                                                                    type="date" 
+                                                                    value={editingDate}
+                                                                    onChange={(e) => setEditingDate(e.target.value)}
+                                                                    className="w-full bg-white border border-zinc-200 rounded px-2.5 py-1.5 text-xs text-zinc-800 focus:outline-none focus:ring-1 focus:ring-rose-300"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[9px] uppercase tracking-widest font-bold text-zinc-400 mb-1">Nuevo Horario de Prueba</label>
+                                                                <input 
+                                                                    type="time" 
+                                                                    value={editingTime}
+                                                                    onChange={(e) => setEditingTime(e.target.value)}
+                                                                    className="w-full bg-white border border-zinc-200 rounded px-2.5 py-1.5 text-xs text-zinc-800 focus:outline-none focus:ring-1 focus:ring-rose-300"
+                                                                />
+                                                            </div>
                                                             <label className="flex items-center gap-2 text-xs text-zinc-600 cursor-pointer select-none">
                                                                 <input 
                                                                     type="checkbox" 
@@ -446,13 +466,21 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                                     ) : (
                                                         <p className="text-xs text-zinc-500 mt-1 flex items-center gap-1">
                                                             <Calendar className="w-3 h-3" />
-                                                            {formatDateLong(milestone.scheduled_date)}
+                                                            {formatMilestoneDate(milestone.scheduled_date)}
                                                             {isPast && <span className="text-red-500 font-bold ml-2">• Atrasado</span>}
                                                             {!isCompleted && project.status !== 'cancelado' && project.status !== 'entregado' && (
                                                                 <button 
                                                                     onClick={() => {
                                                                         setEditingMilestoneId(milestone.id);
                                                                         setEditingDate(milestone.scheduled_date ? milestone.scheduled_date.split('T')[0] : '');
+                                                                        let initialTime = '12:00';
+                                                                        if (milestone.scheduled_date) {
+                                                                            const d = new Date(milestone.scheduled_date);
+                                                                            const hours = String(d.getHours()).padStart(2, '0');
+                                                                            const minutes = String(d.getMinutes()).padStart(2, '0');
+                                                                            initialTime = `${hours}:${minutes}`;
+                                                                        }
+                                                                        setEditingTime(initialTime);
                                                                         setNotifyClientOnEdit(false);
                                                                     }}
                                                                     className="ml-3 text-[10px] font-bold text-rose-500 hover:text-rose-700 transition-colors uppercase tracking-widest"

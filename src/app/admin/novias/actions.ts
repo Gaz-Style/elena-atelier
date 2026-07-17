@@ -1185,7 +1185,8 @@ export async function updateMilestoneDateAction(
     milestoneId: string,
     projectId: string,
     newDateStr: string,
-    notifyClient: boolean
+    newTimeStr: string = '12:00',
+    notifyClient: boolean = false
 ) {
     try {
         const supabase = getAdminClient();
@@ -1212,7 +1213,8 @@ export async function updateMilestoneDateAction(
             throw new Error('Proyecto no encontrado');
         }
 
-        let dateIso = new Date(`${newDateStr}T12:00:00-04:00`).toISOString();
+        const timePart = newTimeStr || '12:00';
+        let dateIso = new Date(`${newDateStr}T${timePart}:00-04:00`).toISOString();
         let agendaEventId = milestone.agenda_event_id;
 
         // 3. Sync with agendamientos (agenda)
