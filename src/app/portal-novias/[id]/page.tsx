@@ -2,21 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Heart, Loader2, ChevronRight, User, Phone, FileText, Calendar, MapPin } from 'lucide-react';
+import Link from 'next/link';
+import { Heart, Loader2, ChevronRight, User, Phone, FileText, Calendar, MapPin, DollarSign, CheckCircle2, AlertCircle, Sparkles, Clock, LogOut } from 'lucide-react';
+import ContractTemplate from '@/app/admin/novias/ContractTemplate';
+import InspirationMoodboard from '../components/InspirationMoodboard';
 
 // --- Formatting helpers ---
 function formatRut(value: string): string {
-    // Strip everything except digits and kK
     let clean = value.replace(/[^0-9kK]/g, '').toUpperCase();
     if (clean.length === 0) return '';
-    
-    // Separate body from check digit
     let body = clean.slice(0, -1);
     let dv = clean.slice(-1);
+    if (clean.length === 1) return clean;
     
-    if (clean.length === 1) return clean; // just one char, no formatting yet
-    
-    // Add dots to body (from right to left, groups of 3)
     let formatted = '';
     let count = 0;
     for (let i = body.length - 1; i >= 0; i--) {
@@ -26,19 +24,28 @@ function formatRut(value: string): string {
             formatted = '.' + formatted;
         }
     }
-    
     return formatted + '-' + dv;
 }
 
 function formatPhoneDigits(value: string): string {
-    // Only keep digits, max 9
     let digits = value.replace(/[^0-9]/g, '').slice(0, 9);
-    
-    // Format as: 9 1234 5678
     if (digits.length <= 1) return digits;
     if (digits.length <= 5) return digits.slice(0, 1) + ' ' + digits.slice(1);
     return digits.slice(0, 1) + ' ' + digits.slice(1, 5) + ' ' + digits.slice(5);
 }
+
+const formatCurrency = (val: number) =>
+    new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val);
+
+const formatDate = (dateStr: string) => {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+const formatDateLong = (dateStr: string) => {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+};
 
 export default function PortalNoviasPage() {
     const params = useParams();
@@ -47,16 +54,19 @@ export default function PortalNoviasPage() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'payments' | 'moodboard' | 'contract'>('dashboard');
     
-    // Controlled fields for formatting
+    // Controlled fields for onboarding
     const [rutValue, setRutValue] = useState('');
     const [phoneValue, setPhoneValue] = useState('');
 
+    const projectId = params?.id as string;
+
     useEffect(() => {
-        if (params?.id) {
-            loadProject(params.id as string);
+        if (projectId) {
+            loadProject(projectId);
         }
-    }, [params]);
+    }, [projectId]);
 
     async function loadProject(id: string) {
         try {
@@ -64,10 +74,8 @@ export default function PortalNoviasPage() {
             const data = await getBridalProjectById(id);
             if (data) {
                 setProject(data);
-                // Pre-populate formatted values if data exists
                 if (data.customers?.rut) setRutValue(formatRut(data.customers.rut));
                 if (data.customers?.phone) {
-                    // Strip +56 prefix if present, then format remaining digits
                     const rawPhone = data.customers.phone.replace(/^\+?56\s*/, '');
                     setPhoneValue(formatPhoneDigits(rawPhone));
                 }
@@ -79,29 +87,17 @@ export default function PortalNoviasPage() {
         }
     }
 
-    function handleRutChange(e: React.ChangeEvent<HTMLInputElement>) {
-        const raw = e.target.value;
-        setRutValue(formatRut(raw));
-    }
-    
-    function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
-        const raw = e.target.value;
-        setPhoneValue(formatPhoneDigits(raw));
-    }
-
-    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    async function handleOnboardingSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setSubmitting(true);
         setErrorMsg('');
         try {
             const formData = new FormData(e.currentTarget);
-            // Ensure phone is stored with +56 prefix
-            const phoneDigits = phoneValue.replace(/\s/g, '');
-            formData.set('phone', '+56 ' + phoneValue);
+            formData.set('phone', '+56 ' + phoneValue.replace(/\s/g, ''));
             const { processBridalFormAction } = await import('@/app/admin/novias/actions');
-            const res = await processBridalFormAction(params.id as string, formData);
+            const res = await processBridalFormAction(projectId, formData);
             if (res.success) {
-                router.push(`/portal-novias/${params.id}/contrato`);
+                router.push(`/portal-novias/${projectId}/contrato`);
             } else {
                 setErrorMsg(res.error || 'Ocurrió un error al procesar el formulario.');
             }
@@ -129,151 +125,434 @@ export default function PortalNoviasPage() {
         );
     }
 
-    return (
-        <div className="min-h-screen bg-[#0A0A0A] text-white font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle at center, #1A1A1A 0%, #0A0A0A 100%)" }}>
-            
-            <div className="w-full max-w-2xl relative z-10">
-                {/* Minimal Header inside the page flow */}
-                <div className="text-center mb-12">
-                    <h1 className="font-serif text-3xl md:text-4xl font-black text-white tracking-[0.3em] mb-2">ELENA</h1>
-                    <p className="text-[9px] uppercase tracking-[0.5em] text-white/70 font-bold ml-1">LA COSTURERA</p>
-                </div>
+    // Determine if contract is accepted. If not, show Onboarding Form.
+    const isContractAccepted = project.contract_accepted;
 
-                {/* Form Card */}
-                <div className="bg-[#111111]/80 backdrop-blur-md rounded-lg shadow-2xl p-8 md:p-12 border border-white/10 relative">
-                    
-                    <div className="text-center mb-10">
-                        <div className="text-[#C17F5F] mb-4 text-xs tracking-widest uppercase">✦ Ingreso Atelier ✦</div>
-                        <h2 className="font-serif text-3xl text-white mb-4 italic">Bienvenida a tu Portal</h2>
-                        <p className="text-xs text-gray-400 leading-relaxed max-w-md mx-auto font-light">
-                            Estamos felices de diseñar el vestido de tus sueños. 
-                            Por favor completa los siguientes datos para formalizar tu reserva.
-                        </p>
+    if (!isContractAccepted) {
+        // RENDER: Formulario de bienvenida (Onboarding)
+        return (
+            <div className="min-h-screen bg-[#0A0A0A] text-white font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle at center, #1A1A1A 0%, #0A0A0A 100%)" }}>
+                <div className="w-full max-w-2xl relative z-10">
+                    <div className="text-center mb-12">
+                        <h1 className="font-serif text-3xl md:text-4xl font-black text-white tracking-[0.3em] mb-2">ELENA</h1>
+                        <p className="text-[9px] uppercase tracking-[0.5em] text-white/70 font-bold ml-1">LA COSTURERA</p>
                     </div>
 
-                    {errorMsg && (
-                        <div className="mb-8 p-4 bg-red-900/20 border border-red-500/50 text-red-200 rounded text-xs text-center">
-                            {errorMsg}
+                    <div className="bg-[#111111]/80 backdrop-blur-md rounded-lg shadow-2xl p-8 md:p-12 border border-white/10 relative">
+                        <div className="text-center mb-10">
+                            <div className="text-[#C17F5F] mb-4 text-xs tracking-widest uppercase">✦ Ingreso Atelier ✦</div>
+                            <h2 className="font-serif text-3xl text-white mb-4 italic">Bienvenida a tu Portal</h2>
+                            <p className="text-xs text-gray-400 leading-relaxed max-w-md mx-auto font-light">
+                                Estamos felices de diseñar el vestido de tus sueños. 
+                                Por favor completa los siguientes datos para formalizar tu reserva.
+                            </p>
                         </div>
-                    )}
 
-                    <form onSubmit={handleSubmit} className="space-y-10">
-                        
-                        <div>
-                            <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#C17F5F] border-b border-white/10 pb-3 mb-6 flex items-center gap-2">
-                                <User className="w-3.5 h-3.5" /> 1. Datos Personales
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-1 relative group">
-                                    <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F]">Nombre Completo</label>
-                                    <input 
-                                        type="text" 
-                                        name="fullName" 
-                                        required 
-                                        defaultValue={project.customers?.full_name || ''}
-                                        className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors placeholder-white/20" 
-                                        placeholder="Tu nombre y apellido"
-                                    />
-                                </div>
-                                <div className="space-y-1 relative group">
-                                    <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F]">RUT</label>
-                                    <input 
-                                        type="text" 
-                                        name="rut" 
-                                        required 
-                                        value={rutValue}
-                                        onChange={handleRutChange}
-                                        maxLength={12}
-                                        className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors placeholder-white/20" 
-                                        placeholder="12.345.678-9"
-                                    />
-                                </div>
-                                <div className="space-y-1 relative group md:col-span-2">
-                                    <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] flex items-center gap-2">
-                                        Teléfono WhatsApp
-                                    </label>
-                                    <div className="flex items-center border-b border-white/20 focus-within:border-[#C17F5F] transition-colors">
-                                        <span className="text-sm text-white/50 pr-2 select-none font-medium">+56</span>
+                        {errorMsg && (
+                            <div className="mb-8 p-4 bg-red-900/20 border border-red-500/50 text-red-200 rounded text-xs text-center">
+                                {errorMsg}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleOnboardingSubmit} className="space-y-10">
+                            <div>
+                                <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#C17F5F] border-b border-white/10 pb-3 mb-6 flex items-center gap-2">
+                                    <User className="w-3.5 h-3.5" /> 1. Datos Personales
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-1 relative group">
+                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F]">Nombre Completo</label>
                                         <input 
-                                            type="tel" 
-                                            name="phone" 
+                                            type="text" 
+                                            name="fullName" 
                                             required 
-                                            value={phoneValue}
-                                            onChange={handlePhoneChange}
-                                            maxLength={11}
-                                            className="w-full bg-transparent py-2 text-sm text-white outline-none placeholder-white/20" 
-                                            placeholder="9 1234 5678"
+                                            defaultValue={project.customers?.full_name || ''}
+                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors placeholder-white/20" 
+                                            placeholder="Tu nombre y apellido"
+                                        />
+                                    </div>
+                                    <div className="space-y-1 relative group">
+                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F]">RUT</label>
+                                        <input 
+                                            type="text" 
+                                            name="rut" 
+                                            required 
+                                            value={rutValue}
+                                            onChange={handleRutChange}
+                                            maxLength={12}
+                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors placeholder-white/20" 
+                                            placeholder="12.345.678-9"
+                                        />
+                                    </div>
+                                    <div className="space-y-1 relative group md:col-span-2">
+                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F]">Teléfono WhatsApp</label>
+                                        <div className="flex items-center border-b border-white/20 focus-within:border-[#C17F5F] transition-colors">
+                                            <span className="text-sm text-white/50 pr-2 select-none font-medium">+56</span>
+                                            <input 
+                                                type="tel" 
+                                                name="phone" 
+                                                required 
+                                                value={phoneValue}
+                                                onChange={handlePhoneChange}
+                                                maxLength={11}
+                                                className="w-full bg-transparent py-2 text-sm text-white outline-none placeholder-white/20" 
+                                                placeholder="9 1234 5678"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#C17F5F] border-b border-white/10 pb-3 mb-6 flex items-center gap-2">
+                                    <Calendar className="w-3.5 h-3.5" /> 2. Detalles del Evento
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-1 relative group">
+                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F]">Fecha del Evento</label>
+                                        <input 
+                                            type="date" 
+                                            name="eventDate" 
+                                            required 
+                                            defaultValue={project.event_date ? project.event_date.split('T')[0] : ''}
+                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors [color-scheme:dark]" 
+                                        />
+                                    </div>
+                                    <div className="space-y-1 relative group">
+                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F]">Lugar del Evento</label>
+                                        <input 
+                                            type="text" 
+                                            name="eventVenue" 
+                                            required 
+                                            defaultValue={project.event_venue || ''}
+                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors placeholder-white/20" 
+                                            placeholder="Ej: Centro de Eventos..."
+                                        />
+                                    </div>
+                                    <div className="space-y-1 relative group md:col-span-2">
+                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F]">Notas Adicionales (Opcional)</label>
+                                        <textarea 
+                                            name="notes" 
+                                            rows={2}
+                                            defaultValue={project.description || ''}
+                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors resize-none placeholder-white/20" 
+                                            placeholder="Detalles importantes sobre tu vestido..."
                                         />
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div>
-                            <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#C17F5F] border-b border-white/10 pb-3 mb-6 flex items-center gap-2">
-                                <Calendar className="w-3.5 h-3.5" /> 2. Detalles del Evento
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-1 relative group">
-                                    <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F]">Fecha del Evento</label>
-                                    <input 
-                                        type="date" 
-                                        name="eventDate" 
-                                        required 
-                                        defaultValue={project.event_date ? project.event_date.split('T')[0] : ''}
-                                        className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors [color-scheme:dark]" 
-                                    />
-                                </div>
-                                <div className="space-y-1 relative group">
-                                    <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F]">Lugar del Evento</label>
-                                    <input 
-                                        type="text" 
-                                        name="eventVenue" 
-                                        required 
-                                        defaultValue={project.event_venue || ''}
-                                        className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors placeholder-white/20" 
-                                        placeholder="Ej: Centro de Eventos..."
-                                    />
-                                </div>
-                                <div className="space-y-1 relative group md:col-span-2">
-                                    <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F]">Notas Adicionales (Opcional)</label>
-                                    <textarea 
-                                        name="notes" 
-                                        rows={2}
-                                        defaultValue={project.description || ''}
-                                        className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors resize-none placeholder-white/20" 
-                                        placeholder="Detalles importantes sobre tu vestido..."
-                                    />
-                                </div>
+                            <div className="pt-6 text-center">
+                                <button 
+                                    type="submit" 
+                                    disabled={submitting}
+                                    className="w-full border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-white py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all flex justify-center items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
+                                >
+                                    {submitting ? (
+                                        <><Loader2 className="w-4 h-4 animate-spin" /> Procesando...</>
+                                    ) : (
+                                        <>
+                                            Generar Propuesta 
+                                            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                        </>
+                                    )}
+                                </button>
+                                <p className="text-[9px] text-gray-500 mt-4 uppercase tracking-widest">
+                                    Al continuar, se generará tu propuesta y presupuesto.
+                                </p>
                             </div>
-                        </div>
-
-                        <div className="pt-6 text-center">
-                            <button 
-                                type="submit" 
-                                disabled={submitting}
-                                className="w-full border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-white py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all flex justify-center items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
-                            >
-                                {submitting ? (
-                                    <><Loader2 className="w-4 h-4 animate-spin" /> Procesando...</>
-                                ) : (
-                                    <>
-                                        Generar Propuesta 
-                                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                    </>
-                                )}
-                            </button>
-                            <p className="text-[9px] text-gray-500 mt-4 uppercase tracking-widest">
-                                Al continuar, se generará tu propuesta y presupuesto.
-                            </p>
-                        </div>
-                    </form>
-                </div>
-                
-                <div className="text-center mt-8">
-                    <p className="text-[8px] text-gray-500 uppercase tracking-widest">Elena La Costurera | Atelier</p>
+                        </form>
+                    </div>
                 </div>
             </div>
+        );
+    }
+
+    // CALCULATE: Remaining days and design freeze date (4 months before event)
+    const daysUntilEvent = project.event_date
+        ? Math.ceil((new Date(project.event_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        : null;
+
+    let designFreezeDate: Date | null = null;
+    let daysUntilFreeze: number | null = null;
+    if (project.event_date) {
+        designFreezeDate = new Date(project.event_date);
+        designFreezeDate.setMonth(designFreezeDate.getMonth() - 4); // 4 months before event
+        daysUntilFreeze = Math.ceil((designFreezeDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    }
+
+    // READ: Payments from work_order's payment_plan or fallback fields
+    let cuotasList: any[] = [];
+    let totalPaid = 0;
+    let totalValue = project.total_amount;
+
+    if (project.work_order && project.work_order.payment_plan && project.work_order.payment_plan.cuotas) {
+        cuotasList = project.work_order.payment_plan.cuotas.map((c: any, index: number) => ({
+            name: c.name || `Cuota ${index + 1}`,
+            amount: c.monto || c.amount || 0,
+            status: c.status || 'pending',
+            date: c.fecha || c.date || null
+        }));
+        totalPaid = project.work_order.paid_amount || 0;
+        totalValue = project.work_order.total_amount || project.total_amount;
+    } else {
+        // Fallback to the 3 standard database columns
+        cuotasList = [
+            { name: 'Cuota 1 — Abono Inicial', amount: project.payment_1_amount, status: project.payment_1_status, date: project.payment_1_date },
+            { name: 'Cuota 2 — Prueba Intermedia', amount: project.payment_2_amount, status: project.payment_2_status, date: project.payment_2_date },
+            { name: 'Cuota 3 — Contra Entrega', amount: project.payment_3_amount, status: project.payment_3_status, date: project.payment_3_date },
+        ].filter(c => c.amount > 0);
+        
+        totalPaid = cuotasList.filter(c => c.status === 'paid').reduce((acc, curr) => acc + curr.amount, 0);
+    }
+
+    const pendingBalance = totalValue - totalPaid;
+    const paidCount = cuotasList.filter(c => c.status === 'paid').length;
+
+    const contractData = {
+        customerName: project.customers?.full_name || '',
+        customerRut: project.customers?.rut || '',
+        customerPhone: project.customers?.phone || '',
+        customerEmail: project.customers?.email || '',
+        projectType: project.project_type,
+        serviceType: project.service_type,
+        description: project.description || '',
+        eventDate: project.event_date || '',
+        eventVenue: project.event_venue || '',
+        totalAmount: totalValue,
+        payment1: project.payment_1_amount,
+        payment2: project.payment_2_amount,
+        payment3: project.payment_3_amount,
+        milestones: (project.milestones || []).map((m: any) => ({ title: m.title, scheduledDate: m.scheduled_date })),
+        contractNotes: project.contract_notes || '',
+        materialsNotes: project.materials_notes || '',
+    };
+
+    function handleRutChange(e: React.ChangeEvent<HTMLInputElement>) {
+        setRutValue(formatRut(e.target.value));
+    }
+    
+    function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
+        setPhoneValue(formatPhoneDigits(e.target.value));
+    }
+
+    // RENDER: Dashboard principal de la novia
+    return (
+        <div className="min-h-screen bg-[#070707] text-white font-sans flex flex-col justify-between" style={{ backgroundImage: "radial-gradient(circle at top, #141414 0%, #070707 100%)" }}>
+            
+            {/* Top Navigation / Title */}
+            <header className="border-b border-white/5 bg-[#0C0C0C]/80 backdrop-blur-md sticky top-0 z-40 py-5 px-6">
+                <div className="max-w-5xl mx-auto flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                        <Heart className="w-5 h-5 text-[#C17F5F] animate-pulse" />
+                        <div>
+                            <span className="font-serif text-xl tracking-[0.2em] font-black text-white">ELENA</span>
+                            <span className="text-[8px] uppercase tracking-[0.4em] text-gray-500 block">Portal Privado</span>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-6">
+                        <span className="hidden md:inline text-[10px] uppercase tracking-widest text-gray-400 font-light">
+                            Hola, {project.customers?.full_name?.split(' ')[0] || 'Novia'}
+                        </span>
+                        <Link href="/" className="text-gray-500 hover:text-white transition-colors flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold">
+                            <LogOut className="w-3.5 h-3.5" /> Salir
+                        </Link>
+                    </div>
+                </div>
+            </header>
+
+            {/* Main Content Area */}
+            <main className="max-w-5xl w-full mx-auto px-6 py-10 flex-1 space-y-10">
+                
+                {/* Hero Header */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-[#111111]/40 border border-white/5 p-6 rounded-lg backdrop-blur-sm">
+                    <div>
+                        <div className="text-[#C17F5F] text-[10px] tracking-widest uppercase font-bold mb-2 flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 animate-spin-slow" /> Tu Experiencia de Alta Costura
+                        </div>
+                        <h1 className="font-serif text-3xl md:text-4xl italic text-white font-light">
+                            Vestido de {project.customers?.full_name?.split(' ')[0] || 'Novia'}
+                        </h1>
+                        <p className="text-xs text-gray-400 mt-2 font-light">
+                            {formatDateLong(project.event_date)} · {project.event_venue || 'Santiago'}
+                        </p>
+                    </div>
+
+                    {daysUntilEvent !== null && (
+                        <div className="text-left md:text-right border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-8 shrink-0">
+                            <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Días para el gran día</p>
+                            <p className="text-5xl font-serif text-[#C17F5F] mt-1 font-light">{daysUntilEvent}</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Design Freeze Alert */}
+                {designFreezeDate && daysUntilFreeze !== null && (
+                    <div className={`p-5 rounded-lg border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 backdrop-blur-md ${
+                        daysUntilFreeze <= 30 
+                            ? 'bg-red-950/20 border-red-500/30 text-red-200' 
+                            : 'bg-amber-950/10 border-amber-500/20 text-amber-200'
+                    }`}>
+                        <div className="flex items-start gap-3">
+                            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                            <div>
+                                <h3 className="font-bold text-xs uppercase tracking-widest">Congelación de Diseño</h3>
+                                <p className="text-xs mt-1 font-light leading-relaxed">
+                                    Quedan **{daysUntilFreeze} días** ({formatDate(designFreezeDate.toISOString())}) para definir la idea final del diseño de tu vestido. A partir de esa fecha no se podrán realizar cambios de diseño o silueta para garantizar el cumplimiento de los tiempos del taller.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Dashboard Tabs Bar */}
+                <div className="flex border-b border-white/5 gap-1 overflow-x-auto">
+                    {[
+                        { id: 'dashboard', label: 'Mi Vestido', icon: Calendar },
+                        { id: 'payments', label: 'Pagos y Estado', icon: DollarSign },
+                        { id: 'moodboard', label: 'Inspiración', icon: Heart },
+                        { id: 'contract', label: 'Contrato', icon: FileText },
+                    ].map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id as any)}
+                            className={`pb-3 px-5 text-xs uppercase tracking-widest font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
+                                activeTab === tab.id ? 'border-[#C17F5F] text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+                            }`}
+                        >
+                            <tab.icon className="w-3.5 h-3.5" />
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
+
+                {/* TAB: Dashboard / Cronograma */}
+                {activeTab === 'dashboard' && (
+                    <div className="space-y-6">
+                        <div className="bg-[#111111]/80 border border-white/10 p-6 md:p-8 rounded-lg backdrop-blur-md">
+                            <h2 className="font-serif text-xl text-white italic mb-6">Planificación de Pruebas</h2>
+                            {project.milestones && project.milestones.length > 0 ? (
+                                <div className="space-y-4">
+                                    {project.milestones.map((milestone: any, idx: number) => {
+                                        const isCompleted = milestone.status === 'completed';
+                                        return (
+                                            <div key={milestone.id} className={`flex items-start gap-4 p-4 rounded border ${
+                                                isCompleted ? 'bg-emerald-950/10 border-emerald-500/20 text-emerald-200' : 'bg-[#181818] border-white/5 text-gray-300'
+                                            }`}>
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                                                    isCompleted ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/50'
+                                                }`}>
+                                                    {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
+                                                </div>
+                                                <div>
+                                                    <h3 className={`font-bold text-xs uppercase tracking-widest ${isCompleted ? 'line-through text-emerald-500' : 'text-white'}`}>
+                                                        {milestone.title}
+                                                    </h3>
+                                                    <p className="text-xs mt-1 font-light flex items-center gap-1.5 text-gray-400">
+                                                        <Clock className="w-3.5 h-3.5 text-[#C17F5F]" />
+                                                        {milestone.scheduled_date ? formatDateLong(milestone.scheduled_date) : 'Por programar'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <p className="text-xs text-gray-500 font-light">Tu cronograma se está planificando. Nos comunicaremos contigo para agendar tus primeras pruebas.</p>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* TAB: Payments */}
+                {activeTab === 'payments' && (
+                    <div className="space-y-6">
+                        <div className="bg-[#111111]/80 border border-white/10 p-6 md:p-8 rounded-lg backdrop-blur-md space-y-6">
+                            
+                            {/* Visual balance card */}
+                            <div className="bg-[#181818] border border-white/5 p-6 rounded-lg grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
+                                <div>
+                                    <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Valor Total del Vestido</p>
+                                    <p className="text-2xl font-serif mt-1 text-white font-light">{formatCurrency(totalValue)}</p>
+                                </div>
+                                <div className="sm:text-center">
+                                    <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Total Pagado</p>
+                                    <p className="text-2xl font-serif mt-1 text-emerald-400 font-light">{formatCurrency(totalPaid)}</p>
+                                </div>
+                                <div className="sm:text-right">
+                                    <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Saldo Pendiente</p>
+                                    <p className={`text-2xl font-serif mt-1 font-light ${pendingBalance > 0 ? 'text-[#C17F5F]' : 'text-gray-500'}`}>
+                                        {formatCurrency(pendingBalance)}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Installments checklist */}
+                            <div className="space-y-4">
+                                <h3 className="text-xs uppercase tracking-widest font-bold text-gray-400 border-b border-white/5 pb-2">Plan de Vencimientos</h3>
+                                {cuotasList.map((cuota, idx) => (
+                                    <div key={idx} className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded border ${
+                                        cuota.status === 'paid' ? 'bg-emerald-950/10 border-emerald-500/20' : 'bg-[#181818] border-white/5'
+                                    }`}>
+                                        <div>
+                                            <h4 className="font-bold text-xs uppercase tracking-widest text-white">{cuota.name}</h4>
+                                            {cuota.status === 'paid' && cuota.date && (
+                                                <p className="text-[10px] text-emerald-500 mt-1 font-light">Confirmado el {formatDate(cuota.date)}</p>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-4 self-end sm:self-auto">
+                                            <span className="text-sm font-bold text-white">{formatCurrency(cuota.amount)}</span>
+                                            {cuota.status === 'paid' ? (
+                                                <span className="text-[8px] uppercase tracking-widest font-black text-emerald-500 bg-emerald-950/30 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+                                                    Pagado ✓
+                                                </span>
+                                            ) : (
+                                                <a 
+                                                    href={`/pagar/${projectId}?amount=${cuota.amount}`}
+                                                    className="text-[9px] uppercase tracking-widest font-bold border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-white px-3.5 py-1.5 rounded transition-all"
+                                                >
+                                                    Pagar en Línea
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* TAB: Moodboard */}
+                {activeTab === 'moodboard' && (
+                    <InspirationMoodboard projectId={projectId} />
+                )}
+
+                {/* TAB: Contract */}
+                {activeTab === 'contract' && (
+                    <div className="space-y-6">
+                        <div className="bg-[#111111]/80 border border-white/10 p-6 md:p-8 rounded-lg backdrop-blur-md">
+                            <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+                                <h2 className="font-serif text-xl text-white italic">Copia de tu Contrato</h2>
+                                <button 
+                                    onClick={() => window.print()} 
+                                    className="text-[9px] uppercase tracking-widest font-bold border border-white/20 hover:border-white text-gray-300 hover:text-white px-4 py-2 rounded transition-all"
+                                >
+                                    Imprimir / Descargar PDF
+                                </button>
+                            </div>
+                            <div className="bg-white text-gray-900 p-6 sm:p-10 rounded shadow-inner overflow-x-auto">
+                                <ContractTemplate data={contractData} />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+            </main>
+
+            {/* Premium Footer */}
+            <footer className="border-t border-white/5 py-8 bg-[#0C0C0C] text-center text-[10px] text-gray-600 uppercase tracking-[0.2em] font-light">
+                Elena Atelier &copy; {new Date().getFullYear()} · Alta Costura a Medida · Vitacura, Chile
+            </footer>
         </div>
     );
 }

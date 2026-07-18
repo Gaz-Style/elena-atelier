@@ -81,7 +81,7 @@ export async function getBridalProjects(filters?: { status?: string; projectType
 export async function getBridalProjectById(id: string) {
     const supabase = getAdminClient();
     
-    const [projectRes, milestonesRes, measurementsRes] = await Promise.all([
+    const [projectRes, milestonesRes, measurementsRes, workOrderRes] = await Promise.all([
         supabase
             .from('bridal_projects')
             .select('*, customers(id, full_name, email, phone, rut, measurements)')
@@ -97,6 +97,11 @@ export async function getBridalProjectById(id: string) {
             .select('*')
             .eq('project_id', id)
             .order('created_at', { ascending: true }),
+        supabase
+            .from('work_orders')
+            .select('id, payment_plan, paid_amount, total_amount')
+            .eq('legacy_bridal_project_id', id)
+            .maybeSingle(),
     ]);
     
     if (projectRes.error) {
@@ -1341,5 +1346,163 @@ export async function updateMilestoneDateAction(
     }
 }
 
+// ─── Moodboard / Inspirations Server Actions ───────────────────
 
+export async function getBridalInspirations(projectId: string) {
+    const supabase = getAdminClient();
+    
+    // Try primary table query
+    const { data, error } = await supabase
+        .from('bridal_inspirations')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
+        
+    if (!error) {
+        return data || [];
+    }
+    
+    // Fallback: Parse from materials_notes in bridal_projects
+    console.log('Falling back to materials_notes for inspirations...');
+    const { data: project } = await supabase
+        .from('bridal_projects')
+        .select('materials_notes')
+        .eq('id', projectId)
+        .single();
+        
+    if (!project || !project.materials_notes) return [];
+    
+    const parts = project.materials_notes.split('--- INSPIRATION_MOODBOARD ---');
+    if (parts.length < 2) return [];
+    
+    try {
+        return JSON.parse(parts[1].trim()) || [];
+    } catch (e) {
+        console.error('Error parsing inspirations JSON fallback:', e);
+        return [];
+    }
+}
 
+export async function addBridalInspiration(projectId: string, imageUrl: string, category: string, notes: string = '') {
+    const supabase = getAdminClient();
+    
+    // Try primary table insert
+    const { data, error } = await supabase
+        .from('bridal_inspirations')
+        .insert([{
+            project_id: projectId,
+            image_url: imageUrl,
+            category,
+            notes
+        }])
+        .select();
+        
+    if (!error) {
+        revalidatePath(`/portal-novias/${projectId}`);
+        return { success: true, data };
+    }
+    
+    // Fallback: append to materials_notes JSON list
+    console.log('Insert failed, falling back to appending to materials_notes...', error.message);
+    const { data: project } = await supabase
+        .from('bridal_projects')
+        .select('materials_notes')
+        .eq('id', projectId)
+        .single();
+        
+    let baseNotes = '';
+    let inspirations = [];
+    
+    if (project && project.materials_notes) {
+        const parts = project.materials_notes.split('--- INSPIRATION_MOODBOARD ---');
+        baseNotes = parts[0];
+        if (parts.length >= 2) {
+            try {
+                inspirations = JSON.parse(parts[1].trim()) || [];
+            } catch (e) {
+                console.error('Error parsing fallback list:', e);
+            }
+        }
+    }
+    
+    const newItem = {
+        id: Math.random().toString(36).substring(2, 11),
+        project_id: projectId,
+        image_url: imageUrl,
+        category,
+        notes,
+        created_at: new Date().toISOString()
+    };
+    
+    inspirations.unshift(newItem);
+    
+    const updatedNotes = `${baseNotes.trim()}\n\n--- INSPIRATION_MOODBOARD ---\n${JSON.stringify(inspirations, null, 2)}`;
+    
+    // Update bridal_projects
+    await supabase
+        .from('bridal_projects')
+        .update({ materials_notes: updatedNotes })
+        .eq('id', projectId);
+        
+    // Update work_orders to keep in sync
+    await supabase
+        .from('work_orders')
+        .update({ materials_notes: updatedNotes })
+        .eq('legacy_bridal_project_id', projectId);
+        
+    revalidatePath(`/portal-novias/${projectId}`);
+    return { success: true, data: [newItem] };
+}
+
+export async function deleteBridalInspiration(projectId: string, inspirationId: string) {
+    const supabase = getAdminClient();
+    
+    // Try primary table delete
+    const { error } = await supabase
+        .from('bridal_inspirations')
+        .delete()
+        .eq('id', inspirationId);
+        
+    if (!error) {
+        revalidatePath(`/portal-novias/${projectId}`);
+        return { success: true };
+    }
+    
+    // Fallback: remove from materials_notes JSON list
+    console.log('Delete failed, falling back to materials_notes update...', error.message);
+    const { data: project } = await supabase
+        .from('bridal_projects')
+        .select('materials_notes')
+        .eq('id', projectId)
+        .single();
+        
+    if (!project || !project.materials_notes) return { success: false, error: 'Proyecto no encontrado' };
+    
+    const parts = project.materials_notes.split('--- INSPIRATION_MOODBOARD ---');
+    if (parts.length < 2) return { success: false, error: 'Inspiración no encontrada' };
+    
+    let inspirations = [];
+    try {
+        inspirations = JSON.parse(parts[1].trim()) || [];
+    } catch (e) {
+        return { success: false, error: 'Error al parsear el moodboard' };
+    }
+    
+    const filtered = inspirations.filter((item: any) => item.id !== inspirationId);
+    const updatedNotes = `${parts[0].trim()}\n\n--- INSPIRATION_MOODBOARD ---\n${JSON.stringify(filtered, null, 2)}`;
+    
+    // Update bridal_projects
+    await supabase
+        .from('bridal_projects')
+        .update({ materials_notes: updatedNotes })
+        .eq('id', projectId);
+        
+    // Update work_orders
+    await supabase
+        .from('work_orders')
+        .update({ materials_notes: updatedNotes })
+        .eq('legacy_bridal_project_id', projectId);
+        
+    revalidatePath(`/portal-novias/${projectId}`);
+    return { success: true };
+}
