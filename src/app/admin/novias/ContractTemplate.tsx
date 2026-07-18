@@ -20,7 +20,7 @@ interface ContractData {
     contractNotes: string;
     materialsNotes?: string;
     paymentPlan?: {
-        cuotas: { name: string; amount: number; status: string; date?: string; moment?: string }[];
+        cuotas: { name: string; amount: number; status: string; date?: string; moment?: string; monto?: number }[];
     } | null;
 }
 
