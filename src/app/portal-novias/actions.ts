@@ -3,8 +3,8 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-function getSupabaseClient() {
-    const cookieStore = cookies();
+async function getSupabaseClient() {
+    const cookieStore = await cookies();
     return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -31,7 +31,7 @@ function getSupabaseClient() {
 
 export async function loginBridalPortal(email: string, rutBody: string) {
     try {
-        const supabase = getSupabaseClient();
+        const supabase = await getSupabaseClient();
         
         // Find the customer by email
         const { data: customers, error: customerError } = await supabase
