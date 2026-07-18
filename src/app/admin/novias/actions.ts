@@ -852,7 +852,7 @@ export async function sendBridalContractEmailAction(projectId: string) {
             from: '"Elena Atelier" <contacto@elenalacosturera.cl>',
             to: customerEmail,
             subject: `Revisión de Contrato y Presupuesto - ${customerName}`,
-            text: `Estimada ${customerName},\n\nTe hemos enviado tu contrato y presupuesto para revisión.\n\nPuedes ingresar a tu portal privado en el siguiente enlace:\n${portalLink}\n\nAtentamente,\nElena Atelier`,
+            text: `Estimada ${customerName},\n\nTe hemos enviado tu contrato y presupuesto para revisión.\n\nPuedes ingresar a tu portal privado en el siguiente enlace:\n${proposalLink}\n\nAtentamente,\nElena Atelier`,
             html: htmlContent
         });
 
