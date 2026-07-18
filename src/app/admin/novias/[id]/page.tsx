@@ -551,14 +551,20 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             ))}
 
                             {/* Summary */}
-                            <div className="bg-zinc-900 text-white p-6 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div className="bg-zinc-900 text-white p-6 rounded-xl grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
                                 <div>
-                                    <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Saldo Pendiente</p>
-                                    <p className="text-2xl font-serif mt-1">{formatCurrency(project.total_amount - paidAmount)}</p>
+                                    <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Valor Total del Vestido</p>
+                                    <p className="text-2xl font-serif mt-1 text-zinc-100">{formatCurrency(project.total_amount)}</p>
                                 </div>
-                                <div className="sm:text-right">
+                                <div className="sm:text-center">
                                     <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Total Pagado</p>
                                     <p className="text-2xl font-serif mt-1 text-emerald-400">{formatCurrency(paidAmount)}</p>
+                                </div>
+                                <div className="sm:text-right">
+                                    <p className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">Saldo Pendiente</p>
+                                    <p className={`text-2xl font-serif mt-1 ${project.total_amount - paidAmount > 0 ? 'text-rose-400' : 'text-zinc-400'}`}>
+                                        {formatCurrency(project.total_amount - paidAmount)}
+                                    </p>
                                 </div>
                             </div>
                         </div>
