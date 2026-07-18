@@ -29,7 +29,7 @@ export default function BridalInductionPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+            <div className="min-h-screen bg-[#F5F5F0] flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-[#C17F5F]" />
             </div>
         );
@@ -37,9 +37,9 @@ export default function BridalInductionPage() {
 
     if (!project) {
         return (
-            <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center p-6 text-center">
-                <h1 className="text-2xl font-serif text-white mb-2">Proyecto no encontrado</h1>
-                <p className="text-zinc-400">No hemos podido encontrar la información de tu proyecto.</p>
+            <div className="min-h-screen bg-[#F5F5F0] flex flex-col items-center justify-center p-6 text-center">
+                <h1 className="text-2xl font-serif text-[#1A1A1A] mb-2">Proyecto no encontrado</h1>
+                <p className="text-zinc-600">No hemos podido encontrar la información de tu proyecto.</p>
             </div>
         );
     }
@@ -47,20 +47,20 @@ export default function BridalInductionPage() {
     const customerName = project.customers?.full_name?.split(' ')[0] || 'Futura Novia';
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col items-center justify-center p-4 sm:p-8 relative">
+        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] flex flex-col items-center justify-center p-4 sm:p-8 relative">
             
             {/* Elegant Header */}
             <div className="absolute top-8 left-0 w-full text-center z-10 px-4">
                 <p className="text-[#C17F5F] text-[10px] uppercase tracking-[4px] font-bold mb-2">
                     BIENVENIDA A LA EXPERIENCIA
                 </p>
-                <h1 className="font-serif text-3xl md:text-4xl italic text-white/90">
+                <h1 className="font-serif text-3xl md:text-4xl italic text-[#1A1A1A]/90">
                     Hola, {customerName}
                 </h1>
             </div>
 
             {/* Video Container - formato vertical 9:16 */}
-            <div className="w-full max-w-sm mx-auto rounded-xl overflow-hidden shadow-2xl shadow-[#C17F5F]/10 border border-white/10 bg-black mt-20 relative z-20 group">
+            <div className="w-full max-w-sm mx-auto rounded-xl overflow-hidden shadow-[0_20px_60px_rgba(193,127,95,0.08)] shadow-[#C17F5F]/10 border border-[#C17F5F]/20 bg-black mt-20 relative z-20 group">
                 <video 
                     controls
                     className="w-full aspect-[9/16] object-contain bg-black"
@@ -88,9 +88,9 @@ export default function BridalInductionPage() {
                 
                 {/* Text Overlay on Poster */}
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 bg-black/40 backdrop-blur-[2px] transition-opacity duration-500">
-                    <div className="border border-white/20 bg-[#0A0A0A]/60 p-6 rounded-lg backdrop-blur-md shadow-2xl text-center max-w-[90%] transform transition-transform">
-                        <h3 className="font-serif italic text-xl text-white/90 mb-3">Tu Vestido Soñado</h3>
-                        <p className="text-zinc-300 font-light text-xs leading-relaxed tracking-wide">
+                    <div className="border border-[#C17F5F]/30 bg-[#F5F5F0]/60 p-6 rounded-lg backdrop-blur-md shadow-[0_20px_60px_rgba(193,127,95,0.08)] text-center max-w-[90%] transform transition-transform">
+                        <h3 className="font-serif italic text-xl text-[#1A1A1A]/90 mb-3">Tu Vestido Soñado</h3>
+                        <p className="text-zinc-700 font-light text-xs leading-relaxed tracking-wide">
                             Como parte del proceso, hemos preparado este breve video donde te explicamos el paso a paso que seguiremos. 
                             Te pedimos revisarlo para saber qué es lo que viene a continuación y guiarte fácilmente dentro de tu portal.
                         </p>
@@ -106,7 +106,7 @@ export default function BridalInductionPage() {
                 
                 <Link 
                     href={`/portal-novias/${params.id}`}
-                    className="inline-flex items-center gap-3 bg-transparent border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-white px-8 py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all group"
+                    className="inline-flex items-center gap-3 bg-transparent border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-[#C17F5F] px-8 py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all group"
                 >
                     Ir a mi Portal <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>

@@ -13,9 +13,9 @@ export default function PortalNoviasPagoExitosoPage() {
             <main className="flex-1 w-full max-w-2xl mx-auto px-6 py-12 md:py-24 relative z-10 flex flex-col items-center justify-center">
                 
                 {/* Main Card */}
-                <div className="bg-white rounded-sm shadow-2xl p-10 md:p-16 relative text-center w-full">
+                <div className="bg-white rounded-sm shadow-[0_20px_60px_rgba(193,127,95,0.08)] p-10 md:p-16 relative text-center w-full">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-[#F8F6F0] rounded-full flex items-center justify-center shadow-inner">
-                        <div className="w-16 h-16 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                        <div className="w-16 h-16 rounded-full bg-emerald-500 text-[#1A1A1A] flex items-center justify-center shadow-lg shadow-emerald-500/30">
                             <Heart className="w-8 h-8" />
                         </div>
                     </div>
@@ -39,7 +39,7 @@ export default function PortalNoviasPagoExitosoPage() {
 
                     <Link 
                         href="/" 
-                        className="text-[10px] uppercase tracking-widest font-bold text-gray-400 hover:text-gray-800 transition-colors"
+                        className="text-[10px] uppercase tracking-widest font-bold text-gray-600 hover:text-gray-800 transition-colors"
                     >
                         Volver al inicio
                     </Link>

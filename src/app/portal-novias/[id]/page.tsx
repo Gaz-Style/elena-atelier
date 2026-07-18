@@ -237,7 +237,7 @@ export default function PortalNoviasPage() {
                 
                 {/* Contract Pending Warning Popup/Banner */}
                 {!isContractAccepted && (
-                    <div className="bg-[#FFF9F2] border border-[#C17F5F]/30 p-6 rounded-lg flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xl shadow-[#C17F5F]/5">
+                    <div className="bg-[#FFF9F2] border border-[#C17F5F]/30 p-6 rounded-lg flex flex-col md:flex-row items-center justify-between gap-4 shadow-[0_20px_60px_rgba(193,127,95,0.08)] shadow-[#C17F5F]/5">
                         <div className="flex items-center gap-4">
                             <div className="bg-[#C17F5F]/20 p-3 rounded-full">
                                 <AlertCircle className="w-6 h-6 text-[#C17F5F]" />
@@ -429,7 +429,7 @@ export default function PortalNoviasPage() {
                                 <h2 className="font-serif text-xl text-[#1A1A1A] italic">Copia de tu Contrato</h2>
                                 <button 
                                     onClick={() => window.print()} 
-                                    className="text-[9px] uppercase tracking-widest font-bold border border-white/20 hover:border-white text-[#4A4A4A] hover:text-[#C17F5F] px-4 py-2 rounded transition-all"
+                                    className="text-[9px] uppercase tracking-widest font-bold border border-[#C17F5F]/30 hover:border-white text-[#4A4A4A] hover:text-[#C17F5F] px-4 py-2 rounded transition-all"
                                 >
                                     Imprimir / Descargar PDF
                                 </button>

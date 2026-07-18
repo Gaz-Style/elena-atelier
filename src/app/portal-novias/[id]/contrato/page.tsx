@@ -453,7 +453,7 @@ export default function PortalNoviasContratoPage() {
                             {Array.from(project.materials_notes.matchAll(/!\[Referencia(?: \d+)?\]\((data:image\/[^;]+;base64,[^\)]+)\)/g)).length > 0 && (
                                 <div className="flex flex-wrap gap-4 mt-4">
                                     {Array.from(project.materials_notes.matchAll(/!\[Referencia(?: \d+)?\]\((data:image\/[^;]+;base64,[^\)]+)\)/g)).map((match: any, idx) => (
-                                        <img key={idx} src={match[1]} className="max-w-[250px] max-h-[300px] object-contain border border-white/20 rounded shadow-sm" alt="Foto de Referencia" />
+                                        <img key={idx} src={match[1]} className="max-w-[250px] max-h-[300px] object-contain border border-[#C17F5F]/30 rounded shadow-sm" alt="Foto de Referencia" />
                                     ))}
                                 </div>
                             )}
@@ -512,7 +512,7 @@ export default function PortalNoviasContratoPage() {
                             className={`w-full py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all flex justify-center items-center gap-3 group ${
                                 submitting || (!accepted && !project.contract_accepted)
                                     ? 'bg-gray-200 border border-gray-300 text-gray-500 cursor-not-allowed opacity-60'
-                                    : 'bg-[#C17F5F] border border-[#C17F5F] text-white hover:bg-[#a96e51] hover:border-[#a96e51] shadow-lg hover:shadow-xl'
+                                    : 'bg-[#C17F5F] border border-[#C17F5F] text-[#1A1A1A] hover:bg-[#a96e51] hover:border-[#a96e51] shadow-lg hover:shadow-xl'
                             }`}
                         >
                             {submitting ? (

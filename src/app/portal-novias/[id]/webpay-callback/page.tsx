@@ -62,7 +62,7 @@ function ErrorView({ projectId, message }: { projectId: string; message: string 
             <p className="text-gray-500 mb-8 max-w-md">{message}</p>
             <Link 
                 href={`/portal-novias/${projectId}/pagar`}
-                className="bg-[#1A1A1A] text-white px-8 py-3 rounded-sm text-sm uppercase tracking-widest font-bold hover:bg-[#C17F5F] transition-colors"
+                className="bg-[#1A1A1A] text-[#1A1A1A] px-8 py-3 rounded-sm text-sm uppercase tracking-widest font-bold hover:bg-[#C17F5F] transition-colors"
             >
                 Volver a intentar
             </Link>

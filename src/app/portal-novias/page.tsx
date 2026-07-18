@@ -73,7 +73,7 @@ export default function BridalPortalLoginPage() {
 
                     <form onSubmit={handleLogin} className="space-y-6">
                         <div className="space-y-1 relative group">
-                            <label className="text-[9px] text-gray-400 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F]">Correo Electrónico</label>
+                            <label className="text-[9px] text-gray-600 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F]">Correo Electrónico</label>
                             <input 
                                 type="email" 
                                 required 
@@ -84,7 +84,7 @@ export default function BridalPortalLoginPage() {
                             />
                         </div>
                         <div className="space-y-1 relative group pt-2">
-                            <label className="text-[9px] text-gray-400 uppercase tracking-widest absolute -top-2 left-0 transition-colors group-focus-within:text-[#C17F5F]">RUT (Sin dígito verificador)</label>
+                            <label className="text-[9px] text-gray-600 uppercase tracking-widest absolute -top-2 left-0 transition-colors group-focus-within:text-[#C17F5F]">RUT (Sin dígito verificador)</label>
                             <input 
                                 type="text" 
                                 required 
@@ -100,7 +100,7 @@ export default function BridalPortalLoginPage() {
                             <button 
                                 type="submit" 
                                 disabled={loading}
-                                className="w-full border border-[#C17F5F] bg-[#C17F5F] text-white hover:bg-[#a96e51] py-4 rounded text-[10px] font-bold uppercase tracking-widest transition-all flex justify-center items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
+                                className="w-full border border-[#C17F5F] bg-[#C17F5F] text-[#1A1A1A] hover:bg-[#a96e51] py-4 rounded text-[10px] font-bold uppercase tracking-widest transition-all flex justify-center items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
                             >
                                 {loading ? (
                                     <><Loader2 className="w-4 h-4 animate-spin" /> Verificando...</>
@@ -116,7 +116,7 @@ export default function BridalPortalLoginPage() {
                 </div>
                 
                 <div className="text-center mt-8">
-                    <p className="text-[9px] text-gray-400 uppercase tracking-widest flex items-center justify-center gap-1">
+                    <p className="text-[9px] text-gray-600 uppercase tracking-widest flex items-center justify-center gap-1">
                         <Sparkles className="w-3 h-3 text-[#C17F5F]" /> Elena Atelier &middot; Santiago de Chile
                     </p>
                 </div>
