@@ -14,6 +14,7 @@ export default function Navbar() {
     if (pathname.startsWith('/admin')) return null;
 
     const navLinks = [
+        { href: '/portal-novias', label: 'Portal Novia' },
         { href: '/restauracion', label: 'Restauración' },
         { href: '/sastreria', label: 'Sastrería' },
         { href: '/portafolio', label: 'Portafolio' },
