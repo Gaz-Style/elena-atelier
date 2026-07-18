@@ -1645,23 +1645,63 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
 
     // El buyOrder de Transbank viene con el formato "order_123" o "budget_123"
     // Pero en production_orders el pos_order_id es "order_123" completo, así que actualizamos usando eso.
-    // Actualizar Planilla de Ventas
-    const internalId = posOrderId; // O si guardamos un ID distinto
+    // El buyOrder de Transbank viene con el formato "order_123" o "budget_123"
+    // Pero en production_orders el pos_order_id es "order_123" completo, así que actualizamos usando eso.
+    const internalId = posOrderId;
     
-    // Obtener total_amount
-    const { data: salesData } = await supabase
+    // 1. Obtener los datos actuales de la venta principal (sales_ledger)
+    const { data: saleData } = await supabase
         .from('sales_ledger')
-        .select('total_amount')
+        .select('*')
         .eq('internal_id', internalId)
         .single();
         
-    const finalTotal = salesData?.total_amount || 0;
-    const finalPaid = amountPaid !== undefined ? amountPaid : finalTotal;
+    if (!saleData) {
+        console.error('Venta no encontrada para:', posOrderId);
+        return { success: false, error: 'Venta no encontrada' };
+    }
+
+    // 2. Buscar si existe una transacción de saldo pendiente en sales_ledger (ej. order_25182_balance_xxxx)
+    const { data: pendingBalanceRow } = await supabase
+        .from('sales_ledger')
+        .select('*')
+        .like('internal_id', `${internalId}_balance_%`)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    let finalPaid = 0;
+    const finalTotal = saleData.total_amount || 0;
+
+    if (pendingBalanceRow) {
+        // ES UN PAGO DE SALDO: Acumular al monto que ya estaba pagado
+        const paidNow = amountPaid !== undefined ? amountPaid : pendingBalanceRow.total_amount;
+        finalPaid = Number(saleData.paid_amount || 0) + Number(paidNow);
+        
+        // Completar la fila de balance pendiente
+        await supabase
+            .from('sales_ledger')
+            .update({
+                status: 'completed',
+                paid_amount: paidNow,
+                payment_method: 'transbank' // Webpay Plus
+            })
+            .eq('id', pendingBalanceRow.id);
+    } else {
+        // PAGO INICIAL O TOTAL NORMAL
+        finalPaid = amountPaid !== undefined ? amountPaid : finalTotal;
+    }
+
     const isFullPayment = finalPaid >= finalTotal;
 
     const { error: salesError } = await supabase
         .from('sales_ledger')
-        .update({ status: isFullPayment ? 'completed' : 'partial', paid_amount: finalPaid })
+        .update({ 
+            status: isFullPayment ? 'completed' : 'partial', 
+            paid_amount: finalPaid,
+            payment_method: 'transbank'
+        })
         .eq('internal_id', internalId);
         
     const baseOrderId = posOrderId.split('_balance_')[0];
@@ -1669,17 +1709,21 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
     // Actualizar production_orders con el paid_amount también
     const { error: prodError } = await supabase
         .from('production_orders')
-        .update({ payment_status: isFullPayment ? 'paid' : 'partial', status: 'pending', paid_amount: finalPaid }) // Pasamos status a pending ya que estaba en draft
+        .update({ 
+            payment_status: isFullPayment ? 'paid' : 'partial', 
+            status: 'pending', 
+            paid_amount: finalPaid,
+            payment_method: 'transbank'
+        })
         .eq('pos_order_id', baseOrderId);
         
     if (prodError) {
-        console.error('Error updating order to paid:', prodError);
+        console.error('Error updating order to paid in production:', prodError);
         return { success: false, error: prodError.message };
     }
         
     if (salesError) {
-        console.error('Error updating sales ledger:', salesError);
-        // No retornamos error fatal si ya se actualizó la producción, pero queda logueado.
+        console.error('Error updating sales ledger in updateOrderStatusToPaidAction:', salesError);
     }
     
     // --- WhatsApp Confirmation ---
