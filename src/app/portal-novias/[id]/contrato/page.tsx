@@ -144,6 +144,7 @@ export default function PortalNoviasContratoPage() {
         milestones: (project.milestones || []).map((m: any) => ({ title: m.title, scheduledDate: m.scheduled_date })),
         contractNotes: project.contract_notes || '',
         materialsNotes: project.materials_notes || '',
+        paymentPlan: project.work_order?.payment_plan || null,
     } : null;
 
     const serviceTypeLabel: Record<string, string> = {
@@ -292,24 +293,37 @@ export default function PortalNoviasContratoPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
-                                    <tr>
-                                        <td className="p-3 font-semibold text-white">Abono Inicial (Reserva)</td>
-                                        <td className="p-3 text-center">50%</td>
-                                        <td className="p-3 text-right font-bold text-[#C17F5F]">{formatCurrency(project.payment_1_amount)}</td>
-                                        <td className="p-3 text-right text-gray-400">Al firmar propuesta</td>
-                                    </tr>
-                                    <tr>
-                                        <td className="p-3 text-gray-300">Segundo Pago</td>
-                                        <td className="p-3 text-center">25%</td>
-                                        <td className="p-3 text-right text-white">{formatCurrency(project.payment_2_amount)}</td>
-                                        <td className="p-3 text-right text-gray-400">En prueba intermedia</td>
-                                    </tr>
-                                    <tr>
-                                        <td className="p-3 text-gray-300">Pago Final</td>
-                                        <td className="p-3 text-center">25%</td>
-                                        <td className="p-3 text-right text-white">{formatCurrency(project.payment_3_amount)}</td>
-                                        <td className="p-3 text-right text-gray-400">Contra entrega del vestido</td>
-                                    </tr>
+                                    {project.work_order?.payment_plan?.cuotas && project.work_order.payment_plan.cuotas.length > 0 ? (
+                                        project.work_order.payment_plan.cuotas.map((cuota: any, index: number) => (
+                                            <tr key={index}>
+                                                <td className="p-3 font-semibold text-white">{cuota.name}</td>
+                                                <td className="p-3 text-center">{((cuota.amount / project.total_amount) * 100).toFixed(1)}%</td>
+                                                <td className="p-3 text-right font-bold text-[#C17F5F]">{formatCurrency(cuota.amount)}</td>
+                                                <td className="p-3 text-right text-gray-400">{cuota.moment || `Cuota ${index + 1} del financiamiento`}</td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <>
+                                            <tr>
+                                                <td className="p-3 font-semibold text-white">Abono Inicial (Reserva)</td>
+                                                <td className="p-3 text-center">50%</td>
+                                                <td className="p-3 text-right font-bold text-[#C17F5F]">{formatCurrency(project.payment_1_amount)}</td>
+                                                <td className="p-3 text-right text-gray-400">Al firmar propuesta</td>
+                                            </tr>
+                                            <tr>
+                                                <td className="p-3 text-gray-300">Segundo Pago</td>
+                                                <td className="p-3 text-center">25%</td>
+                                                <td className="p-3 text-right text-white">{formatCurrency(project.payment_2_amount)}</td>
+                                                <td className="p-3 text-right text-gray-400">En prueba intermedia</td>
+                                            </tr>
+                                            <tr>
+                                                <td className="p-3 text-gray-300">Pago Final</td>
+                                                <td className="p-3 text-center">25%</td>
+                                                <td className="p-3 text-right text-white">{formatCurrency(project.payment_3_amount)}</td>
+                                                <td className="p-3 text-right text-gray-400">Contra entrega del vestido</td>
+                                            </tr>
+                                        </>
+                                    )}
                                     <tr className="bg-white/5 font-bold border-t border-white/10 text-white">
                                         <td className="p-3 text-sm" colSpan={2}>VALOR TOTAL</td>
                                         <td className="p-3 text-right text-sm text-[#C17F5F]">{formatCurrency(project.total_amount)}</td>

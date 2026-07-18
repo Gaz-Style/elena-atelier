@@ -19,6 +19,9 @@ interface ContractData {
     milestones: { title: string; scheduledDate: string }[];
     contractNotes: string;
     materialsNotes?: string;
+    paymentPlan?: {
+        cuotas: { name: string; amount: number; status: string; date?: string; moment?: string }[];
+    } | null;
 }
 
 const formatCurrency = (val: number) =>
@@ -45,6 +48,12 @@ const serviceTypeLabel: Record<string, string> = {
 
 export default function ContractTemplate({ data }: { data: ContractData }) {
     const isVestidoPropio = data.serviceType === 'vestido_propio';
+
+    let designFreezeDate: Date | null = null;
+    if (data.eventDate) {
+        designFreezeDate = new Date(data.eventDate);
+        designFreezeDate.setMonth(designFreezeDate.getMonth() - 4);
+    }
 
     return (
         <div id="contract-content" className="bg-white text-gray-800 font-sans max-w-3xl mx-auto" style={{ fontSize: '13px', lineHeight: '1.6' }}>
@@ -118,24 +127,41 @@ export default function ContractTemplate({ data }: { data: ContractData }) {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr className="border-b border-gray-200">
-                            <td className="py-2">Abono Inicial (Reserva)</td>
-                            <td className="py-2 text-center">50%</td>
-                            <td className="py-2 text-right font-bold">{formatCurrency(data.payment1)}</td>
-                            <td className="py-2 text-right text-gray-500">Al firmar contrato</td>
-                        </tr>
-                        <tr className="border-b border-gray-200">
-                            <td className="py-2">Segundo Pago</td>
-                            <td className="py-2 text-center">25%</td>
-                            <td className="py-2 text-right font-bold">{formatCurrency(data.payment2)}</td>
-                            <td className="py-2 text-right text-gray-500">En prueba intermedia</td>
-                        </tr>
-                        <tr className="border-b border-gray-200">
-                            <td className="py-2">Pago Final</td>
-                            <td className="py-2 text-center">25%</td>
-                            <td className="py-2 text-right font-bold">{formatCurrency(data.payment3)}</td>
-                            <td className="py-2 text-right text-gray-500">Contra entrega</td>
-                        </tr>
+                        {data.paymentPlan && data.paymentPlan.cuotas && data.paymentPlan.cuotas.length > 0 ? (
+                            data.paymentPlan.cuotas.map((cuota, index) => (
+                                <tr key={index} className="border-b border-gray-200">
+                                    <td className="py-2">{cuota.name}</td>
+                                    <td className="py-2 text-center">
+                                        {((cuota.amount / data.totalAmount) * 100).toFixed(1)}%
+                                    </td>
+                                    <td className="py-2 text-right font-bold">{formatCurrency(cuota.amount)}</td>
+                                    <td className="py-2 text-right text-gray-500">
+                                        {cuota.moment || `Cuota ${index + 1} del financiamiento`}
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <>
+                                <tr className="border-b border-gray-200">
+                                    <td className="py-2">Abono Inicial (Reserva)</td>
+                                    <td className="py-2 text-center">50%</td>
+                                    <td className="py-2 text-right font-bold">{formatCurrency(data.payment1)}</td>
+                                    <td className="py-2 text-right text-gray-500">Al firmar contrato</td>
+                                </tr>
+                                <tr className="border-b border-gray-200">
+                                    <td className="py-2">Segundo Pago</td>
+                                    <td className="py-2 text-center">25%</td>
+                                    <td className="py-2 text-right font-bold">{formatCurrency(data.payment2)}</td>
+                                    <td className="py-2 text-right text-gray-500">En prueba intermedia</td>
+                                </tr>
+                                <tr className="border-b border-gray-200">
+                                    <td className="py-2">Pago Final</td>
+                                    <td className="py-2 text-center">25%</td>
+                                    <td className="py-2 text-right font-bold">{formatCurrency(data.payment3)}</td>
+                                    <td className="py-2 text-right text-gray-500">Contra entrega</td>
+                                </tr>
+                            </>
+                        )}
                     </tbody>
                     <tfoot>
                         <tr className="border-t-2 border-gray-800">
@@ -186,13 +212,23 @@ export default function ContractTemplate({ data }: { data: ContractData }) {
                         <div>
                             <h4 className="font-bold text-gray-700">2. Diseño</h4>
                             <p>ATELIER HORTENSIA SPA se compromete a asesorar en todo el proceso de la búsqueda del diseño óptimo para la novia. La novia puede escoger el diseño, color, materiales y tela de fabricación del vestido. Si los materiales en la fábrica no se encuentran en stock, se buscarán los más similares a lo que el cliente quiere (Encajes, bordados, pedrería, flores, macramé, colores, etc.) previa aprobación.</p>
-                            <p className="mt-1"><strong>Posterior al proceso de diseño y solicitud de fabricación, no se pueden hacer cambios estructurales en el diseño del vestido.</strong></p>
+                            <p className="mt-1">
+                                {designFreezeDate ? (
+                                    <strong>Se establece de mutuo acuerdo que el {formatDate(designFreezeDate.toISOString())} (4 meses antes del evento) se congelarán definitivamente las ideas de diseño del vestido, definiendo los materiales y líneas finales para iniciar la producción del calce, no admitiéndose cambios posteriores.</strong>
+                                ) : (
+                                    <strong>Posterior al proceso de diseño y solicitud de fabricación, no se pueden hacer cambios estructurales en el diseño del vestido.</strong>
+                                )}
+                            </p>
                         </div>
                     )}
 
                     <div>
                         <h4 className="font-bold text-gray-700">3. Solicitud y Pago</h4>
-                        <p>Al momento de la firma del contrato y confirmación del servicio, se debe cancelar el <strong>50%</strong> del valor total (Reserva). El <strong>25%</strong> restante se cancelará en la prueba intermedia y el último <strong>25%</strong> contra entrega. El vestido debe estar pagado en su totalidad (100%) al momento de retirarlo.</p>
+                        {data.paymentPlan && data.paymentPlan.cuotas && data.paymentPlan.cuotas.length > 3 ? (
+                            <p>Se acuerda con la clienta el pago del valor total contratado dividido en <strong>{data.paymentPlan.cuotas.length} cuotas mensuales consecutivas</strong> detalladas en la sección de condiciones económicas, las cuales incluyen un recargo de $150.000 por concepto de interés y facilidad de financiamiento en cuotas. El vestido debe estar pagado en su totalidad (100%) al momento de retirarlo.</p>
+                        ) : (
+                            <p>Al momento de la firma del contrato y confirmación del servicio, se debe cancelar el <strong>50%</strong> del valor total (Reserva). El <strong>25%</strong> restante se cancelará en la prueba intermedia y el último <strong>25%</strong> contra entrega. El vestido debe estar pagado en su totalidad (100%) al momento de retirarlo.</p>
+                        )}
                         <p className="mt-1"><strong>Formas de Pago:</strong> Efectivo, Tarjetas de Crédito/Débito y Transferencias Bancarias.</p>
                     </div>
 

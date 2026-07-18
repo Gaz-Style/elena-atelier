@@ -258,6 +258,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         milestones: (project.milestones || []).map((m: any) => ({ title: m.title, scheduledDate: m.scheduled_date })),
         contractNotes: project.contract_notes || '',
         materialsNotes: project.materials_notes || '',
+        paymentPlan: project.work_order?.payment_plan || null,
     };
 
     const measurementLabels: Record<string, string> = {
