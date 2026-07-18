@@ -143,8 +143,17 @@ export default function PortalNoviasPage() {
             <div className="min-h-screen bg-[#0A0A0A] text-white font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle at center, #1A1A1A 0%, #0A0A0A 100%)" }}>
                 <div className="w-full max-w-2xl relative z-10">
                     <div className="text-center mb-12">
-                        <h1 className="font-serif text-3xl md:text-4xl font-black text-white tracking-[0.3em] mb-2">ELENA</h1>
-                        <p className="text-[9px] uppercase tracking-[0.5em] text-white/70 font-bold ml-1">LA COSTURERA</p>
+                        <div className="flex flex-col items-stretch justify-center w-max mx-auto">
+                            <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-white leading-none drop-shadow-sm">
+                                <span>E</span><span>L</span><span>E</span><span>N</span><span>A</span>
+                            </div>
+                            <div
+                                className="font-sans text-[0.65rem] md:text-[0.75rem] font-bold uppercase text-white/70 mt-1 text-center"
+                                style={{ letterSpacing: '0.35em', marginRight: '-0.35em' }}
+                            >
+                                La Costurera
+                            </div>
+                        </div>
                     </div>
 
                     <div className="bg-[#111111]/80 backdrop-blur-md rounded-lg shadow-2xl p-8 md:p-12 border border-white/10 relative">
@@ -517,10 +526,10 @@ export default function PortalNoviasPage() {
                                                 </span>
                                             ) : (
                                                 <a 
-                                                    href={`/pagar/${projectId}?amount=${cuota.amount}`}
+                                                    href={`/portal-novias/${projectId}/pagar`}
                                                     className="text-[9px] uppercase tracking-widest font-bold border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-white px-3.5 py-1.5 rounded transition-all"
                                                 >
-                                                    Pagar en Línea
+                                                    Pagar
                                                 </a>
                                             )}
                                         </div>

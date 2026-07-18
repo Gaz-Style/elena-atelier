@@ -51,8 +51,17 @@ export default function BridalWelcomePage() {
             
             {/* Elegant Header */}
             <div className="absolute top-12 left-0 w-full text-center z-10 px-4">
-                <h1 className="font-serif text-3xl md:text-4xl font-black text-white tracking-[0.3em] mb-2">ELENA</h1>
-                <p className="text-[9px] uppercase tracking-[0.5em] text-white/70 font-bold ml-1">LA COSTURERA</p>
+                <div className="flex flex-col items-stretch justify-center w-max mx-auto">
+                    <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-white leading-none drop-shadow-sm">
+                        <span>E</span><span>L</span><span>E</span><span>N</span><span>A</span>
+                    </div>
+                    <div
+                        className="font-sans text-[0.65rem] md:text-[0.75rem] font-bold uppercase text-white/70 mt-1 text-center"
+                        style={{ letterSpacing: '0.35em', marginRight: '-0.35em' }}
+                    >
+                        La Costurera
+                    </div>
+                </div>
             </div>
 
             <div className="w-full max-w-lg mx-auto relative z-20 text-center mt-20">

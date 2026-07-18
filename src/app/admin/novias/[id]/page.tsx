@@ -8,7 +8,7 @@ import {
     Clock, AlertCircle, FileText, Ruler, Camera, StickyNote, Loader2, Printer,
     ChevronDown, ChevronUp, X, Save, Trash2
 } from 'lucide-react';
-import { getBridalProjectById, registerPayment, registerBridalInstallment, completeMilestone, acceptContract, saveMeasurements, updateBridalProject, cancelProject, sendBridalWelcomeEmailAction, sendBridalInductionEmailAction, deleteBridalProjectAction, updateMilestoneDateAction } from '../actions';
+import { getBridalProjectById, registerPayment, registerBridalInstallment, completeMilestone, acceptContract, saveMeasurements, updateBridalProject, cancelProject, sendBridalWelcomeEmailAction, sendBridalInductionEmailAction, deleteBridalProjectAction, updateMilestoneDateAction, updatePaymentPlanAction } from '../actions';
 import ContractTemplate from '../ContractTemplate';
 
 const formatCurrency = (val: number) =>
@@ -68,6 +68,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     const [editingDate, setEditingDate] = useState<string>('');
     const [editingTime, setEditingTime] = useState<string>('12:00');
     const [notifyClientOnEdit, setNotifyClientOnEdit] = useState<boolean>(false);
+    
+    // Payment Plan editing
+    const [isEditingPaymentPlan, setIsEditingPaymentPlan] = useState(false);
+    const [editingPaymentPlan, setEditingPaymentPlan] = useState<any[]>([]);
     const contractRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -158,8 +162,28 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         const formData = new FormData(e.currentTarget);
         formData.set('project_id', projectId);
         await saveMeasurements(formData);
-        await loadProject(projectId);
         setShowMeasurementForm(false);
+        await loadProject(projectId);
+        setSaving(false);
+    }
+
+    async function handleSavePaymentPlan() {
+        setSaving(true);
+        const totalEditing = editingPaymentPlan.reduce((acc, curr) => acc + (Number(curr.monto || curr.amount) || 0), 0);
+        if (totalEditing !== project.total_amount) {
+            if (!confirm(`La suma de las cuotas (${formatCurrency(totalEditing)}) no coincide con el total del vestido (${formatCurrency(project.total_amount)}). ¿Guardar de todos modos?`)) {
+                setSaving(false);
+                return;
+            }
+        }
+        
+        const res = await updatePaymentPlanAction(projectId, JSON.stringify({ cuotas: editingPaymentPlan }));
+        if (res.success) {
+            setIsEditingPaymentPlan(false);
+            await loadProject(projectId);
+        } else {
+            alert('Error al actualizar plan: ' + res.error);
+        }
         setSaving(false);
     }
 
@@ -545,21 +569,100 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     {/* TAB: Payments */}
                     {activeTab === 'payments' && (
                         <div className="space-y-4">
-                            {hasCustomPlan ? (
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-sm uppercase tracking-widest font-bold text-zinc-400">Plan de Pagos Actual</h2>
+                                {!isEditingPaymentPlan && project.status !== 'cancelado' && (
+                                    <button 
+                                        onClick={() => {
+                                            setEditingPaymentPlan(customCuotas.length > 0 ? JSON.parse(JSON.stringify(customCuotas)) : []);
+                                            setIsEditingPaymentPlan(true);
+                                        }}
+                                        className="text-[10px] bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-3 py-1.5 rounded uppercase tracking-widest font-bold transition-colors"
+                                    >
+                                        Modificar Plan
+                                    </button>
+                                )}
+                            </div>
+                            
+                            {isEditingPaymentPlan ? (
+                                <div className="bg-white border border-rose-200 rounded-xl p-5 shadow-sm mb-6">
+                                    <h3 className="font-bold text-sm text-zinc-800 mb-4">Edición de Cuotas</h3>
+                                    <div className="space-y-3">
+                                        {editingPaymentPlan.map((c, i) => (
+                                            <div key={i} className="flex flex-wrap md:flex-nowrap gap-3 items-end bg-zinc-50 p-3 rounded-lg border border-zinc-200">
+                                                <div className="w-full md:w-1/3">
+                                                    <label className="block text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">Nombre</label>
+                                                    <input type="text" value={c.name || `Cuota ${i+1}`} onChange={(e) => {
+                                                        const newP = [...editingPaymentPlan];
+                                                        newP[i].name = e.target.value;
+                                                        setEditingPaymentPlan(newP);
+                                                    }} className="w-full border border-zinc-300 rounded px-2 py-1 text-sm"/>
+                                                </div>
+                                                <div className="w-full md:w-1/3">
+                                                    <label className="block text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">Monto (CLP)</label>
+                                                    <input type="number" value={c.monto || c.amount || 0} onChange={(e) => {
+                                                        const newP = [...editingPaymentPlan];
+                                                        newP[i].monto = parseInt(e.target.value) || 0;
+                                                        newP[i].amount = newP[i].monto; // sync for legacy logic if needed
+                                                        setEditingPaymentPlan(newP);
+                                                    }} className="w-full border border-zinc-300 rounded px-2 py-1 text-sm"/>
+                                                </div>
+                                                <div className="w-full md:w-1/3">
+                                                    <label className="block text-[10px] uppercase tracking-widest text-zinc-500 font-bold mb-1">Fecha Vencimiento</label>
+                                                    <input type="date" value={c.date || ''} onChange={(e) => {
+                                                        const newP = [...editingPaymentPlan];
+                                                        newP[i].date = e.target.value;
+                                                        setEditingPaymentPlan(newP);
+                                                    }} className="w-full border border-zinc-300 rounded px-2 py-1 text-sm"/>
+                                                </div>
+                                                <button onClick={() => {
+                                                    const newP = [...editingPaymentPlan];
+                                                    newP.splice(i, 1);
+                                                    setEditingPaymentPlan(newP);
+                                                }} className="p-2 text-red-500 hover:bg-red-50 rounded" title="Eliminar Cuota">
+                                                    <Trash2 className="w-4 h-4"/>
+                                                </button>
+                                            </div>
+                                        ))}
+                                        <button onClick={() => {
+                                            setEditingPaymentPlan([...editingPaymentPlan, { numero: editingPaymentPlan.length + 1, name: `Cuota ${editingPaymentPlan.length + 1}`, monto: 0, amount: 0, status: 'pending', date: '' }]);
+                                        }} className="w-full py-2 border-2 border-dashed border-zinc-300 text-zinc-500 rounded-lg text-xs uppercase tracking-widest font-bold hover:border-rose-300 hover:text-rose-500 transition-colors">
+                                            + Agregar Cuota
+                                        </button>
+                                    </div>
+                                    <div className="flex justify-between items-center mt-6 pt-4 border-t border-zinc-200">
+                                        <div className="text-xs">
+                                            <span className="text-zinc-500">Suma total: </span>
+                                            <span className={`font-bold ${editingPaymentPlan.reduce((acc, curr) => acc + (Number(curr.monto || curr.amount) || 0), 0) !== project.total_amount ? 'text-red-500' : 'text-emerald-600'}`}>
+                                                {formatCurrency(editingPaymentPlan.reduce((acc, curr) => acc + (Number(curr.monto || curr.amount) || 0), 0))}
+                                            </span>
+                                            <span className="text-zinc-400 ml-1">/ {formatCurrency(project.total_amount)}</span>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => setIsEditingPaymentPlan(false)} className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 hover:text-zinc-800 px-4 py-2">Cancelar</button>
+                                            <button onClick={handleSavePaymentPlan} disabled={saving} className="bg-zinc-900 hover:bg-emerald-600 text-white text-[10px] uppercase tracking-widest font-bold px-4 py-2 rounded-lg transition-colors disabled:bg-zinc-400">
+                                                Guardar Plan
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : null}
+                            
+                            {hasCustomPlan && !isEditingPaymentPlan ? (
                                 customCuotas.map((cuota: any, index: number) => (
                                     <div key={index} className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-5 rounded-xl border ${
                                         cuota.status === 'paid' ? 'bg-emerald-50/50 border-emerald-200' : 'bg-white border-zinc-200'
                                     }`}>
                                         <div>
                                             <h3 className="font-bold text-sm text-zinc-800">{cuota.name}</h3>
-                                            <p className="text-xs text-zinc-400 mt-1">{((cuota.amount / project.total_amount) * 100).toFixed(1)}% del total</p>
+                                            <p className="text-xs text-zinc-400 mt-1">{(((cuota.amount || cuota.monto || 0) / project.total_amount) * 100).toFixed(1)}% del total</p>
                                             <p className="text-[10px] text-zinc-500 mt-1">Plazo: {cuota.moment || `Cuota ${index + 1}`}</p>
                                             {cuota.status === 'paid' && cuota.date && (
                                                 <p className="text-[10px] text-emerald-600 mt-1">Pagado el {formatDate(cuota.date)}</p>
                                             )}
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <span className="text-xl font-serif font-bold text-zinc-800">{formatCurrency(cuota.amount)}</span>
+                                            <span className="text-xl font-serif font-bold text-zinc-800">{formatCurrency(cuota.amount || cuota.monto || 0)}</span>
                                             {cuota.status === 'paid' ? (
                                                 <span className="text-[10px] uppercase tracking-widest font-bold text-emerald-600 bg-emerald-100 px-3 py-1.5 rounded-full flex items-center gap-1">
                                                     <CheckCircle2 className="w-3 h-3" /> Pagado
@@ -578,7 +681,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                         </div>
                                     </div>
                                 ))
-                            ) : (
+                            ) : !hasCustomPlan && !isEditingPaymentPlan ? (
                                 [
                                     { num: 1 as const, label: 'Cuota 1 — Abono Inicial', pct: '50%', amount: project.payment_1_amount, status: project.payment_1_status, date: project.payment_1_date },
                                     { num: 2 as const, label: 'Cuota 2 — Prueba Intermedia', pct: '25%', amount: project.payment_2_amount, status: project.payment_2_status, date: project.payment_2_date },
@@ -614,7 +717,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                         </div>
                                     </div>
                                 ))
-                            )}
+                            ) : null}
 
                             {/* Summary */}
                             <div className="bg-zinc-900 text-white p-6 rounded-xl grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">

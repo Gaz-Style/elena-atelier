@@ -132,11 +132,11 @@ export default function ContractTemplate({ data }: { data: ContractData }) {
                                 <tr key={index} className="border-b border-gray-200">
                                     <td className="py-2">{cuota.name}</td>
                                     <td className="py-2 text-center">
-                                        {((cuota.amount / data.totalAmount) * 100).toFixed(1)}%
+                                        {(((cuota.amount || cuota.monto || 0) / data.totalAmount) * 100).toFixed(1)}%
                                     </td>
-                                    <td className="py-2 text-right font-bold">{formatCurrency(cuota.amount)}</td>
+                                    <td className="py-2 text-right font-bold">{formatCurrency(cuota.amount || cuota.monto || 0)}</td>
                                     <td className="py-2 text-right text-gray-500">
-                                        {cuota.moment || `Cuota ${index + 1} del financiamiento`}
+                                        {cuota.date ? new Date(cuota.date).toLocaleDateString('es-CL') : (cuota.moment || `Cuota ${index + 1}`)}
                                     </td>
                                 </tr>
                             ))
@@ -224,8 +224,31 @@ export default function ContractTemplate({ data }: { data: ContractData }) {
 
                     <div>
                         <h4 className="font-bold text-gray-700">3. Solicitud y Pago</h4>
-                        {data.paymentPlan && data.paymentPlan.cuotas && data.paymentPlan.cuotas.length > 3 ? (
-                            <p>Se acuerda con la clienta el pago del valor total contratado dividido en <strong>{data.paymentPlan.cuotas.length} cuotas mensuales consecutivas</strong> detalladas en la sección de condiciones económicas, las cuales incluyen un recargo de $150.000 por concepto de interés y facilidad de financiamiento en cuotas. El vestido debe estar pagado en su totalidad (100%) al momento de retirarlo.</p>
+                        {data.paymentPlan && data.paymentPlan.cuotas && data.paymentPlan.cuotas.length > 0 ? (
+                            <>
+                                <p>Se acuerda con la clienta el pago del valor total contratado de <strong>{formatCurrency(data.totalAmount)}</strong>, dividido en <strong>{data.paymentPlan.cuotas.length} {data.paymentPlan.cuotas.length === 1 ? 'pago' : 'pagos'}</strong>. El detalle del calendario de pagos es el siguiente:</p>
+                                <table className="w-full border-collapse text-[11px] mt-2 mb-2">
+                                    <thead>
+                                        <tr className="border-b border-gray-400 bg-gray-100">
+                                            <th className="text-left py-1 px-2 font-bold">Cuota</th>
+                                            <th className="text-right py-1 px-2 font-bold">Monto</th>
+                                            <th className="text-right py-1 px-2 font-bold">Fecha de Vencimiento</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {data.paymentPlan.cuotas.map((cuota: any, i: number) => (
+                                            <tr key={i} className="border-b border-gray-200">
+                                                <td className="py-1 px-2">{cuota.name}</td>
+                                                <td className="py-1 px-2 text-right font-bold">{formatCurrency(cuota.amount || cuota.monto || 0)}</td>
+                                                <td className="py-1 px-2 text-right text-gray-600">
+                                                    {cuota.date ? new Date(cuota.date).toLocaleDateString('es-CL') : (cuota.moment || `Cuota ${i + 1}`)}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                <p className="text-[11px] text-gray-500 italic">Para el inicio del trabajo (Toma de Medidas y Diseño), las cuotas deben estar al día. El vestido será entregado única y exclusivamente una vez que se haya cancelado el 100% del valor total acordado.</p>
+                            </>
                         ) : (
                             <p>Al momento de la firma del contrato y confirmación del servicio, se debe cancelar el <strong>50%</strong> del valor total (Reserva). El <strong>25%</strong> restante se cancelará en la prueba intermedia y el último <strong>25%</strong> contra entrega. El vestido debe estar pagado en su totalidad (100%) al momento de retirarlo.</p>
                         )}

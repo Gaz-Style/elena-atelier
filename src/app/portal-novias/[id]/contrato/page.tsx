@@ -191,8 +191,17 @@ export default function PortalNoviasContratoPage() {
                 <div className="w-full max-w-3xl mx-auto relative z-10">
                     {/* Logo */}
                     <div className="text-center mb-8">
-                        <h1 className="font-serif text-3xl md:text-4xl font-black text-white tracking-[0.3em] mb-2">ELENA</h1>
-                        <p className="text-[9px] uppercase tracking-[0.5em] text-white/70 font-bold ml-1">LA COSTURERA</p>
+                        <div className="flex flex-col items-stretch justify-center w-max mx-auto">
+                            <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-white leading-none drop-shadow-sm">
+                                <span>E</span><span>L</span><span>E</span><span>N</span><span>A</span>
+                            </div>
+                            <div
+                                className="font-sans text-[0.65rem] md:text-[0.75rem] font-bold uppercase text-white/70 mt-1 text-center"
+                                style={{ letterSpacing: '0.35em', marginRight: '-0.35em' }}
+                            >
+                                La Costurera
+                            </div>
+                        </div>
                     </div>
 
                     <div className="text-center mb-8">
@@ -293,13 +302,26 @@ export default function PortalNoviasContratoPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
-                                    {project.work_order?.payment_plan?.cuotas && project.work_order.payment_plan.cuotas.length > 0 ? (
+                                    {project.payment_plan?.cuotas && project.payment_plan.cuotas.length > 0 ? (
+                                        project.payment_plan.cuotas.map((cuota: any, index: number) => (
+                                            <tr key={index}>
+                                                <td className="p-3 font-semibold text-white">{cuota.name}</td>
+                                                <td className="p-3 text-center">{(((cuota.amount || cuota.monto || 0) / project.total_amount) * 100).toFixed(1)}%</td>
+                                                <td className="p-3 text-right font-bold text-[#C17F5F]">{formatCurrency(cuota.amount || cuota.monto || 0)}</td>
+                                                <td className="p-3 text-right text-gray-400">
+                                                    {cuota.date ? new Date(cuota.date).toLocaleDateString('es-CL') : (cuota.moment || `Cuota ${index + 1}`)}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : project.work_order?.payment_plan?.cuotas && project.work_order.payment_plan.cuotas.length > 0 ? (
                                         project.work_order.payment_plan.cuotas.map((cuota: any, index: number) => (
                                             <tr key={index}>
                                                 <td className="p-3 font-semibold text-white">{cuota.name}</td>
-                                                <td className="p-3 text-center">{((cuota.amount / project.total_amount) * 100).toFixed(1)}%</td>
-                                                <td className="p-3 text-right font-bold text-[#C17F5F]">{formatCurrency(cuota.amount)}</td>
-                                                <td className="p-3 text-right text-gray-400">{cuota.moment || `Cuota ${index + 1} del financiamiento`}</td>
+                                                <td className="p-3 text-center">{(((cuota.amount || cuota.monto || 0) / project.total_amount) * 100).toFixed(1)}%</td>
+                                                <td className="p-3 text-right font-bold text-[#C17F5F]">{formatCurrency(cuota.amount || cuota.monto || 0)}</td>
+                                                <td className="p-3 text-right text-gray-400">
+                                                    {cuota.date ? new Date(cuota.date).toLocaleDateString('es-CL') : (cuota.moment || `Cuota ${index + 1}`)}
+                                                </td>
                                             </tr>
                                         ))
                                     ) : (
@@ -378,7 +400,14 @@ export default function PortalNoviasContratoPage() {
 
                             <div>
                                 <h4 className="font-bold text-white mb-1">3. Solicitud y Pago</h4>
-                                <p>Al momento de la firma del contrato y confirmación del servicio, se debe cancelar el <strong>50%</strong> del valor total (Reserva). El <strong>25%</strong> restante se cancelará en la prueba intermedia y el último <strong>25%</strong> contra entrega. El vestido debe estar pagado en su totalidad (100%) al momento de retirarlo.</p>
+                                {(project.payment_plan?.cuotas || project.work_order?.payment_plan?.cuotas) ? (
+                                    <>
+                                        <p>Se acuerda con la clienta el pago del valor total contratado de <strong>{formatCurrency(project.total_amount)}</strong>, dividido en <strong>{(project.payment_plan?.cuotas || project.work_order?.payment_plan?.cuotas).length} {(project.payment_plan?.cuotas || project.work_order?.payment_plan?.cuotas).length === 1 ? 'pago' : 'pagos'}</strong>. El detalle del calendario de pagos es el especificado en la sección 3.</p>
+                                        <p className="text-[11px] text-gray-400 italic mt-2">Para el inicio del trabajo (Toma de Medidas y Diseño), las cuotas deben estar al día. El vestido será entregado única y exclusivamente una vez que se haya cancelado el 100% del valor total acordado.</p>
+                                    </>
+                                ) : (
+                                    <p>Al momento de la firma del contrato y confirmación del servicio, se debe cancelar el <strong>50%</strong> del valor total (Reserva). El <strong>25%</strong> restante se cancelará en la prueba intermedia y el último <strong>25%</strong> contra entrega. El vestido debe estar pagado en su totalidad (100%) al momento de retirarlo.</p>
+                                )}
                                 <p className="mt-1"><strong>Formas de Pago:</strong> Efectivo, Tarjetas de Crédito/Débito y Transferencias Bancarias.</p>
                             </div>
 

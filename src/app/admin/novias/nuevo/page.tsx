@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Heart, Crown, GraduationCap, Calendar, DollarSign, FileText, Loader2, CheckCircle2, Sparkles, User, Camera, X, Search, Plus, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Heart, Crown, GraduationCap, Calendar, DollarSign, FileText, Loader2, CheckCircle2, Sparkles, User, Camera, X, Search, Plus, ArrowRight, AlertCircle } from 'lucide-react';
 import { createBridalProject } from '../actions';
 import { getCustomers, createCustomer } from '../../crm/actions';
 
@@ -72,12 +72,91 @@ export default function NuevoProyectoPage() {
     const [contractNotes, setContractNotes] = useState('');
     const [referenceImages, setReferenceImages] = useState<{url: string}[]>([]);
 
-    // Derived
+    // Derived Total
     const totalAmount = Math.max(0, subtotal - discountAmount);
     const isNovia = projectType === 'novia';
-    const payment1 = Math.round(totalAmount * 0.5);
-    const payment2 = isNovia ? Math.round(totalAmount * 0.25) : totalAmount - payment1;
-    const payment3 = isNovia ? totalAmount - payment1 - payment2 : 0;
+    
+    // Payment Plan State
+    const [paymentMode, setPaymentMode] = useState('standard'); // 'standard' | 'direct_credit'
+    const [standardInstallments, setStandardInstallments] = useState(3);
+    const [installmentsCount, setInstallmentsCount] = useState(6);
+    const [customPaymentPlan, setCustomPaymentPlan] = useState<any[]>([]);
+    
+    const [showDateWarningPopup, setShowDateWarningPopup] = useState(false);
+    const hasDateWarning = eventDate && customPaymentPlan.some(c => c.date && new Date(c.date) > new Date(eventDate));
+
+    useEffect(() => {
+        if (hasDateWarning) {
+            setShowDateWarningPopup(true);
+        } else {
+            setShowDateWarningPopup(false);
+        }
+    }, [hasDateWarning]);
+
+    useEffect(() => {
+        if (totalAmount <= 0) {
+            setCustomPaymentPlan([]);
+            return;
+        }
+
+        if (paymentMode === 'standard') {
+            const standardPlan = [];
+            if (standardInstallments === 1) {
+                standardPlan.push({ numero: 1, name: 'Pago Único', monto: totalAmount, status: 'pending', date: new Date().toISOString().split('T')[0] });
+            } else if (standardInstallments === 2) {
+                const pay1 = Math.round(totalAmount * 0.5);
+                const pay2 = totalAmount - pay1;
+                standardPlan.push({ numero: 1, name: 'Abono Inicial', monto: pay1, status: 'pending', date: new Date().toISOString().split('T')[0] });
+                standardPlan.push({ numero: 2, name: 'Contra Entrega', monto: pay2, status: 'pending', date: null });
+            } else {
+                const pay1 = Math.round(totalAmount * 0.5);
+                const pay2 = isNovia ? Math.round(totalAmount * 0.25) : totalAmount - pay1;
+                const pay3 = isNovia ? totalAmount - pay1 - pay2 : 0;
+                
+                standardPlan.push({ numero: 1, name: 'Abono Inicial', monto: pay1, status: 'pending', date: new Date().toISOString().split('T')[0] });
+                standardPlan.push({ numero: 2, name: isNovia ? 'Prueba Intermedia' : 'Contra Entrega', monto: pay2, status: 'pending', date: null });
+                if (pay3 > 0) {
+                    standardPlan.push({ numero: 3, name: 'Contra Entrega', monto: pay3, status: 'pending', date: null });
+                }
+            }
+            setCustomPaymentPlan(standardPlan);
+        } else if (paymentMode === 'direct_credit') {
+            const cuotas = [];
+            const amountPerInstallment = Math.round(totalAmount / installmentsCount);
+            
+            // Cuota 1 (Pie)
+            cuotas.push({
+                numero: 1,
+                name: 'Cuota 1 (Pie Inicial)',
+                monto: amountPerInstallment,
+                status: 'pending',
+                date: new Date().toISOString().split('T')[0]
+            });
+            
+            // Cuotas 2 a N
+            let currentDate = new Date();
+            let accumulated = amountPerInstallment;
+            
+            for (let i = 2; i <= installmentsCount; i++) {
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                currentDate.setDate(5); // Dia 5 de cada mes
+                
+                const isLast = i === installmentsCount;
+                const cuotaMonto = isLast ? totalAmount - accumulated : amountPerInstallment;
+                accumulated += cuotaMonto;
+                
+                cuotas.push({
+                    numero: i,
+                    name: `Cuota ${i}`,
+                    monto: cuotaMonto,
+                    status: 'pending',
+                    date: currentDate.toISOString().split('T')[0]
+                });
+            }
+            
+            setCustomPaymentPlan(cuotas);
+        }
+    }, [paymentMode, standardInstallments, installmentsCount, totalAmount, isNovia]);
 
     const [customMilestones, setCustomMilestones] = useState<{type: string, title: string, date: string, requiredPayment: number}[]>([]);
 
@@ -185,6 +264,12 @@ export default function NuevoProyectoPage() {
         setSaving(true);
         setError('');
 
+        if (eventDate && customPaymentPlan.some(c => c.date && new Date(c.date) > new Date(eventDate))) {
+            alert("Existen cuotas que vencen después de la fecha del evento. Por favor ajuste el plan de pagos antes de crear el proyecto.");
+            setSaving(false);
+            return;
+        }
+
         const formData = new FormData();
         formData.set('customer_id', customerId);
         formData.set('project_type', projectType);
@@ -220,6 +305,9 @@ export default function NuevoProyectoPage() {
             };
         });
         formData.set('custom_milestones_json', JSON.stringify(combinedMilestones));
+        
+        // Pass payment plan
+        formData.set('payment_plan_json', JSON.stringify({ cuotas: customPaymentPlan }));
 
         const result = await createBridalProject(formData);
 
@@ -565,24 +653,55 @@ export default function NuevoProyectoPage() {
                             {/* Payment Preview */}
                             {totalAmount > 0 && (
                                 <div className="mt-6 bg-gradient-to-r from-zinc-50 to-rose-50/30 border border-zinc-200 rounded-xl p-5">
-                                    <h3 className="text-xs uppercase tracking-widest font-bold text-zinc-400 mb-3 flex items-center gap-2">
-                                        <DollarSign className="w-3.5 h-3.5" /> Desglose de Pagos
-                                    </h3>
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                                        <h3 className="text-xs uppercase tracking-widest font-bold text-zinc-400 flex items-center gap-2">
+                                            <DollarSign className="w-3.5 h-3.5" /> Plan de Pagos
+                                        </h3>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-bold text-zinc-500 uppercase">Modalidad:</span>
+                                            <select 
+                                                value={paymentMode} 
+                                                onChange={(e) => setPaymentMode(e.target.value)}
+                                                className="border border-zinc-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-rose-300 outline-none font-bold"
+                                            >
+                                                <option value="standard">Estándar (Hitos)</option>
+                                                <option value="direct_credit">Crédito Directo</option>
+                                            </select>
+                                            {paymentMode === 'standard' && (
+                                                <select 
+                                                    value={standardInstallments} 
+                                                    onChange={(e) => setStandardInstallments(parseInt(e.target.value))}
+                                                    className="border border-zinc-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-rose-300 outline-none font-bold"
+                                                >
+                                                    <option value={1}>1 Pago Único (100%)</option>
+                                                    <option value={2}>2 Pagos (50% - 50%)</option>
+                                                    <option value={3}>3 Pagos (50% - 25% - 25%)</option>
+                                                </select>
+                                            )}
+                                            {paymentMode === 'direct_credit' && (
+                                                <select 
+                                                    value={installmentsCount} 
+                                                    onChange={(e) => setInstallmentsCount(parseInt(e.target.value))}
+                                                    className="border border-zinc-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-rose-300 outline-none font-bold"
+                                                >
+                                                    {[6, 8, 10, 12, 14, 16, 18].map(n => (
+                                                        <option key={n} value={n}>{n} Cuotas</option>
+                                                    ))}
+                                                </select>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
                                     <div className="space-y-2">
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-zinc-600">Cuota 1 — Abono Inicial (50%)</span>
-                                            <span className="font-bold text-zinc-800">{formatCurrency(payment1)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-zinc-600">Cuota 2 — {isNovia ? 'Prueba Intermedia (25%)' : 'Contra Entrega (50%)'}</span>
-                                            <span className="font-bold text-zinc-800">{formatCurrency(payment2)}</span>
-                                        </div>
-                                        {isNovia && (
-                                            <div className="flex justify-between items-center text-sm">
-                                                <span className="text-zinc-600">Cuota 3 — Contra Entrega (25%)</span>
-                                                <span className="font-bold text-zinc-800">{formatCurrency(payment3)}</span>
+                                        {customPaymentPlan.map((cuota, idx) => (
+                                            <div key={idx} className="flex justify-between items-center text-sm py-1 border-b border-zinc-200/50 last:border-0">
+                                                <span className="text-zinc-600">{cuota.name} {cuota.date && <span className="text-[10px] text-zinc-400 ml-2">(Vence: {cuota.date})</span>}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-bold text-zinc-800">{formatCurrency(cuota.monto)}</span>
+                                                </div>
                                             </div>
-                                        )}
+                                        ))}
+                                        
                                         <div className="flex justify-between items-center text-sm pt-3 mt-2 border-t border-zinc-300 font-bold">
                                             <span>Total a Pagar</span>
                                             <div className="text-right">
@@ -591,6 +710,8 @@ export default function NuevoProyectoPage() {
                                             </div>
                                         </div>
                                     </div>
+                                    <p className="text-[9px] text-zinc-400 italic mt-3 text-right">* El Crédito Directo se procesa sin intereses asociados.</p>
+                                    
                                 </div>
                             )}
                         </section>
@@ -740,7 +861,7 @@ export default function NuevoProyectoPage() {
                             </Link>
                             <button
                                 type="submit"
-                                disabled={saving || !customerId || !eventDate || totalAmount <= 0}
+                                disabled={saving || !customerId || !eventDate || totalAmount <= 0 || (!!eventDate && customPaymentPlan.some(c => c.date && new Date(c.date) > new Date(eventDate)))}
                                 className="bg-zinc-900 hover:bg-rose-700 disabled:bg-zinc-300 text-white px-8 py-3 rounded-lg text-sm font-bold uppercase tracking-widest transition-all flex items-center gap-2 shadow-sm"
                             >
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
@@ -750,6 +871,31 @@ export default function NuevoProyectoPage() {
                     </form>
                 )}
             </main>
+
+            {/* Date Warning Popup Modal */}
+            {showDateWarningPopup && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+                        <div className="bg-red-500 p-6 flex flex-col items-center justify-center text-white">
+                            <AlertCircle className="w-12 h-12 mb-3" />
+                            <h2 className="text-xl font-bold uppercase tracking-widest text-center">Alerta de Fechas</h2>
+                        </div>
+                        <div className="p-6 text-center">
+                            <p className="text-zinc-600 text-sm mb-6">
+                                Existen cuotas que vencen <strong>después de la fecha del evento</strong>. 
+                                <br/><br/>
+                                Según el contrato, el vestido debe estar pagado en su totalidad para el momento de la entrega. El sistema no te permitirá crear el proyecto hasta que ajustes este problema.
+                            </p>
+                            <button 
+                                onClick={() => setShowDateWarningPopup(false)}
+                                className="bg-zinc-900 hover:bg-black text-white w-full py-3 rounded-xl uppercase tracking-widest font-bold text-xs transition-colors"
+                            >
+                                Entendido, ajustaré el plan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
