@@ -107,17 +107,20 @@ export async function sendBudgetEmailAction(payload: {
             cardBgUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGUlEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAA8F8bGgABxZqVdgAAAABJRU5ErkJggg==';
         }
 
-        const itemsRowsHtml = items.map((item) => `
+        const itemsRowsHtml = items.map((item) => {
+            const truncatedNotes = item.notes ? (item.notes.length > 100 ? item.notes.substring(0, 100) + '...' : item.notes) : '';
+            return `
             <tr style="border-bottom: 1px solid rgba(245, 242, 235, 0.08);">
                 <td style="padding: 10px 0; text-align: left; vertical-align: top; font-family: 'Inter', sans-serif;">
                     <p style="margin: 0; font-size: 11px; font-weight: 500; color: #FFFFFF; line-height: 1.3; letter-spacing: 0.5px;">${item.name}</p>
                     <span style="font-size: 8px; text-transform: uppercase; color: #8A857D; font-weight: 500; letter-spacing: 1.5px; display: inline-block; margin-top: 2px;">${item.category}</span>
+                    ${truncatedNotes ? `<p style="margin: 4px 0 0 0; font-size: 9px; color: #A09B93; font-style: italic; font-weight: 300; line-height: 1.4;">"${truncatedNotes}"</p>` : ''}
                 </td>
                 <td style="padding: 10px 0; text-align: right; vertical-align: top; font-family: 'Playfair Display', Georgia, serif; font-size: 12px; font-weight: bold; color: #C17F5F;">
                     ${formatCurrency(item.price)}
                 </td>
             </tr>
-        `).join('');
+        `}).join('');
 
         const htmlContent = `<!DOCTYPE html>
 <html lang="es">
@@ -389,17 +392,20 @@ export async function sendOrderConfirmationEmailAction(payload: {
         const garmentsSectionHtml = `
             <div style="margin-bottom: 24px; text-align: left;">
               <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
-                ${finalItems.map(item => `
+                ${finalItems.map(item => {
+                  const truncatedNotes = item.notes ? (item.notes.length > 100 ? item.notes.substring(0, 100) + '...' : item.notes) : '';
+                  return `
                   <tr style="border-bottom: 1px solid rgba(245, 242, 235, 0.08);">
                     <td style="padding: 10px 0; text-align: left; vertical-align: top; font-family: 'Inter', sans-serif;">
                       <p style="margin: 0; font-size: 11px; font-weight: 500; color: #FFFFFF; line-height: 1.3; letter-spacing: 0.5px;">${item.name}</p>
                       <span style="font-size: 8px; text-transform: uppercase; color: #8A857D; font-weight: 500; letter-spacing: 1.5px; display: inline-block; margin-top: 2px;">${item.category}</span>
+                      ${truncatedNotes ? `<p style="margin: 4px 0 0 0; font-size: 9px; color: #A09B93; font-style: italic; font-weight: 300; line-height: 1.4;">"${truncatedNotes}"</p>` : ''}
                     </td>
                     <td style="padding: 10px 0; text-align: right; vertical-align: top; font-family: 'Playfair Display', Georgia, serif; font-size: 12px; font-weight: bold; color: #C17F5F;">
                       ${formatCurrency(item.price)}
                     </td>
                   </tr>
-                `).join('')}
+                `}).join('')}
               </table>
               <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
                 <tr>
