@@ -224,8 +224,8 @@ export default function PortalNoviasContratoPage() {
                     </div>
                 )}
 
-                {/* Proposal Document Card */}
-                <div className="bg-[#111111] rounded border border-white/10 shadow-2xl p-6 md:p-10 mb-8 space-y-8 max-w-3xl mx-auto">
+                {/* Proposal Document Container */}
+                <div className="mb-8 space-y-8 max-w-3xl mx-auto w-full">
                     
                     {/* Header Details */}
                     <div className="text-center border-b border-white/10 pb-6">
