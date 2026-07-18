@@ -113,6 +113,7 @@ export async function getBridalProjectById(id: string) {
         ...projectRes.data,
         milestones: milestonesRes.data || [],
         measurements: measurementsRes.data || [],
+        work_order: workOrderRes.data || null,
     };
 }
 
