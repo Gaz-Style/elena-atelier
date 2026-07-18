@@ -1606,3 +1606,37 @@ export async function registerBridalInstallment(projectId: string, installmentIn
     revalidatePath(`/admin/novias/${projectId}`);
     return { success: true };
 }
+
+export async function updatePaymentPlanAction(projectId: string, paymentPlanJson: string) {
+    const supabase = getAdminClient();
+    
+    try {
+        const paymentPlan = JSON.parse(paymentPlanJson);
+        
+        // Find existing work_order
+        const { data: woData, error: woError } = await supabase
+            .from('work_orders')
+            .select('id, paid_amount')
+            .eq('legacy_bridal_project_id', projectId)
+            .maybeSingle();
+            
+        if (woError || !woData) {
+            return { success: false, error: 'Orden de trabajo no encontrada' };
+        }
+        
+        // Ensure paid_amount is respected or handled (simplified assumption: update raw plan)
+        await supabase
+            .from('work_orders')
+            .update({ 
+                payment_plan: paymentPlan, 
+                updated_at: new Date().toISOString() 
+            })
+            .eq('id', woData.id);
+            
+        revalidatePath(`/admin/novias/${projectId}`);
+        return { success: true };
+    } catch (error: any) {
+        console.error('Error updating payment plan:', error);
+        return { success: false, error: error.message || 'Error al actualizar plan de pagos' };
+    }
+}
