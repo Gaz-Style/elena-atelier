@@ -3,9 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Heart, Loader2, ChevronRight, User, Phone, FileText, Calendar, MapPin, DollarSign, CheckCircle2, AlertCircle, Sparkles, Clock, LogOut } from 'lucide-react';
+import { Heart, Crown, GraduationCap, Loader2, ChevronRight, User, Phone, FileText, Calendar, MapPin, DollarSign, CheckCircle2, AlertCircle, Sparkles, Clock, LogOut } from 'lucide-react';
 import ContractTemplate from '@/app/admin/novias/ContractTemplate';
 import InspirationMoodboard from '../components/InspirationMoodboard';
+
+const projectTypeConfig: Record<string, { label: string; icon: any; eventLabel: string }> = {
+    novia: { label: 'Vestido de Novia', icon: Heart, eventLabel: 'matrimonio' },
+    madrina: { label: 'Vestido de Madrina', icon: Crown, eventLabel: 'evento' },
+    graduacion: { label: 'Vestido de Graduación', icon: GraduationCap, eventLabel: 'evento de graduación' },
+};
 
 // --- Formatting helpers ---
 function formatRut(value: string): string {
@@ -124,6 +130,9 @@ export default function PortalNoviasPage() {
             </div>
         );
     }
+
+    const config = projectTypeConfig[project.project_type] || projectTypeConfig.novia;
+    const HeaderIcon = config.icon;
 
     // Determine if contract is accepted. If not, show Onboarding Form.
     const isContractAccepted = project.contract_accepted;
@@ -344,7 +353,7 @@ export default function PortalNoviasPage() {
             <header className="border-b border-white/5 bg-[#0C0C0C]/80 backdrop-blur-md sticky top-0 z-40 py-5 px-6">
                 <div className="max-w-5xl mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <Heart className="w-5 h-5 text-[#C17F5F] animate-pulse" />
+                        <HeaderIcon className="w-5 h-5 text-[#C17F5F] animate-pulse" />
                         <div>
                             <span className="font-serif text-xl tracking-[0.2em] font-black text-white">ELENA</span>
                             <span className="text-[8px] uppercase tracking-[0.4em] text-gray-500 block">Portal Privado</span>
@@ -352,7 +361,7 @@ export default function PortalNoviasPage() {
                     </div>
                     <div className="flex items-center gap-6">
                         <span className="hidden md:inline text-[10px] uppercase tracking-widest text-gray-400 font-light">
-                            Hola, {project.customers?.full_name?.split(' ')[0] || 'Novia'}
+                            Hola, {project.customers?.full_name?.split(' ')[0] || 'Cliente'}
                         </span>
                         <Link href="/" className="text-gray-500 hover:text-white transition-colors flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold">
                             <LogOut className="w-3.5 h-3.5" /> Salir
@@ -371,7 +380,7 @@ export default function PortalNoviasPage() {
                             <Sparkles className="w-3.5 h-3.5 animate-spin-slow" /> Tu Experiencia de Alta Costura
                         </div>
                         <h1 className="font-serif text-3xl md:text-4xl italic text-white font-light">
-                            Vestido de {project.customers?.full_name?.split(' ')[0] || 'Novia'}
+                            {config.label} de {project.customers?.full_name?.split(' ')[0] || 'Cliente'}
                         </h1>
                         <p className="text-xs text-gray-400 mt-2 font-light">
                             {formatDateLong(project.event_date)} · {project.event_venue || 'Santiago'}
@@ -398,7 +407,7 @@ export default function PortalNoviasPage() {
                             <div>
                                 <h3 className="font-bold text-xs uppercase tracking-widest">Congelación de Diseño</h3>
                                 <p className="text-xs mt-1 font-light leading-relaxed">
-                                    Quedan **{daysUntilFreeze} días** ({formatDate(designFreezeDate.toISOString())}) para definir la idea final del diseño de tu vestido. A partir de esa fecha no se podrán realizar cambios de diseño o silueta para garantizar el cumplimiento de los tiempos del taller.
+                                    Quedan **{daysUntilFreeze} días** ({formatDate(designFreezeDate.toISOString())}) para definir la idea final del diseño de tu {config.label.toLowerCase()}. A partir de esa fecha no se podrán realizar cambios de diseño o silueta para garantizar el cumplimiento de los tiempos del taller.
                                 </p>
                             </div>
                         </div>
