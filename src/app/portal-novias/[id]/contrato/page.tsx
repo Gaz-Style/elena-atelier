@@ -280,7 +280,7 @@ export default function PortalNoviasContratoPage() {
                             {project.description && (
                                 <div className="pt-2">
                                     <p className="text-[9px] uppercase tracking-wider text-gray-600 font-bold mb-1">Detalles del Diseño:</p>
-                                    <p className="italic text-gray-300 font-light whitespace-pre-wrap">{project.description}</p>
+                                    <p className="italic text-[#4A4A4A] font-light whitespace-pre-wrap">{project.description}</p>
                                 </div>
                             )}
                         </div>
@@ -333,13 +333,13 @@ export default function PortalNoviasContratoPage() {
                                                 <td className="p-3 text-right text-gray-600">Al firmar propuesta</td>
                                             </tr>
                                             <tr>
-                                                <td className="p-3 text-gray-300">Segundo Pago</td>
+                                                <td className="p-3 text-[#4A4A4A]">Segundo Pago</td>
                                                 <td className="p-3 text-center">25%</td>
                                                 <td className="p-3 text-right text-[#1A1A1A]">{formatCurrency(project.payment_2_amount)}</td>
                                                 <td className="p-3 text-right text-gray-600">En prueba intermedia</td>
                                             </tr>
                                             <tr>
-                                                <td className="p-3 text-gray-300">Pago Final</td>
+                                                <td className="p-3 text-[#4A4A4A]">Pago Final</td>
                                                 <td className="p-3 text-center">25%</td>
                                                 <td className="p-3 text-right text-[#1A1A1A]">{formatCurrency(project.payment_3_amount)}</td>
                                                 <td className="p-3 text-right text-gray-600">Contra entrega del vestido</td>
@@ -431,7 +431,7 @@ export default function PortalNoviasContratoPage() {
                                     <p className="mb-2"><strong>6.1. Declaración del Estado del Producto:</strong> El Cliente declara y reconoce de forma expresa que el vestido de novia entregado para la prestación del servicio de Upcycling es una prenda usada y presenta, al momento de su recepción, desgastes naturales por el uso, detalles estructurales y/o manchas preexistentes (de origen orgánico, químico o sintético).</p>
                                     
                                     <p className="mb-2"><strong>6.2. Exención de Responsabilidad:</strong> La Empresa deja constancia de que los procesos de transformación, confección y limpieza necesarios para el Upcycling pueden reaccionar de manera imprevista ante dichas condiciones preexistentes. Por lo tanto, la Empresa queda totalmente exenta de cualquier responsabilidad civil, comercial o de cualquier otra índole por:</p>
-                                    <ul className="list-disc pl-5 mb-2 space-y-1 text-gray-300">
+                                    <ul className="list-disc pl-5 mb-2 space-y-1 text-[#4A4A4A]">
                                         <li>El empeoramiento, fijación o alteración de las manchas ya existentes durante los procesos técnicos de costura o tratamiento.</li>
                                         <li>El comportamiento o resistencia de las telas, encajes o pedrería que ya presentaran desgaste o fatiga material previa.</li>
                                         <li>Los resultados estéticos finales que se deriven directamente de las condiciones iniciales en que fue entregada la prenda.</li>
@@ -445,7 +445,7 @@ export default function PortalNoviasContratoPage() {
 
                     {/* Materials Notes */}
                     {project.materials_notes && (
-                        <div className="bg-[#F5F5F0]/80 border border-[#C17F5F]/20 rounded p-4 text-xs text-gray-300">
+                        <div className="bg-[#F5F5F0]/80 border border-[#C17F5F]/20 rounded p-4 text-xs text-[#4A4A4A]">
                             <p className="font-bold text-[#C17F5F] mb-1.5 uppercase tracking-wider text-[10px]">Materiales Comprometidos / Detalles de Diseño:</p>
                             <p className="whitespace-pre-wrap font-light leading-relaxed">
                                 {project.materials_notes.replace(/!\[Referencia(?: \d+)?\]\((data:image\/[^;]+;base64,[^\)]+)\)/g, '').trim()}
@@ -462,7 +462,7 @@ export default function PortalNoviasContratoPage() {
 
                     {/* Additional Notes */}
                     {project.contract_notes && (
-                        <div className="bg-amber-950/20 border border-amber-900/30 rounded p-4 text-xs text-amber-200">
+                        <div className="bg-amber-50 border border-amber-200 rounded p-4 text-xs text-amber-900">
                             <p className="font-bold mb-1">Acuerdos Adicionales:</p>
                             <p className="italic whitespace-pre-wrap font-light">{project.contract_notes}</p>
                         </div>
@@ -474,7 +474,7 @@ export default function PortalNoviasContratoPage() {
                 <div className="max-w-xl mx-auto text-center space-y-6">
                     
                     {project.contract_accepted ? (
-                        <div className="p-4 bg-[#C17F5F]/5 border border-[#C17F5F]/20 text-zinc-300 rounded text-xs tracking-wide">
+                        <div className="p-4 bg-[#C17F5F]/5 border border-[#C17F5F]/20 text-zinc-700 rounded text-xs tracking-wide">
                             <span className="text-[#C17F5F] font-bold mr-2">✓</span>
                             Propuesta y contrato aceptados formalmente el {formatDate(project.contract_accepted_at)}.
                         </div>
@@ -482,7 +482,7 @@ export default function PortalNoviasContratoPage() {
                         <button 
                             type="button"
                             onClick={() => setAccepted(!accepted)}
-                            className="flex items-center justify-center gap-3 mx-auto text-xs text-gray-300 hover:text-[#1A1A1A] cursor-pointer select-none"
+                            className="flex items-center justify-center gap-3 mx-auto text-xs text-[#4A4A4A] hover:text-[#C17F5F] cursor-pointer select-none"
                         >
                             {accepted ? (
                                 <CheckSquare className="w-5 h-5 text-[#C17F5F]" />
@@ -496,7 +496,7 @@ export default function PortalNoviasContratoPage() {
                     <div className="pt-2">
                         {!project.contract_accepted && (
                             <div className="mb-8 p-4 border border-[#C17F5F]/20 bg-gradient-to-br from-[#C17F5F]/10 to-transparent rounded text-left shadow-lg">
-                                <p className="text-[10px] text-gray-300 font-light leading-relaxed">
+                                <p className="text-[10px] text-[#4A4A4A] font-light leading-relaxed">
                                     <span className="font-bold text-[#C17F5F] uppercase tracking-[0.15em] block mb-1.5 flex items-center gap-2">
                                         <span className="w-1.5 h-1.5 rounded-full bg-[#C17F5F]"></span>
                                         Confirmación y Exclusividad de Agenda
@@ -509,7 +509,7 @@ export default function PortalNoviasContratoPage() {
                             type="button"
                             onClick={handleAccept}
                             disabled={submitting || (!accepted && !project.contract_accepted)}
-                            className="w-full bg-transparent border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-[#1A1A1A] py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all flex justify-center items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
+                            className="w-full bg-transparent border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-[#C17F5F] py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all flex justify-center items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
                         >
                             {submitting ? (
                                 <><Loader2 className="w-4 h-4 animate-spin" /> Procesando Firma...</>

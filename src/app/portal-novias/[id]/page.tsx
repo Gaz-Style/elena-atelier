@@ -225,7 +225,7 @@ export default function PortalNoviasPage() {
                         <span className="hidden md:inline text-[10px] uppercase tracking-widest text-gray-600 font-light">
                             Hola, {project.customers?.full_name?.split(' ')[0] || 'Cliente'}
                         </span>
-                        <Link href="/" className="text-gray-500 hover:text-[#1A1A1A] transition-colors flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold">
+                        <Link href="/" className="text-gray-500 hover:text-[#C17F5F] transition-colors flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold">
                             <LogOut className="w-3.5 h-3.5" /> Salir
                         </Link>
                     </div>
@@ -285,7 +285,7 @@ export default function PortalNoviasPage() {
                     <div className={`p-5 rounded-lg border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 backdrop-blur-md ${
                         daysUntilFreeze <= 30 
                             ? 'bg-red-950/20 border-red-500/30 text-red-700' 
-                            : 'bg-amber-950/10 border-amber-500/20 text-amber-200'
+                            : 'bg-amber-950/10 border-amber-500/20 text-amber-900'
                     }`}>
                         <div className="flex items-start gap-3">
                             <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
@@ -311,7 +311,7 @@ export default function PortalNoviasPage() {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as any)}
                             className={`pb-3 px-5 text-xs uppercase tracking-widest font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-                                activeTab === tab.id ? 'border-[#C17F5F] text-[#1A1A1A]' : 'border-transparent text-gray-500 hover:text-gray-300'
+                                activeTab === tab.id ? 'border-[#C17F5F] text-[#1A1A1A]' : 'border-transparent text-gray-500 hover:text-[#4A4A4A]'
                             }`}
                         >
                             <tab.icon className="w-3.5 h-3.5" />
@@ -331,7 +331,7 @@ export default function PortalNoviasPage() {
                                         const isCompleted = milestone.status === 'completed';
                                         return (
                                             <div key={milestone.id} className={`flex items-start gap-4 p-4 rounded border ${
-                                                isCompleted ? 'bg-emerald-950/10 border-emerald-500/20 text-emerald-200' : 'bg-[#181818] border-[#C17F5F]/10 text-gray-300'
+                                                isCompleted ? 'bg-emerald-950/10 border-emerald-500/20 text-emerald-200' : 'bg-[#181818] border-[#C17F5F]/10 text-[#4A4A4A]'
                                             }`}>
                                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                                                     isCompleted ? 'bg-emerald-500 text-[#1A1A1A]' : 'bg-white/10 text-[#1A1A1A]/50'
@@ -403,7 +403,7 @@ export default function PortalNoviasPage() {
                                             ) : (
                                                 <a 
                                                     href={`/portal-novias/${projectId}/pagar`}
-                                                    className="text-[9px] uppercase tracking-widest font-bold border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-[#1A1A1A] px-3.5 py-1.5 rounded transition-all"
+                                                    className="text-[9px] uppercase tracking-widest font-bold border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-[#C17F5F] px-3.5 py-1.5 rounded transition-all"
                                                 >
                                                     Pagar
                                                 </a>
@@ -429,7 +429,7 @@ export default function PortalNoviasPage() {
                                 <h2 className="font-serif text-xl text-[#1A1A1A] italic">Copia de tu Contrato</h2>
                                 <button 
                                     onClick={() => window.print()} 
-                                    className="text-[9px] uppercase tracking-widest font-bold border border-white/20 hover:border-white text-gray-300 hover:text-[#1A1A1A] px-4 py-2 rounded transition-all"
+                                    className="text-[9px] uppercase tracking-widest font-bold border border-white/20 hover:border-white text-[#4A4A4A] hover:text-[#C17F5F] px-4 py-2 rounded transition-all"
                                 >
                                     Imprimir / Descargar PDF
                                 </button>
