@@ -130,33 +130,12 @@ export async function createBridalProject(formData: FormData) {
     const materialsNotes = formData.get('materials_notes') as string;
     const contractNotes = formData.get('contract_notes') as string;
     const customMilestonesJson = formData.get('custom_milestones_json') as string;
-    const paymentPlanJson = formData.get('payment_plan_json') as string;
     
-    // Parse custom payment plan if provided, otherwise fallback to standard calculation
-    let parsedPaymentPlan: any = null;
-    let payment1 = 0, payment2 = 0, payment3 = 0;
-    
-    if (paymentPlanJson) {
-        try {
-            parsedPaymentPlan = JSON.parse(paymentPlanJson);
-            // Assign legacy fields if available (for backward compatibility on old dashboards if used)
-            if (parsedPaymentPlan && parsedPaymentPlan.cuotas) {
-                payment1 = parsedPaymentPlan.cuotas[0]?.monto || 0;
-                payment2 = parsedPaymentPlan.cuotas[1]?.monto || 0;
-                payment3 = parsedPaymentPlan.cuotas[2]?.monto || 0;
-            }
-        } catch (e) {
-            console.error("Error parsing custom payment plan", e);
-        }
-    }
-    
-    if (!parsedPaymentPlan) {
-        // Calculate payment splits: Novias = 50/25/25, Madrinas/Graduación = 50/50
-        const isNovia = projectType === 'novia';
-        payment1 = Math.round(totalAmount * 0.5);
-        payment2 = isNovia ? Math.round(totalAmount * 0.25) : totalAmount - payment1;
-        payment3 = isNovia ? totalAmount - payment1 - payment2 : 0;
-    }
+    // Calculate payment splits: Novias = 50/25/25, Madrinas/Graduación = 50/50
+    const isNovia = projectType === 'novia';
+    const payment1 = Math.round(totalAmount * 0.5);
+    const payment2 = isNovia ? Math.round(totalAmount * 0.25) : totalAmount - payment1;
+    const payment3 = isNovia ? totalAmount - payment1 - payment2 : 0;
     
     const eventDate = eventDateStr ? new Date(`${eventDateStr}T12:00:00-04:00`) : null;
     
@@ -189,14 +168,10 @@ export async function createBridalProject(formData: FormData) {
     // 1.5 DUAL WRITE TO work_orders
     let woId = undefined;
     if (project) {
-        let paymentPlanToSave = parsedPaymentPlan;
-        
-        if (!paymentPlanToSave) {
-            paymentPlanToSave = { cuotas: [] as any[] };
-            if (payment1 > 0) paymentPlanToSave.cuotas.push({ numero: 1, monto: payment1, status: 'pending' });
-            if (payment2 > 0) paymentPlanToSave.cuotas.push({ numero: 2, monto: payment2, status: 'pending' });
-            if (payment3 > 0) paymentPlanToSave.cuotas.push({ numero: 3, monto: payment3, status: 'pending' });
-        }
+        const paymentPlan = { cuotas: [] as any[] };
+        if (payment1 > 0) paymentPlan.cuotas.push({ numero: 1, monto: payment1, status: 'pending' });
+        if (payment2 > 0) paymentPlan.cuotas.push({ numero: 2, monto: payment2, status: 'pending' });
+        if (payment3 > 0) paymentPlan.cuotas.push({ numero: 3, monto: payment3, status: 'pending' });
         
         const { data: woData } = await supabase.from('work_orders').insert([{
             customer_id: customerId || null,
@@ -207,7 +182,7 @@ export async function createBridalProject(formData: FormData) {
             total_amount: totalAmount,
             paid_amount: 0,
             payment_status: 'pending',
-            payment_plan: paymentPlanToSave,
+            payment_plan: paymentPlan,
             event_date: eventDate?.toISOString() || null,
             event_venue: eventVenue || null,
             project_type: projectType,
@@ -661,6 +636,17 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
         const siteUrl = await getSiteUrl();
         const portalLink = `${siteUrl}/portal-novias/${projectId}/induccion`;
 
+        // Luxury background image logic
+        const attachments = [];
+        let cardBgUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGUlEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAA8F8bGgABxZqVdgAAAABJRU5ErkJggg==';
+        const fs = require('fs');
+        const path = require('path');
+        const filePath = path.join(process.cwd(), 'public', 'trabajos', 'novia 2.jpeg');
+        if (fs.existsSync(filePath)) {
+            attachments.push({ filename: 'novia_2.jpeg', path: filePath, cid: 'luxuryPassBg' });
+            cardBgUrl = 'cid:luxuryPassBg';
+        }
+
         const htmlContent = `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -669,23 +655,91 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap');
 </style>
 </head>
-<body style="margin: 0; padding: 40px 20px; background-color: #ffffff; font-family: 'Inter', Helvetica, sans-serif;">
-  <div style="max-width: 600px; margin: 0 auto; text-align: left; color: #333333;">
-    <div style="text-align: center; margin-bottom: 40px;">
-      <h1 style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; letter-spacing: 8px; text-transform: uppercase; margin: 0; color: #000;">ELENA</h1>
-      <p style="font-size: 8px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; margin: 5px 0 0 0; color: #666;">LA COSTURERA</p>
-    </div>
-
-    <p style="font-size: 14px; line-height: 1.6; color: #444;">Estimada <strong>${customerName}</strong>,</p>
-    <p style="font-size: 14px; line-height: 1.6; color: #444;">Es un privilegio acompañarte en este proceso. Te invitamos a vivir la experiencia Elena Atelier.</p>
-    
-    <div style="text-align: center; margin: 40px 0;">
-      <a href="${portalLink}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">Acceder a tu Portal &rarr;</a>
-    </div>
-
-    <hr style="border: none; border-top: 1px solid #eee; margin: 40px 0;" />
-    <p style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 1px; text-align: center;">ELENA ATELIER &middot; SANTIAGO DE CHILE</p>
-  </div>
+<body style="margin: 0; padding: 0; background-color: #0A0A0A; font-family: 'Inter', Helvetica, sans-serif;">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0A0A0A; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <!-- Main Card Container -->
+        <table width="650" border="0" cellpadding="0" cellspacing="0" style="background-color: #0E0E0E; overflow: hidden;">
+          <tr>
+            <td background="${cardBgUrl}" bgcolor="#0E0E0E" style="background: linear-gradient(to right, #0E0E0E 0%, #0E0E0E 40%, rgba(14,14,14,0.5) 55%, rgba(14,14,14,0) 70%), url('${cardBgUrl}') right top no-repeat; background-image: linear-gradient(to right, #0E0E0E 0%, #0E0E0E 40%, rgba(14,14,14,0.5) 55%, rgba(14,14,14,0) 70%), url('${cardBgUrl}'); background-size: 100% 100%, auto 100%; background-position: 0 0, right top; padding: 50px 0; background-repeat: no-repeat;">
+              
+              <!-- Text Container (left aligned) -->
+              <table width="380" border="0" cellpadding="0" cellspacing="0" align="left" style="padding-left: 45px;">
+                <tr>
+                  <td>
+                    <!-- Logo -->
+                    ${emailLogoHtml}
+                    
+                    <div style="margin-top: 50px;"></div>
+                    
+                    <p style="color: #C17F5F; font-size: 8px; text-transform: uppercase; letter-spacing: 4px; margin: 0 0 30px 0; font-weight: 600;">
+                      ACCESO PORTAL PRIVADO
+                    </p>
+                    
+                    <p style="font-family: 'Inter', Helvetica, sans-serif; color: #A39E93; font-size: 9px; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 5px 0; font-weight: 400;">
+                      ESTIMADA
+                    </p>
+                    
+                    <p style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 28px; margin: 0 0 30px 0; font-style: italic; font-weight: 400;">
+                      ${customerName}
+                    </p>
+                    
+                    <!-- Gold divider line -->
+                    <table width="40" border="0" cellpadding="0" cellspacing="0" style="margin: 0 0 30px 0;">
+                      <tr><td style="border-top: 2px solid #C17F5F; font-size: 0; line-height: 0; height: 1px;">&nbsp;</td></tr>
+                    </table>
+                    
+                    <p style="color: #9A958C; font-size: 12px; line-height: 1.9; margin: 0 0 30px 0; font-weight: 300; max-width: 280px;">
+                      Es un privilegio acompañarte en este proceso. Te invitamos a vivir la experiencia Elena Atelier.
+                    </p>
+                    
+                    <a href="${portalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, sans-serif; font-weight: 600; color: #FFFFFF; background-color: transparent; text-decoration: none; padding: 14px 30px; border: 1px solid rgba(255,255,255,0.35); display: inline-block; text-transform: uppercase; letter-spacing: 3px; margin-top: 20px;">
+                      VER VIDEO E INGRESAR AL PORTAL &rarr;
+                    </a>
+                    
+                    <div style="margin-top: 60px;"></div>
+                    
+                    <!-- Footer signature -->
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 25px;">
+                      <tr>
+                        <td>
+                          <table border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td style="border-left: 2px solid #C17F5F; padding-left: 12px;">
+                                <p style="font-family: 'Inter', Helvetica, sans-serif; color: #FFFFFF; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 3px 0;">
+                                  ELENA ATELIER
+                                </p>
+                                <p style="font-family: 'Inter', Helvetica, sans-serif; color: #6B6660; font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; margin: 0;">
+                                  ATELIER &middot; SANTIAGO DE CHILE
+                                </p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                  </td>
+                </tr>
+              </table>
+              <!-- Clearfix -->
+              <div style="clear: both;"></div>
+            </td>
+          </tr>
+          
+          <!-- Copyright footer row -->
+          <tr>
+            <td style="background-color: #080808; padding: 15px 45px; border-top: 1px solid rgba(255,255,255,0.05);">
+              <p style="font-family: 'Inter', Helvetica, sans-serif; color: #3D3A37; font-size: 7px; letter-spacing: 1.5px; text-transform: uppercase; margin: 0; text-align: center;">
+                &copy; 2025 ELENA ATELIER &middot; TODOS LOS DERECHOS RESERVADOS
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>`;
 
@@ -695,7 +749,8 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
             to: customerEmail,
             subject: `Acceso a tu Portal de Novia - ${customerName}`,
             text: `Estimada ${customerName},\n\nEs un privilegio acompañarte en este proceso. Te invitamos a vivir la experiencia Elena Atelier.\n\nPuedes ingresar a tu portal privado en el siguiente enlace:\n${portalLink}\n\nAtentamente,\nElena Atelier`,
-            html: htmlContent
+            html: htmlContent,
+            attachments
         });
 
         // Update project status to indicate email sent
@@ -722,6 +777,17 @@ export async function sendBridalInductionEmailAction(projectId: string) {
         const siteUrl = await getSiteUrl();
         const portalLink = `${siteUrl}/portal-novias/${projectId}/induccion`;
 
+        // Luxury background image logic
+        const attachments: any[] = [];
+        let cardBgUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGUlEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAA8F8bGgABxZqVdgAAAABJRU5ErkJggg==';
+        const fs = require('fs');
+        const path = require('path');
+        const filePath = path.join(process.cwd(), 'public', 'trabajos', 'novia 2.jpeg');
+        if (fs.existsSync(filePath)) {
+            attachments.push({ filename: 'novia_2.jpeg', path: filePath, cid: 'luxuryPassBg' });
+            cardBgUrl = 'cid:luxuryPassBg';
+        }
+
         const htmlContent = `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -730,24 +796,95 @@ export async function sendBridalInductionEmailAction(projectId: string) {
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap');
 </style>
 </head>
-<body style="margin: 0; padding: 40px 20px; background-color: #ffffff; font-family: 'Inter', Helvetica, sans-serif;">
-  <div style="max-width: 600px; margin: 0 auto; text-align: left; color: #333333;">
-    <div style="text-align: center; margin-bottom: 40px;">
-      <h1 style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; letter-spacing: 8px; text-transform: uppercase; margin: 0; color: #000;">ELENA</h1>
-      <p style="font-size: 8px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; margin: 5px 0 0 0; color: #666;">LA COSTURERA</p>
-    </div>
+<body style="margin: 0; padding: 0; background-color: #0A0A0A; font-family: 'Inter', Helvetica, sans-serif;">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0A0A0A; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <!-- Main Card Container -->
+        <table width="650" border="0" cellpadding="0" cellspacing="0" style="background-color: #0E0E0E; overflow: hidden;">
+          <tr>
+            <td background="${cardBgUrl}" bgcolor="#0E0E0E" style="background: linear-gradient(to right, #0E0E0E 0%, #0E0E0E 40%, rgba(14,14,14,0.5) 55%, rgba(14,14,14,0) 70%), url('${cardBgUrl}') right top no-repeat; background-image: linear-gradient(to right, #0E0E0E 0%, #0E0E0E 40%, rgba(14,14,14,0.5) 55%, rgba(14,14,14,0) 70%), url('${cardBgUrl}'); background-size: 100% 100%, auto 100%; background-position: 0 0, right top; padding: 50px 0; background-repeat: no-repeat;">
+              
+              <!-- Text Container (left aligned) -->
+              <table width="380" border="0" cellpadding="0" cellspacing="0" align="left" style="padding-left: 45px;">
+                <tr>
+                  <td>
+                    <!-- Logo -->
+                    ${emailLogoHtml}
+                    
+                    <div style="margin-top: 50px;"></div>
+                    
+                    <p style="color: #C17F5F; font-size: 8px; text-transform: uppercase; letter-spacing: 4px; margin: 0 0 30px 0; font-weight: 600;">
+                      INFORMACIÓN DE TU PROYECTO
+                    </p>
+                    
+                    <p style="font-family: 'Inter', Helvetica, sans-serif; color: #A39E93; font-size: 9px; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 5px 0; font-weight: 400;">
+                      ESTIMADA
+                    </p>
+                    
+                    <p style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 28px; margin: 0 0 30px 0; font-style: italic; font-weight: 400;">
+                      ${customerName}
+                    </p>
+                    
+                    <!-- Gold divider line -->
+                    <table width="40" border="0" cellpadding="0" cellspacing="0" style="margin: 0 0 30px 0;">
+                      <tr><td style="border-top: 2px solid #C17F5F; font-size: 0; line-height: 0; height: 1px;">&nbsp;</td></tr>
+                    </table>
+                    
+                    <p style="color: #9A958C; font-size: 12px; line-height: 1.9; margin: 0 0 15px 0; font-weight: 300; max-width: 320px;">
+                      Como parte del proceso de tu proyecto, hemos preparado un breve video donde Elena te explica personalmente los pasos que seguiremos para la confección de tu vestido.
+                    </p>
 
-    <p style="font-size: 14px; line-height: 1.6; color: #444;">Estimada <strong>${customerName}</strong>,</p>
-    <p style="font-size: 14px; line-height: 1.6; color: #444;">Como parte del proceso de tu proyecto, hemos preparado un breve video donde Elena te explica personalmente los pasos que seguiremos.</p>
-    <p style="font-size: 14px; line-height: 1.6; color: #444;">Te pedimos que lo revises antes de tu próxima cita para que puedas resolver cualquier duda que tengas durante la sesión.</p>
-    
-    <div style="text-align: center; margin: 40px 0;">
-      <a href="${portalLink}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">Ver Video Informativo &rarr;</a>
-    </div>
-
-    <hr style="border: none; border-top: 1px solid #eee; margin: 40px 0;" />
-    <p style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 1px; text-align: center;">ELENA ATELIER &middot; SANTIAGO DE CHILE</p>
-  </div>
+                    <p style="color: #9A958C; font-size: 12px; line-height: 1.9; margin: 0 0 40px 0; font-weight: 300; max-width: 320px;">
+                      Te pedimos que lo revises antes de tu próxima cita para que puedas resolver cualquier duda que tengas durante la sesión.
+                    </p>
+                    
+                    <a href="${portalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, sans-serif; font-weight: 600; color: #FFFFFF; background-color: transparent; text-decoration: none; padding: 14px 30px; border: 1px solid rgba(255,255,255,0.35); display: inline-block; text-transform: uppercase; letter-spacing: 3px;">
+                      VER VIDEO INFORMATIVO &rarr;
+                    </a>
+                    
+                    <div style="margin-top: 60px;"></div>
+                    
+                    <!-- Footer signature -->
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 25px;">
+                      <tr>
+                        <td>
+                          <table border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td style="border-left: 2px solid #C17F5F; padding-left: 12px;">
+                                <p style="font-family: 'Inter', Helvetica, sans-serif; color: #FFFFFF; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 3px 0;">
+                                  ELENA ATELIER
+                                </p>
+                                <p style="font-family: 'Inter', Helvetica, sans-serif; color: #6B6660; font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; margin: 0;">
+                                  ATELIER &middot; SANTIAGO DE CHILE
+                                </p>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                    
+                  </td>
+                </tr>
+              </table>
+              <!-- Clearfix -->
+              <div style="clear: both;"></div>
+            </td>
+          </tr>
+          
+          <!-- Copyright footer row -->
+          <tr>
+            <td style="background-color: #080808; padding: 15px 45px; border-top: 1px solid rgba(255,255,255,0.05);">
+              <p style="font-family: 'Inter', Helvetica, sans-serif; color: #3D3A37; font-size: 7px; letter-spacing: 1.5px; text-transform: uppercase; margin: 0; text-align: center;">
+                &copy; 2025 ELENA ATELIER &middot; TODOS LOS DERECHOS RESERVADOS
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>`;
 
@@ -758,7 +895,13 @@ export async function sendBridalInductionEmailAction(projectId: string) {
             to: customerEmail,
             subject: `Información de tu proyecto - ${customerName}`,
             text: `Estimada ${customerName},\n\nComo parte del proceso de tu proyecto, hemos preparado un breve video explicativo.\nTe pedimos que lo revises antes de tu próxima cita para que puedas resolver cualquier duda.\n\nPuedes ver el video ingresando a tu portal privado en el siguiente enlace:\n${portalLink}\n\nAtentamente,\nElena Atelier`,
-            html: htmlContent
+            html: htmlContent,
+            attachments,
+            headers: {
+                'X-Priority': '1',
+                'X-PM-Message-Stream': 'outbound',
+                'Precedence': 'bulk'
+            }
         });
 
         return { success: true };
@@ -818,29 +961,72 @@ export async function sendBridalContractEmailAction(projectId: string) {
         const htmlContent = `<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap');
-</style>
+  <meta charset="utf-8" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap');
+  </style>
 </head>
-<body style="margin: 0; padding: 40px 20px; background-color: #ffffff; font-family: 'Inter', Helvetica, sans-serif;">
-  <div style="max-width: 600px; margin: 0 auto; text-align: left; color: #333333;">
-    <div style="text-align: center; margin-bottom: 40px;">
-      <h1 style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; letter-spacing: 8px; text-transform: uppercase; margin: 0; color: #000;">ELENA</h1>
-      <p style="font-size: 8px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; margin: 5px 0 0 0; color: #666;">LA COSTURERA</p>
-    </div>
+<body style="margin: 0; padding: 0; background-color: #0A0A0A; font-family: 'Inter', Helvetica, Arial, sans-serif;">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0A0A0A; padding: 50px 20px;">
+    <tr>
+      <td align="center">
+        <!-- Card Container -->
+        <table width="580" border="0" cellpadding="0" cellspacing="0" style="background-color: #0E0E0E; border-top: 3px solid #C17F5F; border-radius: 4px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5);">
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 60px 40px; text-align: center;">
+              <!-- Logo -->
+              ${emailLogoHtml}
+              
+              <div style="margin-top: 40px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 25px;">
+                <p style="color: #C17F5F; font-size: 8px; text-transform: uppercase; letter-spacing: 5px; margin: 0 0 12px 0; font-weight: 600;">
+                  DOCUMENTO DE SERVICIO
+                </p>
+                <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 26px; font-weight: 400; margin: 0; font-style: italic; letter-spacing: 0.5px;">
+                  Propuesta y Contrato Formal
+                </h1>
+              </div>
 
-    <p style="font-size: 14px; line-height: 1.6; color: #444;">Estimada <strong>${customerName}</strong>,</p>
-    <p style="font-size: 14px; line-height: 1.6; color: #444;">Hemos recibido exitosamente la aceptación de tu propuesta y la firma del contrato. Queremos agradecerte por confiar en Elena Atelier para confeccionar tu vestido soñado.</p>
-    <p style="font-size: 14px; line-height: 1.6; color: #444;">Como último paso para consolidar tu reserva y bloquear tu cupo exclusivo de producción, te invitamos a revisar tu documento final y gestionar tu abono inicial.</p>
-    
-    <div style="text-align: center; margin: 40px 0;">
-      <a href="${proposalLink}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">Revisar Contrato y Pagar &rarr;</a>
-    </div>
+              <div style="margin-top: 35px; text-align: left;">
+                <p style="color: #9A958C; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 20px 0;">
+                  Estimada <strong style="color: #FFFFFF; font-weight: 600;">${customerName}</strong>,
+                </p>
+                <p style="color: #9A958C; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 30px 0;">
+                  Hemos recibido exitosamente la aceptación de tu propuesta y la firma del contrato. Queremos agradecerte por confiar en Elena Atelier para confeccionar tu vestido soñado.
+                </p>
+                <p style="color: #9A958C; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 35px 0;">
+                  Como último paso para consolidar tu reserva y bloquear tu cupo exclusivo de producción, te invitamos a revisar tu documento final y gestionar tu abono inicial.
+                </p>
+              </div>
 
-    <hr style="border: none; border-top: 1px solid #eee; margin: 40px 0;" />
-    <p style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 1px; text-align: center;">ELENA ATELIER &middot; SANTIAGO DE CHILE</p>
-  </div>
+              <!-- Button -->
+              <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto 10px auto;">
+                <tr>
+                  <td align="center">
+                    <a href="${proposalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, Arial, sans-serif; font-weight: 600; color: #FFFFFF; background-color: transparent; text-decoration: none; padding: 16px 35px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 3px; border-radius: 2px; transition: all 0.3s ease;">
+                      REVISAR CONTRATO Y PROCESAR PAGO
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer Signature/Address -->
+          <tr>
+            <td style="background-color: #090909; padding: 35px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.04);">
+              <p style="font-family: 'Inter', Helvetica, Arial, sans-serif; color: #6B6660; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 10px 0;">
+                ATELIER HORTENSIA SPA &middot; AV. TABANCURA 1091, OF 319, VITACURA
+              </p>
+              <p style="font-family: 'Inter', Helvetica, Arial, sans-serif; color: #4B4640; font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; margin: 0;">
+                © ${new Date().getFullYear()} ELENA LA COSTURERA &middot; TODOS LOS DERECHOS RESERVADOS
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>`;
 
@@ -878,28 +1064,40 @@ export async function sendBridalThankYouEmailAction(projectId: string) {
 
         const htmlContent = `<!DOCTYPE html>
 <html lang="es">
-<head>
-<meta charset="utf-8" />
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap');
-</style>
-</head>
-<body style="margin: 0; padding: 40px 20px; background-color: #ffffff; font-family: 'Inter', Helvetica, sans-serif;">
-  <div style="max-width: 600px; margin: 0 auto; text-align: left; color: #333333;">
-    <div style="text-align: center; margin-bottom: 40px;">
-      <h1 style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; letter-spacing: 8px; text-transform: uppercase; margin: 0; color: #000;">ELENA</h1>
-      <p style="font-size: 8px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; margin: 5px 0 0 0; color: #666;">LA COSTURERA</p>
-    </div>
-
-    <h2 style="font-family: 'Playfair Display', Georgia, serif; font-size: 22px; color: #000; text-align: center; margin-bottom: 30px; font-weight: 400;">¡Gracias por Elegirnos!</h2>
-
-    <p style="font-size: 14px; line-height: 1.6; color: #444;">Estimada <strong>${customerName}</strong>,</p>
-    <p style="font-size: 14px; line-height: 1.6; color: #444;">Hemos recibido exitosamente la firma de tu contrato y el abono inicial. Tu cupo de producción ya está oficialmente reservado en nuestro atelier.</p>
-    <p style="font-size: 14px; line-height: 1.6; color: #444;">En los próximos días nos contactaremos contigo para agendar tu primera prueba. ¡Estamos muy emocionados de comenzar este proceso y confeccionar el vestido de tus sueños!</p>
-    
-    <hr style="border: none; border-top: 1px solid #eee; margin: 40px 0;" />
-    <p style="font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 1px; text-align: center;">ELENA ATELIER &middot; SANTIAGO DE CHILE</p>
-  </div>
+<head><meta charset="utf-8" /></head>
+<body style="margin: 0; padding: 0; background-color: #F8F6F0; font-family: 'Inter', sans-serif;">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8F6F0; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" border="0" cellpadding="0" cellspacing="0" style="background-color: #FFFFFF; border-radius: 0px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border: 1px solid #EAE6D7;">
+          <!-- Content Body -->
+          <tr>
+            <td style="background-color: #1A1A1A; padding: 50px 40px; text-align: center;">
+              ${emailLogoHtml}
+              <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 28px; font-weight: 400; margin: 30px 0 20px 0; letter-spacing: 0.5px;">
+                ¡Gracias por Elegirnos!
+              </h1>
+              <p style="color: #D4D0C5; font-size: 14px; line-height: 1.8; margin-bottom: 20px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
+                Estimada <i style="color: #FFFFFF;">${customerName}</i>, hemos recibido exitosamente la firma de tu contrato y el abono inicial. Tu cupo de producción ya está oficialmente reservado en nuestro atelier.
+              </p>
+              <p style="color: #D4D0C5; font-size: 14px; line-height: 1.8; margin-bottom: 20px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
+                En los próximos días nos contactaremos contigo para agendar tu primera prueba. ¡Estamos muy emocionados de comenzar este proceso y confeccionar el vestido de tus sueños!
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #FFFFFF; padding: 30px 40px; text-align: center; border-top: 1px solid #EAE6D7;">
+              <p style="color: #A39E93; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0;">
+                Vitacura, Santiago de Chile<br><br>
+                © ${new Date().getFullYear()} ELENA LA COSTURERA | ATELIER
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>`;
 
@@ -910,7 +1108,7 @@ export async function sendBridalThankYouEmailAction(projectId: string) {
         await transporter.sendMail({
             from: '"Elena Atelier" <contacto@elenalacosturera.cl>',
             to: customerEmail,
-            subject: '¡Reserva Confirmada! Gracias por elegir Elena Atelier',
+            subject: `¡Reserva Confirmada! Gracias por elegir Elena Atelier`,
             text: `Estimada ${customerName},\n\nHemos recibido exitosamente la firma de tu contrato y el abono inicial. Tu cupo de producción ya está oficialmente reservado en nuestro atelier.\n\nEn los próximos días nos contactaremos contigo para agendar tu primera prueba.\n\nAtentamente,\nElena Atelier`,
             html: htmlContent
         });
@@ -1407,38 +1605,4 @@ export async function registerBridalInstallment(projectId: string, installmentIn
     
     revalidatePath(`/admin/novias/${projectId}`);
     return { success: true };
-}
-
-export async function updatePaymentPlanAction(projectId: string, paymentPlanJson: string) {
-    const supabase = getAdminClient();
-    
-    try {
-        const paymentPlan = JSON.parse(paymentPlanJson);
-        
-        // Find existing work_order
-        const { data: woData, error: woError } = await supabase
-            .from('work_orders')
-            .select('id, paid_amount')
-            .eq('legacy_bridal_project_id', projectId)
-            .maybeSingle();
-            
-        if (woError || !woData) {
-            return { success: false, error: 'Orden de trabajo no encontrada' };
-        }
-        
-        // Ensure paid_amount is respected or handled (simplified assumption: update raw plan)
-        await supabase
-            .from('work_orders')
-            .update({ 
-                payment_plan: paymentPlan, 
-                updated_at: new Date().toISOString() 
-            })
-            .eq('id', woData.id);
-            
-        revalidatePath(`/admin/novias/${projectId}`);
-        return { success: true };
-    } catch (error: any) {
-        console.error('Error updating payment plan:', error);
-        return { success: false, error: error.message || 'Error al actualizar plan de pagos' };
-    }
 }
