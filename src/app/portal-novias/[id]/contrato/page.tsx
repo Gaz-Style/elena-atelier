@@ -509,7 +509,11 @@ export default function PortalNoviasContratoPage() {
                             type="button"
                             onClick={handleAccept}
                             disabled={submitting || (!accepted && !project.contract_accepted)}
-                            className="w-full bg-transparent border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-[#C17F5F] py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all flex justify-center items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
+                            className={`w-full py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all flex justify-center items-center gap-3 group ${
+                                submitting || (!accepted && !project.contract_accepted)
+                                    ? 'bg-gray-200 border border-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                                    : 'bg-[#C17F5F] border border-[#C17F5F] text-white hover:bg-[#a96e51] hover:border-[#a96e51] shadow-lg hover:shadow-xl'
+                            }`}
                         >
                             {submitting ? (
                                 <><Loader2 className="w-4 h-4 animate-spin" /> Procesando Firma...</>
