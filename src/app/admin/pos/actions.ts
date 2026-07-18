@@ -108,7 +108,7 @@ export async function sendBudgetEmailAction(payload: {
         }
 
         const itemsRowsHtml = items.map((item) => {
-            const truncatedNotes = item.notes ? (item.notes.length > 100 ? item.notes.substring(0, 100) + '...' : item.notes) : '';
+            const truncatedNotes = item.notes ? (item.notes.length > 1200 ? item.notes.substring(0, 1200) + '...' : item.notes) : '';
             return `
             <tr style="border-bottom: 1px solid rgba(245, 242, 235, 0.08);">
                 <td style="padding: 10px 0; text-align: left; vertical-align: top; font-family: 'Inter', sans-serif;">
@@ -393,7 +393,7 @@ export async function sendOrderConfirmationEmailAction(payload: {
             <div style="margin-bottom: 24px; text-align: left;">
               <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
                 ${finalItems.map(item => {
-                  const truncatedNotes = item.notes ? (item.notes.length > 100 ? item.notes.substring(0, 100) + '...' : item.notes) : '';
+                  const truncatedNotes = item.notes ? (item.notes.length > 1200 ? item.notes.substring(0, 1200) + '...' : item.notes) : '';
                   return `
                   <tr style="border-bottom: 1px solid rgba(245, 242, 235, 0.08);">
                     <td style="padding: 10px 0; text-align: left; vertical-align: top; font-family: 'Inter', sans-serif;">
