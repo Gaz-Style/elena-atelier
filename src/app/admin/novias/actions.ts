@@ -1507,3 +1507,98 @@ export async function deleteBridalInspiration(projectId: string, inspirationId: 
     revalidatePath(`/portal-novias/${projectId}`);
     return { success: true };
 }
+
+export async function registerBridalInstallment(projectId: string, installmentIndex: number, paymentMethod: string = 'Efectivo/Transferencia') {
+    const supabase = getAdminClient();
+    
+    // 1. Fetch work_order
+    const { data: woData } = await supabase
+        .from('work_orders')
+        .select('*')
+        .eq('legacy_bridal_project_id', projectId)
+        .maybeSingle();
+        
+    if (!woData || !woData.payment_plan || !woData.payment_plan.cuotas) {
+        return { success: false, error: 'Plan de pagos no encontrado' };
+    }
+    
+    const plan = woData.payment_plan;
+    const cuota = plan.cuotas[installmentIndex];
+    if (!cuota) return { success: false, error: 'Cuota no encontrada' };
+    
+    cuota.status = 'paid';
+    cuota.fecha = new Date().toISOString();
+    
+    // Recalculate total paid
+    const newPaidAmount = plan.cuotas
+        .filter((c: any) => c.status === 'paid')
+        .reduce((acc: number, curr: any) => acc + (curr.amount || curr.monto || 0), 0);
+        
+    let newPaymentStatus = 'pending';
+    if (newPaidAmount >= (woData.total_amount || 0) && (woData.total_amount || 0) > 0) newPaymentStatus = 'paid';
+    else if (newPaidAmount > 0) newPaymentStatus = 'partial';
+    
+    // Update work_order
+    const { error: woError } = await supabase
+        .from('work_orders')
+        .update({
+            payment_plan: plan,
+            paid_amount: newPaidAmount,
+            payment_status: newPaymentStatus,
+            updated_at: new Date().toISOString()
+        })
+        .eq('legacy_bridal_project_id', projectId);
+        
+    if (woError) return { success: false, error: woError.message };
+    
+    // 2. Dual write/update bridal_projects status
+    const updates: Record<string, any> = {
+        updated_at: new Date().toISOString()
+    };
+    
+    // If it's the first installment, mark as en_proceso
+    if (installmentIndex === 0) {
+        updates.status = 'en_proceso';
+    }
+    
+    // Sync payment_1, 2, 3 columns if they exist in standard positions
+    if (installmentIndex === 0) {
+        updates.payment_1_status = 'paid';
+        updates.payment_1_date = cuota.fecha;
+    } else if (installmentIndex === 1) {
+        updates.payment_2_status = 'paid';
+        updates.payment_2_date = cuota.fecha;
+    } else if (installmentIndex === 2 && plan.cuotas.length === 3) {
+        updates.payment_3_status = 'paid';
+        updates.payment_3_date = cuota.fecha;
+    }
+    
+    await supabase.from('bridal_projects').update(updates).eq('id', projectId);
+    
+    // 3. Register in sales_ledger
+    const ledgerId = `bridal_${projectId}_custom_p${installmentIndex + 1}`;
+    const amount = cuota.amount || cuota.monto || 0;
+    
+    const { data: existingLedger } = await supabase
+        .from('sales_ledger')
+        .select('id')
+        .eq('internal_id', ledgerId)
+        .maybeSingle();
+
+    if (!existingLedger && amount > 0) {
+        await supabase
+            .from('sales_ledger')
+            .insert([{
+                internal_id: ledgerId,
+                customer_id: woData.customer_id,
+                total_amount: amount,
+                paid_amount: amount,
+                status: 'completed',
+                payment_method: paymentMethod,
+                branch: 'Alta Costura'
+            }]);
+    }
+    
+    revalidatePath(`/admin/novias/${projectId}`);
+    return { success: true };
+}

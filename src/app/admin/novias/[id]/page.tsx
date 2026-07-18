@@ -8,7 +8,7 @@ import {
     Clock, AlertCircle, FileText, Ruler, Camera, StickyNote, Loader2, Printer,
     ChevronDown, ChevronUp, X, Save, Trash2
 } from 'lucide-react';
-import { getBridalProjectById, registerPayment, completeMilestone, acceptContract, saveMeasurements, updateBridalProject, cancelProject, sendBridalWelcomeEmailAction, sendBridalInductionEmailAction, deleteBridalProjectAction, updateMilestoneDateAction } from '../actions';
+import { getBridalProjectById, registerPayment, registerBridalInstallment, completeMilestone, acceptContract, saveMeasurements, updateBridalProject, cancelProject, sendBridalWelcomeEmailAction, sendBridalInductionEmailAction, deleteBridalProjectAction, updateMilestoneDateAction } from '../actions';
 import ContractTemplate from '../ContractTemplate';
 
 const formatCurrency = (val: number) =>
@@ -106,6 +106,19 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         setSaving(true);
         await registerPayment(projectId, paymentNum, method);
         await loadProject(projectId);
+        setSaving(false);
+    }
+
+    async function handleRegisterCustomInstallment(index: number) {
+        const method = prompt(`¿Confirmar registro de Cuota ${index + 1}? Ingrese el método de pago (ej: Transferencia, Efectivo, Tarjeta):`, "Transferencia");
+        if (method === null) return;
+        setSaving(true);
+        const res = await registerBridalInstallment(projectId, index, method);
+        if (res.success) {
+            await loadProject(projectId);
+        } else {
+            alert(res.error || 'Error al registrar el pago');
+        }
         setSaving(false);
     }
 
@@ -232,10 +245,18 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     const typeConfig = projectTypeConfig[project.project_type] || projectTypeConfig.novia;
     const status = statusConfig[project.status] || statusConfig.consulta;
     const TypeIcon = typeConfig.icon;
-    const paidCount = [project.payment_1_status, project.payment_2_status, project.payment_3_status].filter(s => s === 'paid').length;
-    const paidAmount = (project.payment_1_status === 'paid' ? project.payment_1_amount : 0) +
-                       (project.payment_2_status === 'paid' ? project.payment_2_amount : 0) +
-                       (project.payment_3_status === 'paid' ? project.payment_3_amount : 0);
+    const customCuotas = project.work_order?.payment_plan?.cuotas || [];
+    const hasCustomPlan = customCuotas.length > 0;
+    const totalCuotasCount = hasCustomPlan ? customCuotas.length : 3;
+    const paidCount = hasCustomPlan 
+        ? customCuotas.filter((c: any) => c.status === 'paid').length 
+        : [project.payment_1_status, project.payment_2_status, project.payment_3_status].filter(s => s === 'paid').length;
+        
+    const paidAmount = hasCustomPlan 
+        ? (project.work_order.paid_amount || 0)
+        : (project.payment_1_status === 'paid' ? project.payment_1_amount : 0) +
+          (project.payment_2_status === 'paid' ? project.payment_2_amount : 0) +
+          (project.payment_3_status === 'paid' ? project.payment_3_amount : 0);
 
     const daysUntilEvent = project.event_date
         ? Math.ceil((new Date(project.event_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
@@ -339,11 +360,20 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         </div>
                         <div className="bg-white border border-zinc-200/80 p-4 rounded-xl">
                             <p className="text-[9px] uppercase text-zinc-400 tracking-widest font-bold">Cuotas</p>
-                            <p className="text-xl font-semibold text-zinc-800 mt-1">{paidCount} / 3</p>
+                            <p className="text-xl font-semibold text-zinc-800 mt-1">{paidCount} / {totalCuotasCount}</p>
                             <div className="flex gap-1 mt-1">
-                                {[1, 2, 3].map(i => (
-                                    <div key={i} className={`h-1.5 rounded-full flex-1 ${(project as any)[`payment_${i}_status`] === 'paid' ? 'bg-emerald-400' : 'bg-zinc-200'}`} />
-                                ))}
+                                {hasCustomPlan ? (
+                                    <div className="h-1.5 rounded-full bg-zinc-200 flex-1 overflow-hidden">
+                                        <div 
+                                            className="h-full bg-emerald-400 transition-all" 
+                                            style={{ width: `${(paidCount / totalCuotasCount) * 100}%` }}
+                                        />
+                                    </div>
+                                ) : (
+                                    [1, 2, 3].map(i => (
+                                        <div key={i} className={`h-1.5 rounded-full flex-1 ${(project as any)[`payment_${i}_status`] === 'paid' ? 'bg-emerald-400' : 'bg-zinc-200'}`} />
+                                    ))
+                                )}
                             </div>
                         </div>
                         <div className="bg-white border border-zinc-200/80 p-4 rounded-xl">
@@ -515,41 +545,76 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     {/* TAB: Payments */}
                     {activeTab === 'payments' && (
                         <div className="space-y-4">
-                            {[
-                                { num: 1 as const, label: 'Cuota 1 — Abono Inicial', pct: '50%', amount: project.payment_1_amount, status: project.payment_1_status, date: project.payment_1_date },
-                                { num: 2 as const, label: 'Cuota 2 — Prueba Intermedia', pct: '25%', amount: project.payment_2_amount, status: project.payment_2_status, date: project.payment_2_date },
-                                { num: 3 as const, label: 'Cuota 3 — Contra Entrega', pct: '25%', amount: project.payment_3_amount, status: project.payment_3_status, date: project.payment_3_date },
-                            ].map(payment => (
-                                <div key={payment.num} className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-5 rounded-xl border ${
-                                    payment.status === 'paid' ? 'bg-emerald-50/50 border-emerald-200' : 'bg-white border-zinc-200'
-                                }`}>
-                                    <div>
-                                        <h3 className="font-bold text-sm text-zinc-800">{payment.label}</h3>
-                                        <p className="text-xs text-zinc-400 mt-1">{payment.pct} del total</p>
-                                        {payment.status === 'paid' && payment.date && (
-                                            <p className="text-[10px] text-emerald-600 mt-1">Pagado el {formatDate(payment.date)}</p>
-                                        )}
+                            {hasCustomPlan ? (
+                                customCuotas.map((cuota: any, index: number) => (
+                                    <div key={index} className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-5 rounded-xl border ${
+                                        cuota.status === 'paid' ? 'bg-emerald-50/50 border-emerald-200' : 'bg-white border-zinc-200'
+                                    }`}>
+                                        <div>
+                                            <h3 className="font-bold text-sm text-zinc-800">{cuota.name}</h3>
+                                            <p className="text-xs text-zinc-400 mt-1">{((cuota.amount / project.total_amount) * 100).toFixed(1)}% del total</p>
+                                            <p className="text-[10px] text-zinc-500 mt-1">Plazo: {cuota.moment || `Cuota ${index + 1}`}</p>
+                                            {cuota.status === 'paid' && cuota.date && (
+                                                <p className="text-[10px] text-emerald-600 mt-1">Pagado el {formatDate(cuota.date)}</p>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-xl font-serif font-bold text-zinc-800">{formatCurrency(cuota.amount)}</span>
+                                            {cuota.status === 'paid' ? (
+                                                <span className="text-[10px] uppercase tracking-widest font-bold text-emerald-600 bg-emerald-100 px-3 py-1.5 rounded-full flex items-center gap-1">
+                                                    <CheckCircle2 className="w-3 h-3" /> Pagado
+                                                </span>
+                                            ) : project.status !== 'cancelado' ? (
+                                                <button
+                                                    onClick={() => handleRegisterCustomInstallment(index)}
+                                                    disabled={saving}
+                                                    className="text-[10px] uppercase tracking-widest font-bold bg-zinc-900 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-zinc-300"
+                                                >
+                                                    Registrar Pago
+                                                </button>
+                                            ) : (
+                                                <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-400">Cancelado</span>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-4">
-                                        <span className="text-xl font-serif font-bold text-zinc-800">{formatCurrency(payment.amount)}</span>
-                                        {payment.status === 'paid' ? (
-                                            <span className="text-[10px] uppercase tracking-widest font-bold text-emerald-600 bg-emerald-100 px-3 py-1.5 rounded-full flex items-center gap-1">
-                                                <CheckCircle2 className="w-3 h-3" /> Pagado
-                                            </span>
-                                        ) : project.status !== 'cancelado' ? (
-                                            <button
-                                                onClick={() => handleRegisterPayment(payment.num)}
-                                                disabled={saving}
-                                                className="text-[10px] uppercase tracking-widest font-bold bg-zinc-900 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-zinc-300"
-                                            >
-                                                Registrar Pago
-                                            </button>
-                                        ) : (
-                                            <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-400">Cancelado</span>
-                                        )}
+                                ))
+                            ) : (
+                                [
+                                    { num: 1 as const, label: 'Cuota 1 — Abono Inicial', pct: '50%', amount: project.payment_1_amount, status: project.payment_1_status, date: project.payment_1_date },
+                                    { num: 2 as const, label: 'Cuota 2 — Prueba Intermedia', pct: '25%', amount: project.payment_2_amount, status: project.payment_2_status, date: project.payment_2_date },
+                                    { num: 3 as const, label: 'Cuota 3 — Contra Entrega', pct: '25%', amount: project.payment_3_amount, status: project.payment_3_status, date: project.payment_3_date },
+                                ].map(payment => (
+                                    <div key={payment.num} className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-5 rounded-xl border ${
+                                        payment.status === 'paid' ? 'bg-emerald-50/50 border-emerald-200' : 'bg-white border-zinc-200'
+                                    }`}>
+                                        <div>
+                                            <h3 className="font-bold text-sm text-zinc-800">{payment.label}</h3>
+                                            <p className="text-xs text-zinc-400 mt-1">{payment.pct} del total</p>
+                                            {payment.status === 'paid' && payment.date && (
+                                                <p className="text-[10px] text-emerald-600 mt-1">Pagado el {formatDate(payment.date)}</p>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-xl font-serif font-bold text-zinc-800">{formatCurrency(payment.amount)}</span>
+                                            {payment.status === 'paid' ? (
+                                                <span className="text-[10px] uppercase tracking-widest font-bold text-emerald-600 bg-emerald-100 px-3 py-1.5 rounded-full flex items-center gap-1">
+                                                    <CheckCircle2 className="w-3 h-3" /> Pagado
+                                                </span>
+                                            ) : project.status !== 'cancelado' ? (
+                                                <button
+                                                    onClick={() => handleRegisterPayment(payment.num)}
+                                                    disabled={saving}
+                                                    className="text-[10px] uppercase tracking-widest font-bold bg-zinc-900 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-zinc-300"
+                                                >
+                                                    Registrar Pago
+                                                </button>
+                                            ) : (
+                                                <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-400">Cancelado</span>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
 
                             {/* Summary */}
                             <div className="bg-zinc-900 text-white p-6 rounded-xl grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
