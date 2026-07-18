@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { CreditCard, Globe, Loader2 } from 'lucide-react';
+import { CreditCard, Globe, Loader2, Lock, ArrowRight, Wallet, Building, Copy, Check } from 'lucide-react';
 import { createWebpayTransaction } from '@/lib/transbank';
 import { createPaymentPreference } from '@/lib/payments';
 
 export default function PaymentClient({ orderId, total }: { orderId: string; total: number }) {
     const [isProcessing, setIsProcessing] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     const formatCurrency = (val: number) => {
         return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val);
@@ -47,58 +48,137 @@ export default function PaymentClient({ orderId, total }: { orderId: string; tot
         }
     };
 
+    const handleCopy = async () => {
+        const text = `Destinatario: ATELIER HORTENSIA SPA\nRUT: 78.158.853-9\nBanco: Banco Bci / Mach\nTipo de cuenta: Cuenta corriente\nNº de cuenta: 77180795\nCorreo: pagos@elenalacosturera.cl`;
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+        }
+    };
+
     return (
         <div className="relative group overflow-hidden w-full max-w-md mx-auto">
-            {/* Glass panel container */}
-            <div className="bg-white/[0.03] backdrop-blur-md border border-white/10 border-t-white/20 border-l-white/20 border-b-white/5 border-r-white/5 rounded-[1px] shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-10 w-full animate-in fade-in zoom-in duration-[800ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
+            {/* Glass panel container matching bridal style */}
+            <div className="bg-white/5 border border-white/10 backdrop-blur-sm rounded-sm shadow-2xl p-8 md:p-10 relative w-full">
                 
-                <div className="text-center mb-10">
-                    <p className="text-[#f5f2eb]/60 text-[10px] uppercase tracking-[0.45em] font-semibold mb-4">Pago en Línea</p>
-                    <h2 className="text-[#f5f2eb] text-4xl font-serif font-light tracking-widest mb-8">
-                        #{orderId.replace('order_', '')}
-                    </h2>
-                    
-                    <div className="inline-block border border-white/10 border-t-white/20 border-l-white/20 px-6 py-3 bg-white/[0.02]">
-                        <p className="text-white/80 text-xs font-sans tracking-[0.2em] uppercase">
-                            Total <span className="font-serif text-[#f5f2eb] text-lg ml-2">{formatCurrency(total)}</span>
-                        </p>
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-[#0B0C10] border border-white/10 rounded-full flex items-center justify-center shadow-inner">
+                    <div className="w-12 h-12 rounded-full bg-[#1A1A1A] text-[#C17F5F] flex items-center justify-center">
+                        <Lock className="w-5 h-5" />
                     </div>
                 </div>
 
-                <div className="pt-2">
-                    {isProcessing ? (
-                        <div className="flex flex-col items-center justify-center py-8 space-y-6">
-                            <Loader2 className="w-8 h-8 animate-spin text-[#f5f2eb]/70" />
-                            <p className="text-[#f5f2eb]/50 text-[10px] uppercase tracking-[0.3em] animate-pulse">Conectando pasarela...</p>
+                <div className="text-center mt-6 mb-10 border-b border-white/10 pb-8">
+                    <p className="text-[#f5f2eb]/60 text-[9px] uppercase tracking-[0.45em] font-bold mb-3">Pago en Línea</p>
+                    <h2 className="font-serif text-3xl text-white tracking-widest mb-1">
+                        #{orderId.replace('order_', '')}
+                    </h2>
+                </div>
+
+                {isProcessing ? (
+                    <div className="flex flex-col items-center justify-center py-8 space-y-6">
+                        <Loader2 className="w-8 h-8 animate-spin text-[#C17F5F]" />
+                        <p className="text-[#f5f2eb]/50 text-[10px] uppercase tracking-[0.3em] animate-pulse">Conectando pasarela...</p>
+                    </div>
+                ) : (
+                    <div className="space-y-8">
+                        <div className="text-center">
+                            <p className="text-[10px] uppercase tracking-widest text-[#C17F5F] font-bold mb-2">Monto a pagar</p>
+                            <p className="text-4xl font-serif text-white tracking-wider">{formatCurrency(total)}</p>
                         </div>
-                    ) : (
-                        <div className="flex flex-col gap-5">
-                            {/* Transbank Glass Button */}
+
+                        <div className="space-y-4 pt-4">
+                            <h3 className="text-[10px] uppercase tracking-widest text-gray-500 font-bold text-center mb-6">
+                                Selecciona tu método de pago
+                            </h3>
+
+                            {/* Transbank Webpay Button */}
                             <button
                                 onClick={() => processPayment('transbank')}
                                 disabled={isProcessing}
-                                className="group relative w-full inline-flex items-center justify-center gap-3 px-6 py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[10px] uppercase tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] disabled:opacity-50 disabled:cursor-not-allowed rounded-[1px]"
+                                className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white p-5 rounded-sm transition-all duration-300 flex items-center justify-between group cursor-pointer"
                             >
-                                <div className="flex items-center justify-center gap-3 relative z-10 transition-colors duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:text-[#121212]">
-                                    <CreditCard className="w-4 h-4 transition-colors duration-[600ms]" />
-                                    <span>Pagar con Webpay</span>
+                                <div className="flex items-center gap-4">
+                                    <CreditCard className="w-6 h-6 text-white/80" />
+                                    <span className="font-bold text-sm tracking-widest uppercase">Webpay Plus</span>
                                 </div>
+                                <ArrowRight className="w-4 h-4 text-[#C17F5F] group-hover:translate-x-1 transition-transform" />
                             </button>
 
-                            {/* Mercado Pago Glass Button */}
+                            {/* Mercado Pago Button */}
                             <button
                                 onClick={() => processPayment('mercadopago')}
                                 disabled={isProcessing}
-                                className="group relative w-full inline-flex items-center justify-center gap-3 px-6 py-4 border-[0.5px] border-white/10 border-t-white/20 border-l-white/20 border-b-white/5 border-r-white/5 text-white/80 font-sans text-[10px] uppercase tracking-[0.25em] font-semibold bg-white/[0.04] backdrop-blur-[5px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] disabled:opacity-50 disabled:cursor-not-allowed rounded-[1px]"
+                                className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white p-5 rounded-sm transition-all duration-300 flex items-center justify-between group cursor-pointer"
                             >
-                                <div className="flex items-center justify-center gap-3 relative z-10 transition-colors duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:text-[#121212]">
-                                    <Globe className="w-4 h-4 transition-colors duration-[600ms]" />
-                                    <span>Mercado Pago</span>
+                                <div className="flex items-center gap-4">
+                                    <Wallet className="w-6 h-6 text-white/80" />
+                                    <div className="text-left">
+                                        <span className="font-bold text-sm tracking-widest uppercase block">Mercado Pago</span>
+                                        <span className="text-[9px] text-gray-500 uppercase tracking-widest mt-1 block">Tarjetas o Dinero en cuenta</span>
+                                    </div>
                                 </div>
+                                <ArrowRight className="w-4 h-4 text-[#C17F5F] group-hover:translate-x-1 transition-transform" />
                             </button>
+
+                            {/* Bank Transfer */}
+                            <div className="mt-8 border border-white/10 rounded-sm overflow-hidden bg-white/5 group transition-all duration-300 hover:border-white/20">
+                                <div className="p-5 border-b border-white/5 flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <Building className="w-6 h-6 text-white/80" />
+                                        <div className="text-left">
+                                            <span className="font-bold text-sm tracking-widest uppercase block text-white">Transferencia Bancaria</span>
+                                            <span className="text-[9px] text-gray-500 uppercase tracking-widest mt-1 block">Datos para abono directo</span>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={handleCopy}
+                                        className="flex items-center justify-center p-2 rounded-sm bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors border border-white/5 cursor-pointer"
+                                        title="Copiar datos bancarios"
+                                    >
+                                        {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                                    </button>
+                                </div>
+                                <div className="p-6 space-y-4 bg-black/20 text-xs text-gray-400 font-light">
+                                    <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                                        <span className="uppercase tracking-widest text-[9px] font-bold">Destinatario</span>
+                                        <span className="text-white font-medium">ATELIER HORTENSIA SPA</span>
+                                    </div>
+                                    <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                                        <span className="uppercase tracking-widest text-[9px] font-bold">RUT</span>
+                                        <span className="text-white font-medium">78.158.853-9</span>
+                                    </div>
+                                    <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                                        <span className="uppercase tracking-widest text-[9px] font-bold">Banco</span>
+                                        <span className="text-white font-medium">Banco Bci / Mach</span>
+                                    </div>
+                                    <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                                        <span className="uppercase tracking-widest text-[9px] font-bold">Tipo de cuenta</span>
+                                        <span className="text-white font-medium">Cuenta corriente</span>
+                                    </div>
+                                    <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                                        <span className="uppercase tracking-widest text-[9px] font-bold">Nº de cuenta</span>
+                                        <span className="text-white font-medium">77180795</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="uppercase tracking-widest text-[9px] font-bold">Correo</span>
+                                        <span className="text-white font-medium">pagos@elenalacosturera.cl</span>
+                                    </div>
+                                    
+                                    <div className="mt-4 pt-4 border-t border-white/10 text-center">
+                                        <p className="text-[9px] uppercase tracking-wider text-[#C17F5F]">Por favor, enviar comprobante a pagos@elenalacosturera.cl</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    )}
-                </div>
+
+                        <p className="text-[9px] uppercase tracking-widest text-center text-gray-600 pt-6 border-t border-white/5 flex items-center justify-center gap-2">
+                            <Lock className="w-3 h-3" /> Transacciones seguras encriptadas
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     );

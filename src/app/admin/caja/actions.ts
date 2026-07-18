@@ -305,12 +305,28 @@ export async function payOrderBalanceAction(posOrderId: string, amountToPay: num
         : (Number(sale.paid_amount || 0) + amountToPay);
     const isFullyPaid = isPendingTerminal ? false : (newPaidAmount >= Number(sale.total_amount));
     
+    let parentStatus = sale.status;
+    if (isPendingTerminal) {
+        if (sale.status === 'pending' && cashImmediate > 0) {
+            parentStatus = 'partial';
+        }
+    } else {
+        parentStatus = isFullyPaid ? 'completed' : 'partial';
+    }
+
+    let parentProdStatus = 'pending';
+    if (parentStatus === 'completed' || parentStatus === 'paid') {
+        parentProdStatus = 'paid';
+    } else if (parentStatus === 'partial') {
+        parentProdStatus = 'partial';
+    }
+
     // Update Production Orders (all items belonging to this order)
     const { error: updateError } = await supabase
         .from('production_orders')
         .update({
             paid_amount: newPaidAmount,
-            payment_status: isPendingTerminal ? 'pending' : (isFullyPaid ? 'paid' : 'partial')
+            payment_status: parentProdStatus
         })
         .eq('pos_order_id', posOrderId);
         
@@ -321,7 +337,7 @@ export async function payOrderBalanceAction(posOrderId: string, amountToPay: num
         .from('sales_ledger')
         .update({
             paid_amount: newPaidAmount,
-            status: isPendingTerminal ? 'pending' : (isFullyPaid ? 'completed' : 'partial')
+            status: parentStatus
         })
         .eq('internal_id', posOrderId);
         
