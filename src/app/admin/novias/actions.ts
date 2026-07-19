@@ -692,7 +692,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
                           </p>
                           
                           <p style="font-family: 'Inter', Helvetica, sans-serif; color: #6B6660; font-size: 9px; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 5px 0; font-weight: 400;">
-                            ESTIMADA
+                            BIENVENIDA
                           </p>
                           
                           <p style="font-family: 'Playfair Display', Georgia, serif; color: #1A1A1A; font-size: 32px; margin: 0 0 15px 0; font-style: italic; font-weight: 400;">
@@ -832,7 +832,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
             from: '"Elena Atelier" <contacto@elenalacosturera.cl>',
             to: customerEmail,
             subject: `Acceso a tu Portal de Novia - ${customerName}`,
-            text: `Estimada ${customerName},\n\nEs un privilegio acompañarte en este proceso. Te invitamos a vivir la experiencia Elena Atelier.\n\nPuedes ingresar a tu portal privado en el siguiente enlace:\n${portalLink}\n\nAtentamente,\nElena Atelier`,
+            text: `Te damos la bienvenida, ${customerName},\n\nEs un privilegio acompañarte en este proceso. Te invitamos a vivir la experiencia Elena Atelier.\n\nPuedes ingresar a tu portal privado en el siguiente enlace:\n${portalLink}\n\nAtentamente,\nElena Atelier`,
             html: htmlContent,
             attachments
         });
@@ -903,7 +903,7 @@ export async function sendBridalInductionEmailAction(projectId: string) {
                     </p>
                     
                     <p style="font-family: 'Inter', Helvetica, sans-serif; color: #A39E93; font-size: 9px; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 5px 0; font-weight: 400;">
-                      ESTIMADA
+                      BIENVENIDA
                     </p>
                     
                     <p style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 28px; margin: 0 0 30px 0; font-style: italic; font-weight: 400;">
@@ -978,7 +978,7 @@ export async function sendBridalInductionEmailAction(projectId: string) {
             replyTo: 'contacto@elenalacosturera.cl',
             to: customerEmail,
             subject: `Información de tu proyecto - ${customerName}`,
-            text: `Estimada ${customerName},\n\nComo parte del proceso de tu proyecto, hemos preparado un breve video explicativo.\nTe pedimos que lo revises antes de tu próxima cita para que puedas resolver cualquier duda.\n\nPuedes ver el video ingresando a tu portal privado en el siguiente enlace:\n${portalLink}\n\nAtentamente,\nElena Atelier`,
+            text: `Te damos la bienvenida, ${customerName},\n\nComo parte del proceso de tu proyecto, hemos preparado un breve video explicativo.\nTe pedimos que lo revises antes de tu próxima cita para que puedas resolver cualquier duda.\n\nPuedes ver el video ingresando a tu portal privado en el siguiente enlace:\n${portalLink}\n\nAtentamente,\nElena Atelier`,
             html: htmlContent,
             attachments
         });
@@ -1068,7 +1068,7 @@ export async function sendBridalContractEmailAction(projectId: string) {
 
               <div style="margin-top: 35px; text-align: left;">
                 <p style="color: #4A4A4A; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 20px 0;">
-                  Estimada <strong style="color: #1A1A1A; font-weight: 600;">${customerName}</strong>,
+                  Te damos la bienvenida, <strong style="color: #1A1A1A; font-weight: 600;">${customerName}</strong>,
                 </p>
                 <p style="color: #4A4A4A; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 30px 0;">
                   Hemos recibido exitosamente la aceptación de tu propuesta y la firma del contrato. Queremos agradecerte por confiar en Elena Atelier para confeccionar tu vestido soñado.
@@ -1117,7 +1117,7 @@ export async function sendBridalContractEmailAction(projectId: string) {
             from: '"Elena Atelier" <contacto@elenalacosturera.cl>',
             to: customerEmail,
             subject: `Revisión de Contrato y Presupuesto - ${customerName}`,
-            text: `Estimada ${customerName},\n\nTe hemos enviado tu contrato y presupuesto para revisión.\n\nPuedes ingresar a tu portal privado en el siguiente enlace:\n${proposalLink}\n\nAtentamente,\nElena Atelier`,
+            text: `Te damos la bienvenida, ${customerName},\n\nTe hemos enviado tu contrato y presupuesto para revisión.\n\nPuedes ingresar a tu portal privado en el siguiente enlace:\n${proposalLink}\n\nAtentamente,\nElena Atelier`,
             html: htmlContent
         });
 
@@ -1157,7 +1157,7 @@ export async function sendBridalThankYouEmailAction(projectId: string) {
                 ¡Gracias por Elegirnos!
               </h1>
               <p style="color: #4A4A4A; font-size: 14px; line-height: 1.8; margin-bottom: 20px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
-                Estimada <i style="color: #1A1A1A;">${customerName}</i>, hemos recibido exitosamente la firma de tu contrato y el abono inicial. Tu cupo de producción ya está oficialmente reservado en nuestro atelier.
+                Te damos la bienvenida, <i style="color: #1A1A1A;">${customerName}</i>, hemos recibido exitosamente la firma de tu contrato y el abono inicial. Tu cupo de producción ya está oficialmente reservado en nuestro atelier.
               </p>
               <p style="color: #4A4A4A; font-size: 14px; line-height: 1.8; margin-bottom: 20px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
                 En los próximos días nos contactaremos contigo para agendar tu primera prueba. ¡Estamos muy emocionados de comenzar este proceso y confeccionar el vestido de tus sueños!
@@ -1188,7 +1188,7 @@ export async function sendBridalThankYouEmailAction(projectId: string) {
             from: '"Elena Atelier" <contacto@elenalacosturera.cl>',
             to: customerEmail,
             subject: `¡Reserva Confirmada! Gracias por elegir Elena Atelier`,
-            text: `Estimada ${customerName},\n\nHemos recibido exitosamente la firma de tu contrato y el abono inicial. Tu cupo de producción ya está oficialmente reservado en nuestro atelier.\n\nEn los próximos días nos contactaremos contigo para agendar tu primera prueba.\n\nAtentamente,\nElena Atelier`,
+            text: `Te damos la bienvenida, ${customerName},\n\nHemos recibido exitosamente la firma de tu contrato y el abono inicial. Tu cupo de producción ya está oficialmente reservado en nuestro atelier.\n\nEn los próximos días nos contactaremos contigo para agendar tu primera prueba.\n\nAtentamente,\nElena Atelier`,
             html: htmlContent
         });
 

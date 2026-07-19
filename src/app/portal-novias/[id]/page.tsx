@@ -503,18 +503,18 @@ export default function PortalNoviasPage() {
                                         const isCompleted = milestone.status === 'completed';
                                         return (
                                             <div key={milestone.id} className={`flex items-start gap-4 p-4 rounded border ${
-                                                isCompleted ? 'bg-emerald-950/10 border-emerald-500/20 text-emerald-200' : 'bg-[#181818] border-[#C17F5F]/10 text-[#4A4A4A]'
+                                                isCompleted ? 'bg-emerald-50/80 border-emerald-200' : 'bg-[#FCFAF7]/95 border-[#C17F5F]/15'
                                             }`}>
                                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                                                    isCompleted ? 'bg-emerald-500 text-[#1A1A1A]' : 'bg-white/10 text-[#1A1A1A]/50'
+                                                    isCompleted ? 'bg-emerald-600 text-white' : 'bg-[#C17F5F]/10 text-[#C17F5F] font-bold'
                                                 }`}>
                                                     {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
                                                 </div>
                                                 <div>
-                                                    <h3 className={`font-bold text-xs uppercase tracking-widest ${isCompleted ? 'line-through text-emerald-500' : 'text-[#1A1A1A]'}`}>
+                                                    <h3 className={`font-bold text-xs uppercase tracking-widest ${isCompleted ? 'line-through text-emerald-700/60' : 'text-[#1A1A1A]'}`}>
                                                         {milestone.title}
                                                     </h3>
-                                                    <p className="text-xs mt-1 font-light flex items-center gap-1.5 text-gray-600">
+                                                    <p className={`text-xs mt-1 font-light flex items-center gap-1.5 ${isCompleted ? 'text-emerald-700/50' : 'text-gray-600'}`}>
                                                         <Clock className="w-3.5 h-3.5 text-[#C17F5F]" />
                                                         {milestone.scheduled_date ? formatDateLong(milestone.scheduled_date) : 'Por programar'}
                                                     </p>
@@ -536,14 +536,14 @@ export default function PortalNoviasPage() {
                         <div className="bg-white/90/80 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg backdrop-blur-md space-y-6">
                             
                             {/* Visual balance card */}
-                            <div className="bg-[#181818] border border-[#C17F5F]/10 p-6 rounded-lg grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
+                            <div className="bg-[#FCFAF7]/90 border border-[#C17F5F]/20 p-6 rounded-lg grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
                                 <div>
                                     <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Valor Total del Vestido</p>
                                     <p className="text-2xl font-serif mt-1 text-[#1A1A1A] font-light">{formatCurrency(totalValue)}</p>
                                 </div>
                                 <div className="sm:text-center">
                                     <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Total Pagado</p>
-                                    <p className="text-2xl font-serif mt-1 text-emerald-400 font-light">{formatCurrency(totalPaid)}</p>
+                                    <p className="text-2xl font-serif mt-1 text-emerald-600 font-light">{formatCurrency(totalPaid)}</p>
                                 </div>
                                 <div className="sm:text-right">
                                     <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Saldo Pendiente</p>
@@ -558,24 +558,24 @@ export default function PortalNoviasPage() {
                                 <h3 className="text-xs uppercase tracking-widest font-bold text-gray-600 border-b border-[#C17F5F]/10 pb-2">Plan de Vencimientos</h3>
                                 {cuotasList.map((cuota, idx) => (
                                     <div key={idx} className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded border ${
-                                        cuota.status === 'paid' ? 'bg-emerald-950/10 border-emerald-500/20' : 'bg-[#181818] border-[#C17F5F]/10'
+                                        cuota.status === 'paid' ? 'bg-emerald-50/80 border-emerald-200' : 'bg-[#FCFAF7]/95 border-[#C17F5F]/15'
                                     }`}>
                                         <div>
                                             <h4 className="font-bold text-xs uppercase tracking-widest text-[#1A1A1A]">{cuota.name}</h4>
                                             {cuota.status === 'paid' && cuota.date && (
-                                                <p className="text-[10px] text-emerald-500 mt-1 font-light">Confirmado el {formatDate(cuota.date)}</p>
+                                                <p className="text-[10px] text-emerald-600 mt-1 font-light">Confirmado el {formatDate(cuota.date)}</p>
                                             )}
                                         </div>
                                         <div className="flex items-center gap-4 self-end sm:self-auto">
                                             <span className="text-sm font-bold text-[#1A1A1A]">{formatCurrency(cuota.amount)}</span>
                                             {cuota.status === 'paid' ? (
-                                                <span className="text-[8px] uppercase tracking-widest font-black text-emerald-500 bg-emerald-950/30 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+                                                <span className="text-[8px] uppercase tracking-widest font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
                                                     Pagado ✓
                                                 </span>
                                             ) : (
                                                 <a 
                                                     href={`/portal-novias/${projectId}/pagar`}
-                                                    className="text-[9px] uppercase tracking-widest font-bold border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-[#C17F5F] px-3.5 py-1.5 rounded transition-all"
+                                                    className="text-[9px] uppercase tracking-widest font-bold border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-white px-3.5 py-1.5 rounded transition-all"
                                                 >
                                                     Pagar
                                                 </a>
