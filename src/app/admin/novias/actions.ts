@@ -608,12 +608,12 @@ const getTransporter = () => {
 const emailLogoHtml = `
     <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto; text-align: center;">
       <tr>
-        <td style="font-family:'Playfair Display', Georgia, serif; font-size: 28px; font-weight: 900; color: #FFFFFF; letter-spacing: 12px; text-transform: uppercase; text-align: center; line-height: 1; padding: 0 0 0 12px;">
+        <td style="font-family:'Playfair Display', Georgia, serif; font-size: 28px; font-weight: 900; color: #1A1A1A; letter-spacing: 12px; text-transform: uppercase; text-align: center; line-height: 1; padding: 0 0 0 12px;">
           ELENA
         </td>
       </tr>
       <tr>
-        <td style="font-family:'Inter', -apple-system, sans-serif; font-size: 8px; font-weight: 700; color: #FFFFFF; letter-spacing: 5.8px; text-transform: uppercase; text-align: center; padding-top: 8px; line-height: 1; padding-left: 5.8px; width: 100%;">
+        <td style="font-family:'Inter', -apple-system, sans-serif; font-size: 8px; font-weight: 700; color: #1A1A1A; letter-spacing: 5.8px; text-transform: uppercase; text-align: center; padding-top: 8px; line-height: 1; padding-left: 5.8px; width: 100%;">
           LA COSTURERA
         </td>
       </tr>
@@ -638,13 +638,18 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
 
         // Luxury background image logic
         const attachments = [];
-        let cardBgUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGUlEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAA8F8bGgABxZqVdgAAAABJRU5ErkJggg==';
+        let cardBgUrl = 'cid:luxuryPassBg';
         const fs = require('fs');
         const path = require('path');
-        const filePath = path.join(process.cwd(), 'public', 'trabajos', 'novia 2.jpeg');
-        if (fs.existsSync(filePath)) {
-            attachments.push({ filename: 'novia_2.jpeg', path: filePath, cid: 'luxuryPassBg' });
-            cardBgUrl = 'cid:luxuryPassBg';
+        const filePath = path.join(process.cwd(), 'public', 'novia', 'novia_original.jpg');
+        
+        if (process.env.NODE_ENV === 'production') {
+            cardBgUrl = `${siteUrl}/novia/novia_original.jpg`;
+        } else {
+            if (fs.existsSync(filePath)) {
+                attachments.push({ filename: 'novia_original.jpg', path: filePath, cid: 'luxuryPassBg' });
+                cardBgUrl = 'cid:luxuryPassBg';
+            }
         }
 
         const htmlContent = `<!DOCTYPE html>
@@ -655,94 +660,184 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap');
 </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #0A0A0A; font-family: 'Inter', Helvetica, sans-serif;">
-  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0A0A0A; padding: 40px 20px;">
+<body style="margin: 0; padding: 0; background-color: #FCFAF7; font-family: 'Inter', Helvetica, sans-serif;">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #FCFAF7; padding: 40px 20px;">
     <tr>
       <td align="center">
-        <!-- Main Card Container -->
-        <table width="650" border="0" cellpadding="0" cellspacing="0" style="background-color: #0E0E0E; overflow: hidden;">
+        
+        <!-- Advanced Inset Border Container -->
+        <table width="650" border="0" cellpadding="0" cellspacing="0" style="box-shadow: 0 25px 50px rgba(0,0,0,0.08);">
+          
+          <!-- TOP SECTION (Background Image + Gradient) -->
           <tr>
-            <td background="${cardBgUrl}" bgcolor="#0E0E0E" style="background: linear-gradient(to right, #0E0E0E 0%, #0E0E0E 40%, rgba(14,14,14,0.5) 55%, rgba(14,14,14,0) 70%), url('${cardBgUrl}') right top no-repeat; background-image: linear-gradient(to right, #0E0E0E 0%, #0E0E0E 40%, rgba(14,14,14,0.5) 55%, rgba(14,14,14,0) 70%), url('${cardBgUrl}'); background-size: 100% 100%, auto 100%; background-position: 0 0, right top; padding: 50px 0; background-repeat: no-repeat;">
+            <td background="${cardBgUrl}" bgcolor="#F5F5F0" style="background: url('${cardBgUrl}') left top no-repeat; background-image: url('${cardBgUrl}'); background-size: 100% 100%; background-position: left top; background-repeat: no-repeat;">
               
-              <!-- Text Container (left aligned) -->
-              <table width="380" border="0" cellpadding="0" cellspacing="0" align="left" style="padding-left: 45px;">
+              <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                <!-- Top inset margin -->
+                <tr><td height="15" colspan="3"></td></tr>
+                
+                <!-- Main content row with side insets -->
                 <tr>
-                  <td>
-                    <!-- Logo -->
-                    ${emailLogoHtml}
+                  <td width="15"></td>
+                  <!-- Softer inset border -->
+                  <td style="border-top: 1px solid rgba(193,127,95,0.3); border-left: 1px solid rgba(193,127,95,0.3); border-right: 1px solid rgba(193,127,95,0.3); padding: 40px 10px;">
                     
-                    <div style="margin-top: 50px;"></div>
-                    
-                    <p style="color: #C17F5F; font-size: 8px; text-transform: uppercase; letter-spacing: 4px; margin: 0 0 30px 0; font-weight: 600;">
-                      ACCESO PORTAL PRIVADO
-                    </p>
-                    
-                    <p style="font-family: 'Inter', Helvetica, sans-serif; color: #A39E93; font-size: 9px; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 5px 0; font-weight: 400;">
-                      ESTIMADA
-                    </p>
-                    
-                    <p style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 28px; margin: 0 0 30px 0; font-style: italic; font-weight: 400;">
-                      ${customerName}
-                    </p>
-                    
-                    <!-- Gold divider line -->
-                    <table width="40" border="0" cellpadding="0" cellspacing="0" style="margin: 0 0 30px 0;">
-                      <tr><td style="border-top: 2px solid #C17F5F; font-size: 0; line-height: 0; height: 1px;">&nbsp;</td></tr>
-                    </table>
-                    
-                    <p style="color: #9A958C; font-size: 12px; line-height: 1.9; margin: 0 0 30px 0; font-weight: 300; max-width: 280px;">
-                      Es un privilegio acompañarte en este proceso. Te invitamos a vivir la experiencia Elena Atelier.
-                    </p>
-                    
-                    <a href="${portalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, sans-serif; font-weight: 600; color: #FFFFFF; background-color: transparent; text-decoration: none; padding: 14px 30px; border: 1px solid rgba(255,255,255,0.35); display: inline-block; text-transform: uppercase; letter-spacing: 3px; margin-top: 20px;">
-                      VER VIDEO E INGRESAR AL PORTAL &rarr;
-                    </a>
-                    
-                    <div style="margin-top: 60px;"></div>
-                    
-                    <!-- Footer signature -->
-                    <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 25px;">
+                    <!-- Text Container (center aligned within left column) -->
+                    <table width="360" border="0" cellpadding="0" cellspacing="0" align="left">
                       <tr>
-                        <td>
-                          <table border="0" cellpadding="0" cellspacing="0">
+                        <td align="center" style="text-align: center;">
+                          <!-- Logo -->
+                          ${emailLogoHtml}
+                          
+                          <!-- Subtle logo divider -->
+                          <table width="60" border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 20px auto 20px auto;">
                             <tr>
-                              <td style="border-left: 2px solid #C17F5F; padding-left: 12px;">
-                                <p style="font-family: 'Inter', Helvetica, sans-serif; color: #FFFFFF; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 3px 0;">
+                              <td width="22" valign="middle" style="vertical-align: middle; line-height: 0; font-size: 0;"><div style="border-top: 1px solid rgba(193,127,95,0.3); height: 1px; line-height: 0; font-size: 0;"></div></td>
+                              <td width="16" align="center" valign="middle" style="font-size: 10px; color: rgba(193,127,95,0.7); padding: 0 4px; line-height: 1; vertical-align: middle;">&#x2726;</td>
+                              <td width="22" valign="middle" style="vertical-align: middle; line-height: 0; font-size: 0;"><div style="border-top: 1px solid rgba(193,127,95,0.3); height: 1px; line-height: 0; font-size: 0;"></div></td>
+                            </tr>
+                          </table>
+                          
+                          <p style="color: #C17F5F; font-size: 8px; text-transform: uppercase; letter-spacing: 4px; margin: 0 0 25px 0; font-weight: 600;">
+                            ACCESO PORTAL PRIVADO
+                          </p>
+                          
+                          <p style="font-family: 'Inter', Helvetica, sans-serif; color: #6B6660; font-size: 9px; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 5px 0; font-weight: 400;">
+                            ESTIMADA
+                          </p>
+                          
+                          <p style="font-family: 'Playfair Display', Georgia, serif; color: #1A1A1A; font-size: 32px; margin: 0 0 15px 0; font-style: italic; font-weight: 400;">
+                            ${customerName}
+                          </p>
+                          
+                          <!-- Gold divider line with subtle center shape and softer lines -->
+                          <table width="160" border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto 25px auto;">
+                            <tr>
+                              <td width="70" valign="middle" style="vertical-align: middle; line-height: 0; font-size: 0;"><div style="border-top: 1px solid rgba(193,127,95,0.3); height: 1px; line-height: 0; font-size: 0;"></div></td>
+                              <td width="20" align="center" valign="middle" style="font-size: 10px; color: rgba(193,127,95,0.7); padding: 0 4px; line-height: 1; vertical-align: middle;">&#x2726;</td>
+                              <td width="70" valign="middle" style="vertical-align: middle; line-height: 0; font-size: 0;"><div style="border-top: 1px solid rgba(193,127,95,0.3); height: 1px; line-height: 0; font-size: 0;"></div></td>
+                            </tr>
+                          </table>
+                          
+                          <p style="color: #4A4A4A; font-size: 11px; line-height: 1.8; margin: 0 auto 25px auto; font-weight: 300; max-width: 260px;">
+                            Es un privilegio acompañarte en este proceso.<br>Te invitamos a vivir la experiencia<br>Elena Atelier.
+                          </p>
+                          
+                          <!-- Centered Button -->
+                          <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                            <tr>
+                              <td align="center">
+                                <a href="${portalLink}" target="_blank" style="font-size: 11px; font-family: 'Inter', Helvetica, sans-serif; font-weight: 600; color: #C17F5F; background-color: #F5ECE3; text-decoration: none; padding: 12px 30px; border: 1px solid rgba(193,127,95,0.4); display: inline-block; text-transform: uppercase; letter-spacing: 3px;">
+                                  INGRESAR AL PORTAL
+                                </a>
+                              </td>
+                            </tr>
+                          </table>
+                          
+                          <div style="margin-top: 45px;"></div>
+                          
+                          <!-- Footer signature -->
+                          <table width="240" border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 20px;">
+                            <tr>
+                              <td align="right" style="padding-right: 15px; border-right: 1px solid rgba(193,127,95,0.25); vertical-align: middle;">
+                                <span style="font-family:'Playfair Display', Georgia, serif; font-size: 26px; color: #C17F5F; letter-spacing: 1px;">E</span>
+                              </td>
+                              <td align="left" style="padding-left: 15px; vertical-align: middle;">
+                                <p style="font-family: 'Inter', Helvetica, sans-serif; color: #1A1A1A; font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 3px 0;">
                                   ELENA ATELIER
                                 </p>
-                                <p style="font-family: 'Inter', Helvetica, sans-serif; color: #6B6660; font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; margin: 0;">
+                                <p style="font-family: 'Inter', Helvetica, sans-serif; color: #8B8680; font-size: 7px; letter-spacing: 1px; text-transform: uppercase; margin: 0;">
                                   ATELIER &middot; SANTIAGO DE CHILE
                                 </p>
+                              </td>
+                            </tr>
+                          </table>
+                          
+                        </td>
+                      </tr>
+                    </table>
+                    
+                  </td>
+                  <td width="15"></td>
+                </tr>
+              </table>
+              
+            </td>
+          </tr>
+          
+          <!-- BOTTOM SECTION (Black Footer) -->
+          <tr>
+            <td bgcolor="#1A1A1A">
+              <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td width="15"></td>
+                  <!-- The Frame Container -->
+                  <td style="padding: 0;">
+                    
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                      <!-- 1. Vertical borders continuing into the black area -->
+                      <tr>
+                        <td style="border-left: 1px solid rgba(193,127,95,0.4); border-right: 1px solid rgba(193,127,95,0.4);">
+                           <table width="100%" border="0" cellpadding="0" cellspacing="0"><tr><td height="12" style="font-size:0; line-height:0;">&nbsp;</td></tr></table>
+                        </td>
+                      </tr>
+                      
+                      <!-- 2. The broken bottom border, perfect corners, and floating content in the gap -->
+                      <tr>
+                        <td style="padding: 0;">
+                          <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <!-- Left corner and left segment of main bottom line (Fading out to the center) -->
+                              <td valign="bottom" style="border-left: 1px solid rgba(193,127,95,0.4); font-size: 0; line-height: 0; padding: 0;">
+                                <div style="height: 1px; background: rgba(193,127,95,0.4); background: linear-gradient(to right, rgba(193,127,95,0.4) 0%, transparent 100%); width: 100%;"></div>
+                              </td>
+                              
+                              <!-- MASSIVE GAP (350px) containing the text and the independent floating heart divider -->
+                              <td width="350" align="center" valign="bottom" style="padding-bottom: 0px;">
+                                 
+                                 <!-- Independent Floating Heart Divider (Above the text, with needle point fading lines extended to text width) -->
+                                 <table width="290" border="0" cellpadding="0" cellspacing="0" align="center" style="margin-bottom: 12px;">
+                                   <tr>
+                                     <td width="130" valign="middle"><div style="height: 1px; background: rgba(193,127,95,0.3); background: linear-gradient(to left, rgba(193,127,95,0.3) 0%, transparent 100%); font-size: 0; line-height: 0; width: 100%;"></div></td>
+                                     <td width="30" align="center" valign="middle" style="font-size: 11px; color: rgba(193,127,95,0.8); line-height: 1;">&#9825;</td>
+                                     <td width="130" valign="middle"><div style="height: 1px; background: rgba(193,127,95,0.3); background: linear-gradient(to right, rgba(193,127,95,0.3) 0%, transparent 100%); font-size: 0; line-height: 0; width: 100%;"></div></td>
+                                   </tr>
+                                 </table>
+                                 
+                                 <!-- Text perfectly aligned with the main bottom line break -->
+                                 <div style="position: relative; top: 3px;">
+                                   <p style="font-family: 'Inter', Helvetica, sans-serif; color: #8B8680; font-size: 7px; letter-spacing: 2px; text-transform: uppercase; margin: 0; line-height: 1;">
+                                     &copy; 2025 ELENA ATELIER &middot; TODOS LOS DERECHOS RESERVADOS
+                                   </p>
+                                 </div>
+                                 
+                              </td>
+                              
+                              <!-- Right corner and right segment of main bottom line (Fading out to the center) -->
+                              <td valign="bottom" style="border-right: 1px solid rgba(193,127,95,0.4); font-size: 0; line-height: 0; padding: 0;">
+                                <div style="height: 1px; background: rgba(193,127,95,0.4); background: linear-gradient(to left, rgba(193,127,95,0.4) 0%, transparent 100%); width: 100%;"></div>
                               </td>
                             </tr>
                           </table>
                         </td>
                       </tr>
                     </table>
-                    
+
                   </td>
+                  <td width="15"></td>
                 </tr>
+                <!-- Spacer below the frame to keep proportions -->
+                <tr><td height="25" colspan="3"></td></tr>
               </table>
-              <!-- Clearfix -->
-              <div style="clear: both;"></div>
             </td>
           </tr>
           
-          <!-- Copyright footer row -->
-          <tr>
-            <td style="background-color: #080808; padding: 15px 45px; border-top: 1px solid rgba(255,255,255,0.05);">
-              <p style="font-family: 'Inter', Helvetica, sans-serif; color: #3D3A37; font-size: 7px; letter-spacing: 1.5px; text-transform: uppercase; margin: 0; text-align: center;">
-                &copy; 2025 ELENA ATELIER &middot; TODOS LOS DERECHOS RESERVADOS
-              </p>
-            </td>
-          </tr>
         </table>
       </td>
     </tr>
   </table>
 </body>
 </html>`;
-
         const transporter = getTransporter();
         await transporter.sendMail({
             from: '"Elena Atelier" <contacto@elenalacosturera.cl>',
@@ -966,12 +1061,12 @@ export async function sendBridalContractEmailAction(projectId: string) {
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap');
   </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #0A0A0A; font-family: 'Inter', Helvetica, Arial, sans-serif;">
-  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #0A0A0A; padding: 50px 20px;">
+<body style="margin: 0; padding: 0; background-color: #F5F5F0; font-family: 'Inter', Helvetica, Arial, sans-serif;">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F5F5F0; padding: 50px 20px;">
     <tr>
       <td align="center">
         <!-- Card Container -->
-        <table width="580" border="0" cellpadding="0" cellspacing="0" style="background-color: #0E0E0E; border-top: 3px solid #C17F5F; border-radius: 4px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5);">
+        <table width="580" border="0" cellpadding="0" cellspacing="0" style="background-color: #1A1A1A; border-top: 3px solid #C17F5F; border-radius: 4px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5);">
           <!-- Main Content -->
           <tr>
             <td style="padding: 60px 40px; text-align: center;">
@@ -982,19 +1077,19 @@ export async function sendBridalContractEmailAction(projectId: string) {
                 <p style="color: #C17F5F; font-size: 8px; text-transform: uppercase; letter-spacing: 5px; margin: 0 0 12px 0; font-weight: 600;">
                   DOCUMENTO DE SERVICIO
                 </p>
-                <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 26px; font-weight: 400; margin: 0; font-style: italic; letter-spacing: 0.5px;">
+                <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #1A1A1A; font-size: 26px; font-weight: 400; margin: 0; font-style: italic; letter-spacing: 0.5px;">
                   Propuesta y Contrato Formal
                 </h1>
               </div>
 
               <div style="margin-top: 35px; text-align: left;">
-                <p style="color: #9A958C; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 20px 0;">
-                  Estimada <strong style="color: #FFFFFF; font-weight: 600;">${customerName}</strong>,
+                <p style="color: #4A4A4A; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 20px 0;">
+                  Estimada <strong style="color: #1A1A1A; font-weight: 600;">${customerName}</strong>,
                 </p>
-                <p style="color: #9A958C; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 30px 0;">
+                <p style="color: #4A4A4A; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 30px 0;">
                   Hemos recibido exitosamente la aceptación de tu propuesta y la firma del contrato. Queremos agradecerte por confiar en Elena Atelier para confeccionar tu vestido soñado.
                 </p>
-                <p style="color: #9A958C; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 35px 0;">
+                <p style="color: #4A4A4A; font-size: 13px; line-height: 1.8; font-weight: 300; margin: 0 0 35px 0;">
                   Como último paso para consolidar tu reserva y bloquear tu cupo exclusivo de producción, te invitamos a revisar tu documento final y gestionar tu abono inicial.
                 </p>
               </div>
@@ -1003,7 +1098,7 @@ export async function sendBridalContractEmailAction(projectId: string) {
               <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto 10px auto;">
                 <tr>
                   <td align="center">
-                    <a href="${proposalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, Arial, sans-serif; font-weight: 600; color: #FFFFFF; background-color: transparent; text-decoration: none; padding: 16px 35px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 3px; border-radius: 2px; transition: all 0.3s ease;">
+                    <a href="${proposalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, Arial, sans-serif; font-weight: 600; color: #1A1A1A; background-color: transparent; text-decoration: none; padding: 16px 35px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 3px; border-radius: 2px; transition: all 0.3s ease;">
                       REVISAR CONTRATO Y PROCESAR PAGO
                     </a>
                   </td>
@@ -1069,26 +1164,26 @@ export async function sendBridalThankYouEmailAction(projectId: string) {
   <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8F6F0; padding: 40px 20px;">
     <tr>
       <td align="center">
-        <table width="600" border="0" cellpadding="0" cellspacing="0" style="background-color: #FFFFFF; border-radius: 0px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border: 1px solid #EAE6D7;">
+        <table width="600" border="0" cellpadding="0" cellspacing="0" style="background-color: #1A1A1A; border-radius: 0px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border: 1px solid #EAE6D7;">
           <!-- Content Body -->
           <tr>
             <td style="background-color: #1A1A1A; padding: 50px 40px; text-align: center;">
               ${emailLogoHtml}
-              <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #FFFFFF; font-size: 28px; font-weight: 400; margin: 30px 0 20px 0; letter-spacing: 0.5px;">
+              <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #1A1A1A; font-size: 28px; font-weight: 400; margin: 30px 0 20px 0; letter-spacing: 0.5px;">
                 ¡Gracias por Elegirnos!
               </h1>
-              <p style="color: #D4D0C5; font-size: 14px; line-height: 1.8; margin-bottom: 20px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
-                Estimada <i style="color: #FFFFFF;">${customerName}</i>, hemos recibido exitosamente la firma de tu contrato y el abono inicial. Tu cupo de producción ya está oficialmente reservado en nuestro atelier.
+              <p style="color: #4A4A4A; font-size: 14px; line-height: 1.8; margin-bottom: 20px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
+                Estimada <i style="color: #1A1A1A;">${customerName}</i>, hemos recibido exitosamente la firma de tu contrato y el abono inicial. Tu cupo de producción ya está oficialmente reservado en nuestro atelier.
               </p>
-              <p style="color: #D4D0C5; font-size: 14px; line-height: 1.8; margin-bottom: 20px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
+              <p style="color: #4A4A4A; font-size: 14px; line-height: 1.8; margin-bottom: 20px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
                 En los próximos días nos contactaremos contigo para agendar tu primera prueba. ¡Estamos muy emocionados de comenzar este proceso y confeccionar el vestido de tus sueños!
               </p>
             </td>
           </tr>
           <!-- Footer -->
           <tr>
-            <td style="background-color: #FFFFFF; padding: 30px 40px; text-align: center; border-top: 1px solid #EAE6D7;">
-              <p style="color: #A39E93; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0;">
+            <td style="background-color: #1A1A1A; padding: 30px 40px; text-align: center; border-top: 1px solid #EAE6D7;">
+              <p style="color: #6B6660; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0;">
                 Vitacura, Santiago de Chile<br><br>
                 © ${new Date().getFullYear()} ELENA LA COSTURERA | ATELIER
               </p>
