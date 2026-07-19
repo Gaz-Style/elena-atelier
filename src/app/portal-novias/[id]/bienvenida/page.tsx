@@ -84,11 +84,10 @@ export default function BridalWelcomePage() {
                 {/* Primary Call to Action Button */}
                 <div className="mb-10 max-w-sm mx-auto">
                     <Link
-                        href={`/portal-novias/${params.id}/pagar`}
+                        href={`/portal-novias/${params.id}`}
                         className="w-full bg-[#C17F5F] border border-[#C17F5F] text-[#1A1A1A] hover:bg-[#a96e51] hover:border-[#a96e51] py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all flex justify-center items-center gap-3 shadow-lg hover:shadow-xl"
                     >
-                        <CreditCard className="w-4 h-4 text-[#1A1A1A]" />
-                        Proceder al Pago de Reserva
+                        Ingresar a mi Portal
                         <ArrowRight className="w-4 h-4" />
                     </Link>
                 </div>
