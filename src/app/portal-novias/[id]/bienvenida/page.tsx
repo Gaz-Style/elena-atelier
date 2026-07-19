@@ -78,11 +78,11 @@ export default function BridalWelcomePage() {
                 </p>
                 
                 <h2 className="font-serif text-3xl md:text-4xl italic text-[#1A1A1A]/90 leading-tight mb-8">
-                    Aquí comienza tu experiencia de Alta Costura, {customerName}
+                    Aquí comienza una experiencia exclusiva para ti
                 </h2>
                 
                 <p className="text-[#4A4A4A] font-light text-sm leading-relaxed mb-8 max-w-md mx-auto">
-                    Nos complace enormemente acompañarte en este viaje creativo. Tu propuesta y contrato han sido formalizados correctamente.
+                    Nos llena de alegría acompañarte en este viaje. Tu contrato formal ha sido firmado con éxito.
                 </p>
 
                 {/* Primary Call to Action Button */}
