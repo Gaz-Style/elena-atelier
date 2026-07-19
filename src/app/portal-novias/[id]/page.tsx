@@ -660,7 +660,7 @@ export default function PortalNoviasPage() {
                                     Imprimir / Descargar PDF
                                 </button>
                             </div>
-                            <div className="bg-white text-gray-900 p-6 sm:p-10 rounded shadow-inner overflow-x-auto">
+                            <div className="overflow-x-auto text-gray-900 mt-4">
                                 <ContractTemplate data={contractData} />
                             </div>
                         </div>
