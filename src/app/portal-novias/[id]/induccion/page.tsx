@@ -60,40 +60,40 @@ export default function BridalInductionPage() {
             </div>
 
             {/* Video Container - formato vertical 9:16 */}
-            <div className="w-full max-w-sm mx-auto rounded-xl overflow-hidden shadow-[0_20px_60px_rgba(193,127,95,0.08)] shadow-[#C17F5F]/10 border border-[#C17F5F]/20 bg-black mt-20 relative z-20 group">
+            <div className="w-full max-w-sm mx-auto rounded-xl overflow-hidden shadow-[0_20px_60px_rgba(193,127,95,0.08)] shadow-[#C17F5F]/10 border border-[#C17F5F]/20 bg-[#FCFAF7] mt-20 relative z-20 group">
                 <video 
-                    controls
-                    className="w-full aspect-[9/16] object-contain bg-black"
-                    poster="/trabajos/novia 2.jpeg"
-                    onPlay={(e) => {
-                        const target = e.target as HTMLVideoElement;
-                        const overlay = target.nextElementSibling as HTMLElement;
-                        if (overlay) overlay.style.opacity = '0';
-                    }}
-                    onPause={(e) => {
-                        const target = e.target as HTMLVideoElement;
-                        const overlay = target.nextElementSibling as HTMLElement;
-                        if (overlay) overlay.style.opacity = '1';
-                    }}
-                    onEnded={(e) => {
-                        const target = e.target as HTMLVideoElement;
-                        const overlay = target.nextElementSibling as HTMLElement;
-                        target.load(); // Resets the video to show the poster again
-                        if (overlay) overlay.style.opacity = '1';
-                    }}
+                     controls
+                     className="w-full aspect-[9/16] object-contain bg-[#FCFAF7]"
+                     poster="/trabajos/novia 2.jpeg"
+                     onPlay={(e) => {
+                         const target = e.target as HTMLVideoElement;
+                         const overlay = target.nextElementSibling as HTMLElement;
+                         if (overlay) overlay.style.opacity = '0';
+                     }}
+                     onPause={(e) => {
+                         const target = e.target as HTMLVideoElement;
+                         const overlay = target.nextElementSibling as HTMLElement;
+                         if (overlay) overlay.style.opacity = '1';
+                     }}
+                     onEnded={(e) => {
+                         const target = e.target as HTMLVideoElement;
+                         const overlay = target.nextElementSibling as HTMLElement;
+                         target.load(); // Resets the video to show the poster again
+                         if (overlay) overlay.style.opacity = '1';
+                     }}
                 >
-                    <source src="/Induccion portal novias.mp4" type="video/mp4" />
-                    Tu navegador no soporta la etiqueta de video.
+                     <source src="/Induccion portal novias.mp4" type="video/mp4" />
+                     Tu navegador no soporta la etiqueta de video.
                 </video>
-                
+                 
                 {/* Text Overlay on Poster */}
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 bg-black/50 backdrop-blur-[1px] transition-opacity duration-500">
-                    <div className="border border-[#C17F5F]/40 bg-[#1A1A1A]/85 p-6 rounded-lg backdrop-blur-md shadow-[0_25px_50px_rgba(0,0,0,0.3)] text-center max-w-[90%] transform transition-transform">
-                        <div className="w-12 h-12 rounded-full border border-[#C17F5F]/40 bg-[#C17F5F]/10 flex items-center justify-center mx-auto mb-4">
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 bg-[#FCFAF7]/45 backdrop-blur-[1px] transition-opacity duration-500">
+                    <div className="border border-[#C17F5F]/30 bg-white/95 p-6 rounded-lg backdrop-blur-md shadow-[0_20px_50px_rgba(193,127,95,0.08)] text-center max-w-[90%] transform transition-transform">
+                        <div className="w-12 h-12 rounded-full border border-[#C17F5F]/30 bg-[#C17F5F]/10 flex items-center justify-center mx-auto mb-4">
                             <Play className="w-4 h-4 text-[#C17F5F] fill-[#C17F5F]" />
                         </div>
-                        <h3 className="font-serif italic text-xl text-white mb-3">Tu Vestido Soñado</h3>
-                        <p className="text-zinc-300 font-light text-[11px] leading-relaxed tracking-wide">
+                        <h3 className="font-serif italic text-xl text-[#1A1A1A] mb-3">Tu Vestido Soñado</h3>
+                        <p className="text-gray-600 font-light text-[11px] leading-relaxed tracking-wide">
                             Como parte del proceso, hemos preparado este breve video donde te explicamos el paso a paso que seguiremos. 
                             Te pedimos revisarlo para saber qué es lo que viene a continuación y guiarte fácilmente dentro de tu portal.
                         </p>
