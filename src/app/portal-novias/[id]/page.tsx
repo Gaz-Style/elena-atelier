@@ -395,7 +395,7 @@ export default function PortalNoviasPage() {
         <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex flex-col justify-between relative" style={{ backgroundImage: "url('/novia/Novia Elegante 1.png'), radial-gradient(circle at top, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat' }}>
             
             {/* Overlay to reduce background image opacity */}
-            <div className="fixed inset-0 bg-white/65 z-0 pointer-events-none" />
+            <div className="fixed inset-0 bg-white/35 z-0 pointer-events-none" />
 
             {/* Payment Reminder Popup Modal */}
             {showPaymentPopup && (

@@ -175,7 +175,7 @@ export default function PortalNoviasContratoPage() {
             <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans py-12 px-4 md:px-6 relative overflow-hidden print:hidden" style={{ backgroundImage: "url('/novia/Novia Elegante 1.png'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
                 
                 {/* Overlay para reducir opacidad de imagen de fondo */}
-                <div className="fixed inset-0 bg-white/65 z-0 pointer-events-none" />
+                <div className="fixed inset-0 bg-white/35 z-0 pointer-events-none" />
 
                 <div className="w-full max-w-3xl mx-auto relative z-10">
                     {/* Logo */}
