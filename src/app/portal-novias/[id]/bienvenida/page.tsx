@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Loader2, Mail, CheckCircle2 } from 'lucide-react';
+import { Loader2, Mail, CheckCircle2, ArrowRight, CreditCard } from 'lucide-react';
+import Link from 'next/link';
 
 export default function BridalWelcomePage() {
     const params = useParams();
@@ -80,17 +81,29 @@ export default function BridalWelcomePage() {
                     Aquí comienza una experiencia exclusiva para ti y tu vestido, {customerName}
                 </h2>
                 
-                <p className="text-zinc-600 font-light text-sm leading-relaxed mb-12 max-w-md mx-auto">
-                    Nos llena de alegría acompañarte en este viaje. Hemos enviado una copia de tu contrato formal a tu correo electrónico. 
-                    Por favor revisa tu bandeja de entrada para proceder con la reserva de tu cupo en nuestro atelier.
+                <p className="text-[#4A4A4A] font-light text-sm leading-relaxed mb-8 max-w-md mx-auto">
+                    Nos llena de alegría acompañarte en este viaje. Tu contrato formal ha sido firmado con éxito.
                 </p>
 
-                <div className="bg-white/90/80 backdrop-blur-md rounded-lg border border-[#C17F5F]/20 p-6 flex items-start gap-4 text-left max-w-sm mx-auto shadow-[0_20px_60px_rgba(193,127,95,0.08)]">
-                    <Mail className="w-6 h-6 text-[#C17F5F] flex-shrink-0 mt-1" />
+                {/* Primary Call to Action Button */}
+                <div className="mb-10 max-w-sm mx-auto">
+                    <Link
+                        href={`/portal-novias/${params.id}/pagar`}
+                        className="w-full bg-[#C17F5F] border border-[#C17F5F] text-[#1A1A1A] hover:bg-[#a96e51] hover:border-[#a96e51] py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all flex justify-center items-center gap-3 shadow-lg hover:shadow-xl"
+                    >
+                        <CreditCard className="w-4 h-4 text-[#1A1A1A]" />
+                        Proceder al Pago de Reserva
+                        <ArrowRight className="w-4 h-4" />
+                    </Link>
+                </div>
+
+                {/* Mail Confirmation Card */}
+                <div className="bg-white/95 backdrop-blur-md rounded-lg border border-[#C17F5F]/20 p-5 flex items-start gap-4 text-left max-w-sm mx-auto shadow-[0_20px_40px_rgba(193,127,95,0.05)]">
+                    <Mail className="w-5 h-5 text-[#C17F5F] flex-shrink-0 mt-0.5" />
                     <div>
-                        <h4 className="text-[#1A1A1A] text-xs font-bold uppercase tracking-widest mb-1">Revisa tu correo</h4>
-                        <p className="text-gray-600 text-[11px] leading-relaxed">
-                            Te hemos enviado un correo con el contrato y el botón seguro para realizar el pago de tu reserva. 
+                        <h4 className="text-[#1A1A1A] text-[11px] font-bold uppercase tracking-wider mb-1">Copia digital en camino</h4>
+                        <p className="text-gray-500 text-[10px] leading-relaxed font-light">
+                            Hemos enviado una copia digital en PDF del contrato firmado a tu correo para tus registros personales.
                         </p>
                     </div>
                 </div>
