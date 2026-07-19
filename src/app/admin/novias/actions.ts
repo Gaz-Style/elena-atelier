@@ -638,19 +638,8 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
 
         // Luxury background image logic
         const attachments = [];
-        let cardBgUrl = 'cid:luxuryPassBg';
-        const fs = require('fs');
-        const path = require('path');
-        const filePath = path.join(process.cwd(), 'public', 'novia', 'novia_original.jpg');
-        
-        if (process.env.NODE_ENV === 'production') {
-            cardBgUrl = `${siteUrl}/novia/novia_original.jpg`;
-        } else {
-            if (fs.existsSync(filePath)) {
-                attachments.push({ filename: 'novia_original.jpg', path: filePath, cid: 'luxuryPassBg' });
-                cardBgUrl = 'cid:luxuryPassBg';
-            }
-        }
+        // Gmail y clientes móviles bloquean imágenes de fondo cid:, por lo que usamos la URL pública absoluta
+        const cardBgUrl = `${siteUrl}/novia/novia_base.jpg`;
 
         const htmlContent = `<!DOCTYPE html>
 <html lang="es">
@@ -666,11 +655,11 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
       <td align="center">
         
         <!-- Advanced Inset Border Container -->
-        <table width="650" border="0" cellpadding="0" cellspacing="0" style="box-shadow: 0 25px 50px rgba(0,0,0,0.08);">
+        <table width="380" border="0" cellpadding="0" cellspacing="0" style="box-shadow: 0 25px 50px rgba(0,0,0,0.08);">
           
           <!-- TOP SECTION (Background Image + Gradient) -->
           <tr>
-            <td background="${cardBgUrl}" bgcolor="#F5F5F0" style="background: url('${cardBgUrl}') left top no-repeat; background-image: url('${cardBgUrl}'); background-size: 100% 100%; background-position: left top; background-repeat: no-repeat;">
+            <td background="${cardBgUrl}" bgcolor="#F5F5F0" style="background: linear-gradient(rgba(252, 250, 247, 0.50), rgba(252, 250, 247, 0.50)), url('${cardBgUrl}') left top no-repeat; background-image: linear-gradient(rgba(252, 250, 247, 0.50), rgba(252, 250, 247, 0.50)), url('${cardBgUrl}'); background-size: 100% 100%; background-position: left top; background-repeat: no-repeat;">
               
               <table width="100%" border="0" cellpadding="0" cellspacing="0">
                 <!-- Top inset margin -->
@@ -683,7 +672,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
                   <td style="border-top: 1px solid rgba(193,127,95,0.3); border-left: 1px solid rgba(193,127,95,0.3); border-right: 1px solid rgba(193,127,95,0.3); padding: 40px 10px;">
                     
                     <!-- Text Container (center aligned within left column) -->
-                    <table width="360" border="0" cellpadding="0" cellspacing="0" align="left">
+                    <table width="100%" border="0" cellpadding="0" cellspacing="0" align="center">
                       <tr>
                         <td align="center" style="text-align: center;">
                           <!-- Logo -->
@@ -692,9 +681,9 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
                           <!-- Subtle logo divider -->
                           <table width="60" border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 20px auto 20px auto;">
                             <tr>
-                              <td width="22" valign="middle" style="vertical-align: middle; line-height: 0; font-size: 0;"><div style="border-top: 1px solid rgba(193,127,95,0.3); height: 1px; line-height: 0; font-size: 0;"></div></td>
+                              <td width="22" valign="middle" style="vertical-align: middle; line-height: 0; font-size: 0;"><div style="height: 1px; background: rgba(193,127,95,0.4); background: linear-gradient(to left, rgba(193,127,95,0.4) 0%, transparent 100%); font-size: 0; line-height: 0; width: 100%;"></div></td>
                               <td width="16" align="center" valign="middle" style="font-size: 10px; color: rgba(193,127,95,0.7); padding: 0 4px; line-height: 1; vertical-align: middle;">&#x2726;</td>
-                              <td width="22" valign="middle" style="vertical-align: middle; line-height: 0; font-size: 0;"><div style="border-top: 1px solid rgba(193,127,95,0.3); height: 1px; line-height: 0; font-size: 0;"></div></td>
+                              <td width="22" valign="middle" style="vertical-align: middle; line-height: 0; font-size: 0;"><div style="height: 1px; background: rgba(193,127,95,0.4); background: linear-gradient(to right, rgba(193,127,95,0.4) 0%, transparent 100%); font-size: 0; line-height: 0; width: 100%;"></div></td>
                             </tr>
                           </table>
                           
@@ -713,9 +702,9 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
                           <!-- Gold divider line with subtle center shape and softer lines -->
                           <table width="160" border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto 25px auto;">
                             <tr>
-                              <td width="70" valign="middle" style="vertical-align: middle; line-height: 0; font-size: 0;"><div style="border-top: 1px solid rgba(193,127,95,0.3); height: 1px; line-height: 0; font-size: 0;"></div></td>
+                              <td width="70" valign="middle" style="vertical-align: middle; line-height: 0; font-size: 0;"><div style="height: 1px; background: rgba(193,127,95,0.4); background: linear-gradient(to left, rgba(193,127,95,0.4) 0%, transparent 100%); font-size: 0; line-height: 0; width: 100%;"></div></td>
                               <td width="20" align="center" valign="middle" style="font-size: 10px; color: rgba(193,127,95,0.7); padding: 0 4px; line-height: 1; vertical-align: middle;">&#x2726;</td>
-                              <td width="70" valign="middle" style="vertical-align: middle; line-height: 0; font-size: 0;"><div style="border-top: 1px solid rgba(193,127,95,0.3); height: 1px; line-height: 0; font-size: 0;"></div></td>
+                              <td width="70" valign="middle" style="vertical-align: middle; line-height: 0; font-size: 0;"><div style="height: 1px; background: rgba(193,127,95,0.4); background: linear-gradient(to right, rgba(193,127,95,0.4) 0%, transparent 100%); font-size: 0; line-height: 0; width: 100%;"></div></td>
                             </tr>
                           </table>
                           
@@ -792,22 +781,22 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
                                 <div style="height: 1px; background: rgba(193,127,95,0.4); background: linear-gradient(to right, rgba(193,127,95,0.4) 0%, transparent 100%); width: 100%;"></div>
                               </td>
                               
-                              <!-- MASSIVE GAP (350px) containing the text and the independent floating heart divider -->
-                              <td width="350" align="center" valign="bottom" style="padding-bottom: 0px;">
+                              <!-- MASSIVE GAP (290px) containing the text and the independent floating heart divider -->
+                              <td width="290" align="center" valign="bottom" style="padding-bottom: 0px;">
                                  
                                  <!-- Independent Floating Heart Divider (Above the text, with needle point fading lines extended to text width) -->
-                                 <table width="290" border="0" cellpadding="0" cellspacing="0" align="center" style="margin-bottom: 12px;">
+                                 <table width="240" border="0" cellpadding="0" cellspacing="0" align="center" style="margin-bottom: 12px;">
                                    <tr>
-                                     <td width="130" valign="middle"><div style="height: 1px; background: rgba(193,127,95,0.3); background: linear-gradient(to left, rgba(193,127,95,0.3) 0%, transparent 100%); font-size: 0; line-height: 0; width: 100%;"></div></td>
+                                     <td width="105" valign="middle"><div style="height: 1px; background: rgba(193,127,95,0.3); background: linear-gradient(to left, rgba(193,127,95,0.3) 0%, transparent 100%); font-size: 0; line-height: 0; width: 100%;"></div></td>
                                      <td width="30" align="center" valign="middle" style="font-size: 11px; color: rgba(193,127,95,0.8); line-height: 1;">&#9825;</td>
-                                     <td width="130" valign="middle"><div style="height: 1px; background: rgba(193,127,95,0.3); background: linear-gradient(to right, rgba(193,127,95,0.3) 0%, transparent 100%); font-size: 0; line-height: 0; width: 100%;"></div></td>
+                                     <td width="105" valign="middle"><div style="height: 1px; background: rgba(193,127,95,0.3); background: linear-gradient(to right, rgba(193,127,95,0.3) 0%, transparent 100%); font-size: 0; line-height: 0; width: 100%;"></div></td>
                                    </tr>
                                  </table>
                                  
                                  <!-- Text perfectly aligned with the main bottom line break -->
                                  <div style="position: relative; top: 3px;">
                                    <p style="font-family: 'Inter', Helvetica, sans-serif; color: #8B8680; font-size: 7px; letter-spacing: 2px; text-transform: uppercase; margin: 0; line-height: 1;">
-                                     &copy; 2025 ELENA ATELIER &middot; TODOS LOS DERECHOS RESERVADOS
+                                     &copy; ${new Date().getFullYear()} ELENA ATELIER - DERECHOS RESERVADOS
                                    </p>
                                  </div>
                                  
@@ -991,12 +980,7 @@ export async function sendBridalInductionEmailAction(projectId: string) {
             subject: `Información de tu proyecto - ${customerName}`,
             text: `Estimada ${customerName},\n\nComo parte del proceso de tu proyecto, hemos preparado un breve video explicativo.\nTe pedimos que lo revises antes de tu próxima cita para que puedas resolver cualquier duda.\n\nPuedes ver el video ingresando a tu portal privado en el siguiente enlace:\n${portalLink}\n\nAtentamente,\nElena Atelier`,
             html: htmlContent,
-            attachments,
-            headers: {
-                'X-Priority': '1',
-                'X-PM-Message-Stream': 'outbound',
-                'Precedence': 'bulk'
-            }
+            attachments
         });
 
         return { success: true };
