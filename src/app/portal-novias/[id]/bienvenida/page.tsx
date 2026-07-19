@@ -65,7 +65,7 @@ export default function BridalWelcomePage() {
                 </div>
             </div>
 
-            <div className="w-full max-w-lg mx-auto relative z-20 text-center mt-20 bg-white/85 backdrop-blur-md p-8 rounded-xl shadow-lg border border-[#C17F5F]/20">
+            <div className="w-full max-w-lg mx-auto relative z-20 text-center mt-20 bg-white/40 backdrop-blur-lg p-8 rounded-xl shadow-2xl border border-white/50">
                 
 
 
@@ -94,15 +94,15 @@ export default function BridalWelcomePage() {
                 </div>
 
                 {/* Mail Confirmation Card */}
-                <div className="bg-white/95 backdrop-blur-md rounded-lg border border-[#C17F5F]/20 p-5 flex items-start gap-4 text-left max-w-sm mx-auto shadow-[0_20px_40px_rgba(193,127,95,0.05)]">
-                    <Mail className="w-5 h-5 text-[#C17F5F] flex-shrink-0 mt-0.5" />
-                    <div>
-                        <h4 className="text-[#1A1A1A] text-[11px] font-bold uppercase tracking-wider mb-1">Copia digital en camino</h4>
-                        <p className="text-gray-500 text-[10px] leading-relaxed font-light">
-                            Hemos enviado una copia digital en PDF del contrato firmado a tu correo para tus registros personales.
-                        </p>
-                    </div>
-                </div>
+<div className="bg-white/20 backdrop-blur-md rounded-lg border border-white/40 p-5 flex items-start gap-4 text-left max-w-sm mx-auto shadow-sm">
+  <Mail className="w-5 h-5 text-[#C17F5F] flex-shrink-0 mt-0.5" />
+  <div>
+    <h4 className="text-[#1A1A1A] text-[11px] font-bold uppercase tracking-wider mb-1">Copia digital en camino</h4>
+    <p className="text-[#4A4A4A] text-[10px] leading-relaxed font-light">
+      Hemos enviado una copia digital en PDF del contrato firmado a tu correo para tus registros personales.
+    </p>
+  </div>
+</div>
             </div>
             
             {/* Decorative background gradients */}
