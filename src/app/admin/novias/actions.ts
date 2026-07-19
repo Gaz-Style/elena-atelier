@@ -637,7 +637,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
         const portalLink = `${siteUrl}/portal-novias/${projectId}/induccion`;
 
         // Luxury background image logic
-        const attachments = [];
+        const attachments: any[] = [];
         // Gmail y clientes móviles bloquean imágenes de fondo cid:, por lo que usamos la URL pública absoluta
         const cardBgUrl = `${siteUrl}/novia/novia_base.jpg`;
 
