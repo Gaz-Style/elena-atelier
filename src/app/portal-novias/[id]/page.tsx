@@ -391,7 +391,7 @@ export default function PortalNoviasPage() {
 
     // RENDER: Dashboard principal de la novia
     return (
-        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex flex-col justify-between" style={{ backgroundImage: "radial-gradient(circle at top, #FFFFFF 0%, #F5F5F0 100%)" }}>
+        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex flex-col justify-between" style={{ backgroundImage: "url('/novia/Novia Elegante 1.png'), radial-gradient(circle at top, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat' }}>
             
             {/* Payment Reminder Popup Modal */}
             {showPaymentPopup && (
