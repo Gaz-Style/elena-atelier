@@ -165,6 +165,11 @@ export default function NuevoProyectoPage() {
             setCustomMilestones([]);
             return;
         }
+
+        const testDate = new Date(`${eventDate}T12:00:00`);
+        if (isNaN(testDate.getTime())) {
+            return;
+        }
         
         let templates = [];
         if (projectType === 'madrina' || projectType === 'graduacion') {
