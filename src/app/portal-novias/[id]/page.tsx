@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Heart, Crown, GraduationCap, Loader2, ChevronRight, User, Phone, FileText, Calendar, MapPin, DollarSign, CheckCircle2, AlertCircle, Sparkles, Clock, LogOut } from 'lucide-react';
+import { Heart, Crown, GraduationCap, Loader2, ChevronRight, User, Phone, FileText, Calendar, MapPin, DollarSign, CheckCircle2, AlertCircle, Sparkles, Clock, LogOut, CreditCard, X } from 'lucide-react';
 import ContractTemplate from '@/app/admin/novias/ContractTemplate';
 import InspirationMoodboard from '../components/InspirationMoodboard';
 
@@ -85,6 +85,7 @@ export default function PortalNoviasPage() {
     const [submitting, setSubmitting] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
     const [activeTab, setActiveTab] = useState<'dashboard' | 'payments' | 'moodboard' | 'contract'>('dashboard');
+    const [showPaymentPopup, setShowPaymentPopup] = useState(false);
     
     // Controlled fields for onboarding
     const [rutValue, setRutValue] = useState('');
@@ -108,6 +109,15 @@ export default function PortalNoviasPage() {
                 if (data.customers?.phone) {
                     const rawPhone = data.customers.phone.replace(/^\+?56\s*/, '');
                     setPhoneValue(formatPhoneDigits(rawPhone));
+                }
+                // Show payment popup if contract is accepted but no payment done
+                if (data.contract_accepted) {
+                    const cuotas = data.work_order?.payment_plan?.cuotas || [];
+                    const hasPaid = cuotas.some((c: any) => c.status === 'paid') ||
+                        data.payment_1_status === 'paid' ||
+                        data.payment_2_status === 'paid' ||
+                        data.payment_3_status === 'paid';
+                    if (!hasPaid) setShowPaymentPopup(true);
                 }
             }
         } catch (e) {
@@ -383,6 +393,43 @@ export default function PortalNoviasPage() {
     return (
         <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex flex-col justify-between" style={{ backgroundImage: "radial-gradient(circle at top, #FFFFFF 0%, #F5F5F0 100%)" }}>
             
+            {/* Payment Reminder Popup Modal */}
+            {showPaymentPopup && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
+                    <div className="relative w-full max-w-md bg-white/90 backdrop-blur-lg border border-[#C17F5F]/30 rounded-2xl shadow-2xl p-8 text-center">
+                        <button
+                            onClick={() => setShowPaymentPopup(false)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-[#C17F5F] transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                        <div className="w-16 h-16 rounded-full bg-[#C17F5F]/10 border border-[#C17F5F]/30 flex items-center justify-center mx-auto mb-5">
+                            <CreditCard className="w-8 h-8 text-[#C17F5F]" strokeWidth={1.5} />
+                        </div>
+                        <p className="text-[#C17F5F] text-[10px] uppercase tracking-[4px] font-bold mb-3">Abono Pendiente</p>
+                        <h2 className="font-serif text-2xl italic text-[#1A1A1A] mb-3 leading-snug">
+                            Tu cupo aún no está confirmado
+                        </h2>
+                        <p className="text-sm text-gray-500 font-light leading-relaxed mb-7">
+                            Has firmado tu contrato, pero el abono de reserva está pendiente. Para bloquear tu fecha y cupo de producción, completa tu primer pago.
+                        </p>
+                        <Link
+                            href={`/portal-novias/${projectId}/pagar`}
+                            className="block w-full bg-[#C17F5F] text-white text-xs font-bold uppercase tracking-[0.2em] py-4 rounded transition-all hover:bg-[#a96e51] shadow-lg mb-3"
+                            onClick={() => setShowPaymentPopup(false)}
+                        >
+                            Proceder al Pago de Reserva
+                        </Link>
+                        <button
+                            onClick={() => setShowPaymentPopup(false)}
+                            className="text-[10px] text-gray-400 hover:text-gray-600 uppercase tracking-widest transition-colors"
+                        >
+                            Lo haré más tarde
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Top Navigation / Title */}
             <header className="border-b border-[#C17F5F]/10 bg-white/90 backdrop-blur-md sticky top-0 z-40 py-5 px-6">
                 <div className="max-w-5xl mx-auto flex justify-between items-center">
