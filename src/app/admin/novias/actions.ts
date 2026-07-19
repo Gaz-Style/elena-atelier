@@ -1050,14 +1050,14 @@ export async function sendBridalContractEmailAction(projectId: string) {
     <tr>
       <td align="center">
         <!-- Card Container -->
-        <table width="580" border="0" cellpadding="0" cellspacing="0" style="background-color: #1A1A1A; border-top: 3px solid #C17F5F; border-radius: 4px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.5);">
+        <table width="580" border="0" cellpadding="0" cellspacing="0" style="background-color: #FCFAF7; border-top: 3px solid #C17F5F; border-radius: 4px; overflow: hidden; box-shadow: 0 20px 50px rgba(193,127,95,0.1); border: 1px solid #EAE6D7;">
           <!-- Main Content -->
           <tr>
             <td style="padding: 60px 40px; text-align: center;">
               <!-- Logo -->
               ${emailLogoHtml}
               
-              <div style="margin-top: 40px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 25px;">
+              <div style="margin-top: 40px; border-bottom: 1px solid rgba(193,127,95,0.15); padding-bottom: 25px;">
                 <p style="color: #C17F5F; font-size: 8px; text-transform: uppercase; letter-spacing: 5px; margin: 0 0 12px 0; font-weight: 600;">
                   DOCUMENTO DE SERVICIO
                 </p>
@@ -1082,7 +1082,7 @@ export async function sendBridalContractEmailAction(projectId: string) {
               <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto 10px auto;">
                 <tr>
                   <td align="center">
-                    <a href="${proposalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, Arial, sans-serif; font-weight: 600; color: #1A1A1A; background-color: transparent; text-decoration: none; padding: 16px 35px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 3px; border-radius: 2px; transition: all 0.3s ease;">
+                    <a href="${proposalLink}" target="_blank" style="font-size: 10px; font-family: 'Inter', Helvetica, Arial, sans-serif; font-weight: 600; color: #FCFAF7; background-color: #C17F5F; text-decoration: none; padding: 16px 35px; border: 1px solid #C17F5F; display: inline-block; text-transform: uppercase; letter-spacing: 3px; border-radius: 2px; transition: all 0.3s ease;">
                       REVISAR CONTRATO Y PROCESAR PAGO
                     </a>
                   </td>
@@ -1093,7 +1093,7 @@ export async function sendBridalContractEmailAction(projectId: string) {
 
           <!-- Footer Signature/Address -->
           <tr>
-            <td style="background-color: #090909; padding: 35px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.04);">
+            <td style="background-color: #F5F5F0; padding: 35px 40px; text-align: center; border-top: 1px solid rgba(193,127,95,0.15);">
               <p style="font-family: 'Inter', Helvetica, Arial, sans-serif; color: #6B6660; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; margin: 0 0 10px 0;">
                 ATELIER HORTENSIA SPA &middot; AV. TABANCURA 1091, OF 319, VITACURA
               </p>
@@ -1148,12 +1148,12 @@ export async function sendBridalThankYouEmailAction(projectId: string) {
   <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8F6F0; padding: 40px 20px;">
     <tr>
       <td align="center">
-        <table width="600" border="0" cellpadding="0" cellspacing="0" style="background-color: #1A1A1A; border-radius: 0px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border: 1px solid #EAE6D7;">
+        <table width="600" border="0" cellpadding="0" cellspacing="0" style="background-color: #FCFAF7; border-radius: 4px; overflow: hidden; box-shadow: 0 20px 40px rgba(193,127,95,0.1); border: 1px solid #EAE6D7;">
           <!-- Content Body -->
           <tr>
-            <td style="background-color: #1A1A1A; padding: 50px 40px; text-align: center;">
+            <td style="background-color: #FCFAF7; padding: 50px 40px; text-align: center;">
               ${emailLogoHtml}
-              <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #1A1A1A; font-size: 28px; font-weight: 400; margin: 30px 0 20px 0; letter-spacing: 0.5px;">
+              <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #1A1A1A; font-size: 28px; font-weight: 400; margin: 30px 0 20px 0; letter-spacing: 0.5px; font-style: italic;">
                 ¡Gracias por Elegirnos!
               </h1>
               <p style="color: #4A4A4A; font-size: 14px; line-height: 1.8; margin-bottom: 20px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
@@ -1166,7 +1166,7 @@ export async function sendBridalThankYouEmailAction(projectId: string) {
           </tr>
           <!-- Footer -->
           <tr>
-            <td style="background-color: #1A1A1A; padding: 30px 40px; text-align: center; border-top: 1px solid #EAE6D7;">
+            <td style="background-color: #F5F5F0; padding: 30px 40px; text-align: center; border-top: 1px solid #EAE6D7;">
               <p style="color: #6B6660; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0;">
                 Vitacura, Santiago de Chile<br><br>
                 © ${new Date().getFullYear()} ELENA LA COSTURERA | ATELIER
