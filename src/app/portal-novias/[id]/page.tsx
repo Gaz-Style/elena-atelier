@@ -344,7 +344,8 @@ export default function PortalNoviasPage() {
             name: c.name || `Cuota ${index + 1}`,
             amount: c.monto || c.amount || 0,
             status: c.status || 'pending',
-            date: c.fecha || c.date || null
+            date: c.fecha || c.date || null,
+            moment: c.moment || c.momento || null,
         }));
         totalPaid = project.work_order.paid_amount || 0;
         totalValue = project.work_order.total_amount || project.total_amount;
@@ -609,9 +610,14 @@ export default function PortalNoviasPage() {
                                     }`}>
                                         <div>
                                             <h4 className="font-bold text-xs uppercase tracking-widest text-[#1A1A1A]">{cuota.name}</h4>
-                                            {cuota.status === 'paid' && cuota.date && (
+                                            {cuota.status === 'paid' && cuota.date ? (
                                                 <p className="text-[10px] text-emerald-600 mt-1 font-light">Confirmado el {formatDate(cuota.date)}</p>
-                                            )}
+                                            ) : cuota.status !== 'paid' && (cuota.date || cuota.moment) ? (
+                                                <p className="text-[10px] text-gray-500 mt-1 font-light flex items-center gap-1">
+                                                    <Calendar className="w-3 h-3 text-[#C17F5F]/70 shrink-0" />
+                                                    {cuota.date ? `Vence el ${formatDate(cuota.date)}` : cuota.moment}
+                                                </p>
+                                            ) : null}
                                         </div>
                                         <div className="flex items-center gap-4 self-end sm:self-auto">
                                             <span className="text-sm font-bold text-[#1A1A1A]">{formatCurrency(cuota.amount)}</span>
