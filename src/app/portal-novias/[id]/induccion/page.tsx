@@ -87,10 +87,13 @@ export default function BridalInductionPage() {
                 </video>
                 
                 {/* Text Overlay on Poster */}
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 bg-black/40 backdrop-blur-[2px] transition-opacity duration-500">
-                    <div className="border border-[#C17F5F]/30 bg-[#F5F5F0]/60 p-6 rounded-lg backdrop-blur-md shadow-[0_20px_60px_rgba(193,127,95,0.08)] text-center max-w-[90%] transform transition-transform">
-                        <h3 className="font-serif italic text-xl text-[#1A1A1A]/90 mb-3">Tu Vestido Soñado</h3>
-                        <p className="text-zinc-700 font-light text-xs leading-relaxed tracking-wide">
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 bg-black/50 backdrop-blur-[1px] transition-opacity duration-500">
+                    <div className="border border-[#C17F5F]/40 bg-[#1A1A1A]/85 p-6 rounded-lg backdrop-blur-md shadow-[0_25px_50px_rgba(0,0,0,0.3)] text-center max-w-[90%] transform transition-transform">
+                        <div className="w-12 h-12 rounded-full border border-[#C17F5F]/40 bg-[#C17F5F]/10 flex items-center justify-center mx-auto mb-4">
+                            <Play className="w-4 h-4 text-[#C17F5F] fill-[#C17F5F]" />
+                        </div>
+                        <h3 className="font-serif italic text-xl text-white mb-3">Tu Vestido Soñado</h3>
+                        <p className="text-zinc-300 font-light text-[11px] leading-relaxed tracking-wide">
                             Como parte del proceso, hemos preparado este breve video donde te explicamos el paso a paso que seguiremos. 
                             Te pedimos revisarlo para saber qué es lo que viene a continuación y guiarte fácilmente dentro de tu portal.
                         </p>
@@ -106,7 +109,7 @@ export default function BridalInductionPage() {
                 
                 <Link 
                     href={`/portal-novias/${params.id}`}
-                    className="inline-flex items-center gap-3 bg-transparent border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-[#C17F5F] px-8 py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all group"
+                    className="inline-flex items-center gap-3 bg-[#FCFAF7]/80 hover:bg-[#C17F5F] border border-[#C17F5F] text-[#C17F5F] hover:text-white px-8 py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all group"
                 >
                     Ir a mi Portal <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>

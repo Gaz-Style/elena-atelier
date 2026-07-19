@@ -134,8 +134,154 @@ export default function PortalNoviasPage() {
     const config = projectTypeConfig[project.project_type] || projectTypeConfig.novia;
     const HeaderIcon = config.icon;
 
-    // Determine if contract is accepted. If not, show Onboarding Form.
-    const isContractAccepted = project.contract_accepted;
+    if (!isContractAccepted) {
+        // RENDER: Formulario de bienvenida (Onboarding)
+        return (
+            <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)" }}>
+                <div className="w-full max-w-2xl relative z-10">
+                    <div className="text-center mb-12">
+                        <div className="flex flex-col items-stretch justify-center w-max mx-auto">
+                            <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-[#1A1A1A] leading-none drop-shadow-sm">
+                                <span>E</span><span>L</span><span>E</span><span>N</span><span>A</span>
+                            </div>
+                            <div
+                                className="font-sans text-[0.65rem] md:text-[0.75rem] font-bold uppercase text-[#1A1A1A]/70 mt-1 text-center"
+                                style={{ letterSpacing: '0.35em', marginRight: '-0.35em' }}
+                            >
+                                La Costurera
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white/95 backdrop-blur-md rounded-lg shadow-xl p-8 md:p-12 border border-[#C17F5F]/20 relative">
+                        <div className="text-center mb-10">
+                            <div className="text-[#C17F5F] mb-4 text-xs tracking-widest uppercase font-bold">✦ Ingreso Atelier ✦</div>
+                            <h2 className="font-serif text-3xl text-[#1A1A1A] mb-4 italic">Bienvenida a tu Portal</h2>
+                            <p className="text-xs text-gray-500 leading-relaxed max-w-md mx-auto font-light">
+                                Estamos felices de diseñar el vestido de tus sueños. 
+                                Por favor completa los siguientes datos para formalizar tu reserva.
+                            </p>
+                        </div>
+
+                        {errorMsg && (
+                            <div className="mb-8 p-4 bg-red-50 border border-red-200 text-red-700 rounded text-xs text-center">
+                                {errorMsg}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleOnboardingSubmit} className="space-y-10">
+                            <div>
+                                <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#C17F5F] border-b border-[#C17F5F]/10 pb-3 mb-6 flex items-center gap-2 font-bold">
+                                    <User className="w-3.5 h-3.5" /> 1. Datos Personales
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-1 relative group">
+                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">Nombre Completo</label>
+                                        <input 
+                                            type="text" 
+                                            name="fullName" 
+                                            required 
+                                            defaultValue={project.customers?.full_name || ''}
+                                            className="w-full bg-transparent border-b border-gray-200 focus:border-[#C17F5F] py-2 text-sm text-[#1A1A1A] outline-none transition-colors placeholder-gray-300" 
+                                            placeholder="Tu nombre y apellido"
+                                        />
+                                    </div>
+                                    <div className="space-y-1 relative group">
+                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">RUT</label>
+                                        <input 
+                                            type="text" 
+                                            name="rut" 
+                                            required 
+                                            value={rutValue}
+                                            onChange={handleRutChange}
+                                            maxLength={12}
+                                            className="w-full bg-transparent border-b border-gray-200 focus:border-[#C17F5F] py-2 text-sm text-[#1A1A1A] outline-none transition-colors placeholder-gray-300" 
+                                            placeholder="12.345.678-9"
+                                        />
+                                    </div>
+                                    <div className="space-y-1 relative group md:col-span-2">
+                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">Teléfono WhatsApp</label>
+                                        <div className="flex items-center border-b border-gray-200 focus-within:border-[#C17F5F] transition-colors">
+                                            <span className="text-sm text-gray-500 pr-2 select-none font-medium">+56</span>
+                                            <input 
+                                                type="tel" 
+                                                name="phone" 
+                                                required 
+                                                value={phoneValue}
+                                                onChange={handlePhoneChange}
+                                                maxLength={11}
+                                                className="w-full bg-transparent py-2 text-sm text-[#1A1A1A] outline-none placeholder-gray-300" 
+                                                placeholder="9 1234 5678"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#C17F5F] border-b border-[#C17F5F]/10 pb-3 mb-6 flex items-center gap-2 font-bold">
+                                    <Calendar className="w-3.5 h-3.5" /> 2. Detalles del Evento
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-1 relative group">
+                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">Fecha del Evento</label>
+                                        <input 
+                                            type="date" 
+                                            name="eventDate" 
+                                            required 
+                                            defaultValue={project.event_date ? project.event_date.split('T')[0] : ''}
+                                            className="w-full bg-transparent border-b border-gray-200 focus:border-[#C17F5F] py-2 text-sm text-[#1A1A1A] outline-none transition-colors [color-scheme:light]" 
+                                        />
+                                    </div>
+                                    <div className="space-y-1 relative group">
+                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">Lugar del Evento</label>
+                                        <input 
+                                            type="text" 
+                                            name="eventVenue" 
+                                            required 
+                                            defaultValue={project.event_venue || ''}
+                                            className="w-full bg-transparent border-b border-gray-200 focus:border-[#C17F5F] py-2 text-sm text-[#1A1A1A] outline-none transition-colors placeholder-gray-300" 
+                                            placeholder="Ej: Centro de Eventos..."
+                                        />
+                                    </div>
+                                    <div className="space-y-1 relative group md:col-span-2">
+                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">Notas Adicionales (Opcional)</label>
+                                        <textarea 
+                                            name="notes" 
+                                            rows={2}
+                                            defaultValue={project.description || ''}
+                                            className="w-full bg-transparent border-b border-gray-200 focus:border-[#C17F5F] py-2 text-sm text-[#1A1A1A] outline-none transition-colors resize-none placeholder-gray-300" 
+                                            placeholder="Detalles importantes sobre tu vestido..."
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-6 text-center">
+                                <button 
+                                    type="submit" 
+                                    disabled={submitting}
+                                    className="w-full bg-[#C17F5F] border border-[#C17F5F] text-[#1A1A1A] hover:bg-[#a96e51] hover:border-[#a96e51] py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all flex justify-center items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
+                                >
+                                    {submitting ? (
+                                        <><Loader2 className="w-4 h-4 animate-spin text-[#1A1A1A]" /> Procesando...</>
+                                    ) : (
+                                        <>
+                                            Generar Propuesta 
+                                            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                        </>
+                                    )}
+                                </button>
+                                <p className="text-[9px] text-gray-400 mt-4 uppercase tracking-widest">
+                                    Al continuar, se generará tu propuesta y presupuesto.
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
 
 
