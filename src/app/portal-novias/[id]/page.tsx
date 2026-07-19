@@ -392,8 +392,11 @@ export default function PortalNoviasPage() {
 
     // RENDER: Dashboard principal de la novia
     return (
-        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex flex-col justify-between" style={{ backgroundImage: "url('/novia/Novia Elegante 1.png'), radial-gradient(circle at top, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat' }}>
+        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex flex-col justify-between relative" style={{ backgroundImage: "url('/novia/Novia Elegante 1.png'), radial-gradient(circle at top, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat' }}>
             
+            {/* Overlay to reduce background image opacity */}
+            <div className="fixed inset-0 bg-white/65 z-0 pointer-events-none" />
+
             {/* Payment Reminder Popup Modal */}
             {showPaymentPopup && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
@@ -432,7 +435,7 @@ export default function PortalNoviasPage() {
             )}
 
             {/* Top Navigation / Title */}
-            <header className="border-b border-[#C17F5F]/10 bg-white/90 backdrop-blur-md sticky top-0 z-40 py-5 px-6">
+            <header className="border-b border-[#C17F5F]/10 bg-white/90 backdrop-blur-md sticky top-0 z-40 py-5 px-6 relative">
                 <div className="max-w-5xl mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-3">
                         <HeaderIcon className="w-5 h-5 text-[#C17F5F] animate-pulse" />
@@ -453,7 +456,7 @@ export default function PortalNoviasPage() {
             </header>
 
             {/* Main Content Area */}
-            <main className="max-w-5xl w-full mx-auto px-6 py-10 flex-1 space-y-10">
+            <main className="max-w-5xl w-full mx-auto px-6 py-10 flex-1 space-y-10 relative z-10">
                 
                 {/* Contract Pending Warning Popup/Banner */}
                 {!isContractAccepted && (
@@ -543,7 +546,7 @@ export default function PortalNoviasPage() {
                 {/* TAB: Dashboard / Cronograma */}
                 {activeTab === 'dashboard' && (
                     <div className="space-y-6">
-                        <div className="bg-white/40 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg backdrop-blur-md">
+                        <div className="bg-white/60 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg">
                             <h2 className="font-serif text-xl text-[#1A1A1A] italic mb-6">Planificación de Pruebas</h2>
                             {project.milestones && project.milestones.length > 0 ? (
                                 <div className="space-y-4">
@@ -581,10 +584,9 @@ export default function PortalNoviasPage() {
                 {/* TAB: Payments */}
                 {activeTab === 'payments' && (
                     <div className="space-y-6">
-                        <div className="bg-white/20 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg backdrop-blur-md space-y-6">
-                            
+
                             {/* Visual balance card */}
-                            <div className="bg-[#FCFAF7]/50 backdrop-blur-sm border border-[#C17F5F]/20 p-6 rounded-lg grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
+                            <div className="bg-white/60 border border-[#C17F5F]/20 p-6 rounded-lg grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
                                 <div>
                                     <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Valor Total del Vestido</p>
                                     <p className="text-2xl font-serif mt-1 text-[#1A1A1A] font-light">{formatCurrency(totalValue)}</p>
@@ -602,7 +604,7 @@ export default function PortalNoviasPage() {
                             </div>
 
                             {/* Installments checklist */}
-                            <div className="space-y-4">
+                            <div className="bg-white/60 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg space-y-4">
                                 <h3 className="text-xs uppercase tracking-widest font-bold text-gray-600 border-b border-[#C17F5F]/10 pb-2">Plan de Vencimientos</h3>
                                 {cuotasList.map((cuota, idx) => (
                                     <div key={idx} className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded border ${
@@ -637,7 +639,6 @@ export default function PortalNoviasPage() {
                                     </div>
                                 ))}
                             </div>
-                        </div>
                     </div>
                 )}
 
@@ -649,7 +650,7 @@ export default function PortalNoviasPage() {
                 {/* TAB: Contract */}
                 {activeTab === 'contract' && (
                     <div className="space-y-6">
-                        <div className="bg-white/40 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg backdrop-blur-md">
+                        <div className="bg-white/60 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg">
                             <div className="flex justify-between items-center mb-6 border-b border-[#C17F5F]/10 pb-4">
                                 <h2 className="font-serif text-xl text-[#1A1A1A] italic">Copia de tu Contrato</h2>
                                 <button 
