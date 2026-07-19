@@ -478,7 +478,7 @@ export default function PortalNoviasPage() {
                 )}
                 
                 {/* Hero Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white/90/40 border border-[#C17F5F]/10 p-6 rounded-lg backdrop-blur-sm">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white/30 border border-[#C17F5F]/15 p-6 rounded-lg backdrop-blur-md">
                     <div>
                         <div className="text-[#C17F5F] text-[10px] tracking-widest uppercase font-bold mb-2 flex items-center gap-1.5">
                             <Sparkles className="w-3.5 h-3.5 animate-spin-slow" /> Tu Experiencia de Alta Costura
@@ -542,7 +542,7 @@ export default function PortalNoviasPage() {
                 {/* TAB: Dashboard / Cronograma */}
                 {activeTab === 'dashboard' && (
                     <div className="space-y-6">
-                        <div className="bg-white/90/80 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg backdrop-blur-md">
+                        <div className="bg-white/40 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg backdrop-blur-md">
                             <h2 className="font-serif text-xl text-[#1A1A1A] italic mb-6">Planificación de Pruebas</h2>
                             {project.milestones && project.milestones.length > 0 ? (
                                 <div className="space-y-4">
@@ -550,7 +550,7 @@ export default function PortalNoviasPage() {
                                         const isCompleted = milestone.status === 'completed';
                                         return (
                                             <div key={milestone.id} className={`flex items-start gap-4 p-4 rounded border ${
-                                                isCompleted ? 'bg-emerald-50/80 border-emerald-200' : 'bg-[#FCFAF7]/95 border-[#C17F5F]/15'
+                                                isCompleted ? 'bg-emerald-50/60 border-emerald-200' : 'bg-[#FCFAF7]/50 backdrop-blur-sm border-[#C17F5F]/15'
                                             }`}>
                                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                                                     isCompleted ? 'bg-emerald-600 text-white' : 'bg-[#C17F5F]/10 text-[#C17F5F] font-bold'
@@ -580,10 +580,10 @@ export default function PortalNoviasPage() {
                 {/* TAB: Payments */}
                 {activeTab === 'payments' && (
                     <div className="space-y-6">
-                        <div className="bg-white/90/80 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg backdrop-blur-md space-y-6">
+                        <div className="bg-white/20 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg backdrop-blur-md space-y-6">
                             
                             {/* Visual balance card */}
-                            <div className="bg-[#FCFAF7]/90 border border-[#C17F5F]/20 p-6 rounded-lg grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
+                            <div className="bg-[#FCFAF7]/50 backdrop-blur-sm border border-[#C17F5F]/20 p-6 rounded-lg grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
                                 <div>
                                     <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Valor Total del Vestido</p>
                                     <p className="text-2xl font-serif mt-1 text-[#1A1A1A] font-light">{formatCurrency(totalValue)}</p>
@@ -605,7 +605,7 @@ export default function PortalNoviasPage() {
                                 <h3 className="text-xs uppercase tracking-widest font-bold text-gray-600 border-b border-[#C17F5F]/10 pb-2">Plan de Vencimientos</h3>
                                 {cuotasList.map((cuota, idx) => (
                                     <div key={idx} className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded border ${
-                                        cuota.status === 'paid' ? 'bg-emerald-50/80 border-emerald-200' : 'bg-[#FCFAF7]/95 border-[#C17F5F]/15'
+                                        cuota.status === 'paid' ? 'bg-emerald-50/60 border-emerald-200' : 'bg-[#FCFAF7]/50 backdrop-blur-sm border-[#C17F5F]/15'
                                     }`}>
                                         <div>
                                             <h4 className="font-bold text-xs uppercase tracking-widest text-[#1A1A1A]">{cuota.name}</h4>
@@ -643,7 +643,7 @@ export default function PortalNoviasPage() {
                 {/* TAB: Contract */}
                 {activeTab === 'contract' && (
                     <div className="space-y-6">
-                        <div className="bg-white/90/80 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg backdrop-blur-md">
+                        <div className="bg-white/40 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg backdrop-blur-md">
                             <div className="flex justify-between items-center mb-6 border-b border-[#C17F5F]/10 pb-4">
                                 <h2 className="font-serif text-xl text-[#1A1A1A] italic">Copia de tu Contrato</h2>
                                 <button 
