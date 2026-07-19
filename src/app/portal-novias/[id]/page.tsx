@@ -663,7 +663,7 @@ export default function PortalNoviasPage() {
             </main>
 
             {/* Premium Footer */}
-            <footer className="border-t border-[#C17F5F]/10 py-8 bg-[#0C0C0C] text-center text-[10px] text-gray-600 uppercase tracking-[0.2em] font-light">
+            <footer className="border-t border-[#C17F5F]/10 py-8 bg-[#F5F5F0]/90 backdrop-blur-md text-center text-[10px] text-gray-500 uppercase tracking-[0.2em] font-light">
                 Elena Atelier &copy; {new Date().getFullYear()} · Alta Costura a Medida · Vitacura, Chile
             </footer>
         </div>
