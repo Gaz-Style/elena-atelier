@@ -171,7 +171,7 @@ export default function PortalNoviasContratoPage() {
                 </div>
             )}
 
-            <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans py-12 px-4 md:px-6 relative overflow-hidden print:hidden" style={{ backgroundImage: "radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)" }}>
+            <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans py-12 px-4 md:px-6 relative overflow-hidden print:hidden" style={{ backgroundImage: "url('/novia/Novia Elegante 1.png'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
                 
                 <div className="w-full max-w-3xl mx-auto relative z-10">
                     {/* Logo */}
@@ -192,7 +192,7 @@ export default function PortalNoviasContratoPage() {
                     <div className="text-center mb-8">
                         <h2 className="font-serif text-2xl text-[#1A1A1A] mb-2 italic">Propuesta y Presupuesto</h2>
                         <p className="text-xs text-gray-600 max-w-md mx-auto mb-6">
-                            Por favor revisa detenidamente el presupuesto, cronograma y condiciones del servicio a continuación. Debe aceptar los términos para proceder a la reserva de su cupo.
+                            Por favor revisa detenidamente el presupuesto, cronograma y condiciones del servicio a continuación. Debes aceptar los términos para proceder a la reserva de tu cupo.
                         </p>
                         <button
                             type="button"
