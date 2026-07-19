@@ -130,6 +130,7 @@ export default function PortalNoviasContratoPage() {
         contractNotes: project.contract_notes || '',
         materialsNotes: project.materials_notes || '',
         paymentPlan: project.work_order?.payment_plan || null,
+        contractAcceptedAt: project.contract_accepted_at || null,
     } : null;
 
     const serviceTypeLabel: Record<string, string> = {

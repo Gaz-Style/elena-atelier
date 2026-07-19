@@ -22,6 +22,7 @@ interface ContractData {
     paymentPlan?: {
         cuotas: { name: string; amount: number; status: string; date?: string; moment?: string; monto?: number }[];
     } | null;
+    contractAcceptedAt?: string | null;
 }
 
 const formatCurrency = (val: number) =>
@@ -326,9 +327,15 @@ export default function ContractTemplate({ data }: { data: ContractData }) {
                         <p className="text-xs text-gray-500">Clienta</p>
                     </div>
                 </div>
-                <p className="text-center text-xs text-gray-400 mt-8">
-                    Fecha de firma: _________________ de _________________ de _________
-                </p>
+                {data.contractAcceptedAt ? (
+                    <p className="text-center text-xs text-[#C17F5F] font-semibold mt-8 bg-[#C17F5F]/5 py-2 rounded-sm border border-[#C17F5F]/10">
+                        Contrato firmado digitalmente el {formatDate(data.contractAcceptedAt)}
+                    </p>
+                ) : (
+                    <p className="text-center text-xs text-gray-400 mt-8">
+                        Fecha de firma: _________________ de _________________ de _________
+                    </p>
+                )}
             </section>
         </div>
     );
