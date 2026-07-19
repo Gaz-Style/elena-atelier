@@ -48,7 +48,7 @@ export default function BridalWelcomePage() {
     const customerName = project.customers?.full_name?.split(' ')[0] || 'Futura Novia';
 
     return (
-        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] flex flex-col items-center justify-center p-4 sm:p-8 relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)" }}>
+        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] flex flex-col items-center justify-center p-4 sm:p-8 relative overflow-hidden" style={{ backgroundImage: "url('/novia/Novia%20Elegante%201.png'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
             
             {/* Elegant Header */}
             <div className="absolute top-12 left-0 w-full text-center z-10 px-4">
@@ -65,13 +65,9 @@ export default function BridalWelcomePage() {
                 </div>
             </div>
 
-            <div className="w-full max-w-lg mx-auto relative z-20 text-center mt-20">
+            <div className="w-full max-w-lg mx-auto relative z-20 text-center mt-20 bg-white/85 backdrop-blur-md p-8 rounded-xl shadow-lg border border-[#C17F5F]/20">
                 
-                <div className="mb-10 flex justify-center">
-                    <div className="w-20 h-20 rounded-full bg-[#C17F5F]/10 border border-[#C17F5F]/30 flex items-center justify-center">
-                        <CheckCircle2 className="w-10 h-10 text-[#C17F5F]" strokeWidth={1.5} />
-                    </div>
-                </div>
+
 
                 <p className="text-[#C17F5F] text-[10px] uppercase tracking-[4px] font-bold mb-6">
                     CONTRATO FIRMADO CON ÉXITO
