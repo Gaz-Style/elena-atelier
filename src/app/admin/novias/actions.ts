@@ -634,7 +634,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
         const customerEmail = project.customers.email;
         const customerName = project.customers.full_name || 'Futura Novia';
         const siteUrl = await getSiteUrl();
-        const portalLink = `${siteUrl}/portal-novias/${projectId}/contrato`;
+        const portalLink = `${siteUrl}/portal-novias/${projectId}/induccion`;
 
         // Luxury background image logic
         const attachments = [];
