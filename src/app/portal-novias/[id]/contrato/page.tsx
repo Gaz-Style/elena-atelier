@@ -173,11 +173,14 @@ export default function PortalNoviasContratoPage() {
             )}
 
             <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans py-12 px-4 md:px-6 relative overflow-hidden print:hidden" style={{ backgroundImage: "url('/novia/Novia Elegante 1.png'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
-                          <div className="w-full max-w-3xl mx-auto relative z-10 space-y-8">
-                    {/* Glassmorphism Header Card Container */}
-                    <div className="bg-white/45 backdrop-blur-lg border border-white/50 rounded-xl p-8 md:p-12 shadow-2xl text-center">
-                        {/* Logo */}
-                        <div className="flex flex-col items-stretch justify-center w-max mx-auto mb-6">
+                
+                {/* Overlay para reducir opacidad de imagen de fondo */}
+                <div className="absolute inset-0 bg-white/65 z-0 pointer-events-none" />
+
+                <div className="w-full max-w-3xl mx-auto relative z-10">
+                    {/* Logo */}
+                    <div className="text-center mb-8">
+                        <div className="flex flex-col items-stretch justify-center w-max mx-auto">
                             <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-[#1A1A1A] leading-none drop-shadow-sm">
                                 <span>E</span><span>L</span><span>E</span><span>N</span><span>A</span>
                             </div>
@@ -188,29 +191,30 @@ export default function PortalNoviasContratoPage() {
                                 La Costurera
                             </div>
                         </div>
+                    </div>
 
-                        <h2 className="font-serif text-2xl md:text-3xl text-[#1A1A1A] mb-3 italic font-light">Propuesta y Presupuesto</h2>
-                        <p className="text-xs text-[#333333] max-w-md mx-auto mb-8 font-light leading-relaxed">
+                    <div className="text-center mb-8">
+                        <h2 className="font-serif text-2xl text-[#1A1A1A] mb-2 italic">Propuesta y Presupuesto</h2>
+                        <p className="text-xs text-gray-600 max-w-md mx-auto mb-6">
                             Por favor revisa detenidamente el presupuesto, cronograma y condiciones del servicio a continuación. Debes aceptar los términos para proceder a la reserva de tu cupo.
                         </p>
-                        
                         <button
                             type="button"
                             onClick={handlePrintContract}
-                            className="inline-flex items-center gap-2 text-[10px] bg-[#C17F5F] hover:bg-[#a96e51] text-white font-bold uppercase tracking-[0.2em] px-6 py-3.5 rounded shadow-lg transition-all"
+                            className="inline-flex items-center gap-2 text-[10px] text-[#C17F5F] hover:text-[#a96e51] font-bold uppercase tracking-[0.15em] border border-[#C17F5F]/30 hover:border-[#C17F5F] px-5 py-2.5 rounded transition-all"
                         >
-                            <Printer className="w-4 h-4" /> Descargar Contrato en PDF
+                            <Printer className="w-3.5 h-3.5" /> Descargar Contrato en PDF
                         </button>
                     </div>
 
                 {errorMsg && (
-                    <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded text-xs text-center">
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded text-xs text-center">
                         {errorMsg}
                     </div>
                 )}
 
                 {/* Proposal Document Container */}
-                <div className="space-y-8 max-w-3xl mx-auto w-full bg-white/45 backdrop-blur-lg border border-white/50 rounded-xl p-8 md:p-10 shadow-2xl">
+                <div className="mb-8 space-y-8 max-w-3xl mx-auto w-full">
                     
                     {/* Header Details */}
                     <div className="text-center border-b border-[#C17F5F]/20 pb-6">
