@@ -314,9 +314,11 @@ export default function ContractTemplate({ data }: { data: ContractData }) {
             <section className="mt-12 pt-8 border-t-2 border-gray-800">
                 <div className="grid grid-cols-2 gap-16">
                     <div className="text-center">
-                        <div className="border-b border-gray-400 mb-2 h-16"></div>
-                        <p className="font-bold text-sm">ELENA ATELIER</p>
-                        <p className="text-xs text-gray-500">Prestador del Servicio</p>
+                        <div className="border-b border-gray-400 mb-2 h-16 flex items-end justify-center">
+                            <span className="font-serif italic text-gray-500 text-sm pb-1">Elena Rojas B.</span>
+                        </div>
+                        <p className="font-bold text-sm">Elena Rojas Bustamante</p>
+                        <p className="text-xs text-gray-500">Elena Atelier</p>
                     </div>
                     <div className="text-center">
                         <div className="border-b border-gray-400 mb-2 h-16"></div>
