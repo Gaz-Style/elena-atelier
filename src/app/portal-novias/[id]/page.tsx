@@ -134,6 +134,8 @@ export default function PortalNoviasPage() {
     const config = projectTypeConfig[project.project_type] || projectTypeConfig.novia;
     const HeaderIcon = config.icon;
 
+    const isContractAccepted = project.contract_accepted;
+
     if (!isContractAccepted) {
         // RENDER: Formulario de bienvenida (Onboarding)
         return (
