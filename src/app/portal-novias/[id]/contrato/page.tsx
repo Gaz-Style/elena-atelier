@@ -67,56 +67,41 @@ export default function PortalNoviasContratoPage() {
     const formatCurrency = (val: number) =>
         new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val || 0);
 
+    const parseLocalDate = (dateStr: string) => {
+        if (!dateStr) return null;
+        const cleanStr = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+        const parts = cleanStr.split(/[-/]/);
+        if (parts.length === 3) {
+            let year, month, day;
+            if (parts[0].length === 4) {
+                year = parseInt(parts[0]);
+                month = parseInt(parts[1]) - 1;
+                day = parseInt(parts[2]);
+            } else {
+                day = parseInt(parts[0]);
+                month = parseInt(parts[1]) - 1;
+                year = parseInt(parts[2]);
+            }
+            return new Date(year, month, day, 12, 0, 0);
+        }
+        return new Date(dateStr);
+    };
+
     const formatDate = (dateStr: string) => {
         if (!dateStr) return '—';
-        
-        let dateObj: Date;
-
-        // Handle ISO format (e.g. 2027-03-20T16:00:00+00:00)
-        if (dateStr.includes('T')) {
-            dateObj = new Date(dateStr);
-            if (!isNaN(dateObj.getTime())) {
-                return dateObj.toLocaleDateString('es-CL', {
-                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-                });
-            }
-        }
-        
-        if (dateStr.includes('-')) {
-            const parts = dateStr.split('-');
-            if (parts[0].length === 2 && parts[2].length === 4) {
-                dateObj = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]), 12, 0, 0);
-            } else if (parts[0].length === 4 && parts[2].length === 2) {
-                dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 12, 0, 0);
-            } else {
-                dateObj = new Date(dateStr + 'T12:00:00');
-            }
-        } else if (dateStr.includes('/')) {
-            const parts = dateStr.split('/');
-            if (parts[0].length === 2 && parts[2].length === 4) {
-                dateObj = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]), 12, 0, 0);
-            } else if (parts[0].length === 4 && parts[2].length === 2) {
-                dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 12, 0, 0);
-            } else {
-                dateObj = new Date(dateStr + 'T12:00:00');
-            }
-        } else {
-            dateObj = new Date(dateStr + 'T12:00:00');
-        }
-
-        if (isNaN(dateObj.getTime())) {
-            const cleanStr = dateStr.replace(/-/g, '/');
-            const fallbackObj = new Date(cleanStr);
-            if (!isNaN(fallbackObj.getTime())) {
-                return fallbackObj.toLocaleDateString('es-CL', {
-                    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-                });
-            }
-            return dateStr;
-        }
-
+        const dateObj = parseLocalDate(dateStr);
+        if (!dateObj || isNaN(dateObj.getTime())) return dateStr;
         return dateObj.toLocaleDateString('es-CL', {
             weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+        });
+    };
+
+    const formatSimpleDate = (dateStr: string) => {
+        if (!dateStr) return '—';
+        const dateObj = parseLocalDate(dateStr);
+        if (!dateObj || isNaN(dateObj.getTime())) return dateStr;
+        return dateObj.toLocaleDateString('es-CL', {
+            day: '2-digit', month: '2-digit', year: 'numeric'
         });
     };
 
@@ -309,7 +294,7 @@ export default function PortalNoviasContratoPage() {
                                                 <td className="p-3 text-center">{(((cuota.amount || cuota.monto || 0) / project.total_amount) * 100).toFixed(1)}%</td>
                                                 <td className="p-3 text-right font-bold text-[#C17F5F]">{formatCurrency(cuota.amount || cuota.monto || 0)}</td>
                                                 <td className="p-3 text-right text-gray-600">
-                                                    {cuota.date ? new Date(cuota.date).toLocaleDateString('es-CL') : (cuota.moment || `Cuota ${index + 1}`)}
+                                                    {cuota.date ? formatSimpleDate(cuota.date) : (cuota.moment || `Cuota ${index + 1}`)}
                                                 </td>
                                             </tr>
                                         ))
@@ -320,7 +305,7 @@ export default function PortalNoviasContratoPage() {
                                                 <td className="p-3 text-center">{(((cuota.amount || cuota.monto || 0) / project.total_amount) * 100).toFixed(1)}%</td>
                                                 <td className="p-3 text-right font-bold text-[#C17F5F]">{formatCurrency(cuota.amount || cuota.monto || 0)}</td>
                                                 <td className="p-3 text-right text-gray-600">
-                                                    {cuota.date ? new Date(cuota.date).toLocaleDateString('es-CL') : (cuota.moment || `Cuota ${index + 1}`)}
+                                                    {cuota.date ? formatSimpleDate(cuota.date) : (cuota.moment || `Cuota ${index + 1}`)}
                                                 </td>
                                             </tr>
                                         ))

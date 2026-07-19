@@ -43,14 +43,38 @@ function formatPhoneDigits(value: string): string {
 const formatCurrency = (val: number) =>
     new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val);
 
+const parseLocalDate = (dateStr: string) => {
+    if (!dateStr) return null;
+    const cleanStr = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+    const parts = cleanStr.split(/[-/]/);
+    if (parts.length === 3) {
+        let year, month, day;
+        if (parts[0].length === 4) {
+            year = parseInt(parts[0]);
+            month = parseInt(parts[1]) - 1;
+            day = parseInt(parts[2]);
+        } else {
+            day = parseInt(parts[0]);
+            month = parseInt(parts[1]) - 1;
+            year = parseInt(parts[2]);
+        }
+        return new Date(year, month, day, 12, 0, 0);
+    }
+    return new Date(dateStr);
+};
+
 const formatDate = (dateStr: string) => {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' });
+    const dateObj = parseLocalDate(dateStr);
+    if (!dateObj || isNaN(dateObj.getTime())) return dateStr;
+    return dateObj.toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
 const formatDateLong = (dateStr: string) => {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const dateObj = parseLocalDate(dateStr);
+    if (!dateObj || isNaN(dateObj.getTime())) return dateStr;
+    return dateObj.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 };
 
 export default function PortalNoviasPage() {
