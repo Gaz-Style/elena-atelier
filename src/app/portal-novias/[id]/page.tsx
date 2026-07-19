@@ -553,8 +553,8 @@ export default function PortalNoviasPage() {
                                     {project.milestones.map((milestone: any, idx: number) => {
                                         const isCompleted = milestone.status === 'completed';
                                         return (
-                                            <div key={milestone.id} className={`flex items-start gap-4 p-4 rounded border ${
-                                                isCompleted ? 'bg-emerald-50/60 border-emerald-200' : 'bg-[#FCFAF7]/50 backdrop-blur-sm border-[#C17F5F]/15'
+                                            <div key={milestone.id} className={`flex items-start gap-4 py-4 border-b last:border-0 ${
+                                                isCompleted ? 'border-emerald-200/50' : 'border-[#C17F5F]/15'
                                             }`}>
                                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                                                     isCompleted ? 'bg-emerald-600 text-white' : 'bg-[#C17F5F]/10 text-[#C17F5F] font-bold'
@@ -607,8 +607,8 @@ export default function PortalNoviasPage() {
                             <div className="bg-white/60 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg space-y-4">
                                 <h3 className="text-xs uppercase tracking-widest font-bold text-gray-600 border-b border-[#C17F5F]/10 pb-2">Plan de Vencimientos</h3>
                                 {cuotasList.map((cuota, idx) => (
-                                    <div key={idx} className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded border ${
-                                        cuota.status === 'paid' ? 'bg-emerald-50/60 border-emerald-200' : 'bg-[#FCFAF7]/50 backdrop-blur-sm border-[#C17F5F]/15'
+                                    <div key={idx} className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-4 border-b last:border-0 ${
+                                        cuota.status === 'paid' ? 'border-emerald-200/50' : 'border-[#C17F5F]/15'
                                     }`}>
                                         <div>
                                             <h4 className="font-bold text-xs uppercase tracking-widest text-[#1A1A1A]">{cuota.name}</h4>
