@@ -223,7 +223,7 @@ export default function PortalNoviasContratoPage() {
                         <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
                             <FileText className="w-4 h-4" /> 1. Partes Contratantes
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs bg-[#F5F5F0]/80 border border-[#C17F5F]/10 rounded p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs bg-[#FCFAF7]/50 backdrop-blur-sm border border-[#C17F5F]/15 rounded p-4">
                             <div>
                                 <p className="text-[9px] uppercase tracking-wider text-gray-600 font-bold mb-1">Prestador del Servicio</p>
                                 <p className="font-bold text-[#1A1A1A]">ATELIER HORTENSIA SPA</p>
@@ -247,7 +247,7 @@ export default function PortalNoviasContratoPage() {
                         <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
                             <Calendar className="w-4 h-4" /> 2. Descripción del Servicio
                         </h3>
-                        <div className="text-xs space-y-3 bg-[#F5F5F0]/80 border border-[#C17F5F]/10 rounded p-4">
+                        <div className="text-xs space-y-3 bg-[#FCFAF7]/50 backdrop-blur-sm border border-[#C17F5F]/15 rounded p-4">
                             <div className="flex justify-between border-b border-[#C17F5F]/10 pb-2">
                                 <span className="text-gray-600">Servicio:</span>
                                 <span className="font-bold text-[#1A1A1A]">{serviceTypeLabel[project.service_type] || project.service_type}</span>
@@ -276,10 +276,10 @@ export default function PortalNoviasContratoPage() {
                         <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
                             <DollarSign className="w-4 h-4" /> 3. Condiciones Económicas
                         </h3>
-                        <div className="overflow-x-auto border border-[#C17F5F]/20 rounded">
+                        <div className="overflow-x-auto border border-[#C17F5F]/20 rounded bg-[#FCFAF7]/50 backdrop-blur-sm">
                             <table className="w-full text-xs text-left">
                                 <thead>
-                                    <tr className="bg-[#F5F5F0]/80 border-b border-[#C17F5F]/20 text-gray-600 font-bold">
+                                    <tr className="bg-[#FCFAF7]/60 border-b border-[#C17F5F]/20 text-gray-600 font-bold">
                                         <th className="p-3">Concepto</th>
                                         <th className="p-3 text-center">Porcentaje</th>
                                         <th className="p-3 text-right">Monto</th>
@@ -331,7 +331,7 @@ export default function PortalNoviasContratoPage() {
                                             </tr>
                                         </>
                                     )}
-                                    <tr className="bg-[#F5F5F0]/80 font-bold border-t border-[#C17F5F]/20 text-[#1A1A1A]">
+                                    <tr className="bg-[#FCFAF7]/60 font-bold border-t border-[#C17F5F]/20 text-[#1A1A1A]">
                                         <td className="p-3 text-sm" colSpan={2}>VALOR TOTAL</td>
                                         <td className="p-3 text-right text-sm text-[#C17F5F]">{formatCurrency(project.total_amount)}</td>
                                         <td></td>
@@ -349,7 +349,7 @@ export default function PortalNoviasContratoPage() {
                             </h3>
                             <div className="space-y-2 text-xs">
                                 {project.milestones.map((m: any, i: number) => (
-                                    <div key={m.id || i} className="flex justify-between items-center bg-[#F5F5F0]/80 border border-[#C17F5F]/10 px-4 py-3 rounded">
+                                    <div key={m.id || i} className="flex justify-between items-center bg-[#FCFAF7]/50 backdrop-blur-sm border border-[#C17F5F]/15 px-4 py-3 rounded">
                                         <div className="flex items-center gap-3">
                                             <span className="w-5 h-5 rounded-full bg-[#C17F5F] text-[#1A1A1A] text-[10px] flex items-center justify-center font-bold">{i + 1}</span>
                                             <span className="font-semibold text-[#1A1A1A]">{m.title}</span>
@@ -369,7 +369,7 @@ export default function PortalNoviasContratoPage() {
                         <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
                             <ShieldAlert className="w-4 h-4" /> {project.milestones && project.milestones.length > 0 ? '5' : '4'}. Términos y Condiciones
                         </h3>
-                        <div className="text-[11px] text-gray-600 space-y-4 pr-2 bg-[#F5F5F0]/80 border border-[#C17F5F]/10 rounded p-4">
+                        <div className="text-[11px] text-gray-600 space-y-4 pr-2 bg-[#FCFAF7]/50 backdrop-blur-sm border border-[#C17F5F]/15 rounded p-4">
                             <div>
                                 <h4 className="font-bold text-[#1A1A1A] mb-1">1. Tiempo de Fabricación</h4>
                                 <p>Se tiene en conocimiento que el diseño, confección a medida y/o modificación de un vestido conlleva un proceso de meses y un trabajo artesanal meticuloso. Los tiempos de avance y entrega final dependerán estrictamente del cumplimiento del cronograma de pruebas establecido y de la puntual asistencia de la clienta a cada sesión.</p>
