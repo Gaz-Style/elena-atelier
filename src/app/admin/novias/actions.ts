@@ -130,12 +130,50 @@ export async function createBridalProject(formData: FormData) {
     const materialsNotes = formData.get('materials_notes') as string;
     const contractNotes = formData.get('contract_notes') as string;
     const customMilestonesJson = formData.get('custom_milestones_json') as string;
+    const paymentPlanJson = formData.get('payment_plan_json') as string;
     
-    // Calculate payment splits: Novias = 50/25/25, Madrinas/Graduación = 50/50
-    const isNovia = projectType === 'novia';
-    const payment1 = Math.round(totalAmount * 0.5);
-    const payment2 = isNovia ? Math.round(totalAmount * 0.25) : totalAmount - payment1;
-    const payment3 = isNovia ? totalAmount - payment1 - payment2 : 0;
+    let payment1 = 0;
+    let payment2 = 0;
+    let payment3 = 0;
+    let parsedPaymentPlan = null;
+
+    if (paymentPlanJson) {
+        try {
+            parsedPaymentPlan = JSON.parse(paymentPlanJson);
+            if (parsedPaymentPlan && parsedPaymentPlan.cuotas && parsedPaymentPlan.cuotas.length > 0) {
+                // Ensure all items in cuotas have amount / monto synced
+                parsedPaymentPlan.cuotas = parsedPaymentPlan.cuotas.map((c: any) => ({
+                    ...c,
+                    amount: c.amount !== undefined ? c.amount : c.monto,
+                    monto: c.monto !== undefined ? c.monto : c.amount
+                }));
+
+                const cuotas = parsedPaymentPlan.cuotas;
+                payment1 = cuotas[0] ? (cuotas[0].amount || cuotas[0].monto || 0) : 0;
+                payment2 = cuotas[1] ? (cuotas[1].amount || cuotas[1].monto || 0) : 0;
+                if (cuotas.length > 2) {
+                    payment3 = cuotas.slice(2).reduce((sum: number, c: any) => sum + (c.amount || c.monto || 0), 0);
+                }
+            }
+        } catch (e) {
+            console.error('Error parsing custom payment plan:', e);
+        }
+    }
+
+    // Fallback if no custom payment plan was provided or parsed successfully
+    if (!parsedPaymentPlan || !parsedPaymentPlan.cuotas || parsedPaymentPlan.cuotas.length === 0) {
+        const isNovia = projectType === 'novia';
+        payment1 = Math.round(totalAmount * 0.5);
+        payment2 = isNovia ? Math.round(totalAmount * 0.25) : totalAmount - payment1;
+        payment3 = isNovia ? totalAmount - payment1 - payment2 : 0;
+
+        const defaultCuotas = [];
+        if (payment1 > 0) defaultCuotas.push({ numero: 1, name: 'Abono Inicial', monto: payment1, amount: payment1, status: 'pending', date: new Date().toISOString().split('T')[0] });
+        if (payment2 > 0) defaultCuotas.push({ numero: 2, name: isNovia ? 'Prueba Intermedia' : 'Contra Entrega', monto: payment2, amount: payment2, status: 'pending', date: null });
+        if (payment3 > 0) defaultCuotas.push({ numero: 3, name: 'Contra Entrega', monto: payment3, amount: payment3, status: 'pending', date: null });
+        
+        parsedPaymentPlan = { cuotas: defaultCuotas };
+    }
     
     const eventDate = eventDateStr ? new Date(`${eventDateStr}T12:00:00-04:00`) : null;
     
@@ -168,11 +206,6 @@ export async function createBridalProject(formData: FormData) {
     // 1.5 DUAL WRITE TO work_orders
     let woId = undefined;
     if (project) {
-        const paymentPlan = { cuotas: [] as any[] };
-        if (payment1 > 0) paymentPlan.cuotas.push({ numero: 1, monto: payment1, status: 'pending' });
-        if (payment2 > 0) paymentPlan.cuotas.push({ numero: 2, monto: payment2, status: 'pending' });
-        if (payment3 > 0) paymentPlan.cuotas.push({ numero: 3, monto: payment3, status: 'pending' });
-        
         const { data: woData } = await supabase.from('work_orders').insert([{
             customer_id: customerId || null,
             order_type: projectType,
@@ -182,7 +215,7 @@ export async function createBridalProject(formData: FormData) {
             total_amount: totalAmount,
             paid_amount: 0,
             payment_status: 'pending',
-            payment_plan: paymentPlan,
+            payment_plan: parsedPaymentPlan,
             event_date: eventDate?.toISOString() || null,
             event_venue: eventVenue || null,
             project_type: projectType,
