@@ -107,21 +107,7 @@ export default function PaymentClient({ orderId, total }: { orderId: string; tot
                                 <ArrowRight className="w-4 h-4 text-[#C17F5F] group-hover:translate-x-1 transition-transform" />
                             </button>
 
-                            {/* Mercado Pago Button */}
-                            <button
-                                onClick={() => processPayment('mercadopago')}
-                                disabled={isProcessing}
-                                className="w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white p-5 rounded-sm transition-all duration-300 flex items-center justify-between group cursor-pointer"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <Wallet className="w-6 h-6 text-white/80" />
-                                    <div className="text-left">
-                                        <span className="font-bold text-sm tracking-widest uppercase block">Mercado Pago</span>
-                                        <span className="text-[9px] text-gray-500 uppercase tracking-widest mt-1 block">Tarjetas o Dinero en cuenta</span>
-                                    </div>
-                                </div>
-                                <ArrowRight className="w-4 h-4 text-[#C17F5F] group-hover:translate-x-1 transition-transform" />
-                            </button>
+
 
                             {/* Bank Transfer */}
                             <div className="mt-8 border border-white/10 rounded-sm overflow-hidden bg-white/5 group transition-all duration-300 hover:border-white/20">

@@ -565,7 +565,7 @@ function BudgetContent() {
                                     <h4 className="font-serif text-2xl text-white">Selecciona tu método de pago</h4>
                                     <p className="text-xs text-brand-sand mt-1 uppercase tracking-widest font-bold">Confirmación de Orden</p>
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <button 
                                         onClick={() => processPayment('transbank')}
                                         className="flex flex-col items-center gap-4 p-8 border border-white/10 bg-white/5 hover:border-brand-sand rounded-sm text-white transition-all group cursor-pointer"
@@ -576,18 +576,6 @@ function BudgetContent() {
                                         <div className="text-center">
                                             <p className="text-sm font-bold uppercase tracking-widest text-white">Transbank Webpay</p>
                                             <p className="text-[10px] text-white/50 mt-1">Tarjetas de Crédito / Débito</p>
-                                        </div>
-                                    </button>
-                                    <button 
-                                        onClick={() => processPayment('mercadopago')}
-                                        className="flex flex-col items-center gap-4 p-8 border border-white/10 bg-white/5 hover:border-brand-sand rounded-sm text-white transition-all group cursor-pointer"
-                                    >
-                                        <div className="bg-white/5 p-4 rounded-full group-hover:scale-110 transition-transform">
-                                            <CreditCard className="w-8 h-8 text-[#009EE3]" />
-                                        </div>
-                                        <div className="text-center">
-                                            <p className="text-sm font-bold uppercase tracking-widest text-white">Mercado Pago</p>
-                                            <p className="text-[10px] text-white/50 mt-1">Saldo en Cuenta / Tarjetas</p>
                                         </div>
                                     </button>
                                     <button 

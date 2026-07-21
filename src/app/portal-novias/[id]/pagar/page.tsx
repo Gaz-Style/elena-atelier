@@ -38,7 +38,7 @@ export default function PortalNoviasPagarPage() {
         new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val || 0);
 
     const handleCopy = async () => {
-        const text = `Destinatario: ATELIER HORTENSIA SPA\nRUT: 78.158.853-9\nBanco: Banco Bci / Mach\nTipo de cuenta: Cuenta corriente\nNº de cuenta: 77180795\nCorreo: pagos@elenalacosturera.cl`;
+        const text = `ATELIER HORTENSIA SPA\n78.158.853-9\nBanco Bci / Mach\nCuenta corriente\n77180795\npagos@elenalacosturera.cl`;
         try {
             await navigator.clipboard.writeText(text);
             setCopied(true);
@@ -126,25 +126,10 @@ export default function PortalNoviasPagarPage() {
                                     </form>
                                 )}
 
-                                {/* MercadoPago Button */}
-                                {links.mpLink && (
-                                    <a 
-                                        href={links.mpLink}
-                                        className="w-full bg-[#F5F5F0]/80 border border-[#C17F5F]/20 hover:bg-[#C17F5F]/10 text-[#1A1A1A] p-5 rounded-sm transition-all duration-300 flex items-center justify-between group"
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <Wallet className="w-6 h-6 text-[#1A1A1A]/80" />
-                                            <div className="text-left">
-                                                <span className="font-bold text-sm tracking-widest uppercase block">Mercado Pago</span>
-                                                <span className="text-[9px] text-gray-500 uppercase tracking-widest mt-1 block">Tarjetas o Dinero en cuenta</span>
-                                            </div>
-                                        </div>
-                                        <ArrowRight className="w-4 h-4 text-[#C17F5F] group-hover:translate-x-1 transition-transform" />
-                                    </a>
-                                )}
+
                                 
                                 {/* Bank Transfer */}
-                                <div className="mt-8 border border-[#C17F5F]/20 rounded-sm overflow-hidden bg-[#F5F5F0]/80 group transition-all duration-300 hover:border-[#C17F5F]/30">
+                                <div className="mt-8 border border-[#C17F5F]/20 rounded-sm overflow-hidden group transition-all duration-300 hover:border-[#C17F5F]/30">
                                     <div className="p-5 border-b border-[#C17F5F]/10 flex items-center justify-between">
                                         <div className="flex items-center gap-4">
                                             <Building className="w-6 h-6 text-[#1A1A1A]/80" />
