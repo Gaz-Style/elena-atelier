@@ -28,10 +28,41 @@ interface ContractData {
 const formatCurrency = (val: number) =>
     new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val);
 
+const parseLocalDate = (dateStr: string) => {
+    if (!dateStr) return null;
+    const cleanStr = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+    const parts = cleanStr.split(/[-/]/);
+    if (parts.length === 3) {
+        let year, month, day;
+        if (parts[0].length === 4) {
+            year = parseInt(parts[0]);
+            month = parseInt(parts[1]) - 1;
+            day = parseInt(parts[2]);
+        } else {
+            day = parseInt(parts[0]);
+            month = parseInt(parts[1]) - 1;
+            year = parseInt(parts[2]);
+        }
+        return new Date(year, month, day, 12, 0, 0);
+    }
+    return new Date(dateStr);
+};
+
 const formatDate = (dateStr: string) => {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('es-CL', {
+    const dateObj = parseLocalDate(dateStr);
+    if (!dateObj || isNaN(dateObj.getTime())) return dateStr;
+    return dateObj.toLocaleDateString('es-CL', {
         weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    });
+};
+
+const formatSimpleDate = (dateStr: string) => {
+    if (!dateStr) return '—';
+    const dateObj = parseLocalDate(dateStr);
+    if (!dateObj || isNaN(dateObj.getTime())) return dateStr;
+    return dateObj.toLocaleDateString('es-CL', {
+        day: '2-digit', month: '2-digit', year: 'numeric'
     });
 };
 
@@ -137,7 +168,7 @@ export default function ContractTemplate({ data }: { data: ContractData }) {
                                     </td>
                                     <td className="py-2 text-right font-bold">{formatCurrency(cuota.amount || cuota.monto || 0)}</td>
                                     <td className="py-2 text-right text-gray-500">
-                                        {cuota.date ? new Date(cuota.date).toLocaleDateString('es-CL') : (cuota.moment || `Cuota ${index + 1}`)}
+                                        {cuota.date ? formatSimpleDate(cuota.date) : (cuota.moment || `Cuota ${index + 1}`)}
                                     </td>
                                 </tr>
                             ))
@@ -242,7 +273,7 @@ export default function ContractTemplate({ data }: { data: ContractData }) {
                                                 <td className="py-1 px-2">{cuota.name}</td>
                                                 <td className="py-1 px-2 text-right font-bold">{formatCurrency(cuota.amount || cuota.monto || 0)}</td>
                                                 <td className="py-1 px-2 text-right text-gray-600">
-                                                    {cuota.date ? new Date(cuota.date).toLocaleDateString('es-CL') : (cuota.moment || `Cuota ${i + 1}`)}
+                                                    {cuota.date ? formatSimpleDate(cuota.date) : (cuota.moment || `Cuota ${i + 1}`)}
                                                 </td>
                                             </tr>
                                         ))}
