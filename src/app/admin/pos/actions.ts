@@ -18,7 +18,7 @@ export async function getPendingBalancesAction() {
     const { data: sales, error } = await supabase
         .from('sales_ledger')
         .select('id, internal_id, customer_id, total_amount, paid_amount')
-        .eq('status', 'partial')
+        .in('status', ['pending', 'partial'])
         .not('customer_id', 'is', null);
 
     if (error) return { success: false, error: error.message };
@@ -290,8 +290,7 @@ export async function sendOrderConfirmationEmailAction(payload: {
         let dbPaidAmount = total;
         let dbBalance = 0;
 
-        const { createClient } = await import('@/lib/supabase/server');
-        const supabase = await createClient();
+        const supabase = getAdminClient();
         
         const { data: sale } = await supabase.from('sales_ledger').select('total_amount, paid_amount').eq('internal_id', `order_${orderId}`).single();
         if (sale) {
@@ -1591,7 +1590,7 @@ export async function getAllBudgetsAction() {
 }
 
 export async function getBudgetAction(id: string) {
-    const supabase = await createClient();
+    const supabase = getAdminClient();
     const { data, error } = await supabase
         .from('budgets')
         .select('payload')
@@ -1607,7 +1606,7 @@ export async function getBudgetAction(id: string) {
 }
 
 export async function updateOrderStatusToPaidAction(posOrderId: string, amountPaid?: number) {
-    const supabase = await createClient();
+    const supabase = getAdminClient();
     
     // Intercept budgets and convert them to real orders BEFORE updating
     if (posOrderId.startsWith('budget_')) {
