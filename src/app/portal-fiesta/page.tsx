@@ -32,10 +32,8 @@ export default function FiestaPortalLoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ backgroundImage: "url('/fiesta_gala.png'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)" }}>
             
-            {/* Background overlay for readability */}
-            <div className="absolute inset-0 bg-white/40 z-0 pointer-events-none" />
 
             {/* Decorative background gradients */}
             <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#C17F5F]/10 blur-[120px] rounded-full pointer-events-none z-0"></div>
