@@ -177,8 +177,7 @@ export default function PortalFiestaPage() {
 
     if (!isContractAccepted) {
         return (
-            <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ backgroundImage: "url('/fiesta_gala.png'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
-                <div className="absolute inset-0 bg-white/40 z-0 pointer-events-none" />
+            <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)" }}>
                 <div className="w-full max-w-2xl relative z-10">
                     <div className="text-center mb-12">
                         <div className="flex flex-col items-stretch justify-center w-max mx-auto">
@@ -374,7 +373,7 @@ export default function PortalFiestaPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex flex-col justify-between relative" style={{ backgroundImage: "url('/fiesta_gala.png'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
+        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex flex-col justify-between relative" style={{ backgroundImage: "radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)" }}>
             <div className="fixed inset-0 bg-white/40 z-0 pointer-events-none" />
 
             {/* Payment Reminder Popup Modal */}

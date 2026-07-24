@@ -46,10 +46,8 @@ export default function FiestaWelcomePage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] flex flex-col items-center justify-center p-4 sm:p-8 relative overflow-hidden" style={{ backgroundImage: "url('/fiesta_gala.png'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] flex flex-col items-center justify-center p-4 sm:p-8 relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)" }}>
             
-            {/* Background overlay for readability */}
-            <div className="absolute inset-0 bg-white/40 z-0 pointer-events-none" />
             {/* Elegant Header */}
             <div className="absolute top-12 left-0 w-full text-center z-10 px-4">
                 <div className="flex flex-col items-stretch justify-center w-max mx-auto">
