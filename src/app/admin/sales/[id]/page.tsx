@@ -100,15 +100,23 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
                                     <p className="text-gray-400 italic text-sm text-center py-4">No hay artículos vinculados a esta venta.</p>
                                 ) : (
                                     <ul className="space-y-4">
-                                        {safeItems.map((item) => (
-                                            <li key={item.id} className="flex justify-between items-start pb-4 border-b border-gray-100 last:border-0 last:pb-0">
-                                                <div>
-                                                    <p className="font-medium text-brand-charcoal">{item.description}</p>
-                                                    <p className="text-[10px] uppercase tracking-widest text-brand-terracotta mt-1">{item.order_type === 'bespoke' ? 'Confección a Medida' : 'Producto Batch'}</p>
-                                                    {item.notes && <p className="text-xs text-gray-500 mt-2 italic">"{item.notes}"</p>}
-                                                </div>
-                                            </li>
-                                        ))}
+                                        {safeItems.map((item, idx) => {
+                                            const itemCount = safeItems.length;
+                                            const averagePrice = Math.round((sale.total_amount || 0) / itemCount);
+                                            const itemPrice = idx === itemCount - 1 ? ((sale.total_amount || 0) - averagePrice * (itemCount - 1)) : averagePrice;
+                                            return (
+                                                <li key={item.id} className="flex justify-between items-center pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+                                                    <div>
+                                                        <p className="font-medium text-brand-charcoal">{item.description}</p>
+                                                        <p className="text-[10px] uppercase tracking-widest text-brand-terracotta mt-1">{item.order_type === 'bespoke' ? 'Confección a Medida' : 'Producto Batch'}</p>
+                                                        {item.notes && <p className="text-xs text-gray-500 mt-2 italic">"{item.notes}"</p>}
+                                                    </div>
+                                                    <span className="font-serif font-bold text-brand-charcoal text-sm">
+                                                        {formatCurrency(itemPrice)}
+                                                    </span>
+                                                </li>
+                                            );
+                                        })}
                                     </ul>
                                 )}
                             </div>
