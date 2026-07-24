@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Playfair_Display, Inter, Geist } from "next/font/google";
 import LayoutWrapper from "@/components/LayoutWrapper";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import FacebookPixel from "@/components/FacebookPixel";
+import TikTokPixel from "@/components/TikTokPixel";
 import { ElenaAtelierSchema } from "@/lib/seo";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -54,6 +56,8 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${playfair.variable} antialiased font-sans text-white bg-brand-charcoal flex flex-col min-h-screen`}
       >
+        <FacebookPixel />
+        <TikTokPixel />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ElenaAtelierSchema) }}

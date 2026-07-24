@@ -16,8 +16,12 @@ export async function POST(req: Request) {
             vars: [body.name, body.serviceType, 'Av. Tabancura 1091']
         });
 
+        // 3. Email Marketing: (Pendiente de validación de correo oficial)
+        // await sendAppointmentConfirmation(...)
+
         return NextResponse.json({ success: true, message: 'Booking processed by agents' });
     } catch (error) {
+        console.error('API Error:', error);
         return NextResponse.json({ success: false, error: 'Failed to process booking' }, { status: 500 });
     }
 }

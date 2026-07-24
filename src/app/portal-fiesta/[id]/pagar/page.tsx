@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { CreditCard, Loader2, Lock, ArrowRight, Wallet, Building, Copy, Check } from 'lucide-react';
+import { CreditCard, Loader2, Lock, ArrowRight, Building, Copy, Check } from 'lucide-react';
 
-export default function PortalNoviasPagarPage() {
+export default function PortalFiestaPagarPage() {
     const params = useParams();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
@@ -20,12 +20,7 @@ export default function PortalNoviasPagarPage() {
 
     async function loadLinks(id: string) {
         try {
-            const { getBridalProjectById, generateBridalPaymentLinksAction } = await import('@/app/admin/novias/actions');
-            const project = await getBridalProjectById(id);
-            if (project && project.project_type && ['madrina', 'graduacion', 'fiesta'].includes(project.project_type)) {
-                router.push(`/portal-fiesta/${id}/pagar`);
-                return;
-            }
+            const { generateBridalPaymentLinksAction } = await import('@/app/admin/novias/actions');
             const res = await generateBridalPaymentLinksAction(id);
             if (res.success) {
                 setLinks(res);
@@ -94,7 +89,7 @@ export default function PortalNoviasPagarPage() {
                     <div className="text-center mt-6 mb-10 border-b border-[#C17F5F]/20 pb-8">
                         <h2 className="font-serif text-2xl text-[#1A1A1A] mb-3 tracking-wide">Pago de Reserva</h2>
                         <p className="text-xs text-gray-600 font-light leading-relaxed">
-                            Abono del 50% para dar inicio al proyecto y asegurar tu cupo de producción.
+                            Abono para dar inicio al proyecto y asegurar tu cupo de producción.
                         </p>
                     </div>
 
@@ -130,8 +125,6 @@ export default function PortalNoviasPagarPage() {
                                         </button>
                                     </form>
                                 )}
-
-
                                 
                                 {/* Bank Transfer */}
                                 <div className="mt-8 border border-[#C17F5F]/20 rounded-sm overflow-hidden group transition-all duration-300 hover:border-[#C17F5F]/30">

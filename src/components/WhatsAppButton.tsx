@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
+import { trackEvent } from '@/components/FacebookPixel';
+import { trackTikTokEvent } from '@/components/TikTokPixel';
 
 export default function WhatsAppButton() {
     const pathname = usePathname();
@@ -10,6 +12,17 @@ export default function WhatsAppButton() {
     const message = 'Hola, me gustaría agendar una cita o hacer una consulta.';
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     
+    const handleClick = () => {
+        trackEvent('Contact', { 
+            method: 'WhatsApp Floating Button',
+            content_name: 'Clic Boton Whatsapp Flotante'
+        });
+        trackTikTokEvent('Contact', { 
+            method: 'WhatsApp Floating Button',
+            content_name: 'Clic Boton Whatsapp Flotante'
+        });
+    };
+
     const [isScrolling, setIsScrolling] = useState(false);
 
     useEffect(() => {
@@ -44,6 +57,7 @@ export default function WhatsAppButton() {
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={handleClick}
             initial={{ opacity: 0, scale: 0.5, y: 50 }}
             animate={
                 isScrolling 

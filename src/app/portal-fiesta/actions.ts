@@ -19,9 +19,7 @@ async function getSupabaseClient() {
                             cookieStore.set(name, value, options)
                         );
                     } catch {
-                        // The `setAll` method was called from a Server Component.
-                        // This can be ignored if you have middleware refreshing
-                        // user sessions.
+                        // Ignored if called from a Server Component
                     }
                 },
             },
@@ -29,7 +27,7 @@ async function getSupabaseClient() {
     );
 }
 
-export async function loginBridalPortal(email: string, rutBody: string) {
+export async function loginFiestaPortal(email: string, rutBody: string) {
     try {
         const supabase = await getSupabaseClient();
         
@@ -43,15 +41,11 @@ export async function loginBridalPortal(email: string, rutBody: string) {
             return { success: false, error: 'Credenciales inválidas' };
         }
         
-        // Since email could match multiple, find the one with matching RUT body
-        // The RUT in DB could be "12345678-9" or "12.345.678-9"
         const cleanInputRut = rutBody.replace(/[^0-9Kk]/g, '').toUpperCase();
         
         const matchedCustomer = customers.find(c => {
             if (!c.rut) return false;
-            // Clean the DB rut
             const cleanDbRut = c.rut.replace(/[^0-9Kk]/g, '').toUpperCase();
-            // Remove the verifier digit from the DB rut to compare
             const dbRutBody = cleanDbRut.slice(0, -1);
             return dbRutBody === cleanInputRut;
         });
@@ -60,22 +54,22 @@ export async function loginBridalPortal(email: string, rutBody: string) {
             return { success: false, error: 'Credenciales inválidas' };
         }
         
-        // Find the latest active bridal project for this customer
+        // Find the latest active fiesta/gala/madrina/graduación project for this customer
         const { data: projects, error: projectsError } = await supabase
             .from('bridal_projects')
-            .select('id, project_type')
+            .select('id')
             .eq('customer_id', matchedCustomer.id)
+            .in('project_type', ['madrina', 'graduacion', 'fiesta'])
             .order('created_at', { ascending: false })
             .limit(1);
             
         if (projectsError || !projects || projects.length === 0) {
-            return { success: false, error: 'No tienes un proyecto activo' };
+            return { success: false, error: 'No tienes un proyecto de fiesta activo' };
         }
         
         const projectId = projects[0].id;
-        const projectType = projects[0].project_type;
         
-        return { success: true, projectId, projectType };
+        return { success: true, projectId };
         
     } catch (e: any) {
         console.error('Login error:', e);

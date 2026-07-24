@@ -3,9 +3,9 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, ArrowRight, Sparkles, Lock } from 'lucide-react';
-import { loginBridalPortal } from './actions';
+import { loginFiestaPortal } from './actions';
 
-export default function BridalPortalLoginPage() {
+export default function FiestaPortalLoginPage() {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [rut, setRut] = useState('');
@@ -18,14 +18,9 @@ export default function BridalPortalLoginPage() {
         setErrorMsg('');
 
         try {
-            const res = await loginBridalPortal(email, rut);
+            const res = await loginFiestaPortal(email, rut);
             if (res.success && res.projectId) {
-                // Redirect dynamically based on project type
-                if (res.projectType && ['madrina', 'graduacion', 'fiesta'].includes(res.projectType)) {
-                    router.push(`/portal-fiesta/${res.projectId}`);
-                } else {
-                    router.push(`/portal-novias/${res.projectId}`);
-                }
+                router.push(`/portal-fiesta/${res.projectId}`);
             } else {
                 setErrorMsg(res.error || 'Credenciales inválidas');
                 setLoading(false);
@@ -37,8 +32,11 @@ export default function BridalPortalLoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)" }}>
+        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ backgroundImage: "url('/fiesta_gala.png'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
             
+            {/* Background overlay for readability */}
+            <div className="absolute inset-0 bg-white/40 z-0 pointer-events-none" />
+
             {/* Decorative background gradients */}
             <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#C17F5F]/10 blur-[120px] rounded-full pointer-events-none z-0"></div>
             <div className="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#C17F5F]/10 blur-[120px] rounded-full pointer-events-none z-0"></div>
@@ -61,11 +59,11 @@ export default function BridalPortalLoginPage() {
                 <div className="bg-white/90 backdrop-blur-md rounded-lg shadow-[0_20px_60px_rgba(193,127,95,0.08)] p-8 border border-[#C17F5F]/20 relative">
                     <div className="text-center mb-8">
                         <div className="text-[#C17F5F] mb-3 text-[10px] tracking-widest uppercase flex items-center justify-center gap-2">
-                            <Lock className="w-3.5 h-3.5" /> Portal Privado
+                            <Lock className="w-3.5 h-3.5" /> Portal Privado Fiesta & Gala
                         </div>
                         <h2 className="font-serif text-2xl text-[#1A1A1A] mb-2 italic">Acceso Exclusivo</h2>
                         <p className="text-xs text-gray-500 font-light">
-                            Ingresa tus datos para acceder al progreso de tu vestido y gestionar tus citas.
+                            Ingresa tus datos para acceder al progreso de tu vestido de fiesta y gestionar tus citas.
                         </p>
                     </div>
 

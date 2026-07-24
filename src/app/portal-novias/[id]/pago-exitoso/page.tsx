@@ -1,10 +1,46 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { Heart, Loader2, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function PortalNoviasPagoExitosoPage() {
+    const params = useParams();
+    const router = useRouter();
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (params?.id) {
+            checkProjectType(params.id as string);
+        } else {
+            setLoading(false);
+        }
+    }, [params]);
+
+    async function checkProjectType(id: string) {
+        try {
+            const { getBridalProjectById } = await import('@/app/admin/novias/actions');
+            const project = await getBridalProjectById(id);
+            if (project && project.project_type && ['madrina', 'graduacion', 'fiesta'].includes(project.project_type)) {
+                router.push(`/portal-fiesta/${id}/pago-exitoso`);
+                return;
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#F8F6F0] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-[#C17F5F]" />
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-[#F8F6F0] font-sans text-[#1A1A1A] flex flex-col relative overflow-hidden">
             {/* Background elements */}

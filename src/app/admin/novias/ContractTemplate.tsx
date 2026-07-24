@@ -80,6 +80,8 @@ const serviceTypeLabel: Record<string, string> = {
 
 export default function ContractTemplate({ data }: { data: ContractData }) {
     const isVestidoPropio = data.serviceType === 'vestido_propio';
+    const isFiesta = data.projectType === 'madrina' || data.projectType === 'graduacion';
+    const docTitle = isFiesta ? 'TÉRMINOS Y CONDICIONES' : 'CONTRATO DE SERVICIO';
 
     let designFreezeDate: Date | null = null;
     if (data.eventDate) {
@@ -93,7 +95,7 @@ export default function ContractTemplate({ data }: { data: ContractData }) {
             <div className="text-center border-b-2 border-gray-800 pb-6 mb-8">
                 <h1 className="font-serif text-3xl tracking-widest mb-1">ELENA ATELIER</h1>
                 <p className="text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-4">La Costurera · Vitacura, Chile</p>
-                <h2 className="font-serif text-xl mt-4">CONTRATO DE SERVICIO</h2>
+                <h2 className="font-serif text-xl mt-4">{docTitle}</h2>
                 <p className="text-sm text-gray-500 mt-1">{projectTypeLabel[data.projectType] || data.projectType}</p>
             </div>
 
@@ -235,71 +237,111 @@ export default function ContractTemplate({ data }: { data: ContractData }) {
                 <p className="text-[12px] mb-3">El presente contrato tiene como objetivo dejar en conocimiento los términos y condiciones del servicio acordado.</p>
                 
                 <div className="space-y-4 text-[12px]">
-                    <div>
-                        <h4 className="font-bold text-gray-700">1. Tiempo de Fabricación</h4>
-                        <p>Se tiene en conocimiento que el diseño, confección a medida y/o modificación de un vestido conlleva un proceso de meses y un trabajo artesanal meticuloso. Los tiempos de avance y entrega final dependerán estrictamente del cumplimiento del cronograma de pruebas establecido y de la puntual asistencia de la clienta a cada sesión.</p>
-                    </div>
+                    {data.projectType === 'novia' ? (
+                        <>
+                            <div>
+                                <h4 className="font-bold text-gray-700">1. Tiempo de Fabricación</h4>
+                                <p>Se tiene en conocimiento que el diseño, confección a medida y/o modificación de un vestido conlleva un proceso de meses y un trabajo artesanal meticuloso. Los tiempos de avance y entrega final dependerán estrictamente del cumplimiento del cronograma de pruebas establecido y de la puntual asistencia de la clienta a cada sesión.</p>
+                            </div>
 
-                    {data.serviceType === 'bespoke' && (
-                        <div>
-                            <h4 className="font-bold text-gray-700">2. Diseño</h4>
-                            <p>ATELIER HORTENSIA SPA se compromete a asesorar en todo el proceso de la búsqueda del diseño óptimo para la novia. La novia puede escoger el diseño, color, materiales y tela de fabricación del vestido. Si los materiales en la fábrica no se encuentran en stock, se buscarán los más similares a lo que el cliente quiere (Encajes, bordados, pedrería, flores, macramé, colores, etc.) previa aprobación.</p>
-                            <p className="mt-1">
-                                {designFreezeDate ? (
-                                    <strong>Se establece de mutuo acuerdo que el {formatDate(designFreezeDate.toISOString())} (4 meses antes del evento) se congelarán definitivamente las ideas de diseño del vestido, definiendo los materiales y líneas finales para iniciar la producción del calce, no admitiéndose cambios posteriores.</strong>
+                            {data.serviceType === 'bespoke' && (
+                                <div>
+                                    <h4 className="font-bold text-gray-700">2. Diseño</h4>
+                                    <p>ATELIER HORTENSIA SPA se compromete a asesorar en todo el proceso de la búsqueda del diseño óptimo para la novia. La novia puede escoger el diseño, color, materiales y tela de fabricación del vestido. Si los materiales en la fábrica no se encuentran en stock, se buscarán los más similares a lo que el cliente quiere (Encajes, bordados, pedrería, flores, macramé, colores, etc.) previa aprobación.</p>
+                                    <p className="mt-1">
+                                        {designFreezeDate ? (
+                                            <strong>Se establece de mutuo acuerdo que el {formatDate(designFreezeDate.toISOString())} (4 meses antes del evento) se congelarán definitivamente las ideas de diseño del vestido, definiendo los materiales y líneas finales para iniciar la producción del calce, no admitiéndose cambios posteriores.</strong>
+                                        ) : (
+                                            <strong>Posterior al proceso de diseño y solicitud de fabricación, no se pueden hacer cambios estructurales en el diseño del vestido.</strong>
+                                        )}
+                                    </p>
+                                </div>
+                            )}
+
+                            <div>
+                                <h4 className="font-bold text-gray-700">3. Solicitud y Pago</h4>
+                                {data.paymentPlan && data.paymentPlan.cuotas && data.paymentPlan.cuotas.length > 0 ? (
+                                    <>
+                                        <p>Se acuerda con la clienta el pago del valor total contratado de <strong>{formatCurrency(data.totalAmount)}</strong>, dividido en <strong>{data.paymentPlan.cuotas.length} {data.paymentPlan.cuotas.length === 1 ? 'pago' : 'pagos'}</strong>. El detalle del calendario de pagos es el siguiente:</p>
+                                        <table className="w-full border-collapse text-[11px] mt-2 mb-2">
+                                            <thead>
+                                                <tr className="border-b border-gray-400 bg-gray-100">
+                                                    <th className="text-left py-1 px-2 font-bold">Cuota</th>
+                                                    <th className="text-right py-1 px-2 font-bold">Monto</th>
+                                                    <th className="text-right py-1 px-2 font-bold">Fecha de Vencimiento</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {data.paymentPlan.cuotas.map((cuota: any, i: number) => (
+                                                    <tr key={i} className="border-b border-gray-200">
+                                                        <td className="py-1 px-2">{cuota.name}</td>
+                                                        <td className="py-1 px-2 text-right font-bold">{formatCurrency(cuota.amount || cuota.monto || 0)}</td>
+                                                        <td className="py-1 px-2 text-right text-gray-600">
+                                                            {cuota.date ? formatSimpleDate(cuota.date) : (cuota.moment || `Cuota ${i + 1}`)}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        <p className="text-[11px] text-gray-500 italic">Para el inicio del trabajo (Toma de Medidas y Diseño), las cuotas deben estar al día. El vestido será entregado única y exclusivamente una vez que se haya cancelado el 100% del valor total acordado.</p>
+                                    </>
                                 ) : (
-                                    <strong>Posterior al proceso de diseño y solicitud de fabricación, no se pueden hacer cambios estructurales en el diseño del vestido.</strong>
+                                    <p>Al momento de la firma del contrato y confirmación del servicio, se debe cancelar el <strong>50%</strong> del valor total (Reserva). El <strong>25%</strong> restante se cancelará en la prueba intermedia y el último <strong>25%</strong> contra entrega. El vestido debe estar pagado en su totalidad (100%) al momento de retirarlo.</p>
                                 )}
-                            </p>
-                        </div>
+                                <p className="mt-1"><strong>Formas de Pago:</strong> Efectivo, Tarjetas de Crédito/Débito y Transferencias Bancarias.</p>
+                            </div>
+
+                            <div>
+                                <h4 className="font-bold text-gray-700">4. Ajustes y Protocolo de Pruebas</h4>
+                                <p>Se realizarán pruebas calendarizadas previas a la entrega final para lograr el calce perfecto del vestido, aproximadamente un mes antes del día del matrimonio. Para ello debes asistir a la hora y fecha coordinada. <strong>Importante:</strong> Debes asistir sin maquillaje y con los accesorios, ropa interior y zapatos definitivos que usarás ese día para resguardar la pulcritud de los tejidos.</p>
+                                {(data.serviceType === 'modificacion_tienda' || data.serviceType === 'vestido_propio') && (
+                                    <p className="mt-1 text-gray-600">Al comenzar a realizar las modificaciones y cortes correspondientes, el vestido no podrá ser cambiado ni devuelto.</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <h4 className="font-bold text-gray-700">5. Cancelaciones, Suspensiones y Devoluciones</h4>
+                                <p>ATELIER HORTENSIA SPA <strong>NO HACE DEVOLUCIÓN DE DINERO</strong> bajo ningún concepto. No se hace responsable en caso de suspensión o cancelación del matrimonio o evento, arrepentimiento de compra o embarazo.</p>
+                                <p className="mt-1">Si se suspende, cancela o cambia la fecha del evento, nos comprometemos a mantener el vestido resguardado en el atelier por un período <strong>máximo de 6 meses</strong>. Si cumplido este plazo el vestido no ha sido pagado en su 100% y/o no es retirado en dicha fecha, pasará a formar parte del stock de la tienda, perdiendo la clienta el derecho a reclamo o reembolso.</p>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div>
+                                <h4 className="font-bold text-gray-700">1. Proceso de Ajuste y Confección</h4>
+                                <p>Los tiempos de avance y entrega final dependerán estrictamente del cumplimiento del cronograma de pruebas y la puntual asistencia a las citas.</p>
+                            </div>
+
+                            {data.serviceType === 'bespoke' && (
+                                <div>
+                                    <h4 className="font-bold text-gray-700">2. Diseño y Telas</h4>
+                                    <p>El diseño y los materiales son aprobados por la clienta al inicio del servicio. Cambios de diseño posteriores a la compra están sujetos a factibilidad técnica y costos adicionales.</p>
+                                </div>
+                            )}
+
+                            <div>
+                                <h4 className="font-bold text-gray-700">3. Pagos</h4>
+                                <p>Para dar inicio al trabajo, los abonos acordados deben estar al día. La prenda será entregada única y exclusivamente una vez cancelado el 100% de la orden.</p>
+                            </div>
+
+                            <div>
+                                <h4 className="font-bold text-gray-700">4. Pruebas y Modificaciones</h4>
+                                <p>La clienta debe asistir a las pruebas con los zapatos y ropa interior que planea utilizar el día de su evento para resguardar la pulcritud y el correcto calce del vestido.</p>
+                            </div>
+
+                            <div>
+                                <h4 className="font-bold text-gray-700">5. Cancelaciones y Retiros</h4>
+                                <p>La empresa no realiza devoluciones de dinero. Si se cancela el evento, la empresa mantendrá la prenda resguardada por un máximo de 6 meses desde la fecha del evento original.</p>
+                            </div>
+
+                            {data.projectType === 'graduacion' && (
+                                <div className="border border-[#C17F5F]/30 bg-[#C17F5F]/5 p-3 rounded-sm mt-3">
+                                    <h4 className="font-bold text-[#C17F5F] mb-1">6. Representación Adulto Responsable y Aceptación de Condiciones</h4>
+                                    <p>En caso de que la graduada sea menor de edad, el padre, madre o tutor legal mayor de edad asume de forma solidaria la total responsabilidad por la aceptación de este contrato, así como del cumplimiento del plan de pagos. Se deja expresa constancia de que <strong>al realizar el primer abono inicial de reserva (pago inicial), se dan por aceptadas formal, íntegra y plenamente todas las condiciones</strong> estipuladas en este documento.</p>
+                                </div>
+                            )}
+                        </>
                     )}
-
-                    <div>
-                        <h4 className="font-bold text-gray-700">3. Solicitud y Pago</h4>
-                        {data.paymentPlan && data.paymentPlan.cuotas && data.paymentPlan.cuotas.length > 0 ? (
-                            <>
-                                <p>Se acuerda con la clienta el pago del valor total contratado de <strong>{formatCurrency(data.totalAmount)}</strong>, dividido en <strong>{data.paymentPlan.cuotas.length} {data.paymentPlan.cuotas.length === 1 ? 'pago' : 'pagos'}</strong>. El detalle del calendario de pagos es el siguiente:</p>
-                                <table className="w-full border-collapse text-[11px] mt-2 mb-2">
-                                    <thead>
-                                        <tr className="border-b border-gray-400 bg-gray-100">
-                                            <th className="text-left py-1 px-2 font-bold">Cuota</th>
-                                            <th className="text-right py-1 px-2 font-bold">Monto</th>
-                                            <th className="text-right py-1 px-2 font-bold">Fecha de Vencimiento</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {data.paymentPlan.cuotas.map((cuota: any, i: number) => (
-                                            <tr key={i} className="border-b border-gray-200">
-                                                <td className="py-1 px-2">{cuota.name}</td>
-                                                <td className="py-1 px-2 text-right font-bold">{formatCurrency(cuota.amount || cuota.monto || 0)}</td>
-                                                <td className="py-1 px-2 text-right text-gray-600">
-                                                    {cuota.date ? formatSimpleDate(cuota.date) : (cuota.moment || `Cuota ${i + 1}`)}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                                <p className="text-[11px] text-gray-500 italic">Para el inicio del trabajo (Toma de Medidas y Diseño), las cuotas deben estar al día. El vestido será entregado única y exclusivamente una vez que se haya cancelado el 100% del valor total acordado.</p>
-                            </>
-                        ) : (
-                            <p>Al momento de la firma del contrato y confirmación del servicio, se debe cancelar el <strong>50%</strong> del valor total (Reserva). El <strong>25%</strong> restante se cancelará en la prueba intermedia y el último <strong>25%</strong> contra entrega. El vestido debe estar pagado en su totalidad (100%) al momento de retirarlo.</p>
-                        )}
-                        <p className="mt-1"><strong>Formas de Pago:</strong> Efectivo, Tarjetas de Crédito/Débito y Transferencias Bancarias.</p>
-                    </div>
-
-                    <div>
-                        <h4 className="font-bold text-gray-700">4. Ajustes y Protocolo de Pruebas</h4>
-                        <p>Se realizarán pruebas calendarizadas previas a la entrega final para lograr el calce perfecto del vestido, aproximadamente un mes antes del día del matrimonio. Para ello debes asistir a la hora y fecha coordinada. <strong>Importante:</strong> Debes asistir sin maquillaje y con los accesorios, ropa interior y zapatos definitivos que usarás ese día para resguardar la pulcritud de los tejidos.</p>
-                        {(data.serviceType === 'modificacion_tienda' || data.serviceType === 'vestido_propio') && (
-                            <p className="mt-1 text-gray-600">Al comenzar a realizar las modificaciones y cortes correspondientes, el vestido no podrá ser cambiado ni devuelto.</p>
-                        )}
-                    </div>
-
-                    <div>
-                        <h4 className="font-bold text-gray-700">5. Cancelaciones, Suspensiones y Devoluciones</h4>
-                        <p>ATELIER HORTENSIA SPA <strong>NO HACE DEVOLUCIÓN DE DINERO</strong> bajo ningún concepto. No se hace responsable en caso de suspensión o cancelación del matrimonio o evento, arrepentimiento de compra o embarazo.</p>
-                        <p className="mt-1">Si se suspende, cancela o cambia la fecha del evento, nos comprometemos a mantener el vestido resguardado en el atelier por un período <strong>máximo de 6 meses</strong>. Si cumplido este plazo el vestido no ha sido pagado en su 100% y/o no es retirado en dicha fecha, pasará a formar parte del stock de la tienda, perdiendo la clienta el derecho a reclamo o reembolso.</p>
-                    </div>
 
                     {isVestidoPropio && (
                         <div className="bg-amber-50 border border-amber-200 p-4 rounded-sm mt-4 text-[11px]">

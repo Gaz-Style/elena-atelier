@@ -5,9 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { Play, ArrowRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
-export default function BridalInductionPage() {
+export default function FiestaInductionPage() {
     const params = useParams();
-    const router = useRouter();
     const [project, setProject] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
@@ -17,10 +16,6 @@ export default function BridalInductionPage() {
                 const { getBridalProjectById } = await import('@/app/admin/novias/actions');
                 const data = await getBridalProjectById(params.id as string);
                 if (data) {
-                    if (data.project_type && ['madrina', 'graduacion', 'fiesta'].includes(data.project_type)) {
-                        router.push(`/portal-fiesta/${params.id}/induccion`);
-                        return;
-                    }
                     setProject(data);
                 }
             } catch (e) {
@@ -49,7 +44,7 @@ export default function BridalInductionPage() {
         );
     }
 
-    const customerName = project.customers?.full_name?.split(' ')[0] || 'Futura Novia';
+    const customerName = project.customers?.full_name?.split(' ')[0] || 'Clienta';
 
     return (
         <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] flex flex-col items-center justify-center p-4 sm:p-8 relative">
@@ -69,23 +64,23 @@ export default function BridalInductionPage() {
                 <video 
                      controls
                      className="w-full aspect-[9/16] object-contain bg-[#FCFAF7]"
-                     poster="/trabajos/novia 2.jpeg"
+                     poster="/trabajos/model_desnuda_bw.png"
                      onPlay={(e) => {
-                         const target = e.target as HTMLVideoElement;
-                         const overlay = target.nextElementSibling as HTMLElement;
-                         if (overlay) overlay.style.opacity = '0';
-                     }}
+                          const target = e.target as HTMLVideoElement;
+                          const overlay = target.nextElementSibling as HTMLElement;
+                          if (overlay) overlay.style.opacity = '0';
+                      }}
                      onPause={(e) => {
-                         const target = e.target as HTMLVideoElement;
-                         const overlay = target.nextElementSibling as HTMLElement;
-                         if (overlay) overlay.style.opacity = '1';
-                     }}
+                          const target = e.target as HTMLVideoElement;
+                          const overlay = target.nextElementSibling as HTMLElement;
+                          if (overlay) overlay.style.opacity = '1';
+                      }}
                      onEnded={(e) => {
-                         const target = e.target as HTMLVideoElement;
-                         const overlay = target.nextElementSibling as HTMLElement;
-                         target.load(); // Resets the video to show the poster again
-                         if (overlay) overlay.style.opacity = '1';
-                     }}
+                          const target = e.target as HTMLVideoElement;
+                          const overlay = target.nextElementSibling as HTMLElement;
+                          target.load(); 
+                          if (overlay) overlay.style.opacity = '1';
+                      }}
                 >
                      <source src="/Induccion portal novias.mp4" type="video/mp4" />
                      Tu navegador no soporta la etiqueta de video.
@@ -97,9 +92,9 @@ export default function BridalInductionPage() {
                         <div className="w-12 h-12 rounded-full border border-[#C17F5F]/30 bg-[#C17F5F]/10 flex items-center justify-center mx-auto mb-4">
                             <Play className="w-4 h-4 text-[#C17F5F] fill-[#C17F5F]" />
                         </div>
-                        <h3 className="font-serif italic text-xl text-[#1A1A1A] mb-3">Tu Vestido Soñado</h3>
+                        <h3 className="font-serif italic text-xl text-[#1A1A1A] mb-3">Tu Prenda de Gala</h3>
                         <p className="text-gray-600 font-light text-[11px] leading-relaxed tracking-wide">
-                            Como parte del proceso, hemos preparado este breve video donde te explicamos el paso a paso que seguiremos. 
+                            Como parte del proceso, hemos preparado este breve video explicativo sobre el paso a paso del servicio. 
                             Te pedimos revisarlo para saber qué es lo que viene a continuación y guiarte fácilmente dentro de tu portal.
                         </p>
                         <p className="text-[#C17F5F] text-[9px] uppercase tracking-[3px] font-bold mt-5">
@@ -111,9 +106,8 @@ export default function BridalInductionPage() {
 
             {/* Actions */}
             <div className="mt-12 mb-8 z-10 flex flex-col items-center text-center">
-                
                 <Link 
-                    href={`/portal-novias/${params.id}`}
+                    href={`/portal-fiesta/${params.id}`}
                     className="inline-flex items-center gap-3 bg-[#FCFAF7]/80 hover:bg-[#C17F5F] border border-[#C17F5F] text-[#C17F5F] hover:text-white px-8 py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all group"
                 >
                     {project?.contract_accepted ? 'Ir a mi Portal' : 'Comenzar Registro'} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

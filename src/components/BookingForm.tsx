@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Loader2 } from 'lucide-react';
+import { trackEvent } from '@/components/FacebookPixel';
+import { trackTikTokEvent } from '@/components/TikTokPixel';
 
 export default function BookingForm() {
     const [step, setStep] = useState(1);
@@ -18,11 +20,39 @@ export default function BookingForm() {
         referencePhoto: null as File | null,
     });
 
+    const handleNextStep = (e: React.FormEvent) => {
+        e.preventDefault();
+        trackEvent('Lead', { 
+            content_name: 'Inicio Registro Cita',
+            content_category: formData.serviceType 
+        });
+        trackTikTokEvent('Contact', {
+            content_name: 'Inicio Registro Cita',
+            content_category: formData.serviceType
+        });
+        setStep(2);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
         // Simular llamada a API
         await new Promise((resolve) => setTimeout(resolve, 1000));
+        
+        trackEvent('Schedule', {
+            content_name: 'Cita Agendada Taller',
+            content_category: formData.serviceType,
+            occasion: formData.occasion,
+            style: formData.stylePreference
+        });
+
+        trackTikTokEvent('SubmitForm', {
+            content_name: 'Cita Agendada Taller',
+            content_category: formData.serviceType,
+            occasion: formData.occasion,
+            style: formData.stylePreference
+        });
+
         setIsSaving(false);
         setStep(3);
     };
@@ -30,7 +60,7 @@ export default function BookingForm() {
     return (
         <div className="max-w-xl mx-auto p-8 md:p-10 bg-[#121212]/90 border border-white/10 shadow-2xl rounded-sm text-white">
             {step === 1 && (
-                <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setStep(2); }}>
+                <form className="space-y-6" onSubmit={handleNextStep}>
                     <h2 className="font-serif text-xl md:text-2xl mb-6 tracking-wide text-white/95">Comencemos a Crear</h2>
 
                     <div className="grid gap-2">

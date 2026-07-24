@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Loader2, Mail, CheckCircle2, ArrowRight, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 
-export default function BridalWelcomePage() {
+export default function FiestaWelcomePage() {
     const params = useParams();
     const router = useRouter();
     const [project, setProject] = useState<any>(null);
@@ -17,10 +17,6 @@ export default function BridalWelcomePage() {
                 const { getBridalProjectById } = await import('@/app/admin/novias/actions');
                 const data = await getBridalProjectById(params.id as string);
                 if (data) {
-                    if (data.project_type && ['madrina', 'graduacion', 'fiesta'].includes(data.project_type)) {
-                        router.push(`/portal-fiesta/${params.id}/bienvenida`);
-                        return;
-                    }
                     setProject(data);
                 }
             } catch (e) {
@@ -49,11 +45,11 @@ export default function BridalWelcomePage() {
         );
     }
 
-    const customerName = project.customers?.full_name?.split(' ')[0] || 'Futura Novia';
-
     return (
-        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] flex flex-col items-center justify-center p-4 sm:p-8 relative overflow-hidden" style={{ backgroundImage: "url('/novia/Novia%20Elegante%201.png'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] flex flex-col items-center justify-center p-4 sm:p-8 relative overflow-hidden" style={{ backgroundImage: "url('/fiesta_gala.png'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
             
+            {/* Background overlay for readability */}
+            <div className="absolute inset-0 bg-white/40 z-0 pointer-events-none" />
             {/* Elegant Header */}
             <div className="absolute top-12 left-0 w-full text-center z-10 px-4">
                 <div className="flex flex-col items-stretch justify-center w-max mx-auto">
@@ -71,10 +67,8 @@ export default function BridalWelcomePage() {
 
             <div className="w-full max-w-lg mx-auto relative z-20 text-center mt-20 bg-white/40 backdrop-blur-lg p-8 rounded-xl shadow-2xl border border-white/50">
                 
-
-
                 <p className="text-[#C17F5F] text-[10px] uppercase tracking-[4px] font-bold mb-6">
-                    CONTRATO FIRMADO CON ÉXITO
+                    TÉRMINOS Y CONDICIONES ACEPTADOS
                 </p>
                 
                 <h2 className="font-serif text-3xl md:text-4xl italic text-[#1A1A1A]/90 leading-tight mb-8">
@@ -82,13 +76,13 @@ export default function BridalWelcomePage() {
                 </h2>
                 
                 <p className="text-[#4A4A4A] font-light text-sm leading-relaxed mb-8 max-w-md mx-auto">
-                    Nos llena de alegría acompañarte en este viaje. Tu contrato formal ha sido firmado con éxito.
+                    Nos llena de alegría acompañarte en este proceso. Has aceptado los términos y condiciones de tu vestido con éxito.
                 </p>
 
                 {/* Primary Call to Action Button */}
                 <div className="mb-10 max-w-sm mx-auto">
                     <Link
-                        href={`/portal-novias/${params.id}`}
+                        href={`/portal-fiesta/${params.id}`}
                         className="w-full bg-[#C17F5F] border border-[#C17F5F] text-[#1A1A1A] hover:bg-[#a96e51] hover:border-[#a96e51] py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all flex justify-center items-center gap-3 shadow-lg hover:shadow-xl"
                     >
                         Ingresar a mi Portal
@@ -97,15 +91,15 @@ export default function BridalWelcomePage() {
                 </div>
 
                 {/* Mail Confirmation Card */}
-<div className="bg-white/20 backdrop-blur-md rounded-lg border border-white/40 p-5 flex items-start gap-4 text-left max-w-sm mx-auto shadow-sm">
-  <Mail className="w-5 h-5 text-[#C17F5F] flex-shrink-0 mt-0.5" />
-  <div>
-    <h4 className="text-[#1A1A1A] text-[11px] font-bold uppercase tracking-wider mb-1">Copia digital en camino</h4>
-    <p className="text-[#4A4A4A] text-[10px] leading-relaxed font-light">
-      Hemos enviado una copia digital en PDF del contrato firmado a tu correo para tus registros personales.
-    </p>
-  </div>
-</div>
+                <div className="bg-white/20 backdrop-blur-md rounded-lg border border-white/40 p-5 flex items-start gap-4 text-left max-w-sm mx-auto shadow-sm">
+                    <Mail className="w-5 h-5 text-[#C17F5F] flex-shrink-0 mt-0.5" />
+                    <div>
+                        <h4 className="text-[#1A1A1A] text-[11px] font-bold uppercase tracking-wider mb-1">Copia digital en camino</h4>
+                        <p className="text-[#4A4A4A] text-[10px] leading-relaxed font-light">
+                            Hemos enviado una copia digital en PDF de los términos aceptados a tu correo para tus registros personales.
+                        </p>
+                    </div>
+                </div>
             </div>
             
             {/* Decorative background gradients */}

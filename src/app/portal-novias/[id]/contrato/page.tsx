@@ -26,6 +26,10 @@ export default function PortalNoviasContratoPage() {
             const { getBridalProjectById } = await import('@/app/admin/novias/actions');
             const data = await getBridalProjectById(id);
             if (data) {
+                if (data.project_type && ['madrina', 'graduacion', 'fiesta'].includes(data.project_type)) {
+                    router.push(`/portal-fiesta/${id}/contrato`);
+                    return;
+                }
                 setProject(data);
                 if (data.contract_accepted) {
                     setAccepted(true);

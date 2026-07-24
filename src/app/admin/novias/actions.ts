@@ -665,9 +665,11 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
         if (!project || !project.customers?.email) throw new Error('Proyecto o correo no encontrado');
         
         const customerEmail = project.customers.email;
-        const customerName = project.customers.full_name || 'Futura Novia';
+        const customerName = project.customers.full_name || 'Futura Clienta';
         const siteUrl = await getSiteUrl();
-        const portalLink = `${siteUrl}/portal-novias/${projectId}/induccion`;
+        const isFiesta = project.project_type === 'madrina' || project.project_type === 'graduacion';
+        const portalBase = isFiesta ? 'portal-fiesta' : 'portal-novias';
+        const portalLink = `${siteUrl}/${portalBase}/${projectId}/induccion`;
 
         // Luxury background image logic
         const attachments: any[] = [];
@@ -864,7 +866,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
         await transporter.sendMail({
             from: '"Elena Atelier" <contacto@elenalacosturera.cl>',
             to: customerEmail,
-            subject: `Acceso a tu Portal de Novia - ${customerName}`,
+            subject: `Acceso a tu Portal - ${customerName}`,
             text: `Te damos la bienvenida, ${customerName},\n\nEs un privilegio acompañarte en este proceso. Te invitamos a vivir la experiencia Elena Atelier.\n\nPuedes ingresar a tu portal privado en el siguiente enlace:\n${portalLink}\n\nAtentamente,\nElena Atelier`,
             html: htmlContent,
             attachments
@@ -1064,8 +1066,10 @@ export async function sendBridalContractEmailAction(projectId: string) {
         if (!project || !project.customers?.email) throw new Error('Proyecto no encontrado');
         
         const siteUrl = await getSiteUrl();
-        const paymentLink = `${siteUrl}/portal-novias/${projectId}/pagar`;
-        const proposalLink = `${siteUrl}/portal-novias/${projectId}/contrato`;
+        const isFiesta = project.project_type === 'madrina' || project.project_type === 'graduacion';
+        const portalBase = isFiesta ? 'portal-fiesta' : 'portal-novias';
+        const paymentLink = `${siteUrl}/${portalBase}/${projectId}/pagar`;
+        const proposalLink = `${siteUrl}/${portalBase}/${projectId}/contrato`;
 
         const customerEmail = project.customers.email;
         const customerName = project.customers.full_name || 'Clienta';

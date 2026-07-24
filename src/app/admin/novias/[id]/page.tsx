@@ -269,6 +269,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     const typeConfig = projectTypeConfig[project.project_type] || projectTypeConfig.novia;
     const status = statusConfig[project.status] || statusConfig.consulta;
     const TypeIcon = typeConfig.icon;
+    const isFiesta = project.project_type === 'madrina' || project.project_type === 'graduacion';
+    const contractLabel = isFiesta ? 'T. y Condiciones' : 'Contrato';
     const customCuotas = project.work_order?.payment_plan?.cuotas || [];
     const hasCustomPlan = customCuotas.length > 0;
     const totalCuotasCount = hasCustomPlan ? customCuotas.length : 3;
@@ -407,7 +409,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             </p>
                         </div>
                         <div className="bg-white border border-zinc-200/80 p-4 rounded-xl">
-                            <p className="text-[9px] uppercase text-zinc-400 tracking-widest font-bold">Contrato</p>
+                            <p className="text-[9px] uppercase text-zinc-400 tracking-widest font-bold">{contractLabel}</p>
                             <p className={`text-xl font-semibold mt-1 ${project.contract_accepted ? 'text-emerald-600' : 'text-amber-600'}`}>
                                 {project.contract_accepted ? '✓ Aceptado' : 'Pendiente'}
                             </p>
@@ -420,7 +422,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             { id: 'timeline', label: 'Cronograma', icon: Calendar },
                             { id: 'payments', label: 'Pagos', icon: DollarSign },
                             { id: 'measurements', label: 'Medidas', icon: Ruler },
-                            { id: 'contract', label: 'Contrato', icon: FileText },
+                            { id: 'contract', label: contractLabel, icon: FileText },
                             { id: 'notes', label: 'Notas', icon: StickyNote },
                         ].map(tab => (
                             <button
@@ -836,7 +838,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                             }`}>
                                 <div>
                                     <h3 className="font-bold text-sm">
-                                        {project.contract_accepted ? '✓ Contrato Aceptado' : '⏳ Contrato Pendiente de Aceptación'}
+                                        {project.contract_accepted
+                                            ? `✓ ${contractLabel} Aceptado`
+                                            : `⏳ ${contractLabel} Pendiente de Aceptación`}
                                     </h3>
                                     {project.contract_accepted && project.contract_accepted_at && (
                                         <p className="text-xs text-emerald-600 mt-1">Aceptado el {formatDate(project.contract_accepted_at)}</p>
@@ -849,7 +853,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                         </button>
                                     )}
                                     <button onClick={handlePrintContract} className="text-[10px] uppercase tracking-widest font-bold bg-zinc-900 hover:bg-zinc-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
-                                        <Printer className="w-3.5 h-3.5" /> Imprimir Contrato
+                                        <Printer className="w-3.5 h-3.5" /> Imprimir {contractLabel}
                                     </button>
                                 </div>
                             </div>

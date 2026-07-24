@@ -4,16 +4,16 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Heart, Crown, GraduationCap, Loader2, ChevronRight, User, Phone, FileText, Calendar, MapPin, DollarSign, CheckCircle2, AlertCircle, Sparkles, Clock, LogOut, CreditCard, X } from 'lucide-react';
-import ContractTemplate from '@/app/admin/novias/ContractTemplate';
+import ContractTemplate from '../components/ContractFiestaTemplate';
 import InspirationMoodboard from '../components/InspirationMoodboard';
 
 const projectTypeConfig: Record<string, { label: string; icon: any; eventLabel: string }> = {
     novia: { label: 'Vestido de Novia', icon: Heart, eventLabel: 'matrimonio' },
     madrina: { label: 'Vestido de Madrina', icon: Crown, eventLabel: 'evento' },
     graduacion: { label: 'Vestido de Graduación', icon: GraduationCap, eventLabel: 'evento de graduación' },
+    fiesta: { label: 'Vestido de Fiesta / Gala', icon: Sparkles, eventLabel: 'evento de gala' },
 };
 
-// --- Formatting helpers ---
 function formatRut(value: string): string {
     let clean = value.replace(/[^0-9kK]/g, '').toUpperCase();
     if (clean.length === 0) return '';
@@ -77,7 +77,7 @@ const formatDateLong = (dateStr: string) => {
     return dateObj.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 };
 
-export default function PortalNoviasPage() {
+export default function PortalFiestaPage() {
     const params = useParams();
     const router = useRouter();
     const [project, setProject] = useState<any>(null);
@@ -87,7 +87,6 @@ export default function PortalNoviasPage() {
     const [activeTab, setActiveTab] = useState<'dashboard' | 'payments' | 'moodboard' | 'contract'>('dashboard');
     const [showPaymentPopup, setShowPaymentPopup] = useState(false);
     
-    // Controlled fields for onboarding
     const [rutValue, setRutValue] = useState('');
     const [phoneValue, setPhoneValue] = useState('');
 
@@ -104,17 +103,12 @@ export default function PortalNoviasPage() {
             const { getBridalProjectById } = await import('@/app/admin/novias/actions');
             const data = await getBridalProjectById(id);
             if (data) {
-                if (data.project_type && ['madrina', 'graduacion', 'fiesta'].includes(data.project_type)) {
-                    router.push(`/portal-fiesta/${id}`);
-                    return;
-                }
                 setProject(data);
                 if (data.customers?.rut) setRutValue(formatRut(data.customers.rut));
                 if (data.customers?.phone) {
                     const rawPhone = data.customers.phone.replace(/^\+?56\s*/, '');
                     setPhoneValue(formatPhoneDigits(rawPhone));
                 }
-                // Show payment popup if contract is accepted but no payment done
                 if (data.contract_accepted) {
                     const cuotas = data.work_order?.payment_plan?.cuotas || [];
                     const hasPaid = cuotas.some((c: any) => c.status === 'paid') ||
@@ -141,7 +135,7 @@ export default function PortalNoviasPage() {
             const { processBridalFormAction } = await import('@/app/admin/novias/actions');
             const res = await processBridalFormAction(projectId, formData);
             if (res.success) {
-                router.push(`/portal-novias/${projectId}/contrato`);
+                router.push(`/portal-fiesta/${projectId}/contrato`);
             } else {
                 setErrorMsg(res.error || 'Ocurrió un error al procesar el formulario.');
             }
@@ -150,6 +144,14 @@ export default function PortalNoviasPage() {
         } finally {
             setSubmitting(false);
         }
+    }
+
+    function handleRutChange(e: React.ChangeEvent<HTMLInputElement>) {
+        setRutValue(formatRut(e.target.value));
+    }
+    
+    function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
+        setPhoneValue(formatPhoneDigits(e.target.value));
     }
 
     if (loading) {
@@ -169,15 +171,14 @@ export default function PortalNoviasPage() {
         );
     }
 
-    const config = projectTypeConfig[project.project_type] || projectTypeConfig.novia;
+    const config = projectTypeConfig[project.project_type] || projectTypeConfig.fiesta;
     const HeaderIcon = config.icon;
-
     const isContractAccepted = project.contract_accepted;
 
     if (!isContractAccepted) {
-        // RENDER: Formulario de bienvenida (Onboarding)
         return (
-            <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)" }}>
+            <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ backgroundImage: "url('/fiesta_gala.png'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+                <div className="absolute inset-0 bg-white/40 z-0 pointer-events-none" />
                 <div className="w-full max-w-2xl relative z-10">
                     <div className="text-center mb-12">
                         <div className="flex flex-col items-stretch justify-center w-max mx-auto">
@@ -195,10 +196,10 @@ export default function PortalNoviasPage() {
 
                     <div className="bg-white/95 backdrop-blur-md rounded-lg shadow-xl p-8 md:p-12 border border-[#C17F5F]/20 relative">
                         <div className="text-center mb-10">
-                            <div className="text-[#C17F5F] mb-4 text-xs tracking-widest uppercase font-bold">✦ Ingreso Atelier ✦</div>
+                            <div className="text-[#C17F5F] mb-4 text-xs tracking-widest uppercase font-bold">✦ Ingreso Atelier Fiesta & Gala ✦</div>
                             <h2 className="font-serif text-3xl text-[#1A1A1A] mb-4 italic">Bienvenida a tu Portal</h2>
                             <p className="text-xs text-gray-500 leading-relaxed max-w-md mx-auto font-light">
-                                Estamos felices de diseñar el vestido de tus sueños. 
+                                Estamos felices de diseñar la prenda de tus sueños. 
                                 Por favor completa los siguientes datos para formalizar tu reserva.
                             </p>
                         </div>
@@ -291,7 +292,7 @@ export default function PortalNoviasPage() {
                                             rows={2}
                                             defaultValue={project.description || ''}
                                             className="w-full bg-transparent border-b border-gray-200 focus:border-[#C17F5F] py-2 text-sm text-[#1A1A1A] outline-none transition-colors resize-none placeholder-gray-300" 
-                                            placeholder="Detalles importantes sobre tu vestido..."
+                                            placeholder="Detalles importantes sobre tu prenda..."
                                         />
                                     </div>
                                 </div>
@@ -323,22 +324,10 @@ export default function PortalNoviasPage() {
         );
     }
 
-
-
-    // CALCULATE: Remaining days and design freeze date (4 months before event)
     const daysUntilEvent = project.event_date
         ? Math.ceil((new Date(project.event_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
         : null;
 
-    let designFreezeDate: Date | null = null;
-    let daysUntilFreeze: number | null = null;
-    if (project.event_date) {
-        designFreezeDate = new Date(project.event_date);
-        designFreezeDate.setMonth(designFreezeDate.getMonth() - 4); // 4 months before event
-        daysUntilFreeze = Math.ceil((designFreezeDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-    }
-
-    // READ: Payments from work_order's payment_plan or fallback fields
     let cuotasList: any[] = [];
     let totalPaid = 0;
     let totalValue = project.total_amount;
@@ -354,7 +343,6 @@ export default function PortalNoviasPage() {
         totalPaid = project.work_order.paid_amount || 0;
         totalValue = project.work_order.total_amount || project.total_amount;
     } else {
-        // Fallback to the 3 standard database columns
         cuotasList = [
             { name: 'Cuota 1 — Abono Inicial', amount: project.payment_1_amount, status: project.payment_1_status, date: project.payment_1_date },
             { name: 'Cuota 2 — Prueba Intermedia', amount: project.payment_2_amount, status: project.payment_2_status, date: project.payment_2_date },
@@ -365,7 +353,6 @@ export default function PortalNoviasPage() {
     }
 
     const pendingBalance = totalValue - totalPaid;
-    const paidCount = cuotasList.filter(c => c.status === 'paid').length;
 
     const contractData = {
         customerName: project.customers?.full_name || '',
@@ -386,20 +373,9 @@ export default function PortalNoviasPage() {
         materialsNotes: project.materials_notes || '',
     };
 
-    function handleRutChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setRutValue(formatRut(e.target.value));
-    }
-    
-    function handlePhoneChange(e: React.ChangeEvent<HTMLInputElement>) {
-        setPhoneValue(formatPhoneDigits(e.target.value));
-    }
-
-    // RENDER: Dashboard principal de la novia
     return (
-        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex flex-col justify-between relative" style={{ backgroundImage: "url('/novia/Novia Elegante 1.png'), radial-gradient(circle at top, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat' }}>
-            
-            {/* Overlay to reduce background image opacity */}
-            <div className="fixed inset-0 bg-white/35 z-0 pointer-events-none" />
+        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex flex-col justify-between relative" style={{ backgroundImage: "url('/fiesta_gala.png'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
+            <div className="fixed inset-0 bg-white/40 z-0 pointer-events-none" />
 
             {/* Payment Reminder Popup Modal */}
             {showPaymentPopup && (
@@ -419,10 +395,10 @@ export default function PortalNoviasPage() {
                             Tu cupo aún no está confirmado
                         </h2>
                         <p className="text-sm text-gray-500 font-light leading-relaxed mb-7">
-                            Has firmado tu contrato, pero el abono de reserva está pendiente. Para bloquear tu fecha y cupo de producción, completa tu primer pago.
+                            Has aceptado los términos y condiciones, pero el abono de reserva está pendiente. Para bloquear tu fecha y cupo de producción, completa tu primer pago.
                         </p>
                         <Link
-                            href={`/portal-novias/${projectId}/pagar`}
+                            href={`/portal-fiesta/${projectId}/pagar`}
                             className="block w-full bg-[#C17F5F] text-white text-xs font-bold uppercase tracking-[0.2em] py-4 rounded transition-all hover:bg-[#a96e51] shadow-lg mb-3"
                             onClick={() => setShowPaymentPopup(false)}
                         >
@@ -452,7 +428,7 @@ export default function PortalNoviasPage() {
                         <span className="hidden md:inline text-[10px] uppercase tracking-widest text-gray-600 font-light">
                             Hola, {project.customers?.full_name?.split(' ')[0] || 'Cliente'}
                         </span>
-                        <Link href="/" className="text-gray-500 hover:text-[#C17F5F] transition-colors flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold">
+                        <Link href="/portal-fiesta" className="text-gray-500 hover:text-[#C17F5F] transition-colors flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold">
                             <LogOut className="w-3.5 h-3.5" /> Salir
                         </Link>
                     </div>
@@ -462,7 +438,6 @@ export default function PortalNoviasPage() {
             {/* Main Content Area */}
             <main className="max-w-5xl w-full mx-auto px-6 py-10 flex-1 space-y-10 relative z-10">
                 
-                {/* Contract Pending Warning Popup/Banner */}
                 {!isContractAccepted && (
                     <div className="bg-[#FFF9F2] border border-[#C17F5F]/30 p-6 rounded-lg flex flex-col md:flex-row items-center justify-between gap-4 shadow-[0_20px_60px_rgba(193,127,95,0.08)] shadow-[#C17F5F]/5">
                         <div className="flex items-center gap-4">
@@ -470,14 +445,14 @@ export default function PortalNoviasPage() {
                                 <AlertCircle className="w-6 h-6 text-[#C17F5F]" />
                             </div>
                             <div>
-                                <h3 className="font-serif italic text-xl text-[#C17F5F]">Contrato y Abono Pendiente</h3>
+                                <h3 className="font-serif italic text-xl text-[#C17F5F]">Términos y Condiciones por Aceptar</h3>
                                 <p className="text-xs text-gray-600 mt-1 max-w-md">
-                                    Aún no has formalizado tu reserva. Para bloquear tu cupo de producción y habilitar todas las funciones del portal, por favor revisa y acepta tu propuesta.
+                                    Aún no has formalizado tu reserva de alta costura. Para bloquear tu cupo de producción y habilitar todas las funciones del portal, por favor revisa y acepta tu propuesta.
                                 </p>
                             </div>
                         </div>
                         <Link 
-                            href={`/portal-novias/${projectId}/contrato`}
+                            href={`/portal-fiesta/${projectId}/contrato`}
                             className="w-full md:w-auto text-center px-6 py-3 bg-[#C17F5F] text-[#1A1A1A] text-xs font-bold uppercase tracking-widest rounded hover:bg-[#A86F53] transition-colors whitespace-nowrap"
                         >
                             Completar Ahora
@@ -489,7 +464,7 @@ export default function PortalNoviasPage() {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 bg-white/30 border border-[#C17F5F]/15 p-6 rounded-lg backdrop-blur-md">
                     <div>
                         <div className="text-[#C17F5F] text-[10px] tracking-widest uppercase font-bold mb-2 flex items-center gap-1.5">
-                            <Sparkles className="w-3.5 h-3.5 animate-spin-slow" /> Tu Experiencia de Alta Costura
+                            <Sparkles className="w-3.5 h-3.5" /> Tu Experiencia Alta Costura
                         </div>
                         <h1 className="font-serif text-3xl md:text-4xl italic text-[#1A1A1A] font-light">
                             {config.label} de {project.customers?.full_name?.split(' ')[0] || 'Cliente'}
@@ -501,30 +476,11 @@ export default function PortalNoviasPage() {
 
                     {daysUntilEvent !== null && (
                         <div className="text-left md:text-right border-t md:border-t-0 md:border-l border-[#C17F5F]/20 pt-4 md:pt-0 md:pl-8 shrink-0">
-                            <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Días para el gran día</p>
+                            <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Días para tu evento</p>
                             <p className="text-5xl font-serif text-[#C17F5F] mt-1 font-light">{daysUntilEvent}</p>
                         </div>
                     )}
                 </div>
-
-                {/* Design Freeze Alert */}
-                {designFreezeDate && daysUntilFreeze !== null && (
-                    <div className={`p-5 rounded-lg border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 backdrop-blur-md ${
-                        daysUntilFreeze <= 30 
-                            ? 'bg-red-950/20 border-red-500/30 text-red-700' 
-                            : 'bg-amber-950/10 border-amber-500/20 text-amber-900'
-                    }`}>
-                        <div className="flex items-start gap-3">
-                            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                            <div>
-                                <h3 className="font-bold text-xs uppercase tracking-widest">Congelación de Diseño</h3>
-                                <p className="text-xs mt-1 font-light leading-relaxed">
-                                    Quedan **{daysUntilFreeze} días** ({formatDate(designFreezeDate.toISOString())}) para definir la idea final del diseño de tu {config.label.toLowerCase()}. A partir de esa fecha no se podrán realizar cambios de diseño o silueta para garantizar el cumplimiento de los tiempos del taller.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                )}
 
                 {/* Dashboard Tabs Bar */}
                 <div className="flex border-b border-[#C17F5F]/10 gap-1 overflow-x-auto">
@@ -532,7 +488,7 @@ export default function PortalNoviasPage() {
                         { id: 'dashboard', label: 'Mi Vestido', icon: Calendar },
                         { id: 'payments', label: 'Pagos y Estado', icon: DollarSign },
                         { id: 'moodboard', label: 'Inspiración', icon: Heart },
-                        { id: 'contract', label: 'Contrato', icon: FileText },
+                        { id: 'contract', label: 'Términos', icon: FileText },
                     ].map(tab => (
                         <button
                             key={tab.id}
@@ -588,61 +544,58 @@ export default function PortalNoviasPage() {
                 {/* TAB: Payments */}
                 {activeTab === 'payments' && (
                     <div className="space-y-6">
-
-                            {/* Visual balance card */}
-                            <div className="bg-white/60 border border-[#C17F5F]/20 p-6 rounded-lg grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
-                                <div>
-                                    <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Valor Total del Vestido</p>
-                                    <p className="text-2xl font-serif mt-1 text-[#1A1A1A] font-light">{formatCurrency(totalValue)}</p>
-                                </div>
-                                <div className="sm:text-center">
-                                    <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Total Pagado</p>
-                                    <p className="text-2xl font-serif mt-1 text-emerald-600 font-light">{formatCurrency(totalPaid)}</p>
-                                </div>
-                                <div className="sm:text-right">
-                                    <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Saldo Pendiente</p>
-                                    <p className={`text-2xl font-serif mt-1 font-light ${pendingBalance > 0 ? 'text-[#C17F5F]' : 'text-gray-500'}`}>
-                                        {formatCurrency(pendingBalance)}
-                                    </p>
-                                </div>
+                        <div className="bg-white/60 border border-[#C17F5F]/20 p-6 rounded-lg grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
+                            <div>
+                                <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Valor Total de tu Prenda</p>
+                                <p className="text-2xl font-serif mt-1 text-[#1A1A1A] font-light">{formatCurrency(totalValue)}</p>
                             </div>
+                            <div className="sm:text-center">
+                                <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Total Pagado</p>
+                                <p className="text-2xl font-serif mt-1 text-emerald-600 font-light">{formatCurrency(totalPaid)}</p>
+                            </div>
+                            <div className="sm:text-right">
+                                <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Saldo Pendiente</p>
+                                <p className={`text-2xl font-serif mt-1 font-light ${pendingBalance > 0 ? 'text-[#C17F5F]' : 'text-gray-500'}`}>
+                                    {formatCurrency(pendingBalance)}
+                                </p>
+                            </div>
+                        </div>
 
-                            {/* Installments checklist */}
-                            <div className="bg-white/60 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg space-y-4">
-                                <h3 className="text-xs uppercase tracking-widest font-bold text-gray-600 border-b border-[#C17F5F]/10 pb-2">Plan de Vencimientos</h3>
-                                {cuotasList.map((cuota, idx) => (
-                                    <div key={idx} className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-4 border-b last:border-0 ${
-                                        cuota.status === 'paid' ? 'border-emerald-200/50' : 'border-[#C17F5F]/15'
-                                    }`}>
-                                        <div>
-                                            <h4 className="font-bold text-xs uppercase tracking-widest text-[#1A1A1A]">{cuota.name}</h4>
-                                            {cuota.status === 'paid' && cuota.date ? (
-                                                <p className="text-[10px] text-emerald-600 mt-1 font-light">Confirmado el {formatDate(cuota.date)}</p>
-                                            ) : cuota.status !== 'paid' && (cuota.date || cuota.moment) ? (
-                                                <p className="text-[10px] text-gray-500 mt-1 font-light flex items-center gap-1">
-                                                    <Calendar className="w-3 h-3 text-[#C17F5F]/70 shrink-0" />
-                                                    {cuota.date ? `Vence el ${formatDate(cuota.date)}` : cuota.moment}
-                                                </p>
-                                            ) : null}
-                                        </div>
-                                        <div className="flex items-center gap-4 self-end sm:self-auto">
-                                            <span className="text-sm font-bold text-[#1A1A1A]">{formatCurrency(cuota.amount)}</span>
-                                            {cuota.status === 'paid' ? (
-                                                <span className="text-[8px] uppercase tracking-widest font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
-                                                    Pagado ✓
-                                                </span>
-                                            ) : (
-                                                <a 
-                                                    href={`/portal-novias/${projectId}/pagar`}
-                                                    className="text-[9px] uppercase tracking-widest font-bold border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-white px-3.5 py-1.5 rounded transition-all"
-                                                >
-                                                    Pagar
-                                                </a>
-                                            )}
-                                        </div>
+                        <div className="bg-white/60 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg space-y-4">
+                            <h3 className="text-xs uppercase tracking-widest font-bold text-gray-600 border-b border-[#C17F5F]/10 pb-2">Plan de Vencimientos</h3>
+                            {cuotasList.map((cuota, idx) => (
+                                <div key={idx} className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 py-4 border-b last:border-0 ${
+                                    cuota.status === 'paid' ? 'border-emerald-200/50' : 'border-[#C17F5F]/15'
+                                }`}>
+                                    <div>
+                                        <h4 className="font-bold text-xs uppercase tracking-widest text-[#1A1A1A]">{cuota.name}</h4>
+                                        {cuota.status === 'paid' && cuota.date ? (
+                                            <p className="text-[10px] text-emerald-600 mt-1 font-light">Confirmado el {formatDate(cuota.date)}</p>
+                                        ) : cuota.status !== 'paid' && (cuota.date || cuota.moment) ? (
+                                            <p className="text-[10px] text-gray-500 mt-1 font-light flex items-center gap-1">
+                                                <Calendar className="w-3 h-3 text-[#C17F5F]/70 shrink-0" />
+                                                {cuota.date ? `Vence el ${formatDate(cuota.date)}` : cuota.moment}
+                                            </p>
+                                        ) : null}
                                     </div>
-                                ))}
-                            </div>
+                                    <div className="flex items-center gap-4 self-end sm:self-auto">
+                                        <span className="text-sm font-bold text-[#1A1A1A]">{formatCurrency(cuota.amount)}</span>
+                                        {cuota.status === 'paid' ? (
+                                            <span className="text-[8px] uppercase tracking-widest font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                                                Pagado ✓
+                                            </span>
+                                        ) : (
+                                            <a 
+                                                href={`/portal-fiesta/${projectId}/pagar`}
+                                                className="text-[9px] uppercase tracking-widest font-bold border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-white px-3.5 py-1.5 rounded transition-all"
+                                            >
+                                                Pagar
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
 
@@ -656,7 +609,7 @@ export default function PortalNoviasPage() {
                     <div className="space-y-6">
                         <div className="bg-white/60 border border-[#C17F5F]/20 p-6 md:p-8 rounded-lg">
                             <div className="flex justify-between items-center mb-6 border-b border-[#C17F5F]/10 pb-4">
-                                <h2 className="font-serif text-xl text-[#1A1A1A] italic">Copia de tu Contrato</h2>
+                                <h2 className="font-serif text-xl text-[#1A1A1A] italic">Copia de tus Términos y Condiciones</h2>
                                 <button 
                                     onClick={() => window.print()} 
                                     className="text-[9px] uppercase tracking-widest font-bold border border-[#C17F5F]/30 hover:border-white text-[#4A4A4A] hover:text-[#C17F5F] px-4 py-2 rounded transition-all"
