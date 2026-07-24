@@ -3,12 +3,14 @@
 import React from 'react';
 import { Sparkles, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 export default function PortalFiestaPagoExitosoPage() {
+    const params = useParams();
+    const projectId = params?.id as string;
     return (
-        <div className="min-h-screen bg-[#F5F5F0] font-sans text-[#1A1A1A] flex flex-col relative overflow-hidden" style={{ backgroundImage: "url('/fiesta_gala.png'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+        <div className="min-h-screen bg-[#F5F5F0] font-sans text-[#1A1A1A] flex flex-col relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)" }}>
             {/* Background elements */}
-            <div className="absolute inset-0 bg-white/40 z-0 pointer-events-none" />
             <div className="absolute top-0 left-0 w-full h-96 bg-[#1A1A1A]/80 z-0"></div>
             
             <main className="flex-1 w-full max-w-2xl mx-auto px-6 py-12 md:py-24 relative z-10 flex flex-col items-center justify-center">
@@ -39,10 +41,10 @@ export default function PortalFiestaPagoExitosoPage() {
                     </div>
 
                     <Link 
-                        href="/" 
+                        href={`/portal-fiesta/${projectId}`} 
                         className="text-[10px] uppercase tracking-widest font-bold text-gray-600 hover:text-gray-800 transition-colors"
                     >
-                        Volver al inicio
+                        Ir a mi Portal
                     </Link>
                 </div>
             </main>
