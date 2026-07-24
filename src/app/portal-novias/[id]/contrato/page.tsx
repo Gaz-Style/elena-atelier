@@ -179,7 +179,7 @@ export default function PortalNoviasContratoPage() {
             <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans py-12 px-4 md:px-6 relative overflow-hidden print:hidden" style={{ backgroundImage: "url('/novia/Novia Elegante 1.png'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
                 
                 {/* Overlay para reducir opacidad de imagen de fondo */}
-                <div className="fixed inset-0 bg-white/35 z-0 pointer-events-none" />
+                <div className="fixed inset-0 bg-white/70 z-0 pointer-events-none" />
 
                 <div className="w-full max-w-3xl mx-auto relative z-10">
                     {/* Logo */}
@@ -231,7 +231,7 @@ export default function PortalNoviasContratoPage() {
                         <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
                             <FileText className="w-4 h-4" /> 1. Partes Contratantes
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs bg-[#FCFAF7]/50 backdrop-blur-sm border border-[#C17F5F]/15 rounded p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs bg-[#FCFAF7]/95 backdrop-blur-md border border-[#C17F5F]/15 rounded p-4 shadow-sm">
                             <div>
                                 <p className="text-[9px] uppercase tracking-wider text-gray-600 font-bold mb-1">Prestador del Servicio</p>
                                 <p className="font-bold text-[#1A1A1A]">ATELIER HORTENSIA SPA</p>
@@ -255,7 +255,7 @@ export default function PortalNoviasContratoPage() {
                         <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
                             <Calendar className="w-4 h-4" /> 2. Descripción del Servicio
                         </h3>
-                        <div className="text-xs space-y-3 bg-[#FCFAF7]/50 backdrop-blur-sm border border-[#C17F5F]/15 rounded p-4">
+                        <div className="text-xs space-y-3 bg-[#FCFAF7]/95 backdrop-blur-md border border-[#C17F5F]/15 rounded p-4 shadow-sm">
                             <div className="flex justify-between border-b border-[#C17F5F]/10 pb-2">
                                 <span className="text-gray-600">Servicio:</span>
                                 <span className="font-bold text-[#1A1A1A]">{serviceTypeLabel[project.service_type] || project.service_type}</span>
@@ -284,10 +284,10 @@ export default function PortalNoviasContratoPage() {
                         <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
                             <DollarSign className="w-4 h-4" /> 3. Condiciones Económicas
                         </h3>
-                        <div className="overflow-x-auto border border-[#C17F5F]/20 rounded bg-[#FCFAF7]/50 backdrop-blur-sm">
+                        <div className="overflow-x-auto border border-[#C17F5F]/20 rounded bg-[#FCFAF7]/95 backdrop-blur-md shadow-sm">
                             <table className="w-full text-xs text-left">
                                 <thead>
-                                    <tr className="bg-[#FCFAF7]/60 border-b border-[#C17F5F]/20 text-gray-600 font-bold">
+                                    <tr className="bg-[#FCFAF7]/90 border-b border-[#C17F5F]/20 text-gray-600 font-bold">
                                         <th className="p-3">Concepto</th>
                                         <th className="p-3 text-center">Porcentaje</th>
                                         <th className="p-3 text-right">Monto</th>
@@ -339,7 +339,7 @@ export default function PortalNoviasContratoPage() {
                                             </tr>
                                         </>
                                     )}
-                                    <tr className="bg-[#FCFAF7]/60 font-bold border-t border-[#C17F5F]/20 text-[#1A1A1A]">
+                                    <tr className="bg-[#FCFAF7]/90 font-bold border-t border-[#C17F5F]/20 text-[#1A1A1A]">
                                         <td className="p-3 text-sm" colSpan={2}>VALOR TOTAL</td>
                                         <td className="p-3 text-right text-sm text-[#C17F5F]">{formatCurrency(project.total_amount)}</td>
                                         <td></td>
@@ -357,7 +357,7 @@ export default function PortalNoviasContratoPage() {
                             </h3>
                             <div className="space-y-2 text-xs">
                                 {project.milestones.map((m: any, i: number) => (
-                                    <div key={m.id || i} className="flex justify-between items-center bg-[#FCFAF7]/50 backdrop-blur-sm border border-[#C17F5F]/15 px-4 py-3 rounded">
+                                    <div key={m.id || i} className="flex justify-between items-center bg-[#FCFAF7]/95 backdrop-blur-md border border-[#C17F5F]/15 px-4 py-3 rounded shadow-sm">
                                         <div className="flex items-center gap-3">
                                             <span className="w-5 h-5 rounded-full bg-[#C17F5F] text-[#1A1A1A] text-[10px] flex items-center justify-center font-bold">{i + 1}</span>
                                             <span className="font-semibold text-[#1A1A1A]">{m.title}</span>
@@ -377,7 +377,7 @@ export default function PortalNoviasContratoPage() {
                         <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
                             <ShieldAlert className="w-4 h-4" /> {project.milestones && project.milestones.length > 0 ? '5' : '4'}. Términos y Condiciones
                         </h3>
-                        <div className="text-[11px] text-gray-600 space-y-4 pr-2 bg-[#FCFAF7]/50 backdrop-blur-sm border border-[#C17F5F]/15 rounded p-4">
+                        <div className="text-[11px] text-gray-600 space-y-4 pr-2 bg-[#FCFAF7]/95 backdrop-blur-md border border-[#C17F5F]/15 rounded p-4 shadow-sm">
                             <div>
                                 <h4 className="font-bold text-[#1A1A1A] mb-1">1. Tiempo de Fabricación</h4>
                                 <p>Se tiene en conocimiento que el diseño, confección a medida y/o modificación de un vestido conlleva un proceso de meses y un trabajo artesanal meticuloso. Los tiempos de avance y entrega final dependerán estrictamente del cumplimiento del cronograma de pruebas establecido y de la puntual asistencia de la clienta a cada sesión.</p>
