@@ -915,29 +915,42 @@ export async function createPOSOrdersAction(payload: {
     // 2. Insert Production Orders linked to Sales Ledger
     const insertPromises = items.map(async item => {
         const orderType = item.isCustom ? 'bespoke' : 'b2b_batch';
-        const { data: pOrder, error: pError } = await supabase
+        const payload: any = {
+            sale_id: saleId,
+            customer_id: finalCustomerId,
+            description: item.name,
+            order_type: orderType,
+            status: status || 'draft',
+            notes: item.notes || '',
+            deadline: finalDeliveryDate || deadline || null,
+            estimated_hours: item.hours || 0,
+            production_start_date: item.productionStartDate || productionStartDate || null,
+            production_end_date: item.productionEndDate || productionEndDate || null,
+            final_delivery_date: finalDeliveryDate || null,
+            assigned_operator_id: item.assignedOperatorId && item.assignedOperatorId !== 'unassigned' ? item.assignedOperatorId : null,
+            pos_order_id: posOrderId || null,
+            payment_method: finalPaymentMethod || null,
+            payment_status: derivedStatus,
+            paid_amount: paidAmount,
+            price: item.price
+        };
+
+        let { data: pOrder, error: pError } = await supabase
             .from('production_orders')
-            .insert([{
-                sale_id: saleId,
-                customer_id: finalCustomerId,
-                description: item.name,
-                order_type: orderType,
-                status: status || 'draft',
-                notes: item.notes || '',
-                deadline: finalDeliveryDate || deadline || null,
-                estimated_hours: item.hours || 0,
-                production_start_date: item.productionStartDate || productionStartDate || null,
-                production_end_date: item.productionEndDate || productionEndDate || null,
-                final_delivery_date: finalDeliveryDate || null,
-                assigned_operator_id: item.assignedOperatorId && item.assignedOperatorId !== 'unassigned' ? item.assignedOperatorId : null,
-                pos_order_id: posOrderId || null,
-                payment_method: finalPaymentMethod || null,
-                payment_status: derivedStatus,
-                paid_amount: paidAmount,
-                price: item.price
-            }])
+            .insert([payload])
             .select('id')
             .single();
+
+        if (pError && (pError.message?.includes('price') || pError.details?.includes('price') || pError.code === 'PGRST204')) {
+            delete payload.price;
+            const retry = await supabase
+                .from('production_orders')
+                .insert([payload])
+                .select('id')
+                .single();
+            pOrder = retry.data;
+            pError = retry.error;
+        }
 
         if (pError) return { error: pError };
 
@@ -955,7 +968,7 @@ export async function createPOSOrdersAction(payload: {
 
         // DUAL-WRITE to work_order_items
         if (workOrderId) {
-            const { error: woiError } = await supabase.from('work_order_items').insert([{
+            const woiPayload: any = {
                 work_order_id: workOrderId,
                 description: item.name,
                 status: 'pendiente',
@@ -964,8 +977,12 @@ export async function createPOSOrdersAction(payload: {
                 production_start: productionStartDate || null,
                 production_end: productionEndDate || null,
                 price: item.price
-            }]);
-            if (woiError) console.error('Error inserting work_order_items:', woiError);
+            };
+            const { error: woiError } = await supabase.from('work_order_items').insert([woiPayload]);
+            if (woiError && (woiError.message?.includes('price') || woiError.details?.includes('price') || woiError.code === 'PGRST204')) {
+                delete woiPayload.price;
+                await supabase.from('work_order_items').insert([woiPayload]);
+            }
         }
 
         return { success: true, data: pOrder };
