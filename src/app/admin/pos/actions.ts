@@ -638,12 +638,17 @@ export async function sendOrderConfirmationEmailByOrderIdAction(posOrderId: stri
         const itemCount = ordersList.length || 1;
         const averagePrice = Math.round(sale.total_amount / itemCount);
         
-        const mappedItems = ordersList.map((item, idx) => ({
-            name: item.description || 'Prenda de Vestir',
-            price: idx === itemCount - 1 ? (sale.total_amount - averagePrice * (itemCount - 1)) : averagePrice,
-            category: item.order_type === 'bespoke' ? 'Alta Costura' : 'Prenda',
-            notes: item.notes || ''
-        }));
+        const mappedItems = ordersList.map((item, idx) => {
+            const price = (item.price && Number(item.price) > 0)
+                ? Number(item.price)
+                : (idx === itemCount - 1 ? (sale.total_amount - averagePrice * (itemCount - 1)) : averagePrice);
+            return {
+                name: item.description || 'Prenda de Vestir',
+                price: price,
+                category: item.order_type === 'bespoke' ? 'Alta Costura' : 'Prenda',
+                notes: item.notes || ''
+            };
+        });
 
         // 4. Extraer desgloses mixtos si los hay
         let splitCash: number | undefined = undefined;
@@ -928,7 +933,8 @@ export async function createPOSOrdersAction(payload: {
                 pos_order_id: posOrderId || null,
                 payment_method: finalPaymentMethod || null,
                 payment_status: derivedStatus,
-                paid_amount: paidAmount
+                paid_amount: paidAmount,
+                price: item.price
             }])
             .select('id')
             .single();
@@ -956,7 +962,8 @@ export async function createPOSOrdersAction(payload: {
                 assigned_operator_id: item.assignedOperatorId && item.assignedOperatorId !== 'unassigned' ? item.assignedOperatorId : null,
                 estimated_hours: item.hours || 0,
                 production_start: productionStartDate || null,
-                production_end: productionEndDate || null
+                production_end: productionEndDate || null,
+                price: item.price
             }]);
             if (woiError) console.error('Error inserting work_order_items:', woiError);
         }

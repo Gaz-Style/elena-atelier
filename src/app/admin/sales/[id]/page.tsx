@@ -103,7 +103,9 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
                                         {safeItems.map((item, idx) => {
                                             const itemCount = safeItems.length;
                                             const averagePrice = Math.round((sale.total_amount || 0) / itemCount);
-                                            const itemPrice = idx === itemCount - 1 ? ((sale.total_amount || 0) - averagePrice * (itemCount - 1)) : averagePrice;
+                                            const itemPrice = (item.price && Number(item.price) > 0)
+                                                ? Number(item.price)
+                                                : (idx === itemCount - 1 ? ((sale.total_amount || 0) - averagePrice * (itemCount - 1)) : averagePrice);
                                             return (
                                                 <li key={item.id} className="flex justify-between items-center pb-4 border-b border-gray-100 last:border-0 last:pb-0">
                                                     <div>
