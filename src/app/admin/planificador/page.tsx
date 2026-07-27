@@ -88,7 +88,7 @@ function computeTaskLayouts(tasks: Task[]): Record<string, { left: string; width
         const startB = b.startHour ?? 9;
         if (startA !== startB) return startA - startB;
         
-        const priority: Record<TaskType, number> = { cita: 1, entrega: 2, costura: 3, bloqueo: 4 };
+        const priority: Record<TaskType, number> = { costura: 1, bloqueo: 2, entrega: 3, cita: 4 };
         const pA = priority[a.type] ?? 5;
         const pB = priority[b.type] ?? 5;
         if (pA !== pB) return pA - pB;
@@ -136,6 +136,66 @@ function computeTaskLayouts(tasks: Task[]): Record<string, { left: string; width
     });
 
     return layouts;
+}
+
+function adjustOverlappingProductionTasks(tasks: Task[]): Task[] {
+    const appointments = tasks.filter(t => t.type === 'cita');
+    const productionTasks = tasks.filter(t => t.type === 'costura');
+    const otherTasks = tasks.filter(t => t.type !== 'cita' && t.type !== 'costura');
+    
+    let overtimeStart = 18;
+    
+    const nonOverlappingProduction: Task[] = [];
+    const overlappingProduction: Task[] = [];
+    
+    productionTasks.forEach(pt => {
+        const ptStart = pt.startHour ?? 9;
+        const ptEnd = ptStart + (pt.durationHours ?? 1);
+        
+        const overlaps = appointments.some(app => {
+            const appStart = app.startHour ?? 9;
+            const appEnd = appStart + (app.durationHours ?? 1);
+            return ptStart < appEnd && appStart < ptEnd;
+        });
+        
+        if (overlaps) {
+            overlappingProduction.push(pt);
+        } else {
+            nonOverlappingProduction.push(pt);
+        }
+    });
+
+    // Find the max end time of all non-shifted/non-overlapping tasks that end late
+    [...appointments, ...nonOverlappingProduction, ...otherTasks].forEach(t => {
+        const start = t.startHour ?? 9;
+        const end = start + (t.durationHours ?? 1);
+        if (end > overtimeStart) {
+            overtimeStart = end;
+        }
+    });
+    
+    // Shift the overlapping production tasks to start at overtimeStart
+    const shiftedProduction = overlappingProduction.map(pt => {
+        const duration = pt.durationHours ?? 1;
+        const newStart = overtimeStart;
+        overtimeStart += duration; // Stack them one after another in overtime
+        
+        const formatTime = (h: number) => {
+            const hours = Math.floor(h);
+            const mins = Math.round((h - hours) * 60);
+            return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+        };
+        const newEnd = newStart + duration;
+        
+        return {
+            ...pt,
+            startHour: newStart,
+            time: `${formatTime(newStart)} - ${formatTime(newEnd)} (${duration}h)`,
+            sortValue: newStart * 60
+        };
+    });
+    
+    return [...appointments, ...nonOverlappingProduction, ...otherTasks, ...shiftedProduction];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -339,16 +399,23 @@ export default function PlanificadorPage() {
                 });
             });
 
-            // Sort tasks chronologically
+            // Adjust overlapping production tasks to overtime and then sort chronologically
             Object.values(p).forEach(opDays =>
-                Object.values(opDays).forEach(cell =>
+                Object.values(opDays).forEach(cell => {
+                    cell.tasks = adjustOverlappingProductionTasks(cell.tasks);
                     cell.tasks.sort((a,b) => {
                         const valA = a.sortValue ?? 9999;
                         const valB = b.sortValue ?? 9999;
                         if (valA !== valB) return valA - valB;
+                        
+                        const priority: Record<TaskType, number> = { costura: 1, bloqueo: 2, entrega: 3, cita: 4 };
+                        const pA = priority[a.type] ?? 5;
+                        const pB = priority[b.type] ?? 5;
+                        if (pA !== pB) return pA - pB;
+                        
                         return a.label.localeCompare(b.label);
-                    })
-                )
+                    });
+                })
             );
         }
 
