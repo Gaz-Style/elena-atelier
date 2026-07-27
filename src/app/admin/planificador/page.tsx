@@ -146,11 +146,32 @@ function adjustOverlappingProductionTasks(tasks: Task[]): Task[] {
     // 1. Sort production tasks by their initial start hour
     productionTasks.sort((a, b) => (a.startHour ?? 9) - (b.startHour ?? 9));
     
-    // 2. Stack production tasks sequentially to resolve any overlaps among themselves
-    let currentProdTime = 9; // start of workday
-    const resolvedProduction: Task[] = [];
+    // 2. Identify which production tasks overlap with appointments (these MUST be shifted to overtime)
+    const overlappingProduction: Task[] = [];
+    const nonOverlappingProduction: Task[] = [];
     
     productionTasks.forEach(pt => {
+        const ptStart = pt.startHour ?? 9;
+        const ptEnd = ptStart + (pt.durationHours ?? 1);
+        
+        const overlapsWithApp = appointments.some(app => {
+            const appStart = app.startHour ?? 9;
+            const appEnd = appStart + (app.durationHours ?? 1);
+            return ptStart < appEnd && appStart < ptEnd;
+        });
+        
+        if (overlapsWithApp) {
+            overlappingProduction.push(pt);
+        } else {
+            nonOverlappingProduction.push(pt);
+        }
+    });
+
+    // 3. Stack the non-overlapping production tasks sequentially to resolve any overlaps among themselves
+    let currentProdTime = 9;
+    const resolvedNonOverlappingProduction: Task[] = [];
+    
+    nonOverlappingProduction.forEach(pt => {
         let start = pt.startHour ?? 9;
         if (start < currentProdTime) {
             start = currentProdTime;
@@ -166,14 +187,15 @@ function adjustOverlappingProductionTasks(tasks: Task[]): Task[] {
             const newEnd = start + duration;
             pt.time = `${formatTime(start)} - ${formatTime(newEnd)} (${duration}h)`;
         }
-        resolvedProduction.push(pt);
+        resolvedNonOverlappingProduction.push(pt);
         currentProdTime = start + (pt.durationHours ?? 1);
     });
-    
-    // 3. Now check if any of these resolved production tasks overlap with any appointment (cita)
+
+    // 4. Now calculate overtimeStart.
+    // It should start at 18:00 OR after the end of ALL resolved non-overlapping tasks, appointments, and other tasks.
     let overtimeStart = 18;
     
-    [...appointments, ...otherTasks].forEach(t => {
+    [...appointments, ...otherTasks, ...resolvedNonOverlappingProduction].forEach(t => {
         const start = t.startHour ?? 9;
         const end = start + (t.durationHours ?? 1);
         if (end > overtimeStart) {
@@ -181,42 +203,28 @@ function adjustOverlappingProductionTasks(tasks: Task[]): Task[] {
         }
     });
     
-    const finalProduction: Task[] = [];
-    
-    resolvedProduction.forEach(pt => {
-        const ptStart = pt.startHour ?? 9;
-        const ptEnd = ptStart + (pt.durationHours ?? 1);
+    // 5. Shift the overlapping production tasks to start at overtimeStart and stack them sequentially
+    const shiftedProduction = overlappingProduction.map(pt => {
+        const duration = pt.durationHours ?? 1;
+        const newStart = overtimeStart;
+        overtimeStart += duration; // Stack sequentially in overtime
         
-        const overlapsWithApp = appointments.some(app => {
-            const appStart = app.startHour ?? 9;
-            const appEnd = appStart + (app.durationHours ?? 1);
-            return ptStart < appEnd && appStart < ptEnd;
-        });
+        const formatTime = (h: number) => {
+            const hours = Math.floor(h);
+            const mins = Math.round((h - hours) * 60);
+            return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+        };
+        const newEnd = newStart + duration;
         
-        if (overlapsWithApp) {
-            const duration = pt.durationHours ?? 1;
-            const newStart = overtimeStart;
-            overtimeStart += duration; // Stack sequentially in overtime
-            
-            const formatTime = (h: number) => {
-                const hours = Math.floor(h);
-                const mins = Math.round((h - hours) * 60);
-                return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-            };
-            const newEnd = newStart + duration;
-            
-            finalProduction.push({
-                ...pt,
-                startHour: newStart,
-                time: `${formatTime(newStart)} - dots`.replace('\dots', `${formatTime(newEnd)} (${duration}h)`),
-                sortValue: newStart * 60
-            });
-        } else {
-            finalProduction.push(pt);
-        }
+        return {
+            ...pt,
+            startHour: newStart,
+            time: `${formatTime(newStart)} - ${formatTime(newEnd)} (${duration}h)`,
+            sortValue: newStart * 60
+        };
     });
     
-    return [...appointments, ...otherTasks, ...finalProduction];
+    return [...appointments, ...otherTasks, ...resolvedNonOverlappingProduction, ...shiftedProduction];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
