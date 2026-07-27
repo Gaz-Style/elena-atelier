@@ -81,6 +81,40 @@ export default async function AgendaPage({
 
     const { data: eventos, error } = await query.order('fecha_hora', { ascending: true });
 
+    // Fetch deliveries/deadlines from production_orders
+    let pOrdersQuery = supabase
+        .from('production_orders')
+        .select('id, description, deadline, status, pos_order_id, customers(full_name, email, phone)')
+        .not('status', 'in', '("delivered", "cancelled", "cancelado")')
+        .not('deadline', 'is', null);
+
+    if (search) {
+        pOrdersQuery = pOrdersQuery.or(`description.ilike.%${search}%,pos_order_id.ilike.%${search}%`);
+    } else {
+        pOrdersQuery = pOrdersQuery.gte('deadline', startQuery.toISOString())
+                                   .lte('deadline', endQuery.toISOString());
+    }
+
+    const { data: pOrders } = await pOrdersQuery;
+
+    const mappedDeliveries = (pOrders || []).map(order => {
+        const customer: any = Array.isArray(order.customers) ? order.customers[0] : order.customers;
+        return {
+            id: `delivery-${order.id}`,
+            fecha_hora: order.deadline,
+            nombre: customer?.full_name || 'Cliente',
+            apellido: '',
+            celular: customer?.phone || '',
+            correo: customer?.email || '',
+            tipo_evento: 'retiro_encargo',
+            estado: 'confirmado',
+            notas: `Retiro de: ${order.description || 'Prenda'} (${order.pos_order_id || 'S/N'})`
+        };
+    });
+
+    const combinedEventos = [...(eventos || []), ...mappedDeliveries];
+    combinedEventos.sort((a, b) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime());
+
     const dayOfWeek = selectedDate.getDay();
     
     // Fetch using Admin Client to bypass RLS for configuracion_horarios
@@ -293,14 +327,14 @@ export default async function AgendaPage({
                                 <h2 className="font-serif text-lg flex items-center gap-2">
                                     <Search className="w-5 h-5 text-gray-500" /> Resultados globales para "{search}"
                                 </h2>
-                                <span className="text-xs bg-gray-100 px-2 py-1 rounded-full font-bold text-gray-600">{eventos?.length} encontrados</span>
+                                <span className="text-xs bg-gray-100 px-2 py-1 rounded-full font-bold text-gray-600">{combinedEventos?.length} encontrados</span>
                             </div>
                             
-                            {eventos?.length === 0 ? (
+                            {combinedEventos?.length === 0 ? (
                                 <p className="text-gray-500 text-sm py-4">No se encontraron agendamientos con ese nombre o correo.</p>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {eventos?.map(evento => (
+                                    {combinedEventos?.map(evento => (
                                         <div key={evento.id} className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex flex-col justify-between">
                                             <div>
                                                 <div className="flex items-center justify-between mb-2">
@@ -349,7 +383,7 @@ export default async function AgendaPage({
                                     const monthName = monthDate.toLocaleDateString('es-CL', { month: 'long' });
                                     
                                     // Filtrar eventos de este mes
-                                    const monthEvents = eventos?.filter(e => {
+                                    const monthEvents = combinedEventos?.filter(e => {
                                         const eventDate = new Date(e.fecha_hora);
                                         return eventDate.getMonth() === monthIndex && eventDate.getFullYear() === currentYear;
                                     }) || [];
@@ -425,7 +459,7 @@ export default async function AgendaPage({
                                         const dateStr = day.toLocaleDateString('en-CA');
                                         const isToday = dateStr === todayStr;
                                         
-                                        const dayEvents = eventos?.filter(e => {
+                                        const dayEvents = combinedEventos?.filter(e => {
                                             const tzDateStr = new Date(e.fecha_hora).toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
                                             return tzDateStr === dateStr;
                                         }) || [];
@@ -507,7 +541,7 @@ export default async function AgendaPage({
                                     const isToday = dateStr === todayStr;
                                     const dayName = day.toLocaleDateString('es-CL', { weekday: 'short' });
                                     
-                                    const dayEvents = eventos?.filter(e => {
+                                    const dayEvents = combinedEventos?.filter(e => {
                                         const tzDateStr = new Date(e.fecha_hora).toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
                                         return tzDateStr === dateStr;
                                     }) || [];
@@ -568,15 +602,15 @@ export default async function AgendaPage({
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                 {/* Eventos del Día */}
                                 <div className="lg:col-span-2 space-y-4">
-                                    <h2 className="font-serif text-lg mb-4">Citas y Tareas ({eventos?.length || 0})</h2>
+                                    <h2 className="font-serif text-lg mb-4">Citas y Tareas ({combinedEventos?.length || 0})</h2>
                                     
-                                    {eventos?.length === 0 ? (
+                                    {combinedEventos?.length === 0 ? (
                                         <div className="text-center py-12 bg-white rounded-2xl border border-gray-100 border-dashed">
                                             <CalendarIcon className="w-8 h-8 mx-auto text-gray-300 mb-2" />
                                             <p className="text-gray-500 text-sm">No hay eventos para este día.</p>
                                         </div>
                                     ) : (
-                                        eventos?.map((evento) => (
+                                        combinedEventos?.map((evento) => (
                                             <div key={evento.id} className={`p-4 rounded-xl border flex flex-row items-start gap-3 sm:gap-4 ${evento.tipo_evento === 'tarea_interna' ? 'bg-gray-50 border-gray-200' : evento.tipo_evento === 'retiro_encargo' ? 'bg-blue-50 border-blue-200 shadow-sm' : 'bg-white border-gray-200 shadow-sm'}`}>
                                                 <div className="flex flex-col items-center justify-center p-2 sm:p-3 bg-gray-100 rounded-lg sm:min-w-[80px] w-[65px] sm:w-auto shrink-0">
                                                     <Clock className="w-3.5 h-3.5 text-gray-500 mb-1" />

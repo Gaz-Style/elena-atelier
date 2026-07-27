@@ -291,15 +291,22 @@ export default function PlanificadorPage() {
         const startStr = dateStr(activeDays[0]);
         const endStr   = dateStr(activeDays[activeDays.length - 1]);
         
-        const [agendaRes, customTasks] = await Promise.all([
+        const [agendaRes, customTasks, pOrdersRes] = await Promise.all([
             supabase.from('agendamientos').select('*')
                 .gte('fecha_hora', `${startStr}T00:00:00`)
                 .lte('fecha_hora', `${endStr}T23:59:59`)
                 .neq('estado', 'cancelado'),
-            getPlannerTasks(startStr, endStr)
+            getPlannerTasks(startStr, endStr),
+            supabase.from('production_orders')
+                .select('id, description, deadline, status, pos_order_id, customers(full_name)')
+                .gte('deadline', `${startStr}T00:00:00`)
+                .lte('deadline', `${endStr}T23:59:59`)
+                .not('status', 'in', '("delivered", "cancelled", "cancelado")')
+                .not('deadline', 'is', null)
         ]);
 
         const agenda = agendaRes.data || [];
+        const pOrders = pOrdersRes.data || [];
 
         // Fetch active bridal projects & milestones
         const { data: bProjData } = await supabase
@@ -378,6 +385,29 @@ export default function PlanificadorPage() {
                     sortValue,
                     startHour,
                     durationHours
+                });
+            });
+
+            // Inject production order deadlines → first operator as 'entrega' tasks
+            const firstOpIdForDeliveries = activeOps[0]?.id;
+            (pOrders || []).forEach((order: any) => {
+                const deadlineDate = new Date(order.deadline);
+                const ds = dateStr(deadlineDate);
+                if (!firstOpIdForDeliveries || !p[firstOpIdForDeliveries]?.[ds] || p[firstOpIdForDeliveries][ds].blocked) return;
+                
+                const startTimeStr = deadlineDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+                const sortValue = deadlineDate.getHours() * 60 + deadlineDate.getMinutes();
+                const startHour = deadlineDate.getHours();
+                const customer: any = Array.isArray(order.customers) ? order.customers[0] : order.customers;
+                
+                p[firstOpIdForDeliveries][ds].tasks.push({
+                    id: `delivery-${order.id}`,
+                    time: `${startTimeStr} (Entrega)`,
+                    label: `Entrega: ${customer?.full_name || 'Cliente'} - dots`.replace('\dots', `${order.description || 'Prenda'} (${order.pos_order_id || 'S/N'})`),
+                    type: 'entrega',
+                    sortValue,
+                    startHour,
+                    durationHours: 1
                 });
             });
 
