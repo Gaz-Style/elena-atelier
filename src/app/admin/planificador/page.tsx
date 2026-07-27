@@ -79,6 +79,65 @@ function getWeekDays(anchor: Date): Date[] {
     });
 }
 
+function computeTaskLayouts(tasks: Task[]): Record<string, { left: string; width: string }> {
+    const layouts: Record<string, { left: string; width: string }> = {};
+    
+    // Sort tasks by priority (cita > entrega > costura > bloqueo) and then start hour
+    const sorted = [...tasks].sort((a, b) => {
+        const startA = a.startHour ?? 9;
+        const startB = b.startHour ?? 9;
+        if (startA !== startB) return startA - startB;
+        
+        const priority: Record<TaskType, number> = { cita: 1, entrega: 2, costura: 3, bloqueo: 4 };
+        const pA = priority[a.type] ?? 5;
+        const pB = priority[b.type] ?? 5;
+        if (pA !== pB) return pA - pB;
+        
+        return a.label.localeCompare(b.label);
+    });
+
+    const columns: Task[][] = [];
+    sorted.forEach((task: Task) => {
+        let placed = false;
+        const start = task.startHour ?? 9;
+        const end = start + (task.durationHours ?? 1);
+        
+        for (let i = 0; i < columns.length; i++) {
+            const hasOverlap = columns[i].some((colTask: Task) => {
+                const colStart = colTask.startHour ?? 9;
+                const colEnd = colStart + (colTask.durationHours ?? 1);
+                return start < colEnd && colStart < end;
+            });
+            if (!hasOverlap) {
+                columns[i].push(task);
+                placed = true;
+                break;
+            }
+        }
+        if (!placed) {
+            columns.push([task]);
+        }
+    });
+
+    const numCols = columns.length;
+    columns.forEach((colTasks: Task[], colIdx: number) => {
+        colTasks.forEach((task: Task) => {
+            if (numCols === 1) {
+                layouts[task.id] = { left: '4px', width: 'calc(100% - 8px)' };
+            } else {
+                const widthPct = 100 / numCols;
+                const leftPct = colIdx * widthPct;
+                layouts[task.id] = {
+                    left: `calc(${leftPct}% + 2px)`,
+                    width: `calc(${widthPct}% - 4px)`
+                };
+            }
+        });
+    });
+
+    return layouts;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN
 // ─────────────────────────────────────────────────────────────────────────────
@@ -642,7 +701,10 @@ export default function PlanificadorPage() {
                                                                 })}
                                                                 
                                                                 {/* Tasks */}
-                                                                {cell.tasks.map((task, taskIdx) => {
+                                                                {(() => {
+                                                                    const layouts = computeTaskLayouts(cell.tasks);
+                                                                    return cell.tasks.map((task, taskIdx) => {
+                                                                        const layout = layouts[task.id] || { left: '4px', width: 'calc(100% - 8px)' };
                                                                     const startIdx = (task.startHour || 9) - (dayHoursArray[0] || 9);
                                                                     const top = Math.max(0, startIdx * 40);
                                                                     const height = (task.durationHours || 1) * 40;
@@ -652,14 +714,16 @@ export default function PlanificadorPage() {
                                                                     return (
                                                                         <div
                                                                             key={task.id}
-                                                                            className={`absolute left-1 right-1 rounded-lg border shadow-sm flex overflow-hidden bg-opacity-90 ${!previewMode ? 'cursor-pointer hover:shadow-md hover:z-20 transition-all group/task' : ''} ${isShort ? 'flex-row items-center px-2 py-1 gap-1.5' : 'flex-col p-2.5'}`}
+                                                                            className={`absolute rounded-lg border shadow-sm flex overflow-hidden bg-opacity-90 ${!previewMode ? 'cursor-pointer hover:shadow-md hover:z-20 transition-all group/task' : ''} ${isShort ? 'flex-row items-center px-2 py-1 gap-1.5' : 'flex-col p-2.5'}`}
                                                                             style={{ 
                                                                                 top: `${top + 1}px`,
                                                                                 height: `${height - 2}px`,
                                                                                 backgroundColor: style.background, 
                                                                                 borderLeft: style.borderLeft,
                                                                                 borderColor: style.borderLeft,
-                                                                                zIndex: 10 + taskIdx
+                                                                                left: layout.left,
+                                                                                    width: layout.width,
+                                                                                    zIndex: 10 + taskIdx
                                                                             }}
                                                                             onClick={() => !previewMode && openEdit(op.id, ds, task)}
                                                                         >
@@ -697,7 +761,7 @@ export default function PlanificadorPage() {
                                                                             )}
                                                                         </div>
                                                                     );
-                                                                })}
+                                                                })})()}
                                                             </div>
                                                             
                                                             {/* Actions */}
