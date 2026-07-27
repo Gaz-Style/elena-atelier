@@ -169,3 +169,22 @@ export async function getProductionTimeline() {
 
   return result;
 }
+
+
+// 5. Get production orders with deadlines (RLS bypass)
+export async function getProductionOrdersWithDeadlines(startDate: string, endDate: string) {
+  const supabase = getAdminClient();
+  const { data, error } = await supabase
+    .from('production_orders')
+    .select('id, description, deadline, status, pos_order_id, customers(full_name)')
+    .gte('deadline', `${startDate}T00:00:00`)
+    .lte('deadline', `${endDate}T23:59:59`)
+    .not('status', 'in', '("delivered", "cancelled", "cancelado")')
+    .not('deadline', 'is', null);
+
+  if (error) {
+    console.error("Error fetching production orders with deadlines:", error);
+    return [];
+  }
+  return data || [];
+}

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, ChevronLeft, ChevronRight, Printer, RefreshCw, Activity, Settings } from 'lucide-react';
 import { getOperatorsAction } from '../pos/actions';
 import { getProductionOrders } from '../production/actions';
-import { getPlannerTasks, savePlannerTask, deletePlannerTask } from './actions';
+import { getPlannerTasks, savePlannerTask, deletePlannerTask, getProductionOrdersWithDeadlines } from './actions';
 import { createClient } from '@supabase/supabase-js';
 import ProjectGanttTimeline from './components/ProjectGanttTimeline';
 
@@ -143,30 +143,37 @@ function adjustOverlappingProductionTasks(tasks: Task[]): Task[] {
     const productionTasks = tasks.filter(t => t.type === 'costura');
     const otherTasks = tasks.filter(t => t.type !== 'cita' && t.type !== 'costura');
     
-    let overtimeStart = 18;
+    // 1. Sort production tasks by their initial start hour
+    productionTasks.sort((a, b) => (a.startHour ?? 9) - (b.startHour ?? 9));
     
-    const nonOverlappingProduction: Task[] = [];
-    const overlappingProduction: Task[] = [];
+    // 2. Stack production tasks sequentially to resolve any overlaps among themselves
+    let currentProdTime = 9; // start of workday
+    const resolvedProduction: Task[] = [];
     
     productionTasks.forEach(pt => {
-        const ptStart = pt.startHour ?? 9;
-        const ptEnd = ptStart + (pt.durationHours ?? 1);
-        
-        const overlaps = appointments.some(app => {
-            const appStart = app.startHour ?? 9;
-            const appEnd = appStart + (app.durationHours ?? 1);
-            return ptStart < appEnd && appStart < ptEnd;
-        });
-        
-        if (overlaps) {
-            overlappingProduction.push(pt);
-        } else {
-            nonOverlappingProduction.push(pt);
+        let start = pt.startHour ?? 9;
+        if (start < currentProdTime) {
+            start = currentProdTime;
+            pt.startHour = start;
+            pt.sortValue = start * 60;
+            
+            const duration = pt.durationHours ?? 1;
+            const formatTime = (h: number) => {
+                const hours = Math.floor(h);
+                const mins = Math.round((h - hours) * 60);
+                return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+            };
+            const newEnd = start + duration;
+            pt.time = `${formatTime(start)} - ${formatTime(newEnd)} (${duration}h)`;
         }
+        resolvedProduction.push(pt);
+        currentProdTime = start + (pt.durationHours ?? 1);
     });
-
-    // Find the max end time of all non-shifted/non-overlapping tasks that end late
-    [...appointments, ...nonOverlappingProduction, ...otherTasks].forEach(t => {
+    
+    // 3. Now check if any of these resolved production tasks overlap with any appointment (cita)
+    let overtimeStart = 18;
+    
+    [...appointments, ...otherTasks].forEach(t => {
         const start = t.startHour ?? 9;
         const end = start + (t.durationHours ?? 1);
         if (end > overtimeStart) {
@@ -174,28 +181,42 @@ function adjustOverlappingProductionTasks(tasks: Task[]): Task[] {
         }
     });
     
-    // Shift the overlapping production tasks to start at overtimeStart
-    const shiftedProduction = overlappingProduction.map(pt => {
-        const duration = pt.durationHours ?? 1;
-        const newStart = overtimeStart;
-        overtimeStart += duration; // Stack them one after another in overtime
+    const finalProduction: Task[] = [];
+    
+    resolvedProduction.forEach(pt => {
+        const ptStart = pt.startHour ?? 9;
+        const ptEnd = ptStart + (pt.durationHours ?? 1);
         
-        const formatTime = (h: number) => {
-            const hours = Math.floor(h);
-            const mins = Math.round((h - hours) * 60);
-            return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-        };
-        const newEnd = newStart + duration;
+        const overlapsWithApp = appointments.some(app => {
+            const appStart = app.startHour ?? 9;
+            const appEnd = appStart + (app.durationHours ?? 1);
+            return ptStart < appEnd && appStart < ptEnd;
+        });
         
-        return {
-            ...pt,
-            startHour: newStart,
-            time: `${formatTime(newStart)} - ${formatTime(newEnd)} (${duration}h)`,
-            sortValue: newStart * 60
-        };
+        if (overlapsWithApp) {
+            const duration = pt.durationHours ?? 1;
+            const newStart = overtimeStart;
+            overtimeStart += duration; // Stack sequentially in overtime
+            
+            const formatTime = (h: number) => {
+                const hours = Math.floor(h);
+                const mins = Math.round((h - hours) * 60);
+                return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+            };
+            const newEnd = newStart + duration;
+            
+            finalProduction.push({
+                ...pt,
+                startHour: newStart,
+                time: `${formatTime(newStart)} - dots`.replace('\dots', `${formatTime(newEnd)} (${duration}h)`),
+                sortValue: newStart * 60
+            });
+        } else {
+            finalProduction.push(pt);
+        }
     });
     
-    return [...appointments, ...nonOverlappingProduction, ...otherTasks, ...shiftedProduction];
+    return [...appointments, ...otherTasks, ...finalProduction];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -291,22 +312,16 @@ export default function PlanificadorPage() {
         const startStr = dateStr(activeDays[0]);
         const endStr   = dateStr(activeDays[activeDays.length - 1]);
         
-        const [agendaRes, customTasks, pOrdersRes] = await Promise.all([
+        const [agendaRes, customTasks, pOrders] = await Promise.all([
             supabase.from('agendamientos').select('*')
                 .gte('fecha_hora', `${startStr}T00:00:00`)
                 .lte('fecha_hora', `${endStr}T23:59:59`)
                 .neq('estado', 'cancelado'),
             getPlannerTasks(startStr, endStr),
-            supabase.from('production_orders')
-                .select('id, description, deadline, status, pos_order_id, customers(full_name)')
-                .gte('deadline', `${startStr}T00:00:00`)
-                .lte('deadline', `${endStr}T23:59:59`)
-                .not('status', 'in', '("delivered", "cancelled", "cancelado")')
-                .not('deadline', 'is', null)
+            getProductionOrdersWithDeadlines(startStr, endStr)
         ]);
 
         const agenda = agendaRes.data || [];
-        const pOrders = pOrdersRes.data || [];
 
         // Fetch active bridal projects & milestones
         const { data: bProjData } = await supabase
@@ -403,7 +418,7 @@ export default function PlanificadorPage() {
                 p[firstOpIdForDeliveries][ds].tasks.push({
                     id: `delivery-${order.id}`,
                     time: `${startTimeStr} (Entrega)`,
-                    label: `Entrega: ${customer?.full_name || 'Cliente'} - dots`.replace('\dots', `${order.description || 'Prenda'} (${order.pos_order_id || 'S/N'})`),
+                    label: `Entrega: ${customer?.full_name || 'Cliente'} - ${order.description || 'Prenda'} (${order.pos_order_id || 'S/N'})`,
                     type: 'entrega',
                     sortValue,
                     startHour,
