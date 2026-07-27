@@ -7,6 +7,44 @@ import { revalidatePath } from 'next/cache';
 import AgendaForm from './AgendaForm';
 import AgendaSearchBar from './AgendaSearchBar';
 
+function groupProductionOrdersForDeliveries(orders: any[]) {
+    const grouped: Record<string, {
+        pos_order_id: string | null;
+        deadline: string;
+        customer_name: string;
+        customer_phone: string;
+        customer_email: string;
+        descriptions: string[];
+        ids: string[];
+    }> = {};
+
+    orders.forEach(order => {
+        const key = order.pos_order_id || `single-${order.id}`;
+        const customer = Array.isArray(order.customers) ? order.customers[0] : order.customers;
+        const name = customer?.full_name || 'Cliente';
+        const phone = customer?.phone || '';
+        const email = customer?.email || '';
+        
+        if (!grouped[key]) {
+            grouped[key] = {
+                pos_order_id: order.pos_order_id,
+                deadline: order.deadline,
+                customer_name: name,
+                customer_phone: phone,
+                customer_email: email,
+                descriptions: [],
+                ids: []
+            };
+        }
+        if (order.description) {
+            grouped[key].descriptions.push(order.description);
+        }
+        grouped[key].ids.push(order.id);
+    });
+
+    return Object.values(grouped);
+}
+
 export default async function AgendaPage({
     searchParams
 }: {
@@ -97,20 +135,19 @@ export default async function AgendaPage({
 
     const { data: pOrders } = await pOrdersQuery;
 
-    const mappedDeliveries = (pOrders || []).map(order => {
-        const customer: any = Array.isArray(order.customers) ? order.customers[0] : order.customers;
-        return {
-            id: `delivery-${order.id}`,
-            fecha_hora: order.deadline,
-            nombre: customer?.full_name || 'Cliente',
-            apellido: '',
-            celular: customer?.phone || '',
-            correo: customer?.email || '',
-            tipo_evento: 'retiro_encargo',
-            estado: 'confirmado',
-            notas: `Retiro de: ${order.description || 'Prenda'} (${order.pos_order_id || 'S/N'})`
-        };
-    });
+    const groupedDeliveries = groupProductionOrdersForDeliveries(pOrders || []);
+
+    const mappedDeliveries = groupedDeliveries.map(group => ({
+        id: `delivery-${group.ids[0]}`,
+        fecha_hora: group.deadline,
+        nombre: group.customer_name,
+        apellido: '',
+        celular: group.customer_phone,
+        correo: group.customer_email,
+        tipo_evento: 'retiro_encargo',
+        estado: 'confirmado',
+        notas: `Retiro de: ${group.descriptions.join(', ') || 'Prenda'} (${group.pos_order_id || 'S/N'})`
+    }));
 
     const combinedEventos = [...(eventos || []), ...mappedDeliveries];
     combinedEventos.sort((a, b) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime());

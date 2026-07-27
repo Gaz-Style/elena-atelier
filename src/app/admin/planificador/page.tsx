@@ -230,6 +230,44 @@ function adjustOverlappingProductionTasks(tasks: Task[]): Task[] {
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN
 // ─────────────────────────────────────────────────────────────────────────────
+function groupProductionOrdersForDeliveries(orders: any[]) {
+    const grouped: Record<string, {
+        pos_order_id: string | null;
+        deadline: string;
+        customer_name: string;
+        customer_phone: string;
+        customer_email: string;
+        descriptions: string[];
+        ids: string[];
+    }> = {};
+
+    orders.forEach(order => {
+        const key = order.pos_order_id || `single-${order.id}`;
+        const customer = Array.isArray(order.customers) ? order.customers[0] : order.customers;
+        const name = customer?.full_name || 'Cliente';
+        const phone = customer?.phone || '';
+        const email = customer?.email || '';
+        
+        if (!grouped[key]) {
+            grouped[key] = {
+                pos_order_id: order.pos_order_id,
+                deadline: order.deadline,
+                customer_name: name,
+                customer_phone: phone,
+                customer_email: email,
+                descriptions: [],
+                ids: []
+            };
+        }
+        if (order.description) {
+            grouped[key].descriptions.push(order.description);
+        }
+        grouped[key].ids.push(order.id);
+    });
+
+    return Object.values(grouped);
+}
+
 export default function PlanificadorPage() {
     const [operators, setOperators]   = useState<Operator[]>([]);
     const [orders, setOrders]         = useState<any[]>([]);
@@ -413,26 +451,28 @@ export default function PlanificadorPage() {
 
             // Inject production order deadlines → first operator as 'entrega' tasks
             const firstOpIdForDeliveries = activeOps[0]?.id;
-            (pOrders || []).forEach((order: any) => {
-                const deadlineDate = new Date(order.deadline);
+            const groupedDeliveries = groupProductionOrdersForDeliveries(pOrders || []);
+
+            groupedDeliveries.forEach((group: any) => {
+                const deadlineDate = new Date(group.deadline);
                 const ds = dateStr(deadlineDate);
                 if (!firstOpIdForDeliveries || !p[firstOpIdForDeliveries]?.[ds] || p[firstOpIdForDeliveries][ds].blocked) return;
                 
                 const startTimeStr = deadlineDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
                 const sortValue = deadlineDate.getHours() * 60 + deadlineDate.getMinutes();
                 const startHour = deadlineDate.getHours();
-                const customer: any = Array.isArray(order.customers) ? order.customers[0] : order.customers;
                 
                 p[firstOpIdForDeliveries][ds].tasks.push({
-                    id: `delivery-${order.id}`,
+                    id: `delivery-${group.ids[0]}`,
                     time: `${startTimeStr} (Entrega)`,
-                    label: `Entrega: ${customer?.full_name || 'Cliente'} - ${order.description || 'Prenda'} (${order.pos_order_id || 'S/N'})`,
+                    label: `Entrega: ${group.customer_name} - ${group.descriptions.join(', ') || 'Prenda'} (${group.pos_order_id || 'S/N'})`,
                     type: 'entrega',
                     sortValue,
                     startHour,
                     durationHours: 1
                 });
             });
+
 
             // Inject manual planner tasks from DB
             (customTasks || []).forEach((ct: any) => {
