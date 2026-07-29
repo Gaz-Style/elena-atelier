@@ -140,22 +140,34 @@ export async function getNotificationLogsAction(customerId: string) {
 }
 
 export async function sendTemplatedEmailAction(
-  customerId: string,
+  customerId: string | null,
   templateId: string,
   subject: string,
-  variables: Record<string, string>
+  variables: Record<string, string>,
+  rawEmail?: string
 ) {
   const supabase = await createClient();
   
-  // 1. Fetch customer details
-  const { data: customer, error: customerError } = await supabase
-    .from('customers')
-    .select('email, full_name')
-    .eq('id', customerId)
-    .single();
+  let targetEmail = rawEmail || '';
+  let targetName = 'Clienta';
 
-  if (customerError || !customer || !customer.email) {
-    return { success: false, error: 'Cliente no encontrado o no tiene correo electrónico' };
+  if (customerId) {
+    // 1. Fetch customer details
+    const { data: customer, error: customerError } = await supabase
+      .from('customers')
+      .select('email, full_name')
+      .eq('id', customerId)
+      .single();
+
+    if (customerError || !customer || !customer.email) {
+      return { success: false, error: 'Cliente no encontrado o no tiene correo electrónico' };
+    }
+    targetEmail = customer.email;
+    targetName = customer.full_name;
+  }
+
+  if (!targetEmail) {
+    return { success: false, error: 'Dirección de correo electrónico de destino no especificada' };
   }
 
   // 2. Import email senders dynamically to keep imports light
@@ -166,12 +178,12 @@ export async function sendTemplatedEmailAction(
   try {
     switch (templateId) {
       case 'welcome':
-        sendResult = await emailModule.sendWelcomeEmail(customer.email, customer.full_name);
+        sendResult = await emailModule.sendWelcomeEmail(targetEmail, targetName);
         break;
       case 'appointment':
         sendResult = await emailModule.sendAppointmentConfirmation(
-          customer.email,
-          customer.full_name,
+          targetEmail,
+          targetName,
           variables.DATE || '',
           variables.TIME || '',
           variables.SERVICE || ''
@@ -179,15 +191,15 @@ export async function sendTemplatedEmailAction(
         break;
       case 'budget':
         sendResult = await emailModule.sendBudgetReminder(
-          customer.email,
-          customer.full_name,
+          targetEmail,
+          targetName,
           variables.LINK || ''
         );
         break;
       case 'payment':
         sendResult = await emailModule.sendPaymentReceivedEmail(
-          customer.email,
-          customer.full_name,
+          targetEmail,
+          targetName,
           variables.AMOUNT || '',
           variables.METHOD || '',
           variables.SERVICE || ''
@@ -195,24 +207,24 @@ export async function sendTemplatedEmailAction(
         break;
       case 'order_ready':
         sendResult = await emailModule.sendOrderReadyEmail(
-          customer.email,
-          customer.full_name,
+          targetEmail,
+          targetName,
           variables.ITEM || '',
           variables.HOURS || 'Lunes a Viernes de 10:00 a 19:00 hrs'
         );
         break;
       case 'custom':
         sendResult = await emailModule.sendGeneralContactEmail(
-          customer.email,
-          customer.full_name,
+          targetEmail,
+          targetName,
           subject,
           variables.MESSAGE || ''
         );
         break;
       case 'luxury_pass':
         sendResult = await emailModule.sendLuxuryPassEmail(
-          customer.email,
-          customer.full_name,
+          targetEmail,
+          targetName,
           subject,
           variables.TITLE || 'LUXURY PASS',
           variables.SUBTITLE || 'LUXURY PASS & RESERVA',
@@ -227,7 +239,7 @@ export async function sendTemplatedEmailAction(
       default:
         // Try compiling a raw template if custom html is generated client-side
         if (variables.HTML_CONTENT) {
-          sendResult = await emailModule.sendRawCustomEmail(customer.email, subject, variables.HTML_CONTENT);
+          sendResult = await emailModule.sendRawCustomEmail(targetEmail, subject, variables.HTML_CONTENT);
         } else {
           return { success: false, error: 'Plantilla desconocida' };
         }
@@ -235,7 +247,7 @@ export async function sendTemplatedEmailAction(
 
     // 3. Log notification in database
     await supabase.from('notification_logs').insert({
-      customer_id: customerId,
+      customer_id: customerId || null,
       type: 'email',
       template: templateId,
       status: sendResult.success ? 'sent' : 'failed'
@@ -244,17 +256,20 @@ export async function sendTemplatedEmailAction(
      if (sendResult.success) {
       // Log sent email in CRM threads
       await supabase.from('crm_email_threads').insert({
-        customer_id: customerId,
+        customer_id: customerId || null,
         subject: subject,
         direction: 'outbound',
         sender: 'contacto@elenalacosturera.cl',
-        recipient: customer.email,
+        recipient: targetEmail,
         body_html: variables.MESSAGE || variables.HTML_CONTENT || 'Mensaje de plantilla enviado',
         message_id: sendResult.messageId
       });
 
-      revalidatePath(`/admin/crm/${customerId}`);
-      revalidatePath(`/admin/crm/${customerId}/correo`);
+      if (customerId) {
+        revalidatePath(`/admin/crm/${customerId}`);
+        revalidatePath(`/admin/crm/${customerId}/correo`);
+      }
+      revalidatePath('/admin/crm/correo-central');
       return { success: true };
     } else {
       return { success: false, error: sendResult.error?.message || 'Error al enviar por SMTP' };
@@ -306,23 +321,30 @@ export async function sendBulkCampaignAction(
   campaignName: string,
   subject: string,
   htmlContent: string,
-  segment?: string
+  segment?: string,
+  recipientEmails?: string[]
 ) {
   const supabase = await createClient();
 
-  // Fetch recipients
-  let query = supabase.from('customers').select('email, full_name').neq('email', null);
-  
-  if (segment && segment !== 'all') {
-    // Optional filter if segment column exists, otherwise send to all
-  }
+  let emails: string[] = [];
 
-  const { data: customers, error: customersError } = await query;
-  if (customersError || !customers || customers.length === 0) {
-    return { success: false, error: 'No se encontraron clientes para este segmento' };
-  }
+  if (recipientEmails && recipientEmails.length > 0) {
+    emails = recipientEmails;
+  } else {
+    // Fetch recipients
+    let query = supabase.from('customers').select('email, full_name').neq('email', null);
+    
+    if (segment && segment !== 'all') {
+      // Optional filter if segment column exists, otherwise send to all
+    }
 
-  const emails = customers.map(c => c.email!).filter(Boolean);
+    const { data: customers, error: customersError } = await query;
+    if (customersError || !customers || customers.length === 0) {
+      return { success: false, error: 'No se encontraron clientes para este segmento' };
+    }
+
+    emails = customers.map(c => c.email!).filter(Boolean);
+  }
 
   // Send bulk email
   const emailModule = await import('@/lib/email');
@@ -412,4 +434,48 @@ export async function replyToEmailThreadAction(
   return { success: false, error: (sendResult.error as any)?.message || 'Error al enviar respuesta' };
 }
 
+/**
+ * Mark all inbound threads for a customer as read.
+ */
+export async function markThreadsAsReadAction(customerId: string | null, senderEmail?: string) {
+  const supabase = await createClient();
+  let query = supabase
+    .from('crm_email_threads')
+    .update({ read_at: new Date().toISOString() })
+    .eq('direction', 'inbound')
+    .is('read_at', null);
 
+  if (customerId) {
+    query = query.eq('customer_id', customerId);
+  } else if (senderEmail) {
+    query = query.eq('sender', senderEmail);
+  } else {
+    return { success: false, error: 'Must provide customerId or senderEmail' };
+  }
+
+  await query;
+  revalidatePath('/admin/crm/correo-central');
+  return { success: true };
+}
+
+/**
+ * Get unread inbound email count per customer (for inbox badges).
+ * Returns: { [customerId]: unreadCount }
+ */
+export async function getUnreadCountsPerCustomer(): Promise<Record<string, number>> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('crm_email_threads')
+    .select('customer_id')
+    .eq('direction', 'inbound')
+    .is('read_at', null)
+    .not('customer_id', 'is', null);
+
+  const counts: Record<string, number> = {};
+  (data || []).forEach((row: { customer_id: string | null }) => {
+    if (row.customer_id) {
+      counts[row.customer_id] = (counts[row.customer_id] || 0) + 1;
+    }
+  });
+  return counts;
+}
