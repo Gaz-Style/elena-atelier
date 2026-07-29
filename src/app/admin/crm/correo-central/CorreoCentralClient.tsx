@@ -2,6 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
+    MessageSquare, 
+    Megaphone, 
+    RefreshCw, 
+    Send, 
+    Mail, 
+    User,
+    ChevronRight,
+    Inbox
+} from 'lucide-react';
+import { 
     getEmailThreadsAction, 
     sendBulkCampaignAction, 
     replyToEmailThreadAction 
@@ -124,7 +134,6 @@ export default function CorreoCentralClient({
         setSendingCampaign(true);
         setCampaignSuccess(null);
         try {
-            // Build raw template HTML
             const compiledHtml = `
 <!DOCTYPE html>
 <html lang="es">
@@ -181,101 +190,142 @@ export default function CorreoCentralClient({
     };
 
     return (
-        <div className="bg-[#1e1e1e] border border-white/10 rounded-2xl overflow-hidden min-h-[600px] flex flex-col md:flex-row">
+        <div className="bg-[#121212] border border-white/10 rounded-2xl overflow-hidden min-h-[620px] flex flex-col md:flex-row shadow-2xl">
             
             {/* Left Tabs Bar */}
-            <div className="w-full md:w-64 bg-[#161616] border-r border-white/10 p-4 space-y-2 flex flex-col">
-                <button 
-                    onClick={() => setActiveTab('inbox')}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === 'inbox' ? 'bg-[#C17F5F] text-white' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}
-                >
-                    💬 Conversaciones (Hilos)
-                </button>
-                <button 
-                    onClick={() => setActiveTab('campaigns')}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === 'campaigns' ? 'bg-[#C17F5F] text-white' : 'text-white/70 hover:bg-white/5 hover:text-white'}`}
-                >
-                    📣 Campañas Masivas
-                </button>
+            <div className="w-full md:w-64 bg-[#0a0a0a] border-r border-white/10 p-5 space-y-3 flex flex-col justify-between">
+                <div className="space-y-2">
+                    <button 
+                        onClick={() => setActiveTab('inbox')}
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all ${
+                            activeTab === 'inbox' 
+                                ? 'bg-[#C17F5F] text-white shadow-lg shadow-[#C17F5F]/20' 
+                                : 'text-white/60 hover:bg-white/5 hover:text-white'
+                        }`}
+                    >
+                        <MessageSquare className="w-4 h-4" />
+                        <span>Conversaciones</span>
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab('campaigns')}
+                        className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all ${
+                            activeTab === 'campaigns' 
+                                ? 'bg-[#C17F5F] text-white shadow-lg shadow-[#C17F5F]/20' 
+                                : 'text-white/60 hover:bg-white/5 hover:text-white'
+                        }`}
+                    >
+                        <Megaphone className="w-4 h-4" />
+                        <span>Campañas Masivas</span>
+                    </button>
+                </div>
 
-                <div className="flex-1" />
-                <div className="border-t border-white/5 pt-4 text-[10px] text-white/40 text-center">
-                    ELENA La Costurera CRM
+                <div className="border-t border-white/5 pt-4">
+                    <p className="text-[9px] tracking-[0.2em] font-semibold text-white/30 uppercase text-center">ELENA La Costurera CRM</p>
                 </div>
             </div>
 
             {/* Active view */}
             {activeTab === 'inbox' ? (
                 <div className="flex-1 flex flex-col md:flex-row">
+                    
                     {/* Customers Sub-list */}
-                    <div className="w-full md:w-80 bg-[#1A1A1A] border-r border-white/10 flex flex-col max-h-[600px] overflow-y-auto">
-                        <div className="p-4 border-b border-white/5">
-                            <span className="text-[10px] tracking-widest text-[#C17F5F] uppercase font-bold">CLIENTAS RECIENTES</span>
+                    <div className="w-full md:w-80 bg-[#161616] border-r border-white/10 flex flex-col max-h-[620px] overflow-hidden">
+                        <div className="p-4 border-b border-white/10 bg-[#0F0F0F] flex items-center justify-between">
+                            <span className="text-[10px] tracking-widest text-[#C17F5F] font-bold uppercase">CLIENTAS CON CORREO</span>
+                            <span className="text-[10px] bg-white/5 text-white/60 px-2 py-0.5 rounded-full font-mono">{customers.length}</span>
                         </div>
-                        <div className="divide-y divide-white/5">
-                            {customers.map((c) => (
-                                <button
-                                    key={c.id}
-                                    onClick={() => setSelectedCustomerId(c.id)}
-                                    className={`w-full p-4 text-left transition-all hover:bg-white/5 flex flex-col gap-1 ${c.id === selectedCustomerId ? 'bg-[#C17F5F]/10 border-l-4 border-[#C17F5F]' : ''}`}
-                                >
-                                    <span className="font-semibold text-white text-sm">{c.full_name}</span>
-                                    <span className="text-xs text-white/50 truncate">{c.email}</span>
-                                </button>
-                            ))}
+                        
+                        {/* Custom scrollbar styling wrapper */}
+                        <div className="flex-grow overflow-y-auto divide-y divide-white/5 scrollbar-thin">
+                            {customers.map((c) => {
+                                const initials = c.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                                return (
+                                    <button
+                                        key={c.id}
+                                        onClick={() => setSelectedCustomerId(c.id)}
+                                        className={`w-full p-4 text-left transition-all hover:bg-white/5 flex items-center gap-3 ${
+                                            c.id === selectedCustomerId ? 'bg-[#C17F5F]/5 border-r-2 border-[#C17F5F]' : ''
+                                        }`}
+                                    >
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                                            c.id === selectedCustomerId ? 'bg-[#C17F5F] text-white' : 'bg-white/5 text-white/70'
+                                        }`}>
+                                            {initials}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-semibold text-white text-sm truncate">{c.full_name}</p>
+                                            <p className="text-xs text-white/40 truncate mt-0.5">{c.email}</p>
+                                        </div>
+                                        <ChevronRight className={`w-4 h-4 text-white/20 transition-all ${c.id === selectedCustomerId ? 'text-[#C17F5F] translate-x-0.5' : ''}`} />
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
                     {/* Chat Thread Panel */}
-                    <div className="flex-1 flex flex-col max-h-[600px]">
+                    <div className="flex-grow flex flex-col max-h-[620px] bg-[#0E0E0E]">
                         {selectedCustomer ? (
                             <>
                                 {/* Header */}
                                 <div className="p-4 border-b border-white/10 bg-[#161616] flex justify-between items-center">
-                                    <div>
-                                        <h3 className="font-serif text-lg text-white font-bold">{selectedCustomer.full_name}</h3>
-                                        <p className="text-xs text-white/60">{selectedCustomer.email}</p>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-[#C17F5F]/15 border border-[#C17F5F]/30 flex items-center justify-center">
+                                            <User className="w-5 h-5 text-[#C17F5F]" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-serif text-base text-white font-bold tracking-wide">{selectedCustomer.full_name}</h3>
+                                            <p className="text-xs text-white/40 mt-0.5">{selectedCustomer.email}</p>
+                                        </div>
                                     </div>
                                     <button 
                                         onClick={() => loadThreads(selectedCustomerId)}
-                                        className="text-xs border border-white/20 hover:bg-white/5 text-white/70 hover:text-white px-3 py-1.5 rounded transition-all"
+                                        className="text-xs border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 text-white/80 px-3.5 py-2 rounded-xl transition-all flex items-center gap-2 font-medium"
                                     >
-                                        🔄 Actualizar Hilo
+                                        <RefreshCw className={`w-3.5 h-3.5 ${loadingThreads ? 'animate-spin text-[#C17F5F]' : ''}`} />
+                                        <span>Actualizar Hilo</span>
                                     </button>
                                 </div>
 
                                 {/* Messages Scroll */}
-                                <div className="flex-1 p-6 space-y-4 overflow-y-auto min-h-[300px] bg-[#121212] flex flex-col">
+                                <div className="flex-1 p-6 space-y-4 overflow-y-auto bg-[#0a0a0a] flex flex-col scrollbar-thin">
                                     {loadingThreads ? (
-                                        <div className="text-center text-white/50 py-12">Cargando conversación...</div>
+                                        <div className="text-center text-white/40 py-12 flex-1 flex flex-col justify-center items-center gap-3">
+                                            <RefreshCw className="w-8 h-8 animate-spin text-[#C17F5F]" />
+                                            <p className="text-sm font-medium">Cargando conversación...</p>
+                                        </div>
                                     ) : threads.length === 0 ? (
-                                        <div className="text-center text-white/40 py-12 flex-1 flex flex-col justify-center items-center">
-                                            <p className="text-2xl mb-2">✉️</p>
-                                            <p className="text-sm">No hay mensajes previos en este hilo.</p>
-                                            <p className="text-xs text-white/30 mt-1">Escribe tu primer correo a continuación.</p>
+                                        <div className="text-center text-white/40 py-12 flex-grow flex flex-col justify-center items-center gap-4">
+                                            <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+                                                <Mail className="w-6 h-6 text-white/30" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-white/80">No hay mensajes en este hilo</p>
+                                                <p className="text-xs text-white/40 mt-1">Escribe tu primer correo a continuación.</p>
+                                            </div>
                                         </div>
                                     ) : (
                                         threads.map((msg) => (
                                             <div 
                                                 key={msg.id}
-                                                className={`flex flex-col max-w-[85%] rounded-2xl p-4 space-y-2 ${
+                                                className={`flex flex-col max-w-[80%] rounded-2xl p-4 space-y-2 border ${
                                                     msg.direction === 'outbound' 
-                                                        ? 'self-end bg-[#C17F5F]/10 border border-[#C17F5F]/20 text-white' 
-                                                        : 'self-start bg-[#242424] border border-white/5 text-white/90'
+                                                        ? 'self-end bg-[#C17F5F]/5 border-[#C17F5F]/15 text-white' 
+                                                        : 'self-start bg-[#1C1C1C] border-white/5 text-white/90'
                                                 }`}
                                             >
-                                                <div className="flex justify-between items-center gap-6">
-                                                    <span className="text-[9px] font-bold tracking-wider text-[#C17F5F] uppercase">
+                                                <div className="flex justify-between items-center gap-8 border-b border-white/5 pb-1.5">
+                                                    <span className="text-[9px] font-bold tracking-widest text-[#C17F5F] uppercase">
                                                         {msg.direction === 'outbound' ? 'Atelier (Saliente)' : 'Cliente (Entrante)'}
                                                     </span>
                                                     <span className="text-[9px] text-white/30">
                                                         {new Date(msg.created_at).toLocaleString('es-CL')}
                                                     </span>
                                                 </div>
-                                                <div className="text-xs font-semibold text-white/70 italic">
-                                                    Asunto: {msg.subject}
+                                                <div className="text-xs font-semibold text-white/80 italic font-serif">
+                                                    {msg.subject}
                                                 </div>
-                                                <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                                                <p className="text-xs whitespace-pre-wrap leading-relaxed text-white/70">
                                                     {msg.body_text || 'Mensaje enviado en formato HTML (Ver plantilla)'}
                                                 </p>
                                             </div>
@@ -289,98 +339,107 @@ export default function CorreoCentralClient({
                                         value={replyBody}
                                         onChange={(e) => setReplyBody(e.target.value)}
                                         placeholder="Escribe tu respuesta y mantén el hilo de la conversación..."
-                                        rows={3}
-                                        className="flex-1 bg-[#1E1E1E] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#C17F5F] resize-none"
+                                        rows={2}
+                                        className="flex-1 bg-[#1E1E1E] border border-white/10 rounded-xl px-4 py-3.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#C17F5F] resize-none"
                                         required
                                     />
                                     <button
                                         type="submit"
                                         disabled={sendingReply || !replyBody.trim()}
-                                        className="bg-[#C17F5F] hover:bg-[#a96b4f] disabled:opacity-50 text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-lg"
+                                        className="bg-[#C17F5F] hover:bg-[#a96b4f] disabled:opacity-50 text-white font-bold text-xs px-5 py-3.5 rounded-xl transition-all shadow-lg flex items-center gap-2"
                                     >
-                                        {sendingReply ? 'Enviando...' : 'Enviar'}
+                                        <Send className="w-3.5 h-3.5" />
+                                        <span>{sendingReply ? 'Enviando...' : 'Responder'}</span>
                                     </button>
                                 </form>
                             </>
                         ) : (
-                            <div className="flex-1 flex items-center justify-center text-white/40 text-sm">
-                                Selecciona una clienta de la lista para ver su conversación.
+                            <div className="flex-1 flex flex-col items-center justify-center text-white/30 gap-3">
+                                <Inbox className="w-8 h-8 text-white/20" />
+                                <p className="text-sm">Selecciona una clienta de la lista para ver su conversación.</p>
                             </div>
                         )}
                     </div>
                 </div>
             ) : (
-                <div className="flex-1 p-6 flex flex-col md:flex-row gap-6">
+                <div className="flex-1 p-6 flex flex-col md:flex-row gap-6 bg-[#0E0E0E]">
                     {/* Left: Campañas creadas */}
-                    <div className="w-full md:w-1/2 flex flex-col space-y-4">
-                        <h2 className="text-xl font-bold font-serif text-white">Historial de Campañas</h2>
-                        <div className="bg-[#161616] border border-white/5 rounded-xl overflow-hidden flex-1 divide-y divide-white/5">
+                    <div className="w-full md:w-1/2 flex flex-col space-y-4 max-h-[580px] overflow-hidden">
+                        <h2 className="text-lg font-bold font-serif text-white tracking-wide">Historial de Campañas</h2>
+                        
+                        <div className="bg-[#161616] border border-white/5 rounded-xl overflow-y-auto flex-grow divide-y divide-white/5 scrollbar-thin">
                             {campaigns.length === 0 ? (
-                                <div className="p-8 text-center text-white/40 text-sm">No has enviado campañas de marketing aún.</div>
+                                <div className="p-12 text-center text-white/30 text-sm flex flex-col items-center gap-2">
+                                    <Megaphone className="w-8 h-8 text-white/10" />
+                                    <p>No has enviado campañas de marketing aún.</p>
+                                </div>
                             ) : (
                                 campaigns.map((camp) => (
-                                    <div key={camp.id} className="p-4 flex flex-col gap-1">
+                                    <div key={camp.id} className="p-4 flex flex-col gap-1.5 hover:bg-white/[0.02] transition-all">
                                         <div className="flex justify-between items-start">
                                             <span className="font-semibold text-white text-sm">{camp.name}</span>
-                                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${camp.status === 'sent' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-                                                {camp.status === 'sent' ? 'Completado' : 'Fallo'}
+                                            <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
+                                                camp.status === 'sent' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
+                                            }`}>
+                                                {camp.status === 'sent' ? 'Enviado' : 'Fallo'}
                                             </span>
                                         </div>
-                                        <span className="text-xs text-white/50">Asunto: {camp.subject}</span>
-                                        <div className="flex justify-between items-center mt-2 text-[10px] text-white/40">
+                                        <span className="text-xs text-white/40 italic">Asunto: {camp.subject}</span>
+                                        <div className="flex justify-between items-center mt-3 text-[9px] text-white/30">
                                             <span>Audiencia: {camp.recipient_count} clientas</span>
                                             <span>{new Date(camp.created_at).toLocaleDateString('es-CL')}</span>
                                         </div>
                                     </div>
                                 ))
-							)}
+                            )}
                         </div>
                     </div>
 
                     {/* Right: Lanzador de Campaña */}
-                    <div className="w-full md:w-1/2 bg-[#1A1A1A] border border-white/5 p-6 rounded-2xl flex flex-col space-y-4">
-                        <h2 className="text-xl font-bold font-serif text-white">Nueva Campaña Masiva</h2>
-                        <p className="text-xs text-white/50">Redacta una campaña para enviarla en lote a toda tu base de clientas registradas con correo.</p>
+                    <div className="w-full md:w-1/2 bg-[#161616] border border-white/10 p-6 rounded-2xl flex flex-col space-y-4">
+                        <div>
+                            <h2 className="text-lg font-bold font-serif text-white tracking-wide">Nueva Campaña Masiva</h2>
+                            <p className="text-xs text-white/40 mt-1">Redacta una campaña para enviarla en lote a toda tu base de clientas registradas con correo.</p>
+                        </div>
                         
                         {campaignSuccess && (
-                            <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl text-sm">
+                            <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl text-xs">
                                 {campaignSuccess}
                             </div>
                         )}
 
-                        <form onSubmit={handleSendCampaign} className="space-y-4 flex-1 flex flex-col">
+                        <form onSubmit={handleSendCampaign} className="space-y-4 flex-grow flex flex-col">
                             <div className="space-y-2">
-                                <label className="text-xs text-white/60 uppercase font-bold tracking-wider">Identificador Interno de Campaña</label>
+                                <label className="text-[10px] text-white/50 uppercase font-bold tracking-wider">Identificador Interno</label>
                                 <input
                                     type="text"
                                     value={campName}
                                     onChange={(e) => setCampName(e.target.value)}
                                     placeholder="Ej: Lanzamiento Colección Novias Primavera"
-                                    className="w-full bg-[#242424] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#C17F5F]"
+                                    className="w-full bg-[#1E1E1E] border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#C17F5F] transition-all"
                                     required
                                 />
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs text-white/60 uppercase font-bold tracking-wider">Asunto del Correo</label>
+                                <label className="text-[10px] text-white/50 uppercase font-bold tracking-wider">Asunto del Correo</label>
                                 <input
                                     type="text"
                                     value={campSubject}
                                     onChange={(e) => setCampSubject(e.target.value)}
                                     placeholder="Ej: Te invitamos a nuestra nueva venta exclusiva ✨"
-                                    className="w-full bg-[#242424] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#C17F5F]"
+                                    className="w-full bg-[#1E1E1E] border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#C17F5F] transition-all"
                                     required
                                 />
                             </div>
 
-                            <div className="space-y-2 flex-1 flex flex-col">
-                                <label className="text-xs text-white/60 uppercase font-bold tracking-wider">Contenido de la Campaña (Texto libre)</label>
+                            <div className="space-y-2 flex-grow flex flex-col">
+                                <label className="text-[10px] text-white/50 uppercase font-bold tracking-wider">Mensaje (Texto libre)</label>
                                 <textarea
                                     value={campContent}
                                     onChange={(e) => setCampContent(e.target.value)}
                                     placeholder="Escribe el cuerpo de tu boletín o anuncio comercial aquí..."
-                                    rows={8}
-                                    className="w-full flex-1 bg-[#242424] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/40 focus:outline-none focus:border-[#C17F5F]"
+                                    className="w-full flex-grow bg-[#1E1E1E] border border-white/10 rounded-xl px-4 py-3.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[#C17F5F] transition-all resize-none min-h-[150px]"
                                     required
                                 />
                             </div>
@@ -388,7 +447,7 @@ export default function CorreoCentralClient({
                             <button
                                 type="submit"
                                 disabled={sendingCampaign}
-                                className="w-full bg-[#C17F5F] hover:bg-[#a96b4f] disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-all shadow-lg text-sm mt-4"
+                                className="w-full bg-[#C17F5F] hover:bg-[#a96b4f] disabled:opacity-50 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg text-xs mt-2"
                             >
                                 {sendingCampaign ? 'Enviando a toda la base...' : 'Despachar Campaña Masiva'}
                             </button>
@@ -396,6 +455,24 @@ export default function CorreoCentralClient({
                     </div>
                 </div>
             )}
+            
+            {/* Custom Scrollbar Styles */}
+            <style jsx global>{`
+                .scrollbar-thin::-webkit-scrollbar {
+                    width: 5px;
+                    height: 5px;
+                }
+                .scrollbar-thin::-webkit-scrollbar-track {
+                    background: rgba(0, 0, 0, 0.2);
+                }
+                .scrollbar-thin::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.08);
+                    border-radius: 99px;
+                }
+                .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+                    background: rgba(255, 255, 255, 0.15);
+                }
+            `}</style>
 
         </div>
     );
