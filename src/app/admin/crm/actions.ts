@@ -241,7 +241,18 @@ export async function sendTemplatedEmailAction(
       status: sendResult.success ? 'sent' : 'failed'
     });
 
-    if (sendResult.success) {
+     if (sendResult.success) {
+      // Log sent email in CRM threads
+      await supabase.from('crm_email_threads').insert({
+        customer_id: customerId,
+        subject: subject,
+        direction: 'outbound',
+        sender: 'contacto@elenalacosturera.cl',
+        recipient: customer.email,
+        body_html: variables.MESSAGE || variables.HTML_CONTENT || 'Mensaje de plantilla enviado',
+        message_id: sendResult.messageId
+      });
+
       revalidatePath(`/admin/crm/${customerId}`);
       revalidatePath(`/admin/crm/${customerId}/correo`);
       return { success: true };
@@ -262,4 +273,143 @@ export async function sendTemplatedEmailAction(
     return { success: false, error: error.message || 'Error interno del servidor' };
   }
 }
+
+/**
+ * Fetch conversational threads for a specific customer.
+ */
+export async function getEmailThreadsAction(customerId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('crm_email_threads')
+    .select('*')
+    .eq('customer_id', customerId)
+    .order('created_at', { ascending: true });
+  return { success: !error, threads: data || [], error };
+}
+
+/**
+ * Get all marketing campaigns logged in the system.
+ */
+export async function getMarketingCampaignsAction() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('marketing_campaigns')
+    .select('*')
+    .order('created_at', { ascending: false });
+  return { success: !error, campaigns: data || [], error };
+}
+
+/**
+ * Triggers a bulk email campaign.
+ */
+export async function sendBulkCampaignAction(
+  campaignName: string,
+  subject: string,
+  htmlContent: string,
+  segment?: string
+) {
+  const supabase = await createClient();
+
+  // Fetch recipients
+  let query = supabase.from('customers').select('email, full_name').neq('email', null);
+  
+  if (segment && segment !== 'all') {
+    // Optional filter if segment column exists, otherwise send to all
+  }
+
+  const { data: customers, error: customersError } = await query;
+  if (customersError || !customers || customers.length === 0) {
+    return { success: false, error: 'No se encontraron clientes para este segmento' };
+  }
+
+  const emails = customers.map(c => c.email!).filter(Boolean);
+
+  // Send bulk email
+  const emailModule = await import('@/lib/email');
+  const results = await emailModule.sendBulkEmail(emails, subject, htmlContent);
+
+  const sentCount = results.filter(r => r.success).length;
+
+  // Log campaign
+  const { data: campaign, error: campaignError } = await supabase
+    .from('marketing_campaigns')
+    .insert({
+      name: campaignName,
+      subject,
+      content_html: htmlContent,
+      recipient_count: emails.length,
+      segment: segment || 'all',
+      status: sentCount > 0 ? 'sent' : 'failed'
+    })
+    .select()
+    .single();
+
+  return { success: true, campaign, sentCount, total: emails.length };
+}
+
+/**
+ * Sends a reply inside an email conversation thread.
+ */
+export async function replyToEmailThreadAction(
+  customerId: string,
+  subject: string,
+  messageBody: string,
+  lastMessageId?: string
+) {
+  const supabase = await createClient();
+
+  // 1. Fetch customer details
+  const { data: customer, error: customerError } = await supabase
+    .from('customers')
+    .select('email, full_name')
+    .eq('id', customerId)
+    .single();
+
+  if (customerError || !customer || !customer.email) {
+    return { success: false, error: 'Cliente no encontrado o no tiene correo electrónico' };
+  }
+
+  // 2. Setup reply headers
+  const headers: Record<string, string> = {};
+  if (lastMessageId) {
+    headers['In-Reply-To'] = lastMessageId;
+    headers['References'] = lastMessageId;
+  }
+
+  // 3. Send email via SMTP
+  const emailModule = await import('@/lib/email');
+  const sendResult = await emailModule.sendGeneralContactEmail(
+    customer.email,
+    customer.full_name,
+    subject,
+    messageBody,
+    headers
+  );
+
+  if (sendResult.success) {
+    // 4. Save thread record
+    const { data: threadRecord } = await supabase
+      .from('crm_email_threads')
+      .insert({
+        customer_id: customerId,
+        subject,
+        direction: 'outbound',
+        sender: 'contacto@elenalacosturera.cl',
+        recipient: customer.email,
+        body_text: messageBody,
+        message_id: sendResult.messageId,
+        references_id: lastMessageId || null
+      })
+      .select()
+      .single();
+
+    revalidatePath(`/admin/crm/${customerId}`);
+    revalidatePath(`/admin/crm/correo-central`);
+
+    return { success: true, thread: threadRecord };
+  }
+
+  return { success: false, error: (sendResult.error as any)?.message || 'Error al enviar respuesta' };
+}
+
 

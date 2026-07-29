@@ -167,7 +167,13 @@ export const sendOrderReadyEmail = async (to: string, name: string, item: string
 /**
  * Sends a general contact notification email.
  */
-export const sendGeneralContactEmail = async (to: string, name: string, subject: string, message: string) => {
+export const sendGeneralContactEmail = async (
+  to: string,
+  name: string,
+  subject: string,
+  message: string,
+  headers?: Record<string, string>
+) => {
   const html = loadTemplate('general_contact.html', {
     NAME: name,
     SUBJECT: subject,
@@ -182,6 +188,7 @@ export const sendGeneralContactEmail = async (to: string, name: string, subject:
       to,
       subject: subject || 'Mensaje de Elena Atelier',
       html,
+      headers
     });
     return { success: true, messageId: info.messageId };
   } catch (error) {
@@ -193,19 +200,52 @@ export const sendGeneralContactEmail = async (to: string, name: string, subject:
 /**
  * Sends a raw email containing full custom HTML (e.g. from template compilation).
  */
-export const sendRawCustomEmail = async (to: string, subject: string, htmlContent: string) => {
+export const sendRawCustomEmail = async (
+  to: string,
+  subject: string,
+  htmlContent: string,
+  headers?: Record<string, string>
+) => {
   try {
     const info = await transporter.sendMail({
       from: `"Elena La Costurera" <${fromAddress}>`,
       to,
       subject: subject || 'Notificación - Elena Atelier',
       html: htmlContent,
+      headers
     });
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error('Error sending raw custom email:', error);
     return { success: false, error };
   }
+};
+
+/**
+ * Sends a raw email to multiple recipients in bulk/batches.
+ */
+export const sendBulkEmail = async (
+  recipients: string[],
+  subject: string,
+  htmlContent: string
+) => {
+  const results = await Promise.all(
+    recipients.map(async (to) => {
+      try {
+        const info = await transporter.sendMail({
+          from: `"Elena La Costurera" <${fromAddress}>`,
+          to,
+          subject,
+          html: htmlContent,
+        });
+        return { to, success: true, messageId: info.messageId };
+      } catch (error) {
+        console.error(`Error sending bulk email to ${to}:`, error);
+        return { to, success: false, error };
+      }
+    })
+  );
+  return results;
 };
 
 /**
