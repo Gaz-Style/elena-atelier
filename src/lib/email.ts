@@ -13,6 +13,9 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const smtpUser = process.env.SMTP_USER || '';
+const fromAddress = smtpUser.includes('gmail.com') ? 'contacto@elenalacosturera.cl' : smtpUser;
+
 /**
  * Helper to load an HTML template and replace variables
  */
@@ -44,7 +47,7 @@ export const sendWelcomeEmail = async (to: string, name: string) => {
 
   try {
     const info = await transporter.sendMail({
-      from: `"Elena La Costurera" <${process.env.SMTP_USER}>`,
+      from: `"Elena La Costurera" <${fromAddress}>`,
       to,
       subject: 'Bienvenida a Elena La Costurera',
       html,
@@ -71,7 +74,7 @@ export const sendAppointmentConfirmation = async (to: string, name: string, date
 
   try {
     const info = await transporter.sendMail({
-      from: `"Citas - Elena La Costurera" <${process.env.SMTP_USER}>`,
+      from: `"Citas - Elena La Costurera" <${fromAddress}>`,
       to,
       subject: `Tu cita para ${service} está confirmada`,
       html,
@@ -96,7 +99,7 @@ export const sendBudgetReminder = async (to: string, name: string, link: string)
 
   try {
     const info = await transporter.sendMail({
-      from: `"Elena La Costurera" <${process.env.SMTP_USER}>`,
+      from: `"Elena La Costurera" <${fromAddress}>`,
       to,
       subject: 'Tu diseño a medida te está esperando',
       html,
@@ -107,3 +110,147 @@ export const sendBudgetReminder = async (to: string, name: string, link: string)
     return { success: false, error };
   }
 };
+
+/**
+ * Sends a payment confirmation email.
+ */
+export const sendPaymentReceivedEmail = async (to: string, name: string, amount: string, method: string, service: string) => {
+  const html = loadTemplate('payment_received.html', {
+    NAME: name,
+    AMOUNT: amount,
+    METHOD: method,
+    SERVICE: service
+  });
+  
+  if (!html) throw new Error('Template not found');
+
+  try {
+    const info = await transporter.sendMail({
+      from: `"Pagos - Elena La Costurera" <${fromAddress}>`,
+      to,
+      subject: 'Confirmación de Pago - Elena Atelier',
+      html,
+    });
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Error sending payment confirmation email:', error);
+    return { success: false, error };
+  }
+};
+
+/**
+ * Sends an order ready notification email.
+ */
+export const sendOrderReadyEmail = async (to: string, name: string, item: string, hours: string) => {
+  const html = loadTemplate('order_ready.html', {
+    NAME: name,
+    ITEM: item,
+    HOURS: hours
+  });
+  
+  if (!html) throw new Error('Template not found');
+
+  try {
+    const info = await transporter.sendMail({
+      from: `"Taller - Elena La Costurera" <${fromAddress}>`,
+      to,
+      subject: 'Tu prenda está lista para retiro ✨ - Elena Atelier',
+      html,
+    });
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Error sending order ready email:', error);
+    return { success: false, error };
+  }
+};
+
+/**
+ * Sends a general contact notification email.
+ */
+export const sendGeneralContactEmail = async (to: string, name: string, subject: string, message: string) => {
+  const html = loadTemplate('general_contact.html', {
+    NAME: name,
+    SUBJECT: subject,
+    MESSAGE: message
+  });
+  
+  if (!html) throw new Error('Template not found');
+
+  try {
+    const info = await transporter.sendMail({
+      from: `"Elena La Costurera" <${fromAddress}>`,
+      to,
+      subject: subject || 'Mensaje de Elena Atelier',
+      html,
+    });
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Error sending general contact email:', error);
+    return { success: false, error };
+  }
+};
+
+/**
+ * Sends a raw email containing full custom HTML (e.g. from template compilation).
+ */
+export const sendRawCustomEmail = async (to: string, subject: string, htmlContent: string) => {
+  try {
+    const info = await transporter.sendMail({
+      from: `"Elena La Costurera" <${fromAddress}>`,
+      to,
+      subject: subject || 'Notificación - Elena Atelier',
+      html: htmlContent,
+    });
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Error sending raw custom email:', error);
+    return { success: false, error };
+  }
+};
+
+/**
+ * Sends a custom Luxury Pass invitation email.
+ */
+export const sendLuxuryPassEmail = async (
+  to: string,
+  name: string,
+  subject: string,
+  title: string,
+  subtitle: string,
+  field1Label: string,
+  field1Value: string,
+  field2Label: string,
+  field2Value: string,
+  details: string,
+  barcodeText: string
+) => {
+  const html = loadTemplate('luxury_pass.html', {
+    NAME: name,
+    SUBJECT: subject,
+    TITLE: title,
+    SUBTITLE: subtitle,
+    FIELD1_LABEL: field1Label,
+    FIELD1_VALUE: field1Value,
+    FIELD2_LABEL: field2Label,
+    FIELD2_VALUE: field2Value,
+    DETAILS: details,
+    BARCODE_TEXT: barcodeText
+  });
+  
+  if (!html) throw new Error('Template not found');
+
+  try {
+    const info = await transporter.sendMail({
+      from: `"Luxury Pass - Elena La Costurera" <${fromAddress}>`,
+      to,
+      subject: subject || 'Tu Luxury Pass Exclusivo - Elena Atelier',
+      html,
+    });
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Error sending luxury pass email:', error);
+    return { success: false, error };
+  }
+};
+
+

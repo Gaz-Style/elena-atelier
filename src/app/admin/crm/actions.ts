@@ -123,3 +123,143 @@ export async function searchCustomersAction(query: string) {
     
     return { success: true, customers: data };
 }
+
+export async function getNotificationLogsAction(customerId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('notification_logs')
+    .select('*')
+    .eq('customer_id', customerId)
+    .order('sent_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching notification logs:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function sendTemplatedEmailAction(
+  customerId: string,
+  templateId: string,
+  subject: string,
+  variables: Record<string, string>
+) {
+  const supabase = await createClient();
+  
+  // 1. Fetch customer details
+  const { data: customer, error: customerError } = await supabase
+    .from('customers')
+    .select('email, full_name')
+    .eq('id', customerId)
+    .single();
+
+  if (customerError || !customer || !customer.email) {
+    return { success: false, error: 'Cliente no encontrado o no tiene correo electrónico' };
+  }
+
+  // 2. Import email senders dynamically to keep imports light
+  const emailModule = await import('@/lib/email');
+  
+  let sendResult: { success: boolean; error?: any; messageId?: string } = { success: false };
+
+  try {
+    switch (templateId) {
+      case 'welcome':
+        sendResult = await emailModule.sendWelcomeEmail(customer.email, customer.full_name);
+        break;
+      case 'appointment':
+        sendResult = await emailModule.sendAppointmentConfirmation(
+          customer.email,
+          customer.full_name,
+          variables.DATE || '',
+          variables.TIME || '',
+          variables.SERVICE || ''
+        );
+        break;
+      case 'budget':
+        sendResult = await emailModule.sendBudgetReminder(
+          customer.email,
+          customer.full_name,
+          variables.LINK || ''
+        );
+        break;
+      case 'payment':
+        sendResult = await emailModule.sendPaymentReceivedEmail(
+          customer.email,
+          customer.full_name,
+          variables.AMOUNT || '',
+          variables.METHOD || '',
+          variables.SERVICE || ''
+        );
+        break;
+      case 'order_ready':
+        sendResult = await emailModule.sendOrderReadyEmail(
+          customer.email,
+          customer.full_name,
+          variables.ITEM || '',
+          variables.HOURS || 'Lunes a Viernes de 10:00 a 19:00 hrs'
+        );
+        break;
+      case 'custom':
+        sendResult = await emailModule.sendGeneralContactEmail(
+          customer.email,
+          customer.full_name,
+          subject,
+          variables.MESSAGE || ''
+        );
+        break;
+      case 'luxury_pass':
+        sendResult = await emailModule.sendLuxuryPassEmail(
+          customer.email,
+          customer.full_name,
+          subject,
+          variables.TITLE || 'LUXURY PASS',
+          variables.SUBTITLE || 'LUXURY PASS & RESERVA',
+          variables.FIELD1_LABEL || 'Fecha de Visita',
+          variables.FIELD1_VALUE || '',
+          variables.FIELD2_LABEL || 'Horario Exclusivo',
+          variables.FIELD2_VALUE || '',
+          variables.DETAILS || '',
+          variables.BARCODE_TEXT || 'ELENA*VIP*PASS'
+        );
+        break;
+      default:
+        // Try compiling a raw template if custom html is generated client-side
+        if (variables.HTML_CONTENT) {
+          sendResult = await emailModule.sendRawCustomEmail(customer.email, subject, variables.HTML_CONTENT);
+        } else {
+          return { success: false, error: 'Plantilla desconocida' };
+        }
+    }
+
+    // 3. Log notification in database
+    await supabase.from('notification_logs').insert({
+      customer_id: customerId,
+      type: 'email',
+      template: templateId,
+      status: sendResult.success ? 'sent' : 'failed'
+    });
+
+    if (sendResult.success) {
+      revalidatePath(`/admin/crm/${customerId}`);
+      revalidatePath(`/admin/crm/${customerId}/correo`);
+      return { success: true };
+    } else {
+      return { success: false, error: sendResult.error?.message || 'Error al enviar por SMTP' };
+    }
+  } catch (error: any) {
+    console.error('Error in sendTemplatedEmailAction:', error);
+    
+    // Log failure
+    await supabase.from('notification_logs').insert({
+      customer_id: customerId,
+      type: 'email',
+      template: templateId,
+      status: 'failed'
+    });
+
+    return { success: false, error: error.message || 'Error interno del servidor' };
+  }
+}
+

@@ -72,13 +72,22 @@ export default async function CustomerProfilePage({ params }: { params: Promise<
                         <Link href="/admin/crm" className="text-[10px] uppercase tracking-widest text-gray-400 font-bold hover:text-brand-terracotta transition-colors flex items-center gap-2">
                             <ArrowLeft className="w-3 h-3" /> Volver al Directorio
                         </Link>
-                        <Link 
-                            href={`/admin/crm/${customer.id}/editar`} 
-                            className="bg-brand-charcoal hover:bg-brand-terracotta text-white px-4 py-2 text-[10px] uppercase tracking-widest font-bold rounded-sm transition-all flex items-center gap-2"
-                        >
-                            <Edit className="w-3.5 h-3.5" />
-                            Editar Perfil
-                        </Link>
+                        <div className="flex items-center gap-3">
+                            <Link 
+                                href={`/admin/crm/${customer.id}/correo`} 
+                                className="bg-brand-terracotta hover:bg-brand-charcoal text-white px-4 py-2 text-[10px] uppercase tracking-widest font-bold rounded-sm transition-all flex items-center gap-2"
+                            >
+                                <Mail className="w-3.5 h-3.5" />
+                                Enviar Correo
+                            </Link>
+                            <Link 
+                                href={`/admin/crm/${customer.id}/editar`} 
+                                className="bg-brand-charcoal hover:bg-brand-terracotta text-white px-4 py-2 text-[10px] uppercase tracking-widest font-bold rounded-sm transition-all flex items-center gap-2"
+                            >
+                                <Edit className="w-3.5 h-3.5" />
+                                Editar Perfil
+                            </Link>
+                        </div>
                     </div>
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                         <div>
