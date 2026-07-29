@@ -152,8 +152,10 @@ export async function sendWhatsAppTemplateAction(chatId: string, templateName: s
     let langCode = 'es';
     if (templateName === 'confirmacion_pago_client' || templateName === 'alerta_pos' || templateName === 'cita_confirmada_cliente' || templateName === 'alerta_nueva_cita') {
         langCode = 'es_CL';
-    } else if (templateName === 'alerta_pago_recibido' || templateName === 'hello_world') {
+    } else if (templateName === 'hello_world') {
         langCode = 'en';
+    } else if (templateName === 'alerta_pago_recibido') {
+        langCode = 'es';
     }
 
     // 2. Send template to CLIENT via Meta API

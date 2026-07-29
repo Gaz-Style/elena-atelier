@@ -757,7 +757,7 @@ export async function sendWhatsAppPaymentConfirmationAction(posOrderId: string, 
             for (const ownerNum of ['56984021940', '56937667709']) {
                 await sendWsp(ownerNum, 'alerta_pago_recibido', [
                     clienteName, prenda, monto, posOrderId, paymentMethod
-                ], 'en');
+                ], 'es');
             }
 
             // Confirmación al cliente
@@ -1740,7 +1740,6 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
         .from('production_orders')
         .update({ 
             payment_status: isFullPayment ? 'paid' : 'partial', 
-            status: 'pending', 
             paid_amount: finalPaid,
             payment_method: 'transbank'
         })
@@ -1760,63 +1759,65 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
         const { data: orderInfo } = await supabase.from('production_orders').select('customer_id').eq('pos_order_id', baseOrderId).single();
         if (orderInfo && orderInfo.customer_id && orderInfo.customer_id !== 'unassigned') {
             const { data: custInfo } = await supabase.from('customers').select('phone, full_name').eq('id', orderInfo.customer_id).single();
-            if (custInfo && custInfo.phone) {
+            if (custInfo) {
                 const WHATSAPP_API_TOKEN = process.env.NEXT_PUBLIC_WHATSAPP_API_TOKEN || process.env.WHATSAPP_API_TOKEN;
                 const PHONE_NUMBER_ID = process.env.NEXT_PUBLIC_WHATSAPP_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_NUMBER_ID;
                 if (WHATSAPP_API_TOKEN && PHONE_NUMBER_ID) {
-                    const cleanPhone = custInfo.phone.replace(/\D/g, '');
-                    const finalPhone = cleanPhone.startsWith('56') ? cleanPhone : `56${cleanPhone}`;
-                    
-                    const wpRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            messaging_product: 'whatsapp',
-                            to: finalPhone,
-                            type: 'template',
-                            template: {
-                                name: 'confirmacion_pago_cliente',
-                                language: { code: 'es_CL' },
-                                components: [{
-                                    type: 'body',
-                                    parameters: [{ type: 'text', text: custInfo.full_name }]
-                                }]
-                            }
-                        })
-                    });
-                    
-                    if (wpRes.ok) {
-                        // Log to Live Chat (CRM)
-                        try {
-                            let { data: chatData } = await supabase
-                                .from('crm_whatsapp_chats')
-                                .select('id')
-                                .eq('phone_number', finalPhone)
-                                .single();
-
-                            if (!chatData) {
-                                const { data: newChat } = await supabase
+                    if (custInfo.phone) {
+                        const cleanPhone = custInfo.phone.replace(/\D/g, '');
+                        const finalPhone = cleanPhone.startsWith('56') ? cleanPhone : `56${cleanPhone}`;
+                        
+                        const wpRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                messaging_product: 'whatsapp',
+                                to: finalPhone,
+                                type: 'template',
+                                template: {
+                                    name: 'confirmacion_pago_cliente',
+                                    language: { code: 'es_CL' },
+                                    components: [{
+                                        type: 'body',
+                                        parameters: [{ type: 'text', text: custInfo.full_name }]
+                                    }]
+                                }
+                            })
+                        });
+                        
+                        if (wpRes.ok) {
+                            // Log to Live Chat (CRM)
+                            try {
+                                let { data: chatData } = await supabase
                                     .from('crm_whatsapp_chats')
-                                    .insert([{ phone_number: finalPhone, session_status: 'bot' }])
                                     .select('id')
+                                    .eq('phone_number', finalPhone)
                                     .single();
-                                chatData = newChat;
-                            }
 
-                            if (chatData) {
-                                await supabase.from('crm_whatsapp_messages').insert([{
-                                    chat_id: chatData.id,
-                                    sender_type: 'system',
-                                    message_type: 'text',
-                                    content: `[Sistema] Webpay Plus: Se envió la plantilla confirmacion_pago_cliente automáticamente.`
-                                }]);
+                                if (!chatData) {
+                                    const { data: newChat } = await supabase
+                                        .from('crm_whatsapp_chats')
+                                        .insert([{ phone_number: finalPhone, session_status: 'bot' }])
+                                        .select('id')
+                                        .single();
+                                    chatData = newChat;
+                                }
+
+                                if (chatData) {
+                                    await supabase.from('crm_whatsapp_messages').insert([{
+                                        chat_id: chatData.id,
+                                        sender_type: 'system',
+                                        message_type: 'text',
+                                        content: `[Sistema] Webpay Plus: Se envió la plantilla confirmacion_pago_cliente automáticamente.`
+                                    }]);
+                                }
+                            } catch (dbErr) {
+                                console.error('Error logging confirmacion_pago Webpay to LiveChat:', dbErr);
                             }
-                        } catch (dbErr) {
-                            console.error('Error logging confirmacion_pago Webpay to LiveChat:', dbErr);
                         }
                     }
                     
-                    // Alerta a los dueños
+                    // Alerta a los dueños (independiente de si el cliente tiene teléfono o no)
                     for (const ownerNum of ['56984021940', '56937667709']) {
                         try {
                             const formattedMonto = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(finalTotal);
@@ -1829,7 +1830,7 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
                                     type: 'template',
                                     template: {
                                         name: 'alerta_pago_recibido',
-                                        language: { code: 'en' },
+                                        language: { code: 'es' },
                                         components: [{
                                             type: 'body',
                                             parameters: [

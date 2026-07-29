@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { createClient } from '@/lib/supabase/server';
+import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { sendOrderConfirmationEmailByOrderIdAction } from '@/app/admin/pos/actions';
 
 async function logSystemEvent(supabase: any, level: string, message: string, payload: any = null) {
@@ -263,7 +263,7 @@ async function updateDatabaseAndNotify(
             for (const ownerNum of ['56984021940', '56937667709']) {
                 await sendWsp(ownerNum, 'alerta_pago_recibido', [
                     clienteName, prenda, monto, externalRef, paymentMethodLabel
-                ], 'en');
+                ], 'es');
             }
 
             // Confirmación al cliente
@@ -323,7 +323,10 @@ async function updateDatabaseAndNotify(
 }
 
 export async function POST(req: Request) {
-    const supabase = await createClient();
+    const supabase = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     try {
         const signatureHeader = req.headers.get('x-signature') || '';
         const requestId = req.headers.get('x-request-id') || '';
