@@ -231,21 +231,21 @@ export default function PortalNoviasContratoPage() {
                         <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
                             <FileText className="w-4 h-4" /> 1. Partes Contratantes
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs bg-[#FCFAF7]/95 backdrop-blur-md border border-[#C17F5F]/15 rounded p-4 shadow-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs bg-white/10 backdrop-blur-xl border border-white/20 rounded p-4 shadow-2xl">
                             <div>
-                                <p className="text-[9px] uppercase tracking-wider text-gray-600 font-bold mb-1">Prestador del Servicio</p>
-                                <p className="font-bold text-[#1A1A1A]">ATELIER HORTENSIA SPA</p>
-                                <p className="text-gray-600">RUT: 78.158.853-9</p>
-                                <p className="text-gray-600">Av. Tabancura 1091, Of. 319</p>
-                                <p className="text-gray-600">Vitacura, Santiago de Chile</p>
-                                <p className="text-gray-600">Contacto@elenalacosturera.cl</p>
+                                <p className="text-[9px] uppercase tracking-wider text-zinc-300 font-bold mb-1">Prestador del Servicio</p>
+                                <p className="font-bold text-white">ATELIER HORTENSIA SPA</p>
+                                <p className="text-zinc-300">RUT: 78.158.853-9</p>
+                                <p className="text-zinc-300">Av. Tabancura 1091, Of. 319</p>
+                                <p className="text-zinc-300">Vitacura, Santiago de Chile</p>
+                                <p className="text-zinc-300">Contacto@elenalacosturera.cl</p>
                             </div>
-                            <div className="border-t md:border-t-0 md:border-l border-[#C17F5F]/20 pt-3 md:pt-0 md:pl-4">
-                                <p className="text-[9px] uppercase tracking-wider text-gray-600 font-bold mb-1">Clienta</p>
-                                <p className="font-bold text-[#1A1A1A]">{project.customers?.full_name}</p>
-                                <p className="text-gray-600">RUT: {project.customers?.rut || '—'}</p>
-                                <p className="text-gray-600">Tel: {project.customers?.phone || '—'}</p>
-                                <p className="text-gray-600">Email: {project.customers?.email || '—'}</p>
+                            <div className="border-t md:border-t-0 md:border-l border-white/10 pt-3 md:pt-0 md:pl-4">
+                                <p className="text-[9px] uppercase tracking-wider text-zinc-300 font-bold mb-1">Clienta</p>
+                                <p className="font-bold text-white">{project.customers?.full_name}</p>
+                                <p className="text-zinc-300">RUT: {project.customers?.rut || '—'}</p>
+                                <p className="text-zinc-300">Tel: {project.customers?.phone || '—'}</p>
+                                <p className="text-zinc-300">Email: {project.customers?.email || '—'}</p>
                             </div>
                         </div>
                     </div>
@@ -255,25 +255,25 @@ export default function PortalNoviasContratoPage() {
                         <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
                             <Calendar className="w-4 h-4" /> 2. Descripción del Servicio
                         </h3>
-                        <div className="text-xs space-y-3 bg-[#FCFAF7]/95 backdrop-blur-md border border-[#C17F5F]/15 rounded p-4 shadow-sm">
-                            <div className="flex justify-between border-b border-[#C17F5F]/10 pb-2">
-                                <span className="text-gray-600">Servicio:</span>
-                                <span className="font-bold text-[#1A1A1A]">{serviceTypeLabel[project.service_type] || project.service_type}</span>
+                        <div className="text-xs space-y-3 bg-white/10 backdrop-blur-xl border border-white/20 rounded p-4 shadow-2xl">
+                            <div className="flex justify-between border-b border-white/10 pb-2">
+                                <span className="text-zinc-300">Servicio:</span>
+                                <span className="font-bold text-white">{serviceTypeLabel[project.service_type] || project.service_type}</span>
                             </div>
-                            <div className="flex justify-between border-b border-[#C17F5F]/10 pb-2">
-                                <span className="text-gray-600">Fecha del Evento:</span>
+                            <div className="flex justify-between border-b border-white/10 pb-2">
+                                <span className="text-zinc-300">Fecha del Evento:</span>
                                 <span className="font-bold text-[#C17F5F]">{formatDate(project.event_date)}</span>
                             </div>
                             {project.event_venue && (
-                                <div className="flex justify-between border-b border-[#C17F5F]/10 pb-2">
-                                    <span className="text-gray-600">Lugar del Evento:</span>
-                                    <span className="font-bold text-[#1A1A1A]">{project.event_venue}</span>
+                                <div className="flex justify-between border-b border-white/10 pb-2">
+                                    <span className="text-zinc-300">Lugar del Evento:</span>
+                                    <span className="font-bold text-white">{project.event_venue}</span>
                                 </div>
                             )}
                             {project.description && (
                                 <div className="pt-2">
-                                    <p className="text-[9px] uppercase tracking-wider text-gray-600 font-bold mb-1">Detalles del Diseño:</p>
-                                    <p className="italic text-[#4A4A4A] font-light whitespace-pre-wrap">{project.description}</p>
+                                    <p className="text-[9px] uppercase tracking-wider text-zinc-300 font-bold mb-1">Detalles del Diseño:</p>
+                                    <p className="italic text-zinc-200 font-light whitespace-pre-wrap">{project.description}</p>
                                 </div>
                             )}
                         </div>
@@ -284,24 +284,24 @@ export default function PortalNoviasContratoPage() {
                         <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
                             <DollarSign className="w-4 h-4" /> 3. Condiciones Económicas
                         </h3>
-                        <div className="overflow-x-auto border border-[#C17F5F]/20 rounded bg-[#FCFAF7]/95 backdrop-blur-md shadow-sm">
+                        <div className="overflow-x-auto border border-white/20 rounded bg-white/10 backdrop-blur-xl shadow-2xl">
                             <table className="w-full text-xs text-left">
                                 <thead>
-                                    <tr className="bg-[#FCFAF7]/90 border-b border-[#C17F5F]/20 text-gray-600 font-bold">
+                                    <tr className="bg-white/5 border-b border-white/10 text-white font-bold">
                                         <th className="p-3">Concepto</th>
                                         <th className="p-3 text-center">Porcentaje</th>
                                         <th className="p-3 text-right">Monto</th>
                                         <th className="p-3 text-right">Plazo de Pago</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-white/5">
+                                <tbody className="divide-y divide-white/5 text-white">
                                     {project.payment_plan?.cuotas && project.payment_plan.cuotas.length > 0 ? (
                                         project.payment_plan.cuotas.map((cuota: any, index: number) => (
                                             <tr key={index}>
-                                                <td className="p-3 font-semibold text-[#1A1A1A]">{cuota.name}</td>
+                                                <td className="p-3 font-semibold text-white">{cuota.name}</td>
                                                 <td className="p-3 text-center">{(((cuota.amount || cuota.monto || 0) / project.total_amount) * 100).toFixed(1)}%</td>
                                                 <td className="p-3 text-right font-bold text-[#C17F5F]">{formatCurrency(cuota.amount || cuota.monto || 0)}</td>
-                                                <td className="p-3 text-right text-gray-600">
+                                                <td className="p-3 text-right text-zinc-300">
                                                     {cuota.date ? formatSimpleDate(cuota.date) : (cuota.moment || `Cuota ${index + 1}`)}
                                                 </td>
                                             </tr>
@@ -309,10 +309,10 @@ export default function PortalNoviasContratoPage() {
                                     ) : project.work_order?.payment_plan?.cuotas && project.work_order.payment_plan.cuotas.length > 0 ? (
                                         project.work_order.payment_plan.cuotas.map((cuota: any, index: number) => (
                                             <tr key={index}>
-                                                <td className="p-3 font-semibold text-[#1A1A1A]">{cuota.name}</td>
+                                                <td className="p-3 font-semibold text-white">{cuota.name}</td>
                                                 <td className="p-3 text-center">{(((cuota.amount || cuota.monto || 0) / project.total_amount) * 100).toFixed(1)}%</td>
                                                 <td className="p-3 text-right font-bold text-[#C17F5F]">{formatCurrency(cuota.amount || cuota.monto || 0)}</td>
-                                                <td className="p-3 text-right text-gray-600">
+                                                <td className="p-3 text-right text-zinc-300">
                                                     {cuota.date ? formatSimpleDate(cuota.date) : (cuota.moment || `Cuota ${index + 1}`)}
                                                 </td>
                                             </tr>
@@ -320,26 +320,26 @@ export default function PortalNoviasContratoPage() {
                                     ) : (
                                         <>
                                             <tr>
-                                                <td className="p-3 font-semibold text-[#1A1A1A]">Abono Inicial (Reserva)</td>
+                                                <td className="p-3 font-semibold text-white">Abono Inicial (Reserva)</td>
                                                 <td className="p-3 text-center">50%</td>
                                                 <td className="p-3 text-right font-bold text-[#C17F5F]">{formatCurrency(project.payment_1_amount)}</td>
-                                                <td className="p-3 text-right text-gray-600">Al firmar propuesta</td>
+                                                <td className="p-3 text-right text-zinc-300">Al firmar propuesta</td>
                                             </tr>
                                             <tr>
-                                                <td className="p-3 text-[#4A4A4A]">Segundo Pago</td>
+                                                <td className="p-3 text-zinc-300">Segundo Pago</td>
                                                 <td className="p-3 text-center">25%</td>
                                                 <td className="p-3 text-right text-[#1A1A1A]">{formatCurrency(project.payment_2_amount)}</td>
-                                                <td className="p-3 text-right text-gray-600">En prueba intermedia</td>
+                                                <td className="p-3 text-right text-zinc-300">En prueba intermedia</td>
                                             </tr>
                                             <tr>
-                                                <td className="p-3 text-[#4A4A4A]">Pago Final</td>
+                                                <td className="p-3 text-zinc-300">Pago Final</td>
                                                 <td className="p-3 text-center">25%</td>
-                                                <td className="p-3 text-right text-[#1A1A1A]">{formatCurrency(project.payment_3_amount)}</td>
-                                                <td className="p-3 text-right text-gray-600">Contra entrega del vestido</td>
+                                                <td className="p-3 text-right text-white">{formatCurrency(project.payment_3_amount)}</td>
+                                                <td className="p-3 text-right text-zinc-300">Contra entrega del vestido</td>
                                             </tr>
                                         </>
                                     )}
-                                    <tr className="bg-[#FCFAF7]/90 font-bold border-t border-[#C17F5F]/20 text-[#1A1A1A]">
+                                    <tr className="bg-white/5 font-bold border-t border-white/20 text-white">
                                         <td className="p-3 text-sm" colSpan={2}>VALOR TOTAL</td>
                                         <td className="p-3 text-right text-sm text-[#C17F5F]">{formatCurrency(project.total_amount)}</td>
                                         <td></td>
@@ -357,15 +357,15 @@ export default function PortalNoviasContratoPage() {
                             </h3>
                             <div className="space-y-2 text-xs">
                                 {project.milestones.map((m: any, i: number) => (
-                                    <div key={m.id || i} className="flex justify-between items-center bg-[#FCFAF7]/95 backdrop-blur-md border border-[#C17F5F]/15 px-4 py-3 rounded shadow-sm">
+                                    <div key={m.id || i} className="flex justify-between items-center bg-white/10 backdrop-blur-xl border border-white/20 px-4 py-3 rounded shadow-2xl">
                                         <div className="flex items-center gap-3">
-                                            <span className="w-5 h-5 rounded-full bg-[#C17F5F] text-[#1A1A1A] text-[10px] flex items-center justify-center font-bold">{i + 1}</span>
-                                            <span className="font-semibold text-[#1A1A1A]">{m.title}</span>
+                                            <span className="w-5 h-5 rounded-full bg-[#C17F5F] text-white text-[10px] flex items-center justify-center font-bold">{i + 1}</span>
+                                            <span className="font-semibold text-white">{m.title}</span>
                                         </div>
                                         <span className="text-[#C17F5F] font-medium">{formatDate(m.scheduled_date)}</span>
                                     </div>
                                 ))}
-                                <p className="text-[10px] text-gray-500 italic mt-2">
+                                <p className="text-[10px] text-zinc-400 italic mt-2">
                                     * Las fechas de las pruebas son tentativas y coordinables con el atelier con al menos 48 horas de anticipación.
                                 </p>
                             </div>
@@ -377,26 +377,26 @@ export default function PortalNoviasContratoPage() {
                         <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
                             <ShieldAlert className="w-4 h-4" /> {project.milestones && project.milestones.length > 0 ? '5' : '4'}. Términos y Condiciones
                         </h3>
-                        <div className="text-[11px] text-gray-600 space-y-4 pr-2 bg-[#FCFAF7]/95 backdrop-blur-md border border-[#C17F5F]/15 rounded p-4 shadow-sm">
+                        <div className="text-[11px] text-zinc-300 space-y-4 pr-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded p-4 shadow-2xl">
                             <div>
-                                <h4 className="font-bold text-[#1A1A1A] mb-1">1. Tiempo de Fabricación</h4>
+                                <h4 className="font-bold text-white mb-1">1. Tiempo de Fabricación</h4>
                                 <p>Se tiene en conocimiento que el diseño, confección a medida y/o modificación de un vestido conlleva un proceso de meses y un trabajo artesanal meticuloso. Los tiempos de avance y entrega final dependerán estrictamente del cumplimiento del cronograma de pruebas establecido y de la puntual asistencia de la clienta a cada sesión.</p>
                             </div>
 
                             {project.service_type === 'bespoke' && (
                                 <div>
-                                    <h4 className="font-bold text-[#1A1A1A] mb-1">2. Diseño</h4>
+                                    <h4 className="font-bold text-white mb-1">2. Diseño</h4>
                                     <p>ATELIER HORTENSIA SPA se compromete a asesorar en todo el proceso de la búsqueda del diseño óptimo para la novia. La novia puede escoger el diseño, color, materiales y tela de fabricación del vestido. Si los materiales en la fábrica no se encuentran en stock, se buscarán los más similares a lo que el cliente quiere (Encajes, bordados, pedrería, flores, macramé, colores, etc.) previa aprobación.</p>
                                     <p className="mt-1"><strong>Posterior al proceso de diseño y solicitud de fabricación, no se pueden hacer cambios estructurales en el diseño del vestido.</strong></p>
                                 </div>
                             )}
 
                             <div>
-                                <h4 className="font-bold text-[#1A1A1A] mb-1">3. Solicitud y Pago</h4>
+                                <h4 className="font-bold text-white mb-1">3. Solicitud y Pago</h4>
                                 {(project.payment_plan?.cuotas || project.work_order?.payment_plan?.cuotas) ? (
                                     <>
                                         <p>Se acuerda con la clienta el pago del valor total contratado de <strong>{formatCurrency(project.total_amount)}</strong>, dividido en <strong>{(project.payment_plan?.cuotas || project.work_order?.payment_plan?.cuotas).length} {(project.payment_plan?.cuotas || project.work_order?.payment_plan?.cuotas).length === 1 ? 'pago' : 'pagos'}</strong>. El detalle del calendario de pagos es el especificado en la sección 3.</p>
-                                        <p className="text-[11px] text-gray-600 italic mt-2">Para el inicio del trabajo (Toma de Medidas y Diseño), las cuotas deben estar al día. El vestido será entregado única y exclusivamente una vez que se haya cancelado el 100% del valor total acordado.</p>
+                                        <p className="text-[11px] text-zinc-400 italic mt-2">Para el inicio del trabajo (Toma de Medidas y Diseño), las cuotas deben estar al día. El vestido será entregado única y exclusivamente una vez que se haya cancelado el 100% del valor total acordado.</p>
                                     </>
                                 ) : (
                                     <p>Al momento de la firma del contrato y confirmación del servicio, se debe cancelar el <strong>50%</strong> del valor total (Reserva). El <strong>25%</strong> restante se cancelará en la prueba intermedia y el último <strong>25%</strong> contra entrega. El vestido debe estar pagado en su totalidad (100%) al momento de retirarlo.</p>
@@ -405,15 +405,15 @@ export default function PortalNoviasContratoPage() {
                             </div>
 
                             <div>
-                                <h4 className="font-bold text-[#1A1A1A] mb-1">4. Ajustes y Protocolo de Pruebas</h4>
+                                <h4 className="font-bold text-white mb-1">4. Ajustes y Protocolo de Pruebas</h4>
                                 <p>Se realizarán pruebas calendarizadas previas a la entrega final para lograr el calce perfecto del vestido, aproximadamente un mes antes del día del matrimonio. Para ello debes asistir a la hora y fecha coordinada. <strong>Importante:</strong> Debes asistir sin maquillaje y con los accesorios, ropa interior y zapatos definitivos que usarás ese día para resguardar la pulcritud de los tejidos.</p>
                                 {(project.service_type === 'modificacion_tienda' || project.service_type === 'vestido_propio') && (
-                                    <p className="mt-1 text-gray-600">Al comenzar a realizar las modificaciones y cortes correspondientes, el vestido no podrá ser cambiado ni devuelto.</p>
+                                    <p className="mt-1 text-zinc-300">Al comenzar a realizar las modificaciones y cortes correspondientes, el vestido no podrá ser cambiado ni devuelto.</p>
                                 )}
                             </div>
 
                             <div>
-                                <h4 className="font-bold text-[#1A1A1A] mb-1">5. Cancelaciones, Suspensiones y Devoluciones</h4>
+                                <h4 className="font-bold text-white mb-1">5. Cancelaciones, Suspensiones y Devoluciones</h4>
                                 <p>ATELIER HORTENSIA SPA <strong>NO HACE DEVOLUCIÓN DE DINERO</strong> bajo ningún concepto. No se hace responsable en caso de suspensión o cancelación del matrimonio o evento, arrepentimiento de compra o embarazo.</p>
                                 <p className="mt-1">Si se suspende, cancela o cambia la fecha del evento, nos comprometemos a mantener el vestido resguardado en el atelier por un período <strong>máximo de 6 meses</strong>. Si cumplido este plazo el vestido no ha sido pagado en su 100% y/o no es retirado en dicha fecha, pasará a formar parte del stock de la tienda, perdiendo la clienta el derecho a reclamo o reembolso.</p>
                             </div>
@@ -424,7 +424,7 @@ export default function PortalNoviasContratoPage() {
                                     <p className="mb-2"><strong>6.1. Declaración del Estado del Producto:</strong> El Cliente declara y reconoce de forma expresa que el vestido de novia entregado para la prestación del servicio de Upcycling es una prenda usada y presenta, al momento de su recepción, desgastes naturales por el uso, detalles estructurales y/o manchas preexistentes (de origen orgánico, químico o sintético).</p>
                                     
                                     <p className="mb-2"><strong>6.2. Exención de Responsabilidad:</strong> La Empresa deja constancia de que los procesos de transformación, confección y limpieza necesarios para el Upcycling pueden reaccionar de manera imprevista ante dichas condiciones preexistentes. Por lo tanto, la Empresa queda totalmente exenta de cualquier responsabilidad civil, comercial o de cualquier otra índole por:</p>
-                                    <ul className="list-disc pl-5 mb-2 space-y-1 text-[#4A4A4A]">
+                                    <ul className="list-disc pl-5 mb-2 space-y-1 text-zinc-300">
                                         <li>El empeoramiento, fijación o alteración de las manchas ya existentes durante los procesos técnicos de costura o tratamiento.</li>
                                         <li>El comportamiento o resistencia de las telas, encajes o pedrería que ya presentaran desgaste o fatiga material previa.</li>
                                         <li>Los resultados estéticos finales que se deriven directamente de las condiciones iniciales en que fue entregada la prenda.</li>
@@ -438,7 +438,7 @@ export default function PortalNoviasContratoPage() {
 
                     {/* Materials Notes */}
                     {project.materials_notes && (
-                        <div className="bg-[#F5F5F0]/80 border border-[#C17F5F]/20 rounded p-4 text-xs text-[#4A4A4A]">
+                        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded p-4 text-xs text-zinc-300 shadow-2xl">
                             <p className="font-bold text-[#C17F5F] mb-1.5 uppercase tracking-wider text-[10px]">Materiales Comprometidos / Detalles de Diseño:</p>
                             <p className="whitespace-pre-wrap font-light leading-relaxed">
                                 {project.materials_notes.replace(/!\[Referencia(?: \d+)?\]\((data:image\/[^;]+;base64,[^\)]+)\)/g, '').trim()}
@@ -455,7 +455,7 @@ export default function PortalNoviasContratoPage() {
 
                     {/* Additional Notes */}
                     {project.contract_notes && (
-                        <div className="bg-amber-50 border border-amber-200 rounded p-4 text-xs text-amber-900">
+                        <div className="bg-amber-950/20 border border-amber-500/20 rounded p-4 text-xs text-amber-200 backdrop-blur-md">
                             <p className="font-bold mb-1">Acuerdos Adicionales:</p>
                             <p className="italic whitespace-pre-wrap font-light">{project.contract_notes}</p>
                         </div>
@@ -467,7 +467,7 @@ export default function PortalNoviasContratoPage() {
                 <div className="max-w-xl mx-auto text-center space-y-6">
                     
                     {project.contract_accepted ? (
-                        <div className="p-4 bg-[#C17F5F]/5 border border-[#C17F5F]/20 text-zinc-700 rounded text-xs tracking-wide">
+                        <div className="p-4 bg-[#C17F5F]/5 border border-[#C17F5F]/20 text-zinc-300 rounded text-xs tracking-wide">
                             <span className="text-[#C17F5F] font-bold mr-2">✓</span>
                             Propuesta y contrato aceptados formalmente el {formatDate(project.contract_accepted_at)}.
                         </div>
@@ -475,12 +475,12 @@ export default function PortalNoviasContratoPage() {
                         <button 
                             type="button"
                             onClick={() => setAccepted(!accepted)}
-                            className="flex items-center justify-center gap-3 mx-auto text-xs text-[#4A4A4A] hover:text-[#C17F5F] cursor-pointer select-none"
+                            className="flex items-center justify-center gap-3 mx-auto text-xs text-zinc-300 hover:text-[#C17F5F] cursor-pointer select-none"
                         >
                             {accepted ? (
                                 <CheckSquare className="w-5 h-5 text-[#C17F5F]" />
                             ) : (
-                                <Square className="w-5 h-5 text-gray-500" />
+                                <Square className="w-5 h-5 text-zinc-500" />
                             )}
                             <span>Declaro que he leído la propuesta, el presupuesto y acepto las condiciones del servicio.</span>
                         </button>
@@ -488,8 +488,8 @@ export default function PortalNoviasContratoPage() {
 
                     <div className="pt-2">
                         {!project.contract_accepted && (
-                            <div className="mb-8 p-4 border border-[#C17F5F]/20 bg-gradient-to-br from-[#C17F5F]/10 to-transparent rounded text-left shadow-lg">
-                                <p className="text-[10px] text-[#4A4A4A] font-light leading-relaxed">
+                            <div className="mb-8 p-4 border border-white/20 bg-white/5 backdrop-blur-md rounded text-left shadow-lg">
+                                <p className="text-[10px] text-zinc-300 font-light leading-relaxed">
                                     <span className="font-bold text-[#C17F5F] uppercase tracking-[0.15em] block mb-1.5 flex items-center gap-2">
                                         <span className="w-1.5 h-1.5 rounded-full bg-[#C17F5F]"></span>
                                         Confirmación y Exclusividad de Agenda
