@@ -176,20 +176,17 @@ export default function PortalNoviasContratoPage() {
                 </div>
             )}
 
-            <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans py-12 px-4 md:px-6 relative overflow-hidden print:hidden" style={{ backgroundImage: "url('/novia/Novia Elegante 1.webp'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
+            <div className="min-h-screen bg-black text-[#F5F5F0] font-sans py-12 px-4 md:px-6 relative overflow-hidden print:hidden" style={{ backgroundImage: "url('/novia/Novia Elegante 1.webp')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
                 
-                {/* Overlay para reducir opacidad de imagen de fondo */}
-                <div className="fixed inset-0 bg-white/85 z-0 pointer-events-none" />
-
                 <div className="w-full max-w-3xl mx-auto relative z-10">
                     {/* Logo */}
                     <div className="text-center mb-8">
                         <div className="flex flex-col items-stretch justify-center w-max mx-auto">
-                            <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-[#1A1A1A] leading-none drop-shadow-sm">
+                            <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-white leading-none drop-shadow-sm">
                                 <span>E</span><span>L</span><span>E</span><span>N</span><span>A</span>
                             </div>
                             <div
-                                className="font-sans text-[0.65rem] md:text-[0.75rem] font-bold uppercase text-[#1A1A1A]/70 mt-1 text-center"
+                                className="font-sans text-[0.65rem] md:text-[0.75rem] font-bold uppercase text-white/70 mt-1 text-center"
                                 style={{ letterSpacing: '0.35em', marginRight: '-0.35em' }}
                             >
                                 La Costurera
