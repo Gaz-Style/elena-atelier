@@ -47,23 +47,23 @@ export default function FiestaInductionPage() {
     const customerName = project.customers?.full_name?.split(' ')[0] || 'Clienta';
 
     return (
-        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] flex flex-col items-center justify-center p-4 sm:p-8 relative">
+        <div className="min-h-screen bg-[#111111] text-[#F5F5F0] flex flex-col items-center justify-center p-4 sm:p-8 relative">
             
             {/* Elegant Header */}
             <div className="absolute top-8 left-0 w-full text-center z-10 px-4">
                 <p className="text-[#C17F5F] text-[10px] uppercase tracking-[4px] font-bold mb-2">
                     BIENVENIDA A LA EXPERIENCIA
                 </p>
-                <h1 className="font-serif text-3xl md:text-4xl italic text-[#1A1A1A]/90">
+                <h1 className="font-serif text-3xl md:text-4xl italic text-[#F5F5F0]/90">
                     Hola, {customerName}
                 </h1>
             </div>
 
             {/* Video Container - formato vertical 9:16 */}
-            <div className="w-full max-w-sm mx-auto rounded-xl overflow-hidden shadow-[0_20px_60px_rgba(193,127,95,0.08)] shadow-[#C17F5F]/10 border border-[#C17F5F]/20 bg-[#FCFAF7] mt-20 relative z-20 group">
+            <div className="w-full max-w-sm mx-auto rounded-xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-[#C17F5F]/30 bg-black mt-20 relative z-20 group">
                 <video 
                      controls
-                     className="w-full aspect-[9/16] object-contain bg-[#FCFAF7]"
+                     className="w-full aspect-[9/16] object-contain bg-black"
                      poster="/trabajos/novia 2.jpeg"
                      onPlay={(e) => {
                           const target = e.target as HTMLVideoElement;
@@ -87,13 +87,13 @@ export default function FiestaInductionPage() {
                 </video>
                  
                 {/* Text Overlay on Poster */}
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 bg-[#FCFAF7]/45 backdrop-blur-[1px] transition-opacity duration-500">
-                    <div className="border border-[#C17F5F]/30 bg-white/95 p-6 rounded-lg backdrop-blur-md shadow-[0_20px_50px_rgba(193,127,95,0.08)] text-center max-w-[90%] transform transition-transform">
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 bg-black/60 backdrop-blur-[1px] transition-opacity duration-500">
+                    <div className="border border-[#C17F5F]/30 bg-[#1A1A1A]/95 p-6 rounded-lg backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.5)] text-center max-w-[90%] transform transition-transform">
                         <div className="w-12 h-12 rounded-full border border-[#C17F5F]/30 bg-[#C17F5F]/10 flex items-center justify-center mx-auto mb-4">
                             <Play className="w-4 h-4 text-[#C17F5F] fill-[#C17F5F]" />
                         </div>
-                        <h3 className="font-serif italic text-xl text-[#1A1A1A] mb-3">Tu Prenda de Gala</h3>
-                        <p className="text-gray-600 font-light text-[11px] leading-relaxed tracking-wide">
+                        <h3 className="font-serif italic text-xl text-[#F5F5F0] mb-3">Tu Prenda de Gala</h3>
+                        <p className="text-zinc-400 font-light text-[11px] leading-relaxed tracking-wide">
                             Como parte del proceso, hemos preparado este breve video explicativo sobre el paso a paso del servicio. 
                             Te pedimos revisarlo para saber qué es lo que viene a continuación y guiarte fácilmente dentro de tu portal.
                         </p>
@@ -108,15 +108,15 @@ export default function FiestaInductionPage() {
             <div className="mt-12 mb-8 z-10 flex flex-col items-center text-center">
                 <Link 
                     href={`/portal-fiesta/${params.id}`}
-                    className="inline-flex items-center gap-3 bg-[#FCFAF7]/80 hover:bg-[#C17F5F] border border-[#C17F5F] text-[#C17F5F] hover:text-white px-8 py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all group"
+                    className="inline-flex items-center gap-3 bg-[#C17F5F] hover:bg-[#a96e51] border border-[#C17F5F] text-white px-8 py-4 rounded text-xs font-bold uppercase tracking-[0.2em] transition-all group shadow-lg"
                 >
                     {project?.contract_accepted ? 'Ir a mi Portal' : 'Comenzar Registro'} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
             </div>
             
             {/* Decorative background gradients */}
-            <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#C17F5F]/5 blur-[120px] rounded-full pointer-events-none z-0"></div>
-            <div className="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#C17F5F]/5 blur-[120px] rounded-full pointer-events-none z-0"></div>
+            <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#C17F5F]/10 blur-[120px] rounded-full pointer-events-none z-0"></div>
+            <div className="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#C17F5F]/10 blur-[120px] rounded-full pointer-events-none z-0"></div>
         </div>
     );
 }
