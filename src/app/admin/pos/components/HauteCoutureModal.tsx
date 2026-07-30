@@ -32,42 +32,45 @@ export function HauteCoutureModal({ isOpen, onClose, onAddToCart }: { isOpen: bo
         }
     }, [isOpen]);
 
-    // Financial Calculations (Real margin calculation)
-    const { laborBase, difficultySurcharge, fabricRisk, fabricCostCharged, extrasTotal, subtotal, calculatedPrice, marginAmount, effectiveHourlyRate } = useMemo(() => {
-        const lBase = hours * hourlyRate;
-        const diffSurcharge = (lBase * fabricMultiplier) - lBase;
+    // Financial Calculations (Real margin calculation, rounded to nearest 1000 CLP)
+    const { laborBase, difficultySurcharge, fabricRisk, fabricCostCharged, extrasTotal, subtotal, calculatedPrice, marginAmount } = useMemo(() => {
+        const roundToThousand = (val: number) => Math.round(val / 1000) * 1000;
+
+        const lBase = roundToThousand(hours * hourlyRate);
+        
+        // Surcharges
+        const diffSurcharge = roundToThousand((hours * hourlyRate * fabricMultiplier) - (hours * hourlyRate));
 
         let risk = 0;
         let charged = 0;
 
         if (fabricProvidedBy === 'Cliente') {
-            // Client fabric: charge 10% risk fee for manipulation if value is >= 100,000 CLP
             risk = fabricCost >= 100000 ? fabricCost * 0.10 : 0;
         } else {
-            // Workshop fabric: charge fabric cost + 5% handling risk
             charged = fabricCost;
             risk = fabricCost * 0.05;
         }
 
-        const extTotal = insumosCost + fittingCost;
-        const sub = lBase + diffSurcharge + risk + charged + extTotal;
+        risk = roundToThousand(risk);
+        charged = roundToThousand(charged);
+
+        const extTotal = roundToThousand(insumosCost + fittingCost);
+        const sub = roundToThousand(lBase + diffSurcharge + risk + charged + extTotal);
 
         // True margin formula: total = subtotal / (1 - margin%)
-        const total = marginPercentage < 100 ? Math.round(sub / (1 - (marginPercentage / 100))) : sub;
-        const mAmount = total - sub;
-
-        const effRate = hours > 0 ? (total - charged) / hours : 0;
+        const rawTotal = marginPercentage < 100 ? sub / (1 - (marginPercentage / 100)) : sub;
+        const total = roundToThousand(rawTotal);
+        const mAmount = roundToThousand(total - sub);
 
         return {
-            laborBase: Math.round(lBase),
-            difficultySurcharge: Math.round(diffSurcharge),
-            fabricRisk: Math.round(risk),
-            fabricCostCharged: Math.round(charged),
-            extrasTotal: Math.round(extTotal),
-            subtotal: Math.round(sub),
-            calculatedPrice: Math.round(total),
-            marginAmount: Math.round(mAmount),
-            effectiveHourlyRate: Math.round(effRate)
+            laborBase: lBase,
+            difficultySurcharge: diffSurcharge,
+            fabricRisk: risk,
+            fabricCostCharged: charged,
+            extrasTotal: extTotal,
+            subtotal: sub,
+            calculatedPrice: total,
+            marginAmount: mAmount
         };
     }, [hours, hourlyRate, fabricMultiplier, fabricCost, fabricProvidedBy, insumosCost, fittingCost, marginPercentage]);
 
@@ -256,10 +259,6 @@ export function HauteCoutureModal({ isOpen, onClose, onAddToCart }: { isOpen: bo
                             <span className="text-[10px] uppercase font-bold tracking-widest text-[#C17F5F] block">Total a Cobrar</span>
                             <div className="text-3xl font-serif font-black text-[#1A1A1A]">
                                 {formatCurrency(customPriceInput ? Number(customPriceInput.replace(/\D/g, '')) : calculatedPrice)}
-                            </div>
-                            <div className="pt-2 border-t border-zinc-200 flex justify-between text-xs text-zinc-500">
-                                <span>Tarifa Real / Hora:</span>
-                                <span className="font-semibold text-zinc-700">{formatCurrency(effectiveHourlyRate)} / hr</span>
                             </div>
                         </div>
 
