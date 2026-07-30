@@ -47,7 +47,7 @@ export default function FiestaInductionPage() {
     const customerName = project.customers?.full_name?.split(' ')[0] || 'Clienta';
 
     return (
-        <div className="min-h-screen bg-[#111111] text-[#F5F5F0] flex flex-col items-center justify-center p-4 sm:p-8 relative">
+        <div className="min-h-screen bg-black text-[#F5F5F0] flex flex-col items-center justify-center p-4 sm:p-8 relative" style={{ backgroundImage: "url('/novia/fondo_fiesta.webp')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
             
             {/* Elegant Header */}
             <div className="absolute top-8 left-0 w-full text-center z-10 px-4">
