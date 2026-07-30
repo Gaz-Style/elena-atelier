@@ -174,7 +174,7 @@ export default function PortalFiestaContratoPage() {
             <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans py-12 px-4 md:px-6 relative overflow-hidden print:hidden" style={{ backgroundImage: "url('/gala.webp'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
 
                 {/* Overlay para reducir opacidad de imagen de fondo y asegurar legibilidad */}
-                <div className="fixed inset-0 bg-white/70 z-0 pointer-events-none" />
+                <div className="fixed inset-0 bg-white/85 z-0 pointer-events-none" />
 
                 <div className="w-full max-w-3xl mx-auto relative z-10">
                     <div className="text-center mb-8">
@@ -192,8 +192,8 @@ export default function PortalFiestaContratoPage() {
                     </div>
 
                     <div className="text-center mb-8">
-                        <h2 className="font-serif text-2xl text-[#1A1A1A] mb-2 italic">Propuesta y Presupuesto</h2>
-                        <p className="text-xs text-gray-600 max-w-md mx-auto mb-6">
+                        <h2 className="font-serif text-2xl text-[#1A1A1A] mb-2 italic" style={{ textShadow: '0 1px 4px rgba(255, 255, 255, 0.8)' }}>Propuesta y Presupuesto</h2>
+                        <p className="text-xs text-gray-600 max-w-md mx-auto mb-6" style={{ textShadow: '0 1px 4px rgba(255, 255, 255, 0.8)' }}>
                             Por favor revisa detenidamente el presupuesto, cronograma y condiciones del servicio a continuación. Debes aceptar los términos para proceder a la reserva de tu cupo.
                         </p>
                         <button
@@ -216,7 +216,7 @@ export default function PortalFiestaContratoPage() {
                         
                         {/* Header Details */}
                         <div className="text-center border-b border-[#C17F5F]/20 pb-6">
-                            <h2 className="font-serif text-xl text-[#C17F5F] tracking-wider uppercase">PROPUESTA DE SERVICIO</h2>
+                            <h2 className="font-serif text-xl text-[#C17F5F] tracking-wider uppercase" style={{ textShadow: '0 1px 4px rgba(255, 255, 255, 0.8)' }}>PROPUESTA DE SERVICIO</h2>
                             <p className="text-[9px] text-gray-500 uppercase tracking-widest mt-1">Elena Atelier — Vitacura, Chile</p>
                         </div>
 
