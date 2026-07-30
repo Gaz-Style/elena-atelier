@@ -182,11 +182,11 @@ export default function PortalNoviasContratoPage() {
                     {/* Logo */}
                     <div className="text-center mb-8">
                         <div className="flex flex-col items-stretch justify-center w-max mx-auto">
-                            <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-white leading-none drop-shadow-sm">
+                            <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-[#1A1A1A] leading-none drop-shadow-sm">
                                 <span>E</span><span>L</span><span>E</span><span>N</span><span>A</span>
                             </div>
                             <div
-                                className="font-sans text-[0.65rem] md:text-[0.75rem] font-bold uppercase text-white/70 mt-1 text-center"
+                                className="font-sans text-[0.65rem] md:text-[0.75rem] font-bold uppercase text-[#1A1A1A]/80 mt-1 text-center"
                                 style={{ letterSpacing: '0.35em', marginRight: '-0.35em' }}
                             >
                                 La Costurera
@@ -195,8 +195,8 @@ export default function PortalNoviasContratoPage() {
                     </div>
 
                     <div className="text-center mb-8">
-                        <h2 className="font-serif text-2xl text-[#1A1A1A] mb-2 italic" style={{ textShadow: '0 1px 4px rgba(255, 255, 255, 0.8)' }}>Propuesta y Presupuesto</h2>
-                        <p className="text-xs text-gray-600 max-w-md mx-auto mb-6" style={{ textShadow: '0 1px 4px rgba(255, 255, 255, 0.8)' }}>
+                        <h2 className="font-serif text-2xl text-white mb-2 italic" style={{ textShadow: '0 2px 8px rgba(0, 0, 0, 0.95)' }}>Propuesta y Presupuesto</h2>
+                        <p className="text-xs text-white max-w-md mx-auto mb-6" style={{ textShadow: '0 1.5px 6px rgba(0, 0, 0, 0.95)' }}>
                             Por favor revisa detenidamente el presupuesto, cronograma y condiciones del servicio a continuación. Debes aceptar los términos para proceder a la reserva de tu cupo.
                         </p>
                         <button
