@@ -110,8 +110,11 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
         cardBgUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGUlEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAA8F8bGgABxZqVdgAAAABJRU5ErkJggg==';
     }
 
-    try {
-        await transporter.sendMail({
+    const promises = [];
+
+    // 1. Correo al cliente
+    promises.push(
+        transporter.sendMail({
             from: `"ELENA La Costurera" <${fromAddress}>`,
             to: correo,
             subject: 'Confirmación de Cita — ELENA La Costurera',
@@ -226,25 +229,37 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
   </div>
 </body>
 </html>`
-        });
-        
-        // Notificación interna a Elena
-        await transporter.sendMail({
+        }).then(info => {
+            console.log('Correo cliente enviado exitosamente:', info.messageId);
+        }).catch(err => {
+            console.error('Error al enviar correo de confirmación de cita al cliente:', err);
+        })
+    );
+    
+    // 2. Notificación interna a Elena
+    promises.push(
+        transporter.sendMail({
             from: `"Atelier Bot" <${process.env.SMTP_USER}>`,
             to: process.env.SMTP_USER,
             subject: `NUEVA CITA: ${nombre} ${apellido} - ${fechaLegible} ${horaLegible}`,
             text: `Se ha agendado una nueva cita:\nNombre: ${nombre} ${apellido}\nCelular: ${celular}\nCorreo: ${correo}\nFecha: ${fechaLegible} a las ${horaLegible}`
-        });
+        }).then(info => {
+            console.log('Correo interno de alerta enviado exitosamente:', info.messageId);
+        }).catch(err => {
+            console.error('Error al enviar correo interno de alerta:', err);
+        })
+    );
 
-        // Notificación por WhatsApp a encargados
-        const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
-        const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
-        if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
-            const numerosEncargados = ['56984021940', '56937667709'];
-            const mensajeWsp = `🔔 *Nueva Cita Agendada*\n\n*Cliente:* ${nombre} ${apellido}\n*Fecha:* ${fechaLegible}\n*Hora:* ${horaLegible}\n*Tel:* ${celular}`;
-            
-            for (const numeroEncargado of numerosEncargados) {
-                const resp = await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+    // 3. Notificaciones por WhatsApp
+    const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+    const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
+    if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
+        const numerosEncargados = ['56984021940', '56937667709'];
+        const mensajeWsp = `🔔 *Nueva Cita Agendada*\n\n*Cliente:* ${nombre} ${apellido}\n*Fecha:* ${fechaLegible}\n*Hora:* ${horaLegible}\n*Tel:* ${celular}`;
+        
+        for (const numeroEncargado of numerosEncargados) {
+            promises.push(
+                fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
@@ -268,16 +283,21 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
                             }]
                         }
                     })
-                });
-                const data = await resp.json();
-                console.log(`WhatsApp Encargado (${numeroEncargado}):`, data);
-            }
-            
-            // Notificación por WhatsApp al CLIENTE
-            if (celular) {
-                const cleanPhone = celular.replace(/\D/g, '');
-                const finalPhone = cleanPhone.startsWith('56') ? cleanPhone : `56${cleanPhone}`;
-                const respClient = await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+                }).then(async (resp) => {
+                    const data = await resp.json();
+                    console.log(`WhatsApp Encargado (${numeroEncargado}):`, data);
+                }).catch(err => {
+                    console.error(`Error al enviar WhatsApp de alerta a encargado (${numeroEncargado}):`, err);
+                })
+            );
+        }
+        
+        // Notificación por WhatsApp al CLIENTE
+        if (celular) {
+            const cleanPhone = celular.replace(/\D/g, '');
+            const finalPhone = cleanPhone.startsWith('56') ? cleanPhone : `56${cleanPhone}`;
+            promises.push(
+                fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
@@ -300,13 +320,20 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
                             }]
                         }
                     })
-                });
-                const dataClient = await respClient.json();
-                console.log(`WhatsApp Cliente (${finalPhone}):`, dataClient);
-            }
+                }).then(async (resp) => {
+                    const dataClient = await resp.json();
+                    console.log(`WhatsApp Cliente (${finalPhone}):`, dataClient);
+                }).catch(err => {
+                    console.error(`Error al enviar WhatsApp de confirmación al cliente (${finalPhone}):`, err);
+                })
+            );
         }
+    }
+
+    try {
+        await Promise.allSettled(promises);
     } catch (mailError) {
-        console.error('Error enviando correos:', mailError);
+        console.error('Error enviando notificaciones en paralelo:', mailError);
     }
 }
 
