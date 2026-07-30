@@ -178,6 +178,9 @@ export default function PortalNoviasContratoPage() {
 
             <div className="min-h-screen bg-black text-[#F5F5F0] font-sans py-12 px-4 md:px-6 relative overflow-hidden print:hidden" style={{ backgroundImage: "url('/novia/Novia Elegante 1.webp')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
                 
+                {/* Máscara oscura suave para el fondo */}
+                <div className="fixed inset-0 bg-black/25 z-0 pointer-events-none" />
+
                 <div className="w-full max-w-3xl mx-auto relative z-10">
                     {/* Logo */}
                     <div className="text-center mb-8">
