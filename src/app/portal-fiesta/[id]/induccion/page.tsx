@@ -86,14 +86,29 @@ export default function FiestaInductionPage() {
                      Tu navegador no soporta la etiqueta de video.
                 </video>
                  
-                {/* Text Overlay on Poster */}
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 bg-black/60 backdrop-blur-[1px] transition-opacity duration-500">
-                    <div className="border border-[#C17F5F]/30 bg-[#1A1A1A]/95 p-6 rounded-lg backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.5)] text-center max-w-[90%] transform transition-transform">
-                        <div className="w-12 h-12 rounded-full border border-[#C17F5F]/30 bg-[#C17F5F]/10 flex items-center justify-center mx-auto mb-4">
+                {/* Text Overlay on Poster — Glassmorphism */}
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6 backdrop-blur-[2px] transition-opacity duration-500">
+                    <div
+                        className="text-center max-w-[90%] transform transition-transform rounded-2xl p-6"
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.08)',
+                            backdropFilter: 'blur(18px)',
+                            WebkitBackdropFilter: 'blur(18px)',
+                            border: '1px solid rgba(255, 255, 255, 0.18)',
+                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.12)',
+                        }}
+                    >
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
+                            style={{
+                                background: 'rgba(193, 127, 95, 0.18)',
+                                border: '1px solid rgba(193, 127, 95, 0.45)',
+                                backdropFilter: 'blur(8px)',
+                            }}
+                        >
                             <Play className="w-4 h-4 text-[#C17F5F] fill-[#C17F5F]" />
                         </div>
-                        <h3 className="font-serif italic text-xl text-[#F5F5F0] mb-3">Tu Prenda de Gala</h3>
-                        <p className="text-zinc-400 font-light text-[11px] leading-relaxed tracking-wide">
+                        <h3 className="font-serif italic text-xl text-white mb-3" style={{ textShadow: '0 1px 6px rgba(0,0,0,0.6)' }}>Tu Prenda de Gala</h3>
+                        <p className="text-white/75 font-light text-[11px] leading-relaxed tracking-wide" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
                             Como parte del proceso, hemos preparado este breve video explicativo sobre el paso a paso del servicio. 
                             Te pedimos revisarlo para saber qué es lo que viene a continuación y guiarte fácilmente dentro de tu portal.
                         </p>
