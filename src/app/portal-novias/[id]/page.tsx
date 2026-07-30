@@ -177,16 +177,28 @@ export default function PortalNoviasPage() {
     if (!isContractAccepted) {
         // RENDER: Formulario de bienvenida (Onboarding)
         return (
-            <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)" }}>
+            <div className="min-h-screen text-white font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden"
+                style={{
+                    backgroundImage: "url('/novia/fondo_novia.webp')",
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundAttachment: 'fixed',
+                    backgroundColor: '#0d0d0d',
+                }}
+            >
+                {/* Soft dark scrim */}
+                <div className="fixed inset-0 bg-black/30 z-0 pointer-events-none" />
+
                 <div className="w-full max-w-2xl relative z-10">
                     <div className="text-center mb-12">
                         <div className="flex flex-col items-stretch justify-center w-max mx-auto">
-                            <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-[#1A1A1A] leading-none drop-shadow-sm">
+                            <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-white leading-none drop-shadow-lg" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.6)' }}>
                                 <span>E</span><span>L</span><span>E</span><span>N</span><span>A</span>
                             </div>
                             <div
-                                className="font-sans text-[0.65rem] md:text-[0.75rem] font-bold uppercase text-[#1A1A1A]/70 mt-1 text-center"
-                                style={{ letterSpacing: '0.35em', marginRight: '-0.35em' }}
+                                className="font-sans text-[0.65rem] md:text-[0.75rem] font-bold uppercase text-white/70 mt-1 text-center"
+                                style={{ letterSpacing: '0.35em', marginRight: '-0.35em', textShadow: '0 1px 6px rgba(0,0,0,0.5)' }}
                             >
                                 La Costurera
                             </div>
