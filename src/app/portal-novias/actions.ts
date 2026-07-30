@@ -60,22 +60,31 @@ export async function loginBridalPortal(email: string, rutBody: string) {
             return { success: false, error: 'Credenciales inválidas' };
         }
         
-        // Find the latest active bridal project for this customer
+        // Find ALL active projects for this customer (any type)
         const { data: projects, error: projectsError } = await supabase
             .from('bridal_projects')
-            .select('id, project_type')
+            .select('id, project_type, created_at')
             .eq('customer_id', matchedCustomer.id)
-            .order('created_at', { ascending: false })
-            .limit(1);
+            .order('created_at', { ascending: false });
             
         if (projectsError || !projects || projects.length === 0) {
             return { success: false, error: 'No tienes un proyecto activo' };
         }
         
-        const projectId = projects[0].id;
-        const projectType = projects[0].project_type;
+        // If only one project, redirect directly (original behavior)
+        if (projects.length === 1) {
+            const projectId = projects[0].id;
+            const projectType = projects[0].project_type;
+            return { success: true, projectId, projectType, projects: null };
+        }
         
-        return { success: true, projectId, projectType };
+        // Multiple projects: return all so the UI can show a selector
+        return { 
+            success: true, 
+            projectId: null, 
+            projectType: null, 
+            projects: projects.map(p => ({ id: p.id, project_type: p.project_type }))
+        };
         
     } catch (e: any) {
         console.error('Login error:', e);

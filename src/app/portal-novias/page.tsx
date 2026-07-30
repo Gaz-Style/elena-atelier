@@ -2,8 +2,16 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, ArrowRight, Sparkles, Lock } from 'lucide-react';
+import { Loader2, ArrowRight, Sparkles, Lock, Heart, Crown, GraduationCap, PartyPopper, ChevronRight } from 'lucide-react';
 import { loginBridalPortal } from './actions';
+
+// Label config per project type
+const projectTypeConfig: Record<string, { label: string; sublabel: string; icon: any; portal: string }> = {
+    novia:      { label: 'Vestido de Novia',       sublabel: 'Portal Novias',        icon: Heart,          portal: 'portal-novias' },
+    madrina:    { label: 'Vestido de Madrina',      sublabel: 'Portal Fiesta & Gala', icon: Crown,          portal: 'portal-fiesta' },
+    graduacion: { label: 'Vestido de Graduación',   sublabel: 'Portal Fiesta & Gala', icon: GraduationCap,  portal: 'portal-fiesta' },
+    fiesta:     { label: 'Prenda de Fiesta',        sublabel: 'Portal Fiesta & Gala', icon: PartyPopper,    portal: 'portal-fiesta' },
+};
 
 export default function BridalPortalLoginPage() {
     const router = useRouter();
@@ -11,6 +19,8 @@ export default function BridalPortalLoginPage() {
     const [rut, setRut] = useState('');
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+    // Multi-project selector state
+    const [projects, setProjects] = useState<{ id: string; project_type: string }[] | null>(null);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -19,12 +29,18 @@ export default function BridalPortalLoginPage() {
 
         try {
             const res = await loginBridalPortal(email, rut);
-            if (res.success && res.projectId) {
-                // Redirect dynamically based on project type
-                if (res.projectType && ['madrina', 'graduacion', 'fiesta'].includes(res.projectType)) {
-                    router.push(`/portal-fiesta/${res.projectId}`);
-                } else {
-                    router.push(`/portal-novias/${res.projectId}`);
+            if (res.success) {
+                if (res.projects && res.projects.length > 1) {
+                    // Multiple projects — show selector screen
+                    setProjects(res.projects);
+                    setLoading(false);
+                } else if (res.projectId) {
+                    // Single project — redirect directly
+                    if (res.projectType && ['madrina', 'graduacion', 'fiesta'].includes(res.projectType)) {
+                        router.push(`/portal-fiesta/${res.projectId}`);
+                    } else {
+                        router.push(`/portal-novias/${res.projectId}`);
+                    }
                 }
             } else {
                 setErrorMsg(res.error || 'Credenciales inválidas');
@@ -36,12 +52,95 @@ export default function BridalPortalLoginPage() {
         }
     };
 
+    // ─── Project Selector Screen ───────────────────────────────────────────────
+    if (projects) {
+        return (
+            <div
+                className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden"
+                style={{ backgroundImage: 'radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)' }}
+            >
+                <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#C17F5F]/10 blur-[120px] rounded-full pointer-events-none z-0" />
+                <div className="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#C17F5F]/10 blur-[120px] rounded-full pointer-events-none z-0" />
+
+                <div className="w-full max-w-md relative z-10">
+                    {/* Logo */}
+                    <div className="text-center mb-12">
+                        <div className="flex flex-col items-stretch justify-center w-max mx-auto">
+                            <div className="flex justify-between w-full font-serif text-3xl font-black uppercase text-[#1A1A1A] leading-none drop-shadow-sm">
+                                <span>E</span><span>L</span><span>E</span><span>N</span><span>A</span>
+                            </div>
+                            <div
+                                className="font-sans text-[0.75rem] font-bold uppercase text-[#4A4A4A] mt-1 text-center"
+                                style={{ letterSpacing: '0.45em', marginRight: '-0.45em' }}
+                            >
+                                La Costurera
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white/90 backdrop-blur-md rounded-lg shadow-[0_20px_60px_rgba(193,127,95,0.08)] p-8 border border-[#C17F5F]/20">
+                        {/* Header */}
+                        <div className="text-center mb-8">
+                            <div className="text-[#C17F5F] mb-3 text-[10px] tracking-widest uppercase flex items-center justify-center gap-2">
+                                <Sparkles className="w-3.5 h-3.5" /> Múltiples Proyectos Activos
+                            </div>
+                            <h2 className="font-serif text-2xl text-[#1A1A1A] mb-2 italic">¿A qué portal deseas ingresar?</h2>
+                            <p className="text-xs text-gray-500 font-light">
+                                Tienes {projects.length} proyectos activos. Selecciona el que quieras revisar.
+                            </p>
+                        </div>
+
+                        {/* Project cards */}
+                        <div className="space-y-3">
+                            {projects.map((p) => {
+                                const config = projectTypeConfig[p.project_type] ?? {
+                                    label: p.project_type,
+                                    sublabel: 'Portal',
+                                    icon: Heart,
+                                    portal: 'portal-novias',
+                                };
+                                const Icon = config.icon;
+                                return (
+                                    <button
+                                        key={p.id}
+                                        onClick={() => router.push(`/${config.portal}/${p.id}`)}
+                                        className="w-full flex items-center gap-4 p-5 rounded-lg border border-[#C17F5F]/20 hover:border-[#C17F5F] hover:bg-[#C17F5F]/5 transition-all group text-left"
+                                    >
+                                        <div className="w-11 h-11 rounded-full border border-[#C17F5F]/30 bg-[#C17F5F]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#C17F5F]/20 transition-colors">
+                                            <Icon className="w-5 h-5 text-[#C17F5F]" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-semibold text-sm text-[#1A1A1A]">{config.label}</p>
+                                            <p className="text-[10px] text-[#C17F5F] uppercase tracking-wider mt-0.5">{config.sublabel}</p>
+                                        </div>
+                                        <ChevronRight className="w-4 h-4 text-[#C17F5F]/40 group-hover:text-[#C17F5F] group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Back link */}
+                        <button
+                            onClick={() => { setProjects(null); setEmail(''); setRut(''); }}
+                            className="mt-6 w-full text-center text-[9px] text-gray-400 hover:text-[#C17F5F] uppercase tracking-widest transition-colors"
+                        >
+                            ← Volver al inicio de sesión
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ─── Login Screen ──────────────────────────────────────────────────────────
     return (
-        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)" }}>
-            
+        <div
+            className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden"
+            style={{ backgroundImage: 'radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)' }}
+        >
             {/* Decorative background gradients */}
-            <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#C17F5F]/10 blur-[120px] rounded-full pointer-events-none z-0"></div>
-            <div className="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#C17F5F]/10 blur-[120px] rounded-full pointer-events-none z-0"></div>
+            <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#C17F5F]/10 blur-[120px] rounded-full pointer-events-none z-0" />
+            <div className="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-[#C17F5F]/10 blur-[120px] rounded-full pointer-events-none z-0" />
 
             <div className="w-full max-w-md relative z-10">
                 <div className="text-center mb-12">
@@ -78,31 +177,31 @@ export default function BridalPortalLoginPage() {
                     <form onSubmit={handleLogin} className="space-y-6">
                         <div className="space-y-1 relative group">
                             <label className="text-[9px] text-gray-600 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F]">Correo Electrónico</label>
-                            <input 
-                                type="email" 
-                                required 
+                            <input
+                                type="email"
+                                required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-transparent border-b border-[#C17F5F]/30 focus:border-[#C17F5F] py-3 text-sm text-[#1A1A1A] outline-none transition-colors placeholder-gray-300" 
+                                className="w-full bg-transparent border-b border-[#C17F5F]/30 focus:border-[#C17F5F] py-3 text-sm text-[#1A1A1A] outline-none transition-colors placeholder-gray-300"
                                 placeholder="tu@correo.com"
                             />
                         </div>
                         <div className="space-y-1 relative group pt-2">
                             <label className="text-[9px] text-gray-600 uppercase tracking-widest absolute -top-2 left-0 transition-colors group-focus-within:text-[#C17F5F]">RUT (Sin dígito verificador)</label>
-                            <input 
-                                type="text" 
-                                required 
+                            <input
+                                type="text"
+                                required
                                 value={rut}
                                 onChange={(e) => setRut(e.target.value.replace(/[^0-9]/g, ''))}
                                 maxLength={8}
-                                className="w-full bg-transparent border-b border-[#C17F5F]/30 focus:border-[#C17F5F] py-3 text-sm text-[#1A1A1A] outline-none transition-colors placeholder-gray-300" 
+                                className="w-full bg-transparent border-b border-[#C17F5F]/30 focus:border-[#C17F5F] py-3 text-sm text-[#1A1A1A] outline-none transition-colors placeholder-gray-300"
                                 placeholder="Ej: 12345678"
                             />
                         </div>
 
                         <div className="pt-8">
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 disabled={loading}
                                 className="w-full border border-[#C17F5F] bg-[#C17F5F] text-[#1A1A1A] hover:bg-[#a96e51] py-4 rounded text-[10px] font-bold uppercase tracking-widest transition-all flex justify-center items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
                             >
@@ -110,7 +209,7 @@ export default function BridalPortalLoginPage() {
                                     <><Loader2 className="w-4 h-4 animate-spin" /> Verificando...</>
                                 ) : (
                                     <>
-                                        Ingresar a mi Portal 
+                                        Ingresar a mi Portal
                                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                     </>
                                 )}
@@ -118,7 +217,7 @@ export default function BridalPortalLoginPage() {
                         </div>
                     </form>
                 </div>
-                
+
                 <div className="text-center mt-8">
                     <p className="text-[9px] text-gray-600 uppercase tracking-widest flex items-center justify-center gap-1">
                         <Sparkles className="w-3 h-3 text-[#C17F5F]" /> Elena Atelier &middot; Santiago de Chile
