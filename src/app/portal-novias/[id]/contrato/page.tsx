@@ -178,9 +178,6 @@ export default function PortalNoviasContratoPage() {
 
             <div className="min-h-screen bg-black text-[#F5F5F0] font-sans py-12 px-4 md:px-6 relative overflow-hidden print:hidden" style={{ backgroundImage: "url('/novia/Novia Elegante 1.webp')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
                 
-                {/* Máscara oscura suave para el fondo */}
-                <div className="fixed inset-0 bg-black/25 z-0 pointer-events-none" />
-
                 <div className="w-full max-w-3xl mx-auto relative z-10">
                     {/* Logo */}
                     <div className="text-center mb-8">
@@ -218,12 +215,12 @@ export default function PortalNoviasContratoPage() {
                 )}
 
                 {/* Proposal Document Container */}
-                <div className="mb-8 space-y-8 max-w-3xl mx-auto w-full">
+                <div className="mb-8 space-y-8 max-w-3xl mx-auto w-full" style={{ textShadow: '0 1px 4px rgba(0, 0, 0, 0.8)' }}>
                     
                     {/* Header Details */}
                     <div className="text-center border-b border-[#C17F5F]/20 pb-6">
-                        <h2 className="font-serif text-xl text-[#C17F5F] tracking-wider uppercase" style={{ textShadow: '0 1px 4px rgba(255, 255, 255, 0.8)' }}>PROPUESTA DE SERVICIO</h2>
-                        <p className="text-[9px] text-gray-500 uppercase tracking-widest mt-1">Elena Atelier — Vitacura, Chile</p>
+                        <h2 className="font-serif text-xl text-[#C17F5F] tracking-wider uppercase" style={{ textShadow: '0 1.5px 4px rgba(0, 0, 0, 0.9)' }}>PROPUESTA DE SERVICIO</h2>
+                        <p className="text-[9px] text-zinc-300 uppercase tracking-widest mt-1">Elena Atelier — Vitacura, Chile</p>
                     </div>
 
                     {/* Section 1: Parties */}
@@ -464,7 +461,7 @@ export default function PortalNoviasContratoPage() {
                 </div>
 
                 {/* Acceptance and Signature Area */}
-                <div className="max-w-xl mx-auto text-center space-y-6">
+                <div className="max-w-xl mx-auto text-center space-y-6" style={{ textShadow: '0 1px 4px rgba(0, 0, 0, 0.8)' }}>
                     
                     {project.contract_accepted ? (
                         <div className="p-4 bg-[#C17F5F]/5 border border-[#C17F5F]/20 text-zinc-300 rounded text-xs tracking-wide">
