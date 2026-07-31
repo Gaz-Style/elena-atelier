@@ -29,25 +29,40 @@ async function updateDatabaseAndNotify(
 
     // --- BRIDAL PROJECTS INTERCEPT ---
     if (externalRef.startsWith('bridal_project_')) {
-        const parts = externalRef.split('_');
-        // Format: bridal_project_PROJECTID_50pct
-        if (parts.length >= 4) {
-            const projectId = parts[2];
-            console.log(`Interceptado pago de novia para proyecto: ${projectId}`);
-            
-            // Registrar el pago de la cuota 1
-            const { registerPayment, acceptContract, sendBridalThankYouEmailAction } = await import('@/app/admin/novias/actions');
-            
-            // Solo si no está ya aceptado (idempotency)
-            const { data: proj } = await supabase.from('bridal_projects').select('payment_1_status').eq('id', projectId).single();
-            if (proj && proj.payment_1_status !== 'paid') {
-                await acceptContract(projectId);
-                await registerPayment(projectId, 1, 'Mercado Pago');
-                await sendBridalThankYouEmailAction(projectId);
-                await logSystemEvent(supabase, 'INFO', `Pago de Novia Procesado`, { projectId, paymentId });
-            } else {
-                console.log(`Pago de Novia ${projectId} ya estaba procesado.`);
+        let projectId = '';
+        let cuotaIndex = 0;
+        
+        if (externalRef.includes('_cuota_')) {
+            const parts = externalRef.split('_cuota_');
+            projectId = parts[0].replace('bridal_project_', '');
+            cuotaIndex = parseInt(parts[1], 10);
+        } else {
+            // Fallback old format: bridal_project_PROJECTID_50pct
+            const parts = externalRef.split('_');
+            if (parts.length >= 4) {
+                projectId = parts[2];
+                cuotaIndex = 0;
             }
+        }
+        
+        if (projectId) {
+            console.log(`Interceptado pago de novia para proyecto: ${projectId}, cuota: ${cuotaIndex}`);
+            
+            const { registerBridalInstallment, acceptContract, sendBridalThankYouEmailAction } = await import('@/app/admin/novias/actions');
+            
+            // Register payment
+            await registerBridalInstallment(projectId, cuotaIndex, 'Mercado Pago', amount || undefined);
+            
+            // Only accept contract and send thank you email if it's the first payment
+            if (cuotaIndex === 0) {
+                const { data: proj } = await supabase.from('bridal_projects').select('contract_accepted').eq('id', projectId).single();
+                if (proj && !proj.contract_accepted) {
+                    await acceptContract(projectId);
+                    await sendBridalThankYouEmailAction(projectId);
+                }
+            }
+            
+            await logSystemEvent(supabase, 'INFO', `Pago de Novia Procesado`, { projectId, cuotaIndex, paymentId });
         }
         return true;
     }

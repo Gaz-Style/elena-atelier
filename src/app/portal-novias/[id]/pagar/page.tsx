@@ -1,12 +1,15 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { CreditCard, Loader2, Lock, ArrowRight, Wallet, Building, Copy, Check } from 'lucide-react';
 
 export default function PortalNoviasPagarPage() {
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const cuotaIndex = parseInt(searchParams.get('cuota') || '0', 10);
+    
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState('');
     const [links, setLinks] = useState<any>(null);
@@ -14,19 +17,19 @@ export default function PortalNoviasPagarPage() {
 
     useEffect(() => {
         if (params?.id) {
-            loadLinks(params.id as string);
+            loadLinks(params.id as string, cuotaIndex);
         }
-    }, [params]);
+    }, [params, cuotaIndex]);
 
-    async function loadLinks(id: string) {
+    async function loadLinks(id: string, cuotaIdx: number) {
         try {
             const { getBridalProjectById, generateBridalPaymentLinksAction } = await import('@/app/admin/novias/actions');
             const project = await getBridalProjectById(id);
             if (project && project.project_type && ['madrina', 'graduacion', 'fiesta'].includes(project.project_type)) {
-                router.push(`/portal-fiesta/${id}/pagar`);
+                router.push(`/portal-fiesta/${id}/pagar?cuota=${cuotaIdx}`);
                 return;
             }
-            const res = await generateBridalPaymentLinksAction(id);
+            const res = await generateBridalPaymentLinksAction(id, cuotaIdx);
             if (res.success) {
                 setLinks(res);
             } else {
@@ -92,9 +95,13 @@ export default function PortalNoviasPagarPage() {
                     </div>
 
                     <div className="text-center mt-6 mb-10 border-b border-[#C17F5F]/20 pb-8">
-                        <h2 className="font-serif text-2xl text-[#1A1A1A] mb-3 tracking-wide">Pago de Reserva</h2>
+                        <h2 className="font-serif text-2xl text-[#1A1A1A] mb-3 tracking-wide">
+                            {cuotaIndex === 0 ? 'Pago de Reserva' : `Pago de Cuota ${cuotaIndex + 1}`}
+                        </h2>
                         <p className="text-xs text-gray-600 font-light leading-relaxed">
-                            Abono del 50% para dar inicio al proyecto y asegurar tu cupo de producción.
+                            {cuotaIndex === 0 
+                                ? 'Abono del 50% para dar inicio al proyecto y asegurar tu cupo de producción.' 
+                                : 'Abono correspondiente al plan de pagos de tu proyecto.'}
                         </p>
                     </div>
 

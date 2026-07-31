@@ -1278,7 +1278,7 @@ export async function sendBridalThankYouEmailAction(projectId: string) {
     }
 }
 
-export async function generateBridalPaymentLinksAction(projectId: string) {
+export async function generateBridalPaymentLinksAction(projectId: string, cuotaIndex: number = 0) {
     try {
         const supabase = getAdminClient();
         const { data: project } = await supabase.from('bridal_projects')
@@ -1287,8 +1287,27 @@ export async function generateBridalPaymentLinksAction(projectId: string) {
             
         if (!project) throw new Error('Proyecto no encontrado');
 
-        const amount = project.payment_1_amount;
-        const externalRef = `bridal_project_${projectId}_50pct`;
+        const { data: woData } = await supabase.from('work_orders')
+            .select('payment_plan')
+            .eq('legacy_bridal_project_id', projectId)
+            .maybeSingle();
+
+        let cuotas = [];
+        if (woData && woData.payment_plan && woData.payment_plan.cuotas) {
+            cuotas = woData.payment_plan.cuotas;
+        }
+
+        let amount = 0;
+        let cuotaName = '';
+        if (cuotas && cuotas.length > cuotaIndex) {
+            amount = cuotas[cuotaIndex].amount || cuotas[cuotaIndex].monto || 0;
+            cuotaName = cuotas[cuotaIndex].name || `Cuota ${cuotaIndex + 1}`;
+        } else {
+            amount = cuotaIndex === 0 ? project.payment_1_amount : cuotaIndex === 1 ? project.payment_2_amount : project.payment_3_amount;
+            cuotaName = cuotaIndex === 0 ? 'Reserva 50%' : `Cuota ${cuotaIndex + 1}`;
+        }
+
+        const externalRef = `bridal_project_${projectId}_cuota_${cuotaIndex}`;
         const siteUrl = await getSiteUrl();
 
         let mpLink = null;
@@ -1299,7 +1318,7 @@ export async function generateBridalPaymentLinksAction(projectId: string) {
         if (process.env.MP_ACCESS_TOKEN) {
             const mpPayload = {
                 items: [{
-                    title: `Reserva 50% - ${project.project_type === 'novia' ? 'Vestido de Novia' : 'Vestido'}`,
+                    title: `${cuotaName} - ${project.project_type === 'novia' ? 'Vestido de Novia' : 'Vestido'}`,
                     quantity: 1,
                     unit_price: amount,
                     currency_id: 'CLP'
@@ -1329,7 +1348,7 @@ export async function generateBridalPaymentLinksAction(projectId: string) {
         try {
             const { createWebpayTransaction } = await import('@/lib/transbank');
             const shortId = projectId.split('-')[0];
-            const buyOrder = `BRDL_${shortId}_50`;
+            const buyOrder = `BRDL_${shortId}_C${cuotaIndex}`;
             const sessionId = `sess_${shortId}`;
             const returnUrl = `${siteUrl}/portal-novias/${projectId}/webpay-callback`;
 
