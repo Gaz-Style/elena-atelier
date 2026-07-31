@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Sidebar from './Sidebar';
@@ -38,6 +38,18 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const isPlanificador = pathname?.startsWith('/admin/planificador');
+  const isPOS = pathname === '/admin/pos';
+  const hideHeader = isPlanificador || isPOS;
+
+  useEffect(() => {
+    // Add light background to body for admin pages to prevent dark background leakage
+    document.body.classList.add('bg-zinc-50');
+    document.body.classList.remove('bg-brand-charcoal');
+    return () => {
+      document.body.classList.remove('bg-zinc-50');
+      document.body.classList.add('bg-brand-charcoal');
+    };
+  }, []);
 
   const currentModuleKey = Object.keys(moduleNames).find(key => 
     pathname === key || (key !== '/admin' && pathname?.startsWith(key))
@@ -47,7 +59,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
   return (
     <div className={cn(
       "flex min-h-screen w-full bg-zinc-50 text-zinc-800 font-sans selection:bg-zinc-200/60",
-      !isPlanificador && "lg:-mt-20"
+      !hideHeader && "lg:-mt-20"
     )}>
       
       {/* Mobile Top Bar */}
