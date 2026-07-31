@@ -52,7 +52,7 @@ export default function BridalInductionPage() {
     const customerName = project.customers?.full_name?.split(' ')[0] || 'Futura Novia';
 
     return (
-        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] flex flex-col items-center justify-center p-4 sm:p-8 relative">
+        <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] flex flex-col items-center justify-center p-4 sm:p-8 relative" style={{ backgroundImage: "url('/novia/fondo_novia.webp')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
             
             {/* Elegant Header */}
             <div className="absolute top-8 left-0 w-full text-center z-10 px-4">
