@@ -175,7 +175,7 @@ export default function PortalNoviasPage() {
     const isContractAccepted = project.contract_accepted;
 
     if (!isContractAccepted) {
-        // RENDER: Formulario de bienvenida (Onboarding)
+        return (
             <div className="min-h-screen text-[#1A1A1A] font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden"
                 style={{
                     backgroundImage: "url('/novia/fondo_novia.webp')",
