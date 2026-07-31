@@ -185,8 +185,7 @@ export default function PortalNoviasPage() {
                     backgroundAttachment: 'fixed',
                 }}
             >
-                {/* Soft 10% dark scrim */}
-                <div className="fixed inset-0 bg-black/10 z-0 pointer-events-none" />
+                {/* No background scrim - image is 100% bright */}
 
                 <div className="w-full max-w-2xl relative z-10">
                     <div className="text-center mb-12">
@@ -203,7 +202,7 @@ export default function PortalNoviasPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white/10 backdrop-blur-xl rounded-lg shadow-2xl p-8 md:p-12 border border-white/20 relative">
+                    <div className="bg-black/35 backdrop-blur-xl rounded-lg shadow-2xl p-8 md:p-12 border border-white/10 relative">
                         <div className="text-center mb-10">
                             <div className="text-[#C17F5F] mb-4 text-xs tracking-widest uppercase font-bold">✦ Ingreso Atelier ✦</div>
                             <h2 className="font-serif text-3xl text-white mb-4 italic">Bienvenida a tu Portal</h2>
@@ -232,7 +231,7 @@ export default function PortalNoviasPage() {
                                             name="fullName" 
                                             required 
                                             defaultValue={project.customers?.full_name || ''}
-                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-black outline-none transition-colors placeholder-white/35" 
+                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors placeholder-white/30" 
                                             placeholder="Tu nombre y apellido"
                                         />
                                     </div>
@@ -245,14 +244,14 @@ export default function PortalNoviasPage() {
                                             value={rutValue}
                                             onChange={handleRutChange}
                                             maxLength={12}
-                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-black outline-none transition-colors placeholder-white/35" 
+                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors placeholder-white/30" 
                                             placeholder="12.345.678-9"
                                         />
                                     </div>
                                     <div className="space-y-1 relative group md:col-span-2">
                                         <label className="text-[9px] text-zinc-300 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">Teléfono WhatsApp</label>
                                         <div className="flex items-center border-b border-white/20 focus-within:border-[#C17F5F] transition-colors">
-                                            <span className="text-sm text-black/60 pr-2 select-none font-medium">+56</span>
+                                            <span className="text-sm text-white/60 pr-2 select-none font-medium">+56</span>
                                             <input 
                                                 type="tel" 
                                                 name="phone" 
@@ -260,7 +259,7 @@ export default function PortalNoviasPage() {
                                                 value={phoneValue}
                                                 onChange={handlePhoneChange}
                                                 maxLength={11}
-                                                className="w-full bg-transparent py-2 text-sm text-black outline-none placeholder-white/35" 
+                                                className="w-full bg-transparent py-2 text-sm text-white outline-none placeholder-white/30" 
                                                 placeholder="9 1234 5678"
                                             />
                                         </div>
@@ -280,7 +279,7 @@ export default function PortalNoviasPage() {
                                             name="eventDate" 
                                             required 
                                             defaultValue={project.event_date ? project.event_date.split('T')[0] : ''}
-                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-black outline-none transition-colors" 
+                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors [color-scheme:dark]" 
                                         />
                                     </div>
                                     <div className="space-y-1 relative group">
@@ -290,7 +289,7 @@ export default function PortalNoviasPage() {
                                             name="eventVenue" 
                                             required 
                                             defaultValue={project.event_venue || ''}
-                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-black outline-none transition-colors placeholder-white/35" 
+                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors placeholder-white/30" 
                                             placeholder="Ej: Centro de Eventos..."
                                         />
                                     </div>
@@ -300,7 +299,7 @@ export default function PortalNoviasPage() {
                                             name="notes" 
                                             rows={2}
                                             defaultValue={project.description || ''}
-                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-black outline-none transition-colors resize-none placeholder-white/35" 
+                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors resize-none placeholder-white/30" 
                                             placeholder="Detalles importantes sobre tu vestido..."
                                         />
                                     </div>
