@@ -65,9 +65,10 @@ export default function PortalNoviasPagarPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#F5F5F0] font-sans text-[#4A4A4A] flex flex-col relative overflow-hidden">
-            {/* Elegant Background Glow */}
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#C17F5F]/5 rounded-full blur-3xl z-0 pointer-events-none"></div>
+        <div className="min-h-screen bg-[#F3EFEA] font-sans text-[#4A4A4A] flex flex-col relative overflow-hidden" style={{ backgroundImage: "url('/novia/Novia Elegante 1.webp')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
+            {/* Overlay and Elegant Background Glow */}
+            <div className="fixed inset-0 bg-white/70 z-0 pointer-events-none" />
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#C17F5F]/10 rounded-full blur-3xl z-0 pointer-events-none"></div>
             
             <main className="flex-1 w-full max-w-xl mx-auto px-6 py-12 md:py-24 relative z-10 flex flex-col items-center">
                 
@@ -87,8 +88,8 @@ export default function PortalNoviasPagarPage() {
                 </div>
 
                 {/* Main Card */}
-                <div className="bg-[#F5F5F0]/80 border border-[#C17F5F]/20 backdrop-blur-sm rounded-sm shadow-[0_20px_60px_rgba(193,127,95,0.08)] p-8 md:p-12 relative w-full">
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-[#F5F5F0] border border-[#C17F5F]/20 rounded-full flex items-center justify-center shadow-inner">
+                <div className="bg-white/80 border border-[#C17F5F]/20 backdrop-blur-md rounded shadow-xl p-8 md:p-12 relative w-full mt-4">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white border border-[#C17F5F]/20 rounded-full flex items-center justify-center shadow-md">
                         <div className="w-12 h-12 rounded-full bg-[#1A1A1A] text-[#C17F5F] flex items-center justify-center">
                             <Lock className="w-5 h-5" />
                         </div>
@@ -127,7 +128,7 @@ export default function PortalNoviasPagarPage() {
                                         <input type="hidden" name="token_ws" value={links.tbkToken} />
                                         <button 
                                             type="submit"
-                                            className="w-full bg-[#F5F5F0]/80 border border-[#C17F5F]/20 hover:bg-[#C17F5F]/10 text-[#1A1A1A] p-5 rounded-sm transition-all duration-300 flex items-center justify-between group"
+                                            className="w-full bg-white border border-[#C17F5F]/20 hover:bg-[#C17F5F]/5 hover:border-[#C17F5F]/40 shadow-sm text-[#1A1A1A] p-5 rounded transition-all duration-300 flex items-center justify-between group"
                                         >
                                             <div className="flex items-center gap-4">
                                                 <CreditCard className="w-6 h-6 text-[#1A1A1A]/80" />
@@ -141,7 +142,7 @@ export default function PortalNoviasPagarPage() {
 
                                 
                                 {/* Bank Transfer */}
-                                <div className="mt-8 border border-[#C17F5F]/20 rounded-sm overflow-hidden group transition-all duration-300 hover:border-[#C17F5F]/30">
+                                <div className="mt-8 border border-[#C17F5F]/20 rounded overflow-hidden group transition-all duration-300 hover:border-[#C17F5F]/40 shadow-sm bg-white/50">
                                     <div className="p-5 border-b border-[#C17F5F]/10 flex items-center justify-between">
                                         <div className="flex items-center gap-4">
                                             <Building className="w-6 h-6 text-[#1A1A1A]/80" />
@@ -152,13 +153,13 @@ export default function PortalNoviasPagarPage() {
                                         </div>
                                         <button 
                                             onClick={handleCopy}
-                                            className="flex items-center justify-center p-2 rounded-sm bg-[#F5F5F0]/80 hover:bg-[#C17F5F]/10 text-gray-600 hover:text-[#C17F5F] transition-colors border border-[#C17F5F]/10"
+                                            className="flex items-center justify-center p-2 rounded bg-white hover:bg-[#C17F5F]/10 text-gray-600 hover:text-[#C17F5F] transition-colors border border-[#C17F5F]/20 shadow-sm"
                                             title="Copiar datos bancarios"
                                         >
                                             {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
                                         </button>
                                     </div>
-                                    <div className="p-6 space-y-4 bg-black/20 text-xs text-gray-600 font-light">
+                                    <div className="p-6 space-y-4 bg-[#F5F5F0]/80 text-xs text-gray-600 font-light">
                                         <div className="flex justify-between items-center border-b border-[#C17F5F]/10 pb-3">
                                             <span className="uppercase tracking-widest text-[9px] font-bold">Destinatario</span>
                                             <span className="text-[#1A1A1A] font-medium">ATELIER HORTENSIA SPA</span>
