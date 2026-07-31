@@ -176,26 +176,15 @@ export default function PortalNoviasPage() {
 
     if (!isContractAccepted) {
         return (
-            <div className="min-h-screen text-[#1A1A1A] font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden"
-                style={{
-                    backgroundImage: "url('/novia/fondo_novia.webp')",
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundAttachment: 'fixed',
-                }}
-            >
-                {/* Soft warm romantic background overlay */}
-                <div className="fixed inset-0 bg-[#F5F5F0]/25 z-0 pointer-events-none" />
-
+            <div className="min-h-screen bg-[#F5F5F0] text-[#1A1A1A] font-sans flex items-center justify-center py-12 px-4 relative overflow-hidden" style={{ backgroundImage: "url('/novia/fondo_novia.webp'), radial-gradient(circle at center, #FFFFFF 0%, #F5F5F0 100%)", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
                 <div className="w-full max-w-2xl relative z-10">
                     <div className="text-center mb-12">
                         <div className="flex flex-col items-stretch justify-center w-max mx-auto">
-                            <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-[#1A1A1A] leading-none">
+                            <div className="flex justify-between w-full font-serif text-2xl md:text-3xl font-black uppercase text-[#1A1A1A] leading-none drop-shadow-sm">
                                 <span>E</span><span>L</span><span>E</span><span>N</span><span>A</span>
                             </div>
                             <div
-                                className="font-sans text-[0.65rem] md:text-[0.75rem] font-bold uppercase text-gray-500 mt-1 text-center"
+                                className="font-sans text-[0.65rem] md:text-[0.75rem] font-bold uppercase text-[#1A1A1A]/70 mt-1 text-center"
                                 style={{ letterSpacing: '0.35em', marginRight: '-0.35em' }}
                             >
                                 La Costurera
@@ -203,41 +192,41 @@ export default function PortalNoviasPage() {
                         </div>
                     </div>
 
-                    <div className="bg-[#FCFAF7]/95 backdrop-blur-md rounded-lg shadow-2xl p-8 md:p-12 border border-[#C17F5F]/20 relative">
+                    <div className="bg-white/10 backdrop-blur-xl rounded-lg shadow-2xl p-8 md:p-12 border border-white/20 relative">
                         <div className="text-center mb-10">
                             <div className="text-[#C17F5F] mb-4 text-xs tracking-widest uppercase font-bold">✦ Ingreso Atelier ✦</div>
-                            <h2 className="font-serif text-3xl text-[#1A1A1A] mb-4 italic">Bienvenida a tu Portal</h2>
-                            <p className="text-xs text-gray-600 leading-relaxed max-w-md mx-auto font-light">
+                            <h2 className="font-serif text-3xl text-white mb-4 italic">Bienvenida a tu Portal</h2>
+                            <p className="text-xs text-zinc-300 leading-relaxed max-w-md mx-auto font-light">
                                 Estamos felices de diseñar el vestido de tus sueños. 
                                 Por favor completa los siguientes datos para formalizar tu reserva.
                             </p>
                         </div>
 
                         {errorMsg && (
-                            <div className="mb-8 p-4 bg-red-50 border border-red-200 text-red-800 rounded text-xs text-center">
+                            <div className="mb-8 p-4 bg-red-950/40 border border-red-500/30 text-red-200 rounded text-xs text-center">
                                 {errorMsg}
                             </div>
                         )}
 
                         <form onSubmit={handleOnboardingSubmit} className="space-y-10">
                             <div>
-                                <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#C17F5F] border-b border-[#C17F5F]/15 pb-3 mb-6 flex items-center gap-2 font-bold">
+                                <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#C17F5F] border-b border-white/10 pb-3 mb-6 flex items-center gap-2 font-bold">
                                     <User className="w-3.5 h-3.5" /> 1. Datos Personales
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-1 relative group">
-                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">Nombre Completo</label>
+                                        <label className="text-[9px] text-zinc-300 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">Nombre Completo</label>
                                         <input 
                                             type="text" 
                                             name="fullName" 
                                             required 
                                             defaultValue={project.customers?.full_name || ''}
-                                            className="w-full bg-transparent border-b border-gray-200 focus:border-[#C17F5F] py-2 text-sm text-[#1A1A1A] outline-none transition-colors placeholder-gray-400" 
+                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors placeholder-white/30" 
                                             placeholder="Tu nombre y apellido"
                                         />
                                     </div>
                                     <div className="space-y-1 relative group">
-                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">RUT</label>
+                                        <label className="text-[9px] text-zinc-300 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">RUT</label>
                                         <input 
                                             type="text" 
                                             name="rut" 
@@ -245,14 +234,14 @@ export default function PortalNoviasPage() {
                                             value={rutValue}
                                             onChange={handleRutChange}
                                             maxLength={12}
-                                            className="w-full bg-transparent border-b border-gray-200 focus:border-[#C17F5F] py-2 text-sm text-[#1A1A1A] outline-none transition-colors placeholder-gray-400" 
+                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors placeholder-white/30" 
                                             placeholder="12.345.678-9"
                                         />
                                     </div>
                                     <div className="space-y-1 relative group md:col-span-2">
-                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">Teléfono WhatsApp</label>
-                                        <div className="flex items-center border-b border-gray-200 focus-within:border-[#C17F5F] transition-colors">
-                                            <span className="text-sm text-gray-500 pr-2 select-none font-medium">+56</span>
+                                        <label className="text-[9px] text-zinc-300 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">Teléfono WhatsApp</label>
+                                        <div className="flex items-center border-b border-white/20 focus-within:border-[#C17F5F] transition-colors">
+                                            <span className="text-sm text-white/60 pr-2 select-none font-medium">+56</span>
                                             <input 
                                                 type="tel" 
                                                 name="phone" 
@@ -260,7 +249,7 @@ export default function PortalNoviasPage() {
                                                 value={phoneValue}
                                                 onChange={handlePhoneChange}
                                                 maxLength={11}
-                                                className="w-full bg-transparent py-2 text-sm text-[#1A1A1A] outline-none placeholder-gray-400" 
+                                                className="w-full bg-transparent py-2 text-sm text-white outline-none placeholder-white/30" 
                                                 placeholder="9 1234 5678"
                                             />
                                         </div>
@@ -269,38 +258,38 @@ export default function PortalNoviasPage() {
                             </div>
 
                             <div>
-                                <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#C17F5F] border-b border-[#C17F5F]/15 pb-3 mb-6 flex items-center gap-2 font-bold">
+                                <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#C17F5F] border-b border-white/10 pb-3 mb-6 flex items-center gap-2 font-bold">
                                     <Calendar className="w-3.5 h-3.5" /> 2. Detalles del Evento
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-1 relative group">
-                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">Fecha del Evento</label>
+                                        <label className="text-[9px] text-zinc-300 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">Fecha del Evento</label>
                                         <input 
                                             type="date" 
                                             name="eventDate" 
                                             required 
                                             defaultValue={project.event_date ? project.event_date.split('T')[0] : ''}
-                                            className="w-full bg-transparent border-b border-gray-200 focus:border-[#C17F5F] py-2 text-sm text-[#1A1A1A] outline-none transition-colors" 
+                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors [color-scheme:dark]" 
                                         />
                                     </div>
                                     <div className="space-y-1 relative group">
-                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">Lugar del Evento</label>
+                                        <label className="text-[9px] text-zinc-300 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">Lugar del Evento</label>
                                         <input 
                                             type="text" 
                                             name="eventVenue" 
                                             required 
                                             defaultValue={project.event_venue || ''}
-                                            className="w-full bg-transparent border-b border-gray-200 focus:border-[#C17F5F] py-2 text-sm text-[#1A1A1A] outline-none transition-colors placeholder-gray-400" 
+                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors placeholder-white/30" 
                                             placeholder="Ej: Centro de Eventos..."
                                         />
                                     </div>
                                     <div className="space-y-1 relative group md:col-span-2">
-                                        <label className="text-[9px] text-gray-500 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">Notas Adicionales (Opcional)</label>
+                                        <label className="text-[9px] text-zinc-300 uppercase tracking-widest absolute -top-4 left-0 transition-colors group-focus-within:text-[#C17F5F] font-bold">Notas Adicionales (Opcional)</label>
                                         <textarea 
                                             name="notes" 
                                             rows={2}
                                             defaultValue={project.description || ''}
-                                            className="w-full bg-transparent border-b border-gray-200 focus:border-[#C17F5F] py-2 text-sm text-[#1A1A1A] outline-none transition-colors resize-none placeholder-gray-400" 
+                                            className="w-full bg-transparent border-b border-white/20 focus:border-[#C17F5F] py-2 text-sm text-white outline-none transition-colors resize-none placeholder-white/30" 
                                             placeholder="Detalles importantes sobre tu vestido..."
                                         />
                                     </div>
@@ -322,7 +311,7 @@ export default function PortalNoviasPage() {
                                         </>
                                     )}
                                 </button>
-                                <p className="text-[9px] text-gray-400 mt-4 uppercase tracking-widest">
+                                <p className="text-[9px] text-zinc-400 mt-4 uppercase tracking-widest">
                                     Al continuar, se generará tu propuesta y presupuesto.
                                 </p>
                             </div>
