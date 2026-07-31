@@ -149,7 +149,57 @@ export default async function AgendaPage({
         notas: `Retiro de: ${group.descriptions.join(', ') || 'Prenda'} (${group.pos_order_id || 'S/N'})`
     }));
 
-    const combinedEventos = [...(eventos || []), ...mappedDeliveries];
+    let mEvents: any[] = [];
+    let bMilestonesQuery = supabase
+        .from('bridal_milestones')
+        .select('*, bridal_projects(customers(id, full_name, email, phone))')
+        .neq('status', 'completed')
+        .not('scheduled_date', 'is', null);
+
+    if (search) {
+        const { data: custData } = await supabase
+            .from('customers')
+            .select('id')
+            .or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
+        
+        if (custData && custData.length > 0) {
+            const { data: projData } = await supabase
+                .from('bridal_projects')
+                .select('id')
+                .in('customer_id', custData.map(c => c.id));
+            if (projData && projData.length > 0) {
+                bMilestonesQuery = bMilestonesQuery.in('project_id', projData.map(p => p.id));
+            } else {
+                bMilestonesQuery = bMilestonesQuery.eq('id', '00000000-0000-0000-0000-000000000000');
+            }
+        } else {
+            bMilestonesQuery = bMilestonesQuery.eq('id', '00000000-0000-0000-0000-000000000000');
+        }
+    } else {
+        bMilestonesQuery = bMilestonesQuery.gte('scheduled_date', startQuery.toISOString())
+                                           .lte('scheduled_date', endQuery.toISOString());
+    }
+
+    const { data: bMilestonesData } = await bMilestonesQuery;
+
+    if (bMilestonesData) {
+        mEvents = bMilestonesData.map((m: any) => {
+            const cust = Array.isArray(m.bridal_projects?.customers) ? m.bridal_projects.customers[0] : m.bridal_projects?.customers;
+            return {
+                id: `milestone-${m.id}`,
+                fecha_hora: m.scheduled_date,
+                nombre: cust?.full_name?.split(' ')[0] || 'Clienta',
+                apellido: cust?.full_name?.split(' ').slice(1).join(' ') || '',
+                celular: cust?.phone || '',
+                correo: cust?.email || '',
+                tipo_evento: 'cita_cliente',
+                estado: 'confirmado',
+                notas: `Prueba Alta Costura: ${m.title}`
+            };
+        });
+    }
+
+    const combinedEventos = [...(eventos || []), ...mappedDeliveries, ...mEvents];
     combinedEventos.sort((a, b) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime());
 
     const dayOfWeek = selectedDate.getDay();

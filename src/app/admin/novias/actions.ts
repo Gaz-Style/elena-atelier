@@ -582,6 +582,48 @@ export async function saveMeasurements(formData: FormData) {
     return { success: true };
 }
 
+export async function updateTimelineAction(projectId: string, milestonesData: any[]) {
+    const supabase = getAdminClient();
+    
+    const { data: currentMilestones, error: fetchErr } = await supabase
+        .from('bridal_milestones')
+        .select('id')
+        .eq('project_id', projectId);
+        
+    if (fetchErr) {
+        return { success: false, error: fetchErr.message };
+    }
+        
+    const currentIds: string[] = (currentMilestones || []).map((m: any) => m.id as string);
+    const newIds: string[] = milestonesData.filter((m: any) => m.id).map((m: any) => m.id as string);
+    
+    const idsToDelete = currentIds.filter((id: string) => !newIds.includes(id));
+    if (idsToDelete.length > 0) {
+        await supabase.from('bridal_milestones').delete().in('id', idsToDelete);
+    }
+    
+    for (const m of milestonesData) {
+        const payload = {
+            project_id: projectId,
+            title: m.title,
+            scheduled_date: m.scheduled_date || null,
+            milestone_type: m.milestone_type || 'custom',
+            status: m.status || 'pending',
+            updated_at: new Date().toISOString()
+        };
+        if (m.id) {
+            await supabase.from('bridal_milestones').update(payload).eq('id', m.id);
+        } else {
+            await supabase.from('bridal_milestones').insert([payload]);
+        }
+    }
+    
+    revalidatePath(`/admin/novias/${projectId}`);
+    revalidatePath(`/admin/agenda`);
+    revalidatePath(`/admin/planificador`);
+    return { success: true };
+}
+
 export async function cancelProject(projectId: string) {
     const supabase = getAdminClient();
     

@@ -449,6 +449,29 @@ export default function PlanificadorPage() {
                 });
             });
 
+            // Inject bridal milestones → first operator as 'cita' tasks
+            (mappedMilestones || []).forEach((m: any) => {
+                if (!m.scheduled_date) return;
+                const mDate = new Date(m.scheduled_date);
+                const ds     = dateStr(mDate);
+                if (!firstOpId || !p[firstOpId]?.[ds] || p[firstOpId][ds].blocked) return;
+                
+                const startTimeStr = mDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+                const sortValue = mDate.getHours() * 60 + mDate.getMinutes();
+                const startHour = mDate.getHours();
+                const custName = m.customer ? (Array.isArray(m.customer) ? m.customer[0]?.full_name : m.customer.full_name) : 'Clienta';
+
+                p[firstOpId][ds].tasks.push({
+                    id: `milestone-${m.id}`,
+                    time: `${startTimeStr} (1h)`,
+                    label: `Prueba Alta Costura: ${custName} - ${m.title}`,
+                    type: 'cita',
+                    sortValue,
+                    startHour,
+                    durationHours: 1
+                });
+            });
+
             // Inject production order deadlines → first operator as 'entrega' tasks
             const firstOpIdForDeliveries = activeOps[0]?.id;
             const groupedDeliveries = groupProductionOrdersForDeliveries(pOrders || []);

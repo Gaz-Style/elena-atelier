@@ -8,7 +8,7 @@ import {
     Clock, AlertCircle, FileText, Ruler, Camera, StickyNote, Loader2, Printer,
     ChevronDown, ChevronUp, X, Save, Trash2
 } from 'lucide-react';
-import { getBridalProjectById, registerPayment, registerBridalInstallment, completeMilestone, acceptContract, saveMeasurements, updateBridalProject, cancelProject, sendBridalWelcomeEmailAction, sendBridalInductionEmailAction, deleteBridalProjectAction, updateMilestoneDateAction, updatePaymentPlanAction } from '../actions';
+import { getBridalProjectById, registerPayment, registerBridalInstallment, completeMilestone, acceptContract, saveMeasurements, updateBridalProject, cancelProject, sendBridalWelcomeEmailAction, sendBridalInductionEmailAction, deleteBridalProjectAction, updateMilestoneDateAction, updatePaymentPlanAction, updateTimelineAction } from '../actions';
 import ContractTemplate from '../ContractTemplate';
 
 const formatCurrency = (val: number) =>
@@ -69,6 +69,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     const [editingTime, setEditingTime] = useState<string>('12:00');
     const [notifyClientOnEdit, setNotifyClientOnEdit] = useState<boolean>(false);
     
+    // Timeline editing
+    const [isEditingTimeline, setIsEditingTimeline] = useState(false);
+    const [editingTimeline, setEditingTimeline] = useState<any[]>([]);
+
     // Payment Plan editing
     const [isEditingPaymentPlan, setIsEditingPaymentPlan] = useState(false);
     const [editingPaymentPlan, setEditingPaymentPlan] = useState<any[]>([]);
@@ -190,6 +194,18 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             await loadProject(projectId);
         } else {
             alert('Error al actualizar plan: ' + res.error);
+        }
+        setSaving(false);
+    }
+
+    async function handleSaveTimeline() {
+        setSaving(true);
+        const res = await updateTimelineAction(projectId, editingTimeline);
+        if (res.success) {
+            setIsEditingTimeline(false);
+            await loadProject(projectId);
+        } else {
+            alert('Error al actualizar cronograma: ' + res.error);
         }
         setSaving(false);
     }
@@ -448,7 +464,93 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     {/* TAB: Timeline */}
                     {activeTab === 'timeline' && (
                         <div className="space-y-4">
-                            {(project.milestones || []).map((milestone: any, idx: number) => {
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-sm uppercase tracking-widest font-bold text-zinc-400">Pruebas y Entregas</h2>
+                                {!isEditingTimeline && project.status !== 'cancelado' && (
+                                    <button 
+                                        onClick={() => {
+                                            setEditingTimeline(project.milestones ? JSON.parse(JSON.stringify(project.milestones)) : []);
+                                            setIsEditingTimeline(true);
+                                        }}
+                                        className="text-[10px] bg-zinc-100 hover:bg-zinc-200 text-zinc-700 px-3 py-1.5 rounded uppercase tracking-widest font-bold transition-colors"
+                                    >
+                                        Modificar Cronograma
+                                    </button>
+                                )}
+                            </div>
+                            
+                            {isEditingTimeline ? (
+                                <div className="bg-white border border-rose-200 rounded-xl p-5 shadow-sm mb-6">
+                                    <h3 className="font-bold text-sm text-zinc-800 mb-4">Edición de Cronograma</h3>
+                                    <div className="space-y-3">
+                                        {editingTimeline.map((m, i) => (
+                                            <div key={m.id || `new-${i}`} className="flex flex-col md:flex-row gap-3 items-start md:items-center bg-zinc-50 p-3 rounded-lg border border-zinc-200">
+                                                <div className="flex-1 w-full">
+                                                    <label className="block text-[9px] uppercase tracking-widest font-bold text-zinc-400 mb-1">Título de la Prueba</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={m.title} 
+                                                        onChange={(e) => {
+                                                            const newT = [...editingTimeline];
+                                                            newT[i].title = e.target.value;
+                                                            setEditingTimeline(newT);
+                                                        }}
+                                                        className="w-full bg-white border border-zinc-200 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-rose-300 focus:outline-none"
+                                                    />
+                                                </div>
+                                                <div className="w-full md:w-auto">
+                                                    <label className="block text-[9px] uppercase tracking-widest font-bold text-zinc-400 mb-1">Fecha Programada</label>
+                                                    <input 
+                                                        type="datetime-local" 
+                                                        value={m.scheduled_date ? new Date(new Date(m.scheduled_date).getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().slice(0, 16) : ''}
+                                                        onChange={(e) => {
+                                                            const newT = [...editingTimeline];
+                                                            newT[i].scheduled_date = e.target.value ? new Date(e.target.value).toISOString() : null;
+                                                            setEditingTimeline(newT);
+                                                        }}
+                                                        className="w-full bg-white border border-zinc-200 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-rose-300 focus:outline-none"
+                                                    />
+                                                </div>
+                                                <button 
+                                                    onClick={() => {
+                                                        const newT = [...editingTimeline];
+                                                        newT.splice(i, 1);
+                                                        setEditingTimeline(newT);
+                                                    }}
+                                                    className="mt-4 md:mt-0 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors self-end md:self-auto"
+                                                    title="Eliminar Prueba"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                        <button 
+                                            onClick={() => setEditingTimeline([...editingTimeline, { title: 'Nueva Prueba', scheduled_date: null, status: 'pending', milestone_type: 'custom' }])}
+                                            className="text-[10px] uppercase tracking-widest font-bold text-rose-600 hover:text-rose-700 border border-rose-200 hover:border-rose-300 px-4 py-2 rounded transition-colors"
+                                        >
+                                            + Agregar Prueba
+                                        </button>
+                                        <div className="flex-1"></div>
+                                        <button 
+                                            onClick={() => setIsEditingTimeline(false)}
+                                            className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 hover:text-zinc-700 px-4 py-2 border border-zinc-200 rounded transition-colors"
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button 
+                                            onClick={handleSaveTimeline}
+                                            disabled={saving}
+                                            className="text-[10px] uppercase tracking-widest font-bold bg-zinc-900 text-white hover:bg-emerald-600 px-4 py-2 rounded transition-colors flex items-center gap-2 disabled:bg-zinc-300"
+                                        >
+                                            <Save className="w-3.5 h-3.5" />
+                                            Guardar Cronograma
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                            (project.milestones || []).map((milestone: any, idx: number) => {
                                 const isCompleted = milestone.status === 'completed';
                                 const isPast = milestone.scheduled_date && new Date(milestone.scheduled_date) < new Date() && !isCompleted;
                                 const isNext = !isCompleted && !(project.milestones || []).slice(0, idx).some((m: any) => m.status !== 'completed');
@@ -571,7 +673,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                         </div>
                                     </div>
                                 );
-                            })}
+                            }))}
                         </div>
                     )}
 
