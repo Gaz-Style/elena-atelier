@@ -538,12 +538,18 @@ export default function PortalFiestaPage() {
                                                 Pagado ✓
                                             </span>
                                         ) : (
-                                            <a 
-                                                href={`/portal-fiesta/${projectId}/pagar`}
-                                                className="text-[9px] uppercase tracking-widest font-bold border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-white px-3.5 py-1.5 rounded transition-all"
-                                            >
-                                                Pagar
-                                            </a>
+                                            idx > 0 && cuotasList[idx - 1].status !== 'paid' ? (
+                                                <span className="text-[9px] uppercase tracking-widest font-bold border border-gray-300 text-gray-400 px-3.5 py-1.5 rounded cursor-not-allowed flex items-center gap-1" title="Debes pagar la cuota anterior primero">
+                                                    <Lock className="w-3 h-3" /> Bloqueado
+                                                </span>
+                                            ) : (
+                                                <a 
+                                                    href={`/portal-fiesta/${projectId}/pagar?cuota=${idx}`}
+                                                    className="text-[9px] uppercase tracking-widest font-bold border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F] hover:text-white px-3.5 py-1.5 rounded transition-all"
+                                                >
+                                                    Pagar
+                                                </a>
+                                            )
                                         )}
                                     </div>
                                 </div>
