@@ -64,7 +64,7 @@ export default function FiestaInductionPage() {
                 <video 
                      controls
                      className="w-full aspect-[9/16] object-contain bg-black"
-                     poster="/trabajos/novia 2.jpeg"
+                     poster="/novia/Novia Elegante 1.webp"
                      onPlay={(e) => {
                           const target = e.target as HTMLVideoElement;
                           const overlay = target.nextElementSibling as HTMLElement;
