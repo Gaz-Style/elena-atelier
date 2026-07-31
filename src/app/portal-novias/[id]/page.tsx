@@ -183,11 +183,9 @@ export default function PortalNoviasPage() {
                     backgroundPosition: 'center',
                     backgroundRepeat: 'no-repeat',
                     backgroundAttachment: 'fixed',
-                    backgroundColor: '#0d0d0d',
                 }}
             >
-                {/* Soft dark scrim */}
-                <div className="fixed inset-0 bg-black/35 z-0 pointer-events-none" />
+                {/* No scrim */}
 
                 <div className="w-full max-w-2xl relative z-10">
                     <div className="text-center mb-12">
