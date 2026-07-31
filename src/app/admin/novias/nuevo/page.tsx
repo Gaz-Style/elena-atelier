@@ -158,7 +158,7 @@ export default function NuevoProyectoPage() {
         }
     }, [paymentMode, standardInstallments, installmentsCount, totalAmount, isNovia]);
 
-    const [customMilestones, setCustomMilestones] = useState<{type: string, title: string, date: string, requiredPayment: number}[]>([]);
+    const [customMilestones, setCustomMilestones] = useState<{type: string, title: string, date: string, requiredPayment: number, time?: string}[]>([]);
 
     useEffect(() => {
         if (!eventDate) {
@@ -742,12 +742,34 @@ export default function NuevoProyectoPage() {
                                     {customMilestones.map((m, i) => {
                                         const isLast = i === customMilestones.length - 1;
                                         return (
-                                            <div key={i} className={`flex items-center gap-3 border rounded-xl px-4 py-3 transition-all group hover:shadow-sm ${isLast ? 'border-rose-200 bg-rose-50/40' : 'border-zinc-200 bg-white hover:border-zinc-300'}`}>
+                                            <div key={i} className={`flex items-center gap-3 border rounded-xl px-4 py-3 transition-all group hover:shadow-sm relative ${isLast ? 'border-rose-200 bg-rose-50/40' : 'border-zinc-200 bg-white hover:border-zinc-300'}`}>
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newMilestones = [...customMilestones];
+                                                        newMilestones.splice(i, 1);
+                                                        setCustomMilestones(newMilestones);
+                                                    }}
+                                                    className="absolute -top-2 -right-2 bg-white border border-zinc-200 text-zinc-400 hover:text-red-500 hover:border-red-200 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all shadow-sm z-10"
+                                                    title="Eliminar prueba"
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                </button>
                                                 <span className={`w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold shrink-0 ${isLast ? 'bg-rose-500 text-white' : 'bg-zinc-800 text-white'}`}>
                                                     {i + 1}
                                                 </span>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className={`font-semibold text-sm truncate ${isLast ? 'text-rose-700' : 'text-zinc-800'}`}>{m.title}</p>
+                                                    <input 
+                                                        type="text"
+                                                        value={m.title}
+                                                        onChange={(e) => {
+                                                            const newMilestones = [...customMilestones];
+                                                            newMilestones[i] = { ...newMilestones[i], title: e.target.value };
+                                                            setCustomMilestones(newMilestones);
+                                                        }}
+                                                        className={`font-semibold text-sm w-full bg-transparent border-b border-transparent hover:border-zinc-300 focus:border-rose-400 focus:outline-none transition-colors truncate ${isLast ? 'text-rose-700 placeholder-rose-300' : 'text-zinc-800 placeholder-zinc-300'}`}
+                                                        placeholder="Nombre de la prueba"
+                                                    />
                                                 </div>
                                                 <div className="flex flex-row items-end gap-2.5 shrink-0">
                                                     <div className="flex flex-col items-end gap-1">
@@ -781,6 +803,29 @@ export default function NuevoProyectoPage() {
                                         );
                                     })}
                                 </div>
+                                
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const newMilestones = [...customMilestones];
+                                        const lastDateStr = customMilestones.length > 0 ? customMilestones[customMilestones.length - 1].date : eventDate;
+                                        
+                                        const dateObj = new Date(lastDateStr + 'T12:00:00');
+                                        dateObj.setDate(dateObj.getDate() + 7); // Default to a week later
+                                        
+                                        newMilestones.push({
+                                            type: 'prueba_adicional',
+                                            title: `Prueba ${customMilestones.length + 1} — Ajustes`,
+                                            requiredPayment: 0,
+                                            date: dateObj.toISOString().split('T')[0],
+                                            time: '11:00' as any
+                                        });
+                                        setCustomMilestones(newMilestones);
+                                    }}
+                                    className="mt-3 w-full border border-dashed border-zinc-300 rounded-xl py-3 text-xs font-bold text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 hover:border-zinc-400 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Plus className="w-4 h-4" /> Agregar Nueva Prueba
+                                </button>
 
                                 <p className="text-[10px] text-zinc-400 mt-4 italic">
                                     * Las fechas modificadas aquí quedarán guardadas como borrador. No se notificará a la clienta ni aparecerán en la Agenda principal hasta que confirmes cada una desde la ficha del proyecto.
