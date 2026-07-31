@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Heart, Crown, GraduationCap, Loader2, ChevronRight, User, Phone, FileText, Calendar, MapPin, DollarSign, CheckCircle2, AlertCircle, Sparkles, Clock, LogOut, CreditCard, X } from 'lucide-react';
+import { Heart, Crown, GraduationCap, Loader2, ChevronRight, User, Phone, FileText, Calendar, MapPin, DollarSign, CheckCircle2, AlertCircle, Sparkles, Clock, LogOut, CreditCard, X, Lock } from 'lucide-react';
 import ContractTemplate from '@/app/admin/novias/ContractTemplate';
 import InspirationMoodboard from '../components/InspirationMoodboard';
 

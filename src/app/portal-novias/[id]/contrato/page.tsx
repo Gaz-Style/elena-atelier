@@ -145,7 +145,7 @@ export default function PortalNoviasContratoPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#F5F5F0] flex items-center justify-center">
+            <div className="min-h-screen bg-[#F3EFEA] flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-[#C17F5F]" />
             </div>
         );
@@ -164,6 +164,9 @@ export default function PortalNoviasContratoPage() {
 
     return (
         <>
+            <head>
+                <link rel="preload" as="image" href="/novia/Novia Elegante 1.webp" />
+            </head>
             {/* Print-only contract view */}
             {showContractPrint && contractData && (
                 <div className="fixed inset-0 bg-white z-50 overflow-auto print:static print:z-auto p-8 text-black">
@@ -176,7 +179,7 @@ export default function PortalNoviasContratoPage() {
                 </div>
             )}
 
-            <div className="min-h-screen bg-black text-[#F5F5F0] font-sans py-12 px-4 md:px-6 relative overflow-hidden print:hidden" style={{ backgroundImage: "url('/novia/Novia Elegante 1.webp')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
+            <div className="min-h-screen bg-[#F3EFEA] text-[#F5F5F0] font-sans py-12 px-4 md:px-6 relative overflow-hidden print:hidden" style={{ backgroundImage: "url('/novia/Novia Elegante 1.webp')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
                 
                 <div className="w-full max-w-3xl mx-auto relative z-10">
                     {/* Logo */}

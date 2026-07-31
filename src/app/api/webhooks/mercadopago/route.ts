@@ -51,7 +51,7 @@ async function updateDatabaseAndNotify(
             const { registerBridalInstallment, acceptContract, sendBridalThankYouEmailAction } = await import('@/app/admin/novias/actions');
             
             // Register payment
-            await registerBridalInstallment(projectId, cuotaIndex, 'Mercado Pago', amount || undefined);
+            await registerBridalInstallment(projectId, cuotaIndex, 'Mercado Pago');
             
             // Only accept contract and send thank you email if it's the first payment
             if (cuotaIndex === 0) {
