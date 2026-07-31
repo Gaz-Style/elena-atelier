@@ -92,6 +92,13 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         const logicalOrder = ['toma_medidas', 'prueba_estructura', 'prueba_ajustes', 'prueba_final', 'entrega'];
         if (project.milestones) {
             project.milestones.sort((a: any, b: any) => {
+                const dateA = a.scheduled_date ? new Date(a.scheduled_date).getTime() : Infinity;
+                const dateB = b.scheduled_date ? new Date(b.scheduled_date).getTime() : Infinity;
+                
+                if (dateA !== dateB && dateA !== Infinity && dateB !== Infinity) {
+                    return dateA - dateB;
+                }
+                
                 let indexA = logicalOrder.indexOf(a.milestone_type);
                 let indexB = logicalOrder.indexOf(b.milestone_type);
                 if (indexA === -1) indexA = 99;
