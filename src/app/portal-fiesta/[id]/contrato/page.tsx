@@ -189,8 +189,8 @@ export default function PortalFiestaContratoPage() {
                     </div>
 
                     <div className="text-center mb-8">
-                        <h2 className="font-serif text-2xl text-white mb-2 italic" style={{ textShadow: '0 2px 8px rgba(0, 0, 0, 0.95)' }}>Propuesta y Presupuesto</h2>
-                        <p className="text-xs text-white max-w-md mx-auto mb-6" style={{ textShadow: '0 1.5px 6px rgba(0, 0, 0, 0.95)' }}>
+                        <h2 className="font-serif text-2xl text-white mb-2 italic">Propuesta y Presupuesto</h2>
+                        <p className="text-xs text-white max-w-md mx-auto mb-6">
                             Por favor revisa detenidamente el presupuesto, cronograma y condiciones del servicio a continuación. Debes aceptar los términos para proceder a la reserva de tu cupo.
                         </p>
                         <button
@@ -209,20 +209,20 @@ export default function PortalFiestaContratoPage() {
                     )}
 
                     {/* Proposal Document Container */}
-                    <div className="mb-8 space-y-8 max-w-3xl mx-auto w-full" style={{ textShadow: '0 1px 4px rgba(0, 0, 0, 0.8)' }}>
+                    <div className="mb-8 space-y-8 max-w-3xl mx-auto w-full">
                         
                         {/* Header Details */}
-                        <div className="text-center border-b border-[#C17F5F]/20 pb-6">
-                            <h2 className="font-serif text-xl text-[#C17F5F] tracking-wider uppercase" style={{ textShadow: '0 1.5px 4px rgba(0, 0, 0, 0.9)' }}>PROPUESTA DE SERVICIO</h2>
+                        <div className="text-center border-b border-[#C17F5F]/40 pb-6">
+                            <h2 className="font-serif text-xl text-[#C17F5F] tracking-wider uppercase drop-shadow-sm">PROPUESTA DE SERVICIO</h2>
                             <p className="text-[9px] text-zinc-300 uppercase tracking-widest mt-1">Elena Atelier — Vitacura, Chile</p>
                         </div>
 
                         {/* Section 1: Parties */}
                         <div>
-                            <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2 drop-shadow-sm">
                                 <FileText className="w-4 h-4" /> 1. Partes Contratantes
                             </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs bg-white/10 backdrop-blur-xl border border-white/20 rounded p-4 shadow-2xl">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs bg-black/40 backdrop-blur-xl border border-white/10 rounded p-4 shadow-2xl">
                                 <div>
                                     <p className="text-[9px] uppercase tracking-wider text-zinc-300 font-bold mb-1">Prestador del Servicio</p>
                                     <p className="font-bold text-white">ATELIER HORTENSIA SPA</p>
@@ -243,10 +243,10 @@ export default function PortalFiestaContratoPage() {
 
                         {/* Section 2: Service Description */}
                         <div>
-                            <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2 drop-shadow-sm">
                                 <Calendar className="w-4 h-4" /> 2. Descripción del Servicio
                             </h3>
-                            <div className="text-xs space-y-3 bg-white/10 backdrop-blur-xl border border-white/20 rounded p-4 shadow-2xl">
+                            <div className="text-xs space-y-3 bg-black/40 backdrop-blur-xl border border-white/10 rounded p-4 shadow-2xl">
                                 <div className="flex justify-between border-b border-white/10 pb-2">
                                     <span className="text-zinc-300">Servicio:</span>
                                     <span className="font-bold text-white">{serviceTypeLabel[project.service_type] || project.service_type}</span>
@@ -272,10 +272,10 @@ export default function PortalFiestaContratoPage() {
 
                         {/* Section 3: Economics */}
                         <div>
-                            <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2 drop-shadow-sm">
                                 <DollarSign className="w-4 h-4" /> 3. Condiciones Económicas
                             </h3>
-                            <div className="overflow-x-auto border border-white/20 rounded bg-white/10 backdrop-blur-xl shadow-2xl">
+                            <div className="overflow-x-auto border border-white/10 rounded bg-black/40 backdrop-blur-xl shadow-2xl">
                                 <table className="w-full text-xs text-left">
                                     <thead>
                                         <tr className="bg-white/5 border-b border-white/10 text-white font-bold">
@@ -337,12 +337,12 @@ export default function PortalFiestaContratoPage() {
                         {/* Section 4: Milestones Timeline */}
                         {project.milestones && project.milestones.length > 0 && (
                             <div>
-                                <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
+                                <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2 drop-shadow-sm">
                                     <Calendar className="w-4 h-4" /> 4. Cronograma Estimado de Pruebas
                                 </h3>
                                 <div className="space-y-2 text-xs">
                                     {project.milestones.map((m: any, i: number) => (
-                                        <div key={m.id || i} className="flex justify-between items-center bg-white/10 backdrop-blur-xl border border-white/20 px-4 py-3 rounded shadow-2xl">
+                                        <div key={m.id || i} className="flex justify-between items-center bg-black/40 backdrop-blur-xl border border-white/10 px-4 py-3 rounded shadow-2xl">
                                             <div className="flex items-center gap-3">
                                                 <span className="w-5 h-5 rounded-full bg-[#C17F5F] text-white text-[10px] flex items-center justify-center font-bold">{i + 1}</span>
                                                 <span className="font-semibold text-white">{m.title}</span>
@@ -359,10 +359,10 @@ export default function PortalFiestaContratoPage() {
 
                         {/* Section 5: Terms and Conditions */}
                         <div>
-                            <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <h3 className="text-xs font-bold text-[#C17F5F] uppercase tracking-wider mb-3 flex items-center gap-2 drop-shadow-sm">
                                 <ShieldAlert className="w-4 h-4" /> {project.milestones && project.milestones.length > 0 ? '5' : '4'}. Términos y Condiciones
                             </h3>
-                            <div className="text-[11px] text-zinc-300 space-y-4 pr-2 bg-white/10 backdrop-blur-xl border border-white/20 rounded p-4 shadow-2xl">
+                            <div className="text-[11px] text-zinc-300 space-y-4 pr-2 bg-black/40 backdrop-blur-xl border border-white/10 rounded p-4 shadow-2xl">
                                 <div>
                                     <h4 className="font-bold text-white mb-1">1. Proceso de Confección y Ajustes</h4>
                                     <p>Se tiene en conocimiento que el diseño, confección a medida y/o modificación de un vestido conlleva un trabajo artesanal meticuloso. Los tiempos de avance y entrega final dependerán estrictamente del cumplimiento del cronograma de pruebas establecido y de la puntual asistencia de la clienta a cada sesión.</p>
@@ -394,7 +394,7 @@ export default function PortalFiestaContratoPage() {
 
                         {/* Materials Notes */}
                         {project.materials_notes && (
-                            <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded p-4 text-xs text-zinc-300 shadow-2xl">
+                            <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded p-4 text-xs text-zinc-300 shadow-2xl">
                                 <p className="font-bold text-[#C17F5F] mb-1.5 uppercase tracking-wider text-[10px]">Materiales Comprometidos / Detalles de Diseño:</p>
                                 <p className="whitespace-pre-wrap font-light leading-relaxed">
                                     {project.materials_notes.replace(/!\[Referencia(?: \d+)?\]\((data:image\/[^;]+;base64,[^\)]+)\)/g, '').trim()}
@@ -420,7 +420,7 @@ export default function PortalFiestaContratoPage() {
                     </div>
 
                     {/* Acceptance and Signature Area */}
-                    <div className="max-w-xl mx-auto text-center space-y-6" style={{ textShadow: '0 1px 4px rgba(0, 0, 0, 0.8)' }}>
+                    <div className="max-w-xl mx-auto text-center space-y-6">
                         
                         {project.contract_accepted ? (
                             <div className="p-4 bg-[#C17F5F]/5 border border-[#C17F5F]/20 text-zinc-300 rounded text-xs tracking-wide">
@@ -444,7 +444,7 @@ export default function PortalFiestaContratoPage() {
 
                         <div className="pt-2">
                             {!project.contract_accepted && (
-                                <div className="mb-8 p-4 border border-white/20 bg-white/5 backdrop-blur-md rounded text-left shadow-lg">
+                                <div className="mb-8 p-4 border border-white/10 bg-black/40 backdrop-blur-md rounded text-left shadow-lg">
                                     <p className="text-[10px] text-zinc-300 font-light leading-relaxed">
                                         <span className="font-bold text-[#C17F5F] uppercase tracking-[0.15em] block mb-1.5 flex items-center gap-2">
                                             <span className="w-1.5 h-1.5 rounded-full bg-[#C17F5F]"></span>
