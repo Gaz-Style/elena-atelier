@@ -3,7 +3,7 @@ import { commitWebpayTransaction } from '@/lib/transbank';
 import { redirect } from 'next/navigation';
 import { XCircle } from 'lucide-react';
 import Link from 'next/link';
-import { getBridalProjectById, registerPayment, acceptContract, sendBridalThankYouEmailAction } from '@/app/admin/novias/actions';
+import { getBridalProjectById, registerBridalInstallment, acceptContract, sendBridalThankYouEmailAction, sendBridalPaymentConfirmationEmailAction } from '@/app/admin/novias/actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,11 +33,19 @@ export default async function WebpayCallbackPage({
 
         if (data.response_code === 0 && data.status === 'AUTHORIZED') {
             const project = await getBridalProjectById(projectId);
-            
-            if (project && project.payment_1_status !== 'paid') {
+            let cuotaIndex = 0;
+            if (data.buy_order && data.buy_order.includes('_C')) {
+                const parts = data.buy_order.split('_C');
+                cuotaIndex = parseInt(parts[1], 10);
+            }
+
+            await registerBridalInstallment(projectId, cuotaIndex, 'Webpay');
+
+            if (cuotaIndex === 0 && project && !project.contract_accepted) {
                 await acceptContract(projectId);
-                await registerPayment(projectId, 1, 'Webpay');
                 await sendBridalThankYouEmailAction(projectId);
+            } else if (cuotaIndex > 0) {
+                await sendBridalPaymentConfirmationEmailAction(projectId, cuotaIndex, data.amount, 'Webpay Plus');
             }
 
             redirect(`/portal-fiesta/${projectId}/pago-exitoso`);

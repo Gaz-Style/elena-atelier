@@ -3,7 +3,7 @@ import { commitWebpayTransaction } from '@/lib/transbank';
 import { redirect } from 'next/navigation';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import Link from 'next/link';
-import { getBridalProjectById, registerBridalInstallment, acceptContract, sendBridalThankYouEmailAction } from '@/app/admin/novias/actions';
+import { getBridalProjectById, registerBridalInstallment, acceptContract, sendBridalThankYouEmailAction, sendBridalPaymentConfirmationEmailAction } from '@/app/admin/novias/actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,6 +46,8 @@ export default async function WebpayCallbackPage({
             if (cuotaIndex === 0 && project && !project.contract_accepted) {
                 await acceptContract(projectId);
                 await sendBridalThankYouEmailAction(projectId);
+            } else if (cuotaIndex > 0) {
+                await sendBridalPaymentConfirmationEmailAction(projectId, cuotaIndex, data.amount, 'Webpay Plus');
             }
 
             if (isFiesta) {

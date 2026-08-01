@@ -1278,6 +1278,74 @@ export async function sendBridalThankYouEmailAction(projectId: string) {
     }
 }
 
+export async function sendBridalPaymentConfirmationEmailAction(projectId: string, cuotaIndex: number, amount: number, paymentMethod: string = 'Webpay') {
+    try {
+        const supabase = getAdminClient();
+        const { data: project } = await supabase.from('bridal_projects')
+            .select('*, customers(email, full_name)')
+            .eq('id', projectId).single();
+            
+        if (!project || !project.customers?.email) throw new Error('Proyecto no encontrado');
+        
+        const customerEmail = project.customers.email;
+        const customerName = project.customers.full_name || 'Clienta';
+        const formattedAmount = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(amount);
+        const cuotaName = cuotaIndex > 0 ? `Cuota ${cuotaIndex + 1}` : 'Abono Inicial';
+
+        const htmlContent = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8" /></head>
+<body style="margin: 0; padding: 0; background-color: #F8F6F0; font-family: 'Inter', sans-serif;">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8F6F0; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" border="0" cellpadding="0" cellspacing="0" style="background-color: #FCFAF7; border-radius: 4px; overflow: hidden; box-shadow: 0 20px 40px rgba(193,127,95,0.1); border: 1px solid #EAE6D7;">
+          <tr>
+            <td style="background-color: #FCFAF7; padding: 50px 40px; text-align: center;">
+              ${emailLogoHtml}
+              <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #1A1A1A; font-size: 28px; font-weight: 400; margin: 30px 0 20px 0; letter-spacing: 0.5px; font-style: italic;">
+                Confirmación de Pago
+              </h1>
+              <p style="color: #4A4A4A; font-size: 14px; line-height: 1.8; margin-bottom: 20px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
+                Estimada <i style="color: #1A1A1A;">${customerName}</i>, hemos recibido exitosamente tu pago correspondiente a <strong>${cuotaName}</strong> por un monto de <strong>${formattedAmount}</strong> vía ${paymentMethod}.
+              </p>
+              <p style="color: #4A4A4A; font-size: 14px; line-height: 1.8; margin-bottom: 20px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
+                Puedes revisar el estado actualizado de tu plan de pagos directamente en tu Portal Privado en cualquier momento.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color: #F5F5F0; padding: 30px 40px; text-align: center; border-top: 1px solid #EAE6D7;">
+              <p style="color: #6B6660; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0;">
+                Vitacura, Santiago de Chile<br><br>
+                © ${new Date().getFullYear()} ELENA LA COSTURERA | ATELIER
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+        const transporter = getTransporter();
+        await transporter.sendMail({
+            from: '"Elena Atelier" <contacto@elenalacosturera.cl>',
+            to: customerEmail,
+            cc: 'pagos@elenalacosturera.cl',
+            subject: `Confirmación de Pago: ${cuotaName} - ${customerName}`,
+            text: `Estimada ${customerName},\n\nHemos recibido exitosamente tu pago correspondiente a ${cuotaName} por un monto de ${formattedAmount} vía ${paymentMethod}.\n\nAtentamente,\nElena Atelier`,
+            html: htmlContent
+        });
+
+        return { success: true };
+    } catch (e: any) {
+        console.error('Error sending payment confirmation email:', e);
+        return { success: false, error: e.message };
+    }
+}
+
 export async function generateBridalPaymentLinksAction(projectId: string, cuotaIndex: number = 0) {
     try {
         const supabase = getAdminClient();
