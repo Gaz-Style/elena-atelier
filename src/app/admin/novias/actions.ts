@@ -1339,6 +1339,45 @@ export async function sendBridalPaymentConfirmationEmailAction(projectId: string
             html: htmlContent
         });
 
+        // Notificación de WhatsApp a Dueñas (Portal Novias)
+        try {
+            const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+            const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
+            if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
+                const prenda = project.project_type || 'Vestido';
+                for (const ownerNum of ['56984021940', '56937667709']) {
+                    await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            messaging_product: 'whatsapp',
+                            to: ownerNum,
+                            type: 'template',
+                            template: {
+                                name: 'alerta_pago_recibido',
+                                language: { code: 'en' },
+                                components: [{
+                                    type: 'body',
+                                    parameters: [
+                                        { type: 'text', text: customerName },
+                                        { type: 'text', text: `${prenda} (${cuotaName})` },
+                                        { type: 'text', text: formattedAmount },
+                                        { type: 'text', text: projectId.substring(0,8) },
+                                        { type: 'text', text: paymentMethod }
+                                    ]
+                                }]
+                            }
+                        })
+                    });
+                }
+            }
+        } catch (wspErr) {
+            console.error('Error enviando WhatsApp de pago a dueños (Webpay Novias):', wspErr);
+        }
+
         return { success: true };
     } catch (e: any) {
         console.error('Error sending payment confirmation email:', e);
