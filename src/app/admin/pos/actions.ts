@@ -1830,7 +1830,7 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
                                     type: 'template',
                                     template: {
                                         name: 'alerta_pago_recibido',
-                                        language: { code: 'es' },
+                                        language: { code: 'en' },
                                         components: [{
                                             type: 'body',
                                             parameters: [
