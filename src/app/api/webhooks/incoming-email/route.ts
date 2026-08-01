@@ -64,7 +64,7 @@ export async function POST(req: Request) {
                     type: 'template',
                     template: {
                         name: templateName,
-                        language: { code: 'es' },
+                        language: { code: 'es_CL' },
                         components: [{
                             type: 'body',
                             parameters: [
