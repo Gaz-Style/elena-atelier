@@ -271,6 +271,9 @@ function groupProductionOrdersForDeliveries(orders: any[]) {
 export default function PlanificadorPage() {
     const [operators, setOperators]   = useState<Operator[]>([]);
     const [orders, setOrders]         = useState<any[]>([]);
+    const [showAppointmentsOverlay, setShowAppointmentsOverlay] = useState(true);
+    const [selectedOperatorId, setSelectedOperatorId] = useState<string>('all');
+    const [showGanttSplit, setShowGanttSplit] = useState(false);
     const [planner, setPlanner]       = useState<PlannerData>({});
     const [loading, setLoading]       = useState(true);
     const [activeBridalMilestones, setActiveBridalMilestones] = useState<any[]>([]);
@@ -284,8 +287,6 @@ export default function PlanificadorPage() {
     const [agendaList, setAgendaList] = useState<any[]>([]);
     const [milestonesList, setMilestonesList] = useState<any[]>([]);
     const [deliveriesList, setDeliveriesList] = useState<any[]>([]);
-    const [showAppointmentsOverlay, setShowAppointmentsOverlay] = useState(true);
-    const [selectedOperatorId, setSelectedOperatorId] = useState<string>('all');
     const todayStr = dateStr(new Date());
 
     const visibleOperators = useMemo(() => {
@@ -315,7 +316,15 @@ export default function PlanificadorPage() {
         else if (viewMode === 'week') {
             const diff = dow === 0 ? -6 : 1 - dow;
             const mon = new Date(y, m, d + diff);
-            return Array.from({ length: 6 }, (_, i) => new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + i));
+            const days = [];
+            let current = new Date(mon);
+            while (days.length < 24) {
+                if (current.getDay() !== 0) { // Skip Sundays
+                    days.push(new Date(current));
+                }
+                current.setDate(current.getDate() + 1);
+            }
+            return days;
         } 
         else if (viewMode === 'month') {
             const daysInMonth = new Date(y, m + 1, 0).getDate();
@@ -702,12 +711,12 @@ export default function PlanificadorPage() {
                         >
                             {previewMode ? <><span className="hidden md:inline">✓ Vista Previa</span><span className="md:hidden">✓ Vista</span></> : '✎ Editar'}
                         </button>
-                        <Link 
-                            href="/admin/planificador/seguimiento"
-                            className="h-9 px-3 bg-rose-50 text-rose-600 border border-rose-200/60 hover:bg-rose-100 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 shadow-sm whitespace-nowrap"
+                        <button 
+                            onClick={() => setShowGanttSplit(!showGanttSplit)}
+                            className={`h-9 px-3 rounded-lg text-xs font-bold transition-all border shadow-sm whitespace-nowrap flex items-center justify-center gap-1 ${showGanttSplit ? 'bg-rose-600 text-white border-rose-600 hover:bg-rose-700' : 'bg-rose-50 text-rose-600 border border-rose-200/60 hover:bg-rose-100'}`}
                         >
                             <Activity className="w-3.5 h-3.5" /> <span>Seguimiento Gantt</span>
-                        </Link>
+                        </button>
                         <Link 
                             href="/admin/production"
                             className="h-9 px-3 bg-amber-50 text-amber-700 border border-amber-200/60 hover:bg-amber-100 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap"
@@ -757,7 +766,7 @@ export default function PlanificadorPage() {
             </div>
 
             {/* ── TABLE ─────────────────────────────────────────────────────── */}
-            <div className="flex-grow overflow-auto w-full print:overflow-visible px-0 pt-0 pb-4">
+            <div className={`w-full print:overflow-visible px-0 pt-0 pb-4 transition-all duration-300 ${showGanttSplit ? 'h-[50vh] overflow-y-auto' : 'flex-grow overflow-auto'}`}>
                 {loading ? (
                     <div className="text-center py-24 text-slate-400 text-sm font-bold uppercase tracking-widest animate-pulse">
                         Cargando planificación...
@@ -1261,10 +1270,11 @@ export default function PlanificadorPage() {
                 )}
 
                 {/* ── PANEL DE TRABAJOS Y ENTREGAS EN TIEMPO REAL ───────────────────── */}
-                {!loading && (
-                    <div className="mt-8">
-                        <ProjectGanttTimeline />
-                    </div>
+                {!loading && showGanttSplit && (
+                    <ProjectGanttTimeline 
+                        className="h-[38vh] shrink-0 mt-4 border-t border-x-0 border-b-0 border-slate-200 shadow-inner rounded-none" 
+                        bodyHeightStyle={{ maxHeight: '100%' }}
+                    />
                 )}
             </div>
 
