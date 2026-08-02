@@ -311,7 +311,7 @@ const PREVIEW_TEMPLATES: Record<string, string> = {
     <p class="text" style="text-align: left;">Estimada {{NAME}},</p>
     <p class="text" style="text-align: left;">{{MESSAGE}}</p>
     <div style="margin-top: 30px; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 20px; text-align: center;">
-      <p style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #C17F5F; margin: 0 0 10px 0;">Agradecemos tu preferencia</p>
+      <p style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #C17F5F; margin: 0 0 10px 0;">Es un placer acompañarte en cada detalle</p>
       <p style="font-style: italic; font-size: 14px; color: #E5E0D8; margin: 0 0 4px 0;">Con cariño,</p>
       <p style="font-family: 'Pinyon Script', cursive; font-size: 38px; color: #FFFFFF; margin: 0 0 4px 0; font-weight: normal;">Elena R.</p>
       <p style="font-size: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; color: #8A857D; margin: 0;">ELENA La Costurera</p>
@@ -385,7 +385,7 @@ const PREVIEW_TEMPLATES: Record<string, string> = {
 
     <!-- Firma de Elena y Agradecimiento -->
     <div style="margin-top: 30px; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 20px; text-align: center;">
-      <p style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #C17F5F; margin: 0 0 10px 0;">Agradecemos tu preferencia</p>
+      <p style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #C17F5F; margin: 0 0 10px 0;">Es un placer acompañarte en cada detalle</p>
       <p style="font-style: italic; font-size: 14px; color: #E5E0D8; margin: 0 0 4px 0;">Con cariño,</p>
       <p style="font-family: 'Pinyon Script', cursive; font-size: 38px; color: #FFFFFF; margin: 0 0 4px 0; font-weight: normal;">Elena R.</p>
       <p style="font-size: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; color: #8A857D; margin: 0;">ELENA La Costurera</p>

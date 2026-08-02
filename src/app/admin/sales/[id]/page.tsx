@@ -47,10 +47,20 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
     }
 
     // 3. Fetch production orders (items)
-    const { data: items } = await supabase
-        .from('production_orders')
-        .select('*')
-        .eq('sale_id', sale.id);
+    let projectId = null;
+    if (sale.internal_id && sale.internal_id.startsWith('bridal_')) {
+        const cleanId = sale.internal_id.replace('bridal_', '');
+        const parts = cleanId.split('_');
+        projectId = parts[0];
+    }
+
+    let itemsQuery = supabase.from('production_orders').select('*');
+    if (projectId) {
+        itemsQuery = itemsQuery.or(`sale_id.eq.${sale.id},pos_order_id.eq.${projectId}`);
+    } else {
+        itemsQuery = itemsQuery.eq('sale_id', sale.id);
+    }
+    const { data: items } = await itemsQuery;
 
     const safeItems = items || [];
 

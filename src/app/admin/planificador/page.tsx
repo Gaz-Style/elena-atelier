@@ -330,6 +330,57 @@ export default function PlanificadorPage() {
     const [mDay, setMDay]     = useState('');
     const [mOrderId, setMOrderId] = useState('');
 
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filterMode, setFilterMode] = useState<'pending' | 'all'>('pending');
+
+    const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setDropdownOpen(false);
+            }
+        }
+        if (dropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [dropdownOpen]);
+
+    const sortedAndFilteredOrders = useMemo(() => {
+        let list = orders.map(o => {
+            const remaining = Math.max(0, (o.estimated_hours || 0) - (o.scheduled_hours || 0));
+            return { ...o, remaining };
+        });
+
+        // Sort by entry order to the system (created_at) - newest first
+        list.sort((a, b) => {
+            const dateA = new Date(a.created_at || 0).getTime();
+            const dateB = new Date(b.created_at || 0).getTime();
+            return dateB - dateA;
+        });
+
+        // Filter by search query
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            list = list.filter(o => 
+                (o.customers?.full_name || '').toLowerCase().includes(query) ||
+                (o.description || '').toLowerCase().includes(query)
+            );
+        }
+
+        // Filter by mode
+        if (filterMode === 'pending') {
+            list = list.filter(o => o.remaining > 0);
+        }
+
+        return list;
+    }, [orders, searchQuery, filterMode]);
+
+
     // ── Load ─────────────────────────────────────────────────────────────────
     const load = useCallback(async () => {
         setLoading(true);
@@ -546,12 +597,14 @@ export default function PlanificadorPage() {
         setMType('costura'); setMTime(''); setMLabel('');
         setMStartHour(hoursArray[0] || 10);
         setMOpId(opId); setMDay(day); setMOrderId('');
+        setDropdownOpen(false); setSearchQuery(''); setFilterMode('pending');
         setModal({ opId, day });
     }
     function openEdit(opId: string, day: string, task: Task) {
         setMType(task.type); setMTime(task.time); setMLabel(task.label);
         setMStartHour(task.startHour || hoursArray[0] || 10);
         setMOpId(opId); setMDay(day); setMOrderId(task.orderId || '');
+        setDropdownOpen(false); setSearchQuery(''); setFilterMode('all');
         setModal({ opId, day, task });
     }
     async function saveTask() {
@@ -1096,10 +1149,10 @@ export default function PlanificadorPage() {
             {/* ── MODAL (Tailwind) ─────────────────────────────────────────────────── */}
             {modal && (
                 <div className="fixed inset-0 z-[999] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setModal(null)}>
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[500px] overflow-hidden flex flex-col font-sans animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[680px] overflow-visible flex flex-col font-sans animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
                         
                         {/* Header */}
-                        <div className="bg-[#0f172a] text-white px-6 py-5 flex items-center justify-between">
+                        <div className="bg-[#0f172a] text-white px-6 py-5 flex items-center justify-between rounded-t-2xl">
                             <h3 className="text-lg font-bold flex items-center gap-3 m-0">
                                 <span className="text-orange-400">📅</span>
                                 {modal.task ? 'Editar Tarea' : 'Nueva Tarea / Cita'}
@@ -1218,38 +1271,136 @@ export default function PlanificadorPage() {
 
                             {/* Link Order */}
                             {mType === 'costura' && orders.length > 0 && (
-                                <div>
+                                <div className="relative" ref={dropdownRef}>
                                     <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
                                         🔗 Vincular a Orden del Sistema (opcional)
                                     </label>
-                                    <select
-                                        value={mOrderId}
-                                        className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:border-[#0f172a] transition-colors appearance-none bg-white cursor-pointer"
-                                        onChange={e => {
-                                            const val = e.target.value;
-                                            setMOrderId(val);
-                                            const o = orders.find(o => o.id === val);
-                                            if (o) {
-                                                const customer = o.customers?.full_name ? `${o.customers.full_name} - ` : '';
-                                                setMLabel(`${customer}${o.description || ''}`);
-                                                
-                                                const remaining = Math.max(0, (o.estimated_hours || 0) - (o.scheduled_hours || 0));
-                                                if (remaining > 0) {
-                                                    setMTime(`${Math.min(remaining, 8)}h`);
-                                                }
-                                            }
-                                        }}
+                                    
+                                    {/* Trigger Button */}
+                                    <button
+                                        type="button"
+                                        className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-sm text-left text-slate-700 bg-white hover:border-[#0f172a] focus:outline-none transition-colors flex items-center justify-between"
+                                        onClick={() => setDropdownOpen(!dropdownOpen)}
                                     >
-                                        <option value="">— Sin vincular (entrada manual) —</option>
-                                        {orders.map(o => {
-                                            const remaining = Math.max(0, (o.estimated_hours || 0) - (o.scheduled_hours || 0));
-                                            return (
-                                                <option key={o.id} value={o.id}>
-                                                    {o.description}{o.customers?.full_name ? ` — ${o.customers.full_name}` : ''}{o.estimated_hours ? ` (${remaining}h de ${o.estimated_hours}h por agendar)` : ''}
-                                                </option>
-                                            );
-                                        })}
-                                    </select>
+                                        <span className="truncate">
+                                            {(() => {
+                                                if (!mOrderId) return '— Sin vincular (entrada manual) —';
+                                                const o = orders.find(ord => ord.id === mOrderId);
+                                                if (!o) return '— Sin vincular (entrada manual) —';
+                                                const cust = o.customers?.full_name || 'Sin Cliente';
+                                                const remaining = Math.max(0, (o.estimated_hours || 0) - (o.scheduled_hours || 0));
+                                                return `${cust} — ${o.description} (${remaining}h por agendar)`;
+                                            })()}
+                                        </span>
+                                        <span className="text-slate-400 text-xs ml-2">▼</span>
+                                    </button>
+
+                                    {/* Custom Dropdown Content */}
+                                    {dropdownOpen && (
+                                        <div className="absolute bottom-full mb-2 left-0 right-0 bg-white border border-slate-200 rounded-2xl shadow-2xl z-[1002] flex flex-col overflow-hidden max-h-[500px] animate-in fade-in duration-100">
+                                            {/* Search Bar & Tabs Header */}
+                                            <div className="p-3 border-b border-slate-100 bg-slate-50 flex flex-col gap-2 shrink-0">
+                                                <input
+                                                    type="text"
+                                                    placeholder="🔍 Buscar por cliente o prenda..."
+                                                    value={searchQuery}
+                                                    onChange={e => setSearchQuery(e.target.value)}
+                                                    className="w-full border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-[#0f172a]"
+                                                />
+                                                <div className="flex gap-1.5">
+                                                    <button
+                                                        type="button"
+                                                        className={`flex-1 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md border transition-all ${filterMode === 'pending' ? 'bg-[#0f172a] border-[#0f172a] text-white' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-750'}`}
+                                                        onClick={() => setFilterMode('pending')}
+                                                    >
+                                                        ⚠️ Por Planificar
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className={`flex-1 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md border transition-all ${filterMode === 'all' ? 'bg-[#0f172a] border-[#0f172a] text-white' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-750'}`}
+                                                        onClick={() => setFilterMode('all')}
+                                                    >
+                                                        ✓ Ver Todos
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Scrollable list grid */}
+                                            <div className="overflow-y-auto flex-1 py-1">
+                                                {/* Reset option */}
+                                                <div
+                                                    className="px-4 py-2 text-xs text-slate-500 font-bold hover:bg-slate-50 cursor-pointer border-b border-slate-100"
+                                                    onClick={() => {
+                                                        setMOrderId('');
+                                                        setDropdownOpen(false);
+                                                    }}
+                                                >
+                                                    — Sin vincular (entrada manual) —
+                                                </div>
+
+                                                {sortedAndFilteredOrders.map(o => {
+                                                    const cust = o.customers?.full_name || 'Sin Cliente';
+                                                    const desc = o.description || 'Prenda';
+                                                    const est = o.estimated_hours || 0;
+                                                    const rem = o.remaining;
+                                                    const sched = Math.max(0, est - rem);
+                                                    const progress = est > 0 ? (sched / est) * 100 : 0;
+                                                    const isSelected = mOrderId === o.id;
+
+                                                    // Color coding based on status
+                                                    const progressColorClass = rem === 0 
+                                                        ? 'bg-emerald-500' 
+                                                        : rem === est 
+                                                            ? 'bg-slate-300' 
+                                                            : 'bg-amber-500';
+
+                                                    return (
+                                                        <div
+                                                            key={o.id}
+                                                            className={`px-4 py-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-b-0 transition-colors flex flex-col sm:grid sm:grid-cols-12 sm:gap-3 sm:items-center ${isSelected ? 'bg-slate-50 font-semibold' : ''}`}
+                                                            onClick={() => {
+                                                                setMOrderId(o.id);
+                                                                const customer = o.customers?.full_name ? `${o.customers.full_name} - ` : '';
+                                                                setMLabel(`${customer}${o.description || ''}`);
+                                                                if (rem > 0) {
+                                                                    setMTime(`${Math.min(rem, 8)}h`);
+                                                                }
+                                                                setDropdownOpen(false);
+                                                            }}
+                                                        >
+                                                            {/* Desktop Columns Grid */}
+                                                            <div className="sm:col-span-4 font-bold text-slate-800 text-[11px] sm:text-xs truncate" title={cust}>
+                                                                {cust}
+                                                            </div>
+                                                            <div className="sm:col-span-4 text-slate-500 text-[10px] sm:text-[11px] truncate" title={desc}>
+                                                                {desc}
+                                                            </div>
+                                                            <div className="sm:col-span-2 text-right text-slate-500 text-[10.5px] sm:text-xs font-mono whitespace-nowrap mt-0.5 sm:mt-0">
+                                                                {rem}h de {est}h
+                                                            </div>
+                                                            <div className="sm:col-span-2 flex items-center justify-end gap-1.5 mt-1 sm:mt-0">
+                                                                <div className="h-1.5 w-12 bg-slate-100 rounded-full overflow-hidden shrink-0 hidden sm:block">
+                                                                    <div 
+                                                                        className={`h-full rounded-full ${progressColorClass}`}
+                                                                        style={{ width: `${progress}%` }}
+                                                                    />
+                                                                </div>
+                                                                <span className={`text-[8.5px] font-bold px-1 py-0.5 rounded leading-none shrink-0 text-white ${progressColorClass}`}>
+                                                                    {Math.round(progress)}%
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+
+                                                {sortedAndFilteredOrders.length === 0 && (
+                                                    <div className="p-4 text-center text-xs text-slate-400 italic">
+                                                        No se encontraron órdenes
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
