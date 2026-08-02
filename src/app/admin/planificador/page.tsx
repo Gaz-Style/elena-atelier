@@ -1269,6 +1269,7 @@ export default function PlanificadorPage() {
                     </div>
                 )}
 
+            </div>
                 {/* ── PANEL DE TRABAJOS Y ENTREGAS EN TIEMPO REAL ───────────────────── */}
                 {!loading && showGanttSplit && (
                     <ProjectGanttTimeline 
@@ -1276,7 +1277,6 @@ export default function PlanificadorPage() {
                         bodyHeightStyle={{ maxHeight: '100%' }}
                     />
                 )}
-            </div>
 
             {/* ── MODAL (Tailwind) ─────────────────────────────────────────────────── */}
             {modal && (

@@ -102,6 +102,7 @@ export async function getProductionTimeline() {
       deadline,
       customer_id,
       pos_order_id,
+      legacy_bridal_project_id,
       customers (
         full_name
       )
@@ -162,6 +163,7 @@ export async function getProductionTimeline() {
       estimatedHours,
       scheduledHours,
       deadline: order.deadline,
+      legacy_bridal_project_id: order.legacy_bridal_project_id,
       tasks: orderTasks,
       milestones: orderMilestones
     };

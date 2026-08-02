@@ -50,7 +50,18 @@ export default function ProjectGanttTimeline({
     const [loading, setLoading] = useState(true);
     const [projects, setProjects] = useState<any[]>([]);
     const [colWidth, setColWidth] = useState(32); 
+    const [ganttFilter, setGanttFilter] = useState<'all' | 'bridal' | 'workshop'>('all');
     
+    const filteredProjects = useMemo(() => {
+        if (ganttFilter === 'bridal') {
+            return projects.filter(p => p.legacy_bridal_project_id !== null);
+        }
+        if (ganttFilter === 'workshop') {
+            return projects.filter(p => p.legacy_bridal_project_id === null);
+        }
+        return projects;
+    }, [projects, ganttFilter]);
+
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     const DAYS_PAST = 30;
@@ -160,6 +171,28 @@ export default function ProjectGanttTimeline({
 
                 {/* Dynamic Zoom Panel */}
                 <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
+                    {/* Project Type Filter */}
+                    <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+                        <button
+                            onClick={() => setGanttFilter('all')}
+                            className={`px-2.5 py-1 text-[9px] font-bold uppercase rounded-md transition-all ${ganttFilter === 'all' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                        >
+                            Ver Todo
+                        </button>
+                        <button
+                            onClick={() => setGanttFilter('bridal')}
+                            className={`px-2.5 py-1 text-[9px] font-bold uppercase rounded-md transition-all ${ganttFilter === 'bridal' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                        >
+                            💍 Alta Costura
+                        </button>
+                        <button
+                            onClick={() => setGanttFilter('workshop')}
+                            className={`px-2.5 py-1 text-[9px] font-bold uppercase rounded-md transition-all ${ganttFilter === 'workshop' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                        >
+                            🧵 Taller / Arreglos
+                        </button>
+                    </div>
+
                     <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
                         <button
                             onClick={() => applyPreset('year')}
@@ -267,12 +300,12 @@ export default function ProjectGanttTimeline({
 
                     {/* Gantt Body */}
                     <div className="flex flex-col relative z-0 w-fit pb-4">
-                        {projects.length === 0 ? (
+                        {filteredProjects.length === 0 ? (
                             <div className="p-10 text-center text-slate-400 font-bold uppercase tracking-widest text-xs sticky left-0 w-full">
                                 No hay proyectos de producción activos.
                             </div>
                         ) : (
-                            projects.map((project, index) => {
+                            filteredProjects.map((project, index) => {
                                 const daysDiff = getDaysDiff(project.deadline);
                                 const progressPercent = project.estimatedHours > 0
                                     ? Math.min(100, Math.round((project.scheduledHours / project.estimatedHours) * 100))
