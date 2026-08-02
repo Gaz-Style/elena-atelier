@@ -281,7 +281,16 @@ export default function PlanificadorPage() {
     const [anchor, setAnchor]         = useState(new Date());
     const [workshopStart, setWorkshopStart] = useState('09:00');
     const [workshopEnd, setWorkshopEnd] = useState('18:00');
+    const [agendaList, setAgendaList] = useState<any[]>([]);
+    const [milestonesList, setMilestonesList] = useState<any[]>([]);
+    const [deliveriesList, setDeliveriesList] = useState<any[]>([]);
+    const [showAppointmentsOverlay, setShowAppointmentsOverlay] = useState(true);
+    const [selectedOperatorId, setSelectedOperatorId] = useState<string>('all');
     const todayStr = dateStr(new Date());
+
+    const visibleOperators = useMemo(() => {
+        return operators.filter(op => selectedOperatorId === 'all' || op.id === selectedOperatorId);
+    }, [operators, selectedOperatorId]);
 
     const hoursArray = useMemo(() => {
         const [startH] = workshopStart.split(':').map(Number);
@@ -467,85 +476,15 @@ export default function PlanificadorPage() {
             }
         });
 
+        setAgendaList(agenda || []);
+        setMilestonesList(mappedMilestones || []);
+        const groupedDeliveries = groupProductionOrdersForDeliveries(pOrders || []);
+        setDeliveriesList(groupedDeliveries);
+
         if (viewMode !== 'year') {
             // Note: We no longer auto-inject production orders into the planner.
             // The planner is now the source of truth, and hours are distributed manually via planner_tasks.
 
-            // Inject agendamientos → first operator
-            const firstOpId = activeOps[0]?.id;
-            (agenda || []).forEach((ag: any) => {
-                const agDate = new Date(ag.fecha_hora);
-                const ds     = dateStr(agDate);
-                if (!firstOpId || !p[firstOpId]?.[ds] || p[firstOpId][ds].blocked) return;
-                const durMin = ag.duracion_minutos || 60;
-                const duration = durMin >= 60 
-                    ? `${Math.floor(durMin/60)}${durMin%60 > 0 ? `.${Math.round(durMin%60/6*10)/10}` : ''}h`
-                    : `${durMin}min`;
-                
-                const startTimeStr = agDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
-                const sortValue = agDate.getHours() * 60 + agDate.getMinutes();
-                const startHour = agDate.getHours();
-                const durationHours = Math.max(1, Math.round(durMin / 60));
-
-                p[firstOpId][ds].tasks.push({
-                    id: `agenda-${ag.id}`,
-                    time: `${startTimeStr} (${duration})`,
-                    label: ag.tipo_evento === 'tarea_interna'
-                        ? (ag.notas || 'Bloqueo')
-                        : `Cita: ${ag.nombre} ${ag.apellido||''}`.trim(),
-                    type: ag.tipo_evento === 'tarea_interna' ? 'bloqueo' : 'cita',
-                    sortValue,
-                    startHour,
-                    durationHours
-                });
-            });
-
-            // Inject bridal milestones → first operator as 'cita' tasks
-            (mappedMilestones || []).forEach((m: any) => {
-                if (!m.scheduled_date) return;
-                const mDate = new Date(m.scheduled_date);
-                const ds     = dateStr(mDate);
-                if (!firstOpId || !p[firstOpId]?.[ds] || p[firstOpId][ds].blocked) return;
-                
-                const startTimeStr = mDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
-                const sortValue = mDate.getHours() * 60 + mDate.getMinutes();
-                const startHour = mDate.getHours();
-                const custName = m.customer ? (Array.isArray(m.customer) ? m.customer[0]?.full_name : m.customer.full_name) : 'Clienta';
-
-                p[firstOpId][ds].tasks.push({
-                    id: `milestone-${m.id}`,
-                    time: `${startTimeStr} (1h)`,
-                    label: `Prueba Alta Costura: ${custName} - ${m.title}`,
-                    type: 'cita',
-                    sortValue,
-                    startHour,
-                    durationHours: 1
-                });
-            });
-
-            // Inject production order deadlines → first operator as 'entrega' tasks
-            const firstOpIdForDeliveries = activeOps[0]?.id;
-            const groupedDeliveries = groupProductionOrdersForDeliveries(pOrders || []);
-
-            groupedDeliveries.forEach((group: any) => {
-                const deadlineDate = new Date(group.deadline);
-                const ds = dateStr(deadlineDate);
-                if (!firstOpIdForDeliveries || !p[firstOpIdForDeliveries]?.[ds] || p[firstOpIdForDeliveries][ds].blocked) return;
-                
-                const startTimeStr = deadlineDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
-                const sortValue = deadlineDate.getHours() * 60 + deadlineDate.getMinutes();
-                const startHour = deadlineDate.getHours();
-                
-                p[firstOpIdForDeliveries][ds].tasks.push({
-                    id: `delivery-${group.ids[0]}`,
-                    time: `${startTimeStr} (Entrega)`,
-                    label: `Entrega: ${group.customer_name} - ${group.descriptions.join(', ') || 'Prenda'} (${group.pos_order_id || 'S/N'})`,
-                    type: 'entrega',
-                    sortValue,
-                    startHour,
-                    durationHours: 1
-                });
-            });
 
 
             // Inject manual planner tasks from DB
@@ -717,65 +656,89 @@ export default function PlanificadorPage() {
         <div className="h-[calc(100vh-64px)] lg:h-screen bg-slate-50 text-slate-800 font-sans flex flex-col overflow-hidden">
 
             {/* ── NAV ───────────────────────────────────────────────────────── */}
-            <nav className="relative w-full bg-white border-b border-slate-200 shadow-sm px-4 py-2.5 md:px-6 md:py-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 md:gap-4 shrink-0">
-                <div className="hidden md:flex items-center justify-between md:justify-start gap-4">
-                    <div className="flex items-center gap-2.5">
-                        <Link href="/admin" className="text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1.5 text-xs md:text-sm font-semibold">
-                            <ArrowLeft className="w-4 h-4" /> Volver
+            <nav className="relative w-full bg-white border-b border-slate-200 shadow-sm px-4 py-2 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-2 shrink-0">
+                <div className="flex items-center justify-between xl:justify-start gap-3">
+                    <div className="flex items-center gap-2">
+                        <Link href="/admin" className="text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1 text-xs font-semibold whitespace-nowrap">
+                            <ArrowLeft className="w-3.5 h-3.5" /> Volver
                         </Link>
-                        <div className="h-5 w-px bg-slate-200"></div>
-                        <h1 className="m-0 text-base md:text-xl font-extrabold text-slate-800 tracking-tight flex items-center gap-2">
+                        <div className="h-4 w-px bg-slate-200"></div>
+                        <h1 className="m-0 text-sm md:text-base font-extrabold text-slate-800 tracking-tight flex items-center gap-1.5 whitespace-nowrap">
                             Planificación Semanal <span className="hidden sm:inline text-slate-400 font-medium">| Taller</span>
                         </h1>
                     </div>
                 </div>
 
-                <div className="hidden md:flex items-center justify-between sm:justify-center gap-2 bg-slate-100 p-1 rounded-lg">
-                    <button onClick={prevRange} className="p-1 rounded-md text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all"><ChevronLeft className="w-4 h-4" /></button>
-                    <span className="text-xs md:text-sm font-bold px-2 capitalize text-slate-700 min-w-[120px] md:min-w-[140px] text-center">{rangeLabel}</span>
-                    <button onClick={nextRange} className="p-1 rounded-md text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all"><ChevronRight className="w-4 h-4" /></button>
+                <div className="flex items-center justify-between sm:justify-center gap-1.5 bg-slate-100 p-0.5 rounded-lg h-9">
+                    <button onClick={prevRange} className="p-1 rounded-md text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all"><ChevronLeft className="w-3.5 h-3.5" /></button>
+                    <span className="text-[11px] md:text-xs font-bold px-1.5 capitalize text-slate-700 min-w-[110px] md:min-w-[130px] text-center">{rangeLabel}</span>
+                    <button onClick={nextRange} className="p-1 rounded-md text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm transition-all"><ChevronRight className="w-3.5 h-3.5" /></button>
                 </div>
 
-                <div className="flex bg-slate-100 p-1 rounded-lg justify-between sm:justify-start">
+                <div className="flex bg-slate-100 p-0.5 rounded-lg justify-between sm:justify-start h-9 items-center">
                     {['day', 'week', 'month', 'year'].map((mode) => (
                         <button
                             key={mode}
                             onClick={() => setViewMode(mode as any)}
-                            className={`flex-1 sm:flex-none px-3 py-1.5 md:px-4 md:py-1.5 text-[10px] md:text-xs font-bold rounded-md capitalize transition-all ${viewMode === mode ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 sm:flex-none px-2.5 py-1 text-[10px] md:text-xs font-bold rounded-md capitalize transition-all ${viewMode === mode ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             {mode === 'day' ? 'Día' : mode === 'week' ? 'Semana' : mode === 'month' ? 'Mes' : 'Año'}
                         </button>
                     ))}
                 </div>
 
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 shrink-0 w-full md:w-auto justify-between md:justify-start">
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 shrink-0 w-full xl:w-auto justify-between xl:justify-start flex-wrap">
                     {/* Mobile Calendar (hidden on desktop) */}
-                    <div className="flex md:hidden items-center gap-1 bg-slate-100 p-0.5 rounded-lg shrink-0">
-                        <button onClick={prevRange} className="p-1 rounded-md text-slate-500 hover:bg-white hover:text-slate-800 transition-all"><ChevronLeft className="w-3.5 h-3.5" /></button>
+                    <div className="flex md:hidden items-center gap-1 bg-slate-100 p-0.5 rounded-lg shrink-0 h-9">
+                        <button onClick={prevRange} className="p-1 rounded-md text-slate-500 hover:bg-white hover:text-slate-800 transition-all"><ChevronLeft className="w-3" /></button>
                         <span className="text-[10px] font-bold px-1 capitalize text-slate-750 max-w-[95px] overflow-hidden text-ellipsis whitespace-nowrap text-center">{rangeLabel}</span>
-                        <button onClick={nextRange} className="p-1 rounded-md text-slate-500 hover:bg-white hover:text-slate-800 transition-all"><ChevronRight className="w-3.5 h-3.5" /></button>
+                        <button onClick={nextRange} className="p-1 rounded-md text-slate-500 hover:bg-white hover:text-slate-800 transition-all"><ChevronRight className="w-3" /></button>
                     </div>
 
-                    <div className="flex gap-1.5 items-center">
+                    <div className="flex gap-1.5 items-center flex-wrap">
                         <button 
-                            className={`px-2.5 py-1.5 md:px-4 md:py-2 border rounded-lg text-[10px] md:text-sm font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap ${previewMode ? 'bg-[#0f172a] text-white border-[#0f172a] hover:bg-slate-800' : 'bg-amber-500 text-white border-amber-500 hover:bg-amber-600'}`}
+                            className={`h-9 px-3 border rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 shadow-sm whitespace-nowrap ${previewMode ? 'bg-[#0f172a] text-white border-[#0f172a] hover:bg-slate-800' : 'bg-amber-500 text-white border-amber-500 hover:bg-amber-600'}`}
                             onClick={() => setPreviewMode(!previewMode)}
                         >
                             {previewMode ? <><span className="hidden md:inline">✓ Vista Previa</span><span className="md:hidden">✓ Vista</span></> : '✎ Editar'}
                         </button>
                         <Link 
                             href="/admin/planificador/seguimiento"
-                            className="px-2.5 py-1.5 md:px-4 md:py-2 bg-rose-50 text-rose-600 border border-rose-200/60 hover:bg-rose-100 rounded-lg text-[10px] md:text-sm font-bold transition-all flex items-center gap-1 shadow-sm whitespace-nowrap"
+                            className="h-9 px-3 bg-rose-50 text-rose-600 border border-rose-200/60 hover:bg-rose-100 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 shadow-sm whitespace-nowrap"
                         >
-                            <Activity className="w-3.5 h-3.5" /> <span className="text-[10px] md:text-sm"><span className="hidden md:inline">Seguimiento </span>Gantt</span>
+                            <Activity className="w-3.5 h-3.5" /> <span>Seguimiento Gantt</span>
                         </Link>
                         <Link 
                             href="/admin/production"
-                            className="px-2.5 py-1.5 md:px-4 md:py-2 bg-amber-50 text-amber-700 border border-amber-200/60 hover:bg-amber-100 rounded-lg text-[10px] md:text-sm font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap"
+                            className="h-9 px-3 bg-amber-50 text-amber-700 border border-amber-200/60 hover:bg-amber-100 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap"
                             title="Gobernanza del Taller"
                         >
                             <Settings className="w-3.5 h-3.5" /> <span className="hidden md:inline">Gobernanza del Taller</span>
                         </Link>
+
+                        {/* Operarias Filter */}
+                        <div className="h-9 flex items-center gap-1 bg-slate-100 px-2.5 rounded-lg border border-slate-200/60">
+                            <span className="text-[10px] uppercase tracking-widest font-extrabold text-slate-500">Ver:</span>
+                            <select 
+                                value={selectedOperatorId} 
+                                onChange={(e) => setSelectedOperatorId(e.target.value)}
+                                className="bg-transparent text-xs font-bold text-slate-700 focus:outline-none cursor-pointer h-full"
+                            >
+                                <option value="all">Todas las operarias</option>
+                                {operators.map(op => (
+                                    <option key={op.id} value={op.id}>{op.name}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Toggle Citas Overlay */}
+                        <button 
+                            onClick={() => setShowAppointmentsOverlay(!showAppointmentsOverlay)}
+                            className={`h-9 px-3 rounded-lg text-xs font-bold transition-all border shadow-sm whitespace-nowrap ${showAppointmentsOverlay ? 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`}
+                        >
+                            {showAppointmentsOverlay ? 'Citas/Retiros: ON' : 'Citas/Retiros: OFF'}
+                        </button>
+
                         <button className="hidden md:flex px-2.5 py-1.5 md:px-4 md:py-2 bg-white border border-slate-200 rounded-lg text-[10px] md:text-sm font-bold text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all items-center gap-1.5 shadow-sm whitespace-nowrap" onClick={load} title="Recargar">
                             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-blue-500' : ''}`} />
                             <span>Resetear</span>
@@ -808,7 +771,7 @@ export default function PlanificadorPage() {
                                         <th className="w-10 md:w-12 p-1.5 md:p-2.5 text-center border-r border-slate-200 font-extrabold text-slate-400 uppercase text-[9px] md:text-[10px] tracking-widest">
                                             Hora
                                         </th>
-                                        {operators.map(op => (
+                                        {visibleOperators.map(op => (
                                             <th key={op.id} className="p-2 md:p-4 border-r border-slate-200 last:border-0 min-w-[220px] md:min-w-[280px]">
                                                 <div className="flex flex-col">
                                                     <span className="font-extrabold text-slate-800 text-xs md:text-sm">{op.name}</span>
@@ -819,7 +782,7 @@ export default function PlanificadorPage() {
                                                 </div>
                                             </th>
                                         ))}
-                                        {operators.length === 0 && (
+                                        {visibleOperators.length === 0 && (
                                             <th className="p-2 md:p-4 text-slate-400 italic font-medium text-xs md:text-sm">
                                                 Sin costureras activas
                                             </th>
@@ -834,7 +797,7 @@ export default function PlanificadorPage() {
                                         
                                         // Calculate dynamic max end hour for the day
                                         let dayMaxEndHour = workshopEnd ? Number(workshopEnd.split(':')[0]) : 18;
-                                        operators.forEach(op => {
+                                        visibleOperators.forEach(op => {
                                             const cell = planner[op.id]?.[ds];
                                             if (cell && cell.tasks) {
                                                 cell.tasks.forEach(t => {
@@ -853,7 +816,7 @@ export default function PlanificadorPage() {
                                             <React.Fragment key={ds}>
                                                 {/* Day Header Row */}
                                                 <tr className="bg-slate-50 border-b border-slate-200">
-                                                    <td colSpan={operators.length + 1} className="py-1.5 px-2 md:p-3 border-r border-slate-100">
+                                                    <td colSpan={visibleOperators.length + 1} className="py-1.5 px-2 md:p-3 border-r border-slate-100">
                                                         <div className="flex items-center gap-2 md:gap-4 pl-1 md:pl-2">
                                                             <div className="flex items-baseline gap-1.5 md:gap-2">
                                                                 <span className={`text-xs md:text-sm font-extrabold uppercase tracking-widest ${isToday ? 'text-amber-600' : 'text-slate-700'}`}>
@@ -893,7 +856,7 @@ export default function PlanificadorPage() {
                                                 </td>
 
                                                 {/* Operator cells */}
-                                                {operators.map(op => {
+                                                {visibleOperators.map(op => {
                                                     const cell = planner[op.id]?.[ds];
                                                     if (!cell) return <td key={op.id} className="border-r border-slate-100" />;
 
@@ -938,66 +901,225 @@ export default function PlanificadorPage() {
                                                                 
                                                                 {/* Tasks */}
                                                                 {(() => {
+                                                                    const isFirstOp = op.id === visibleOperators[0]?.id;
+                                                                    const overlays: any[] = [];
+                                                                    if (isFirstOp && showAppointmentsOverlay) {
+                                                                        // Gather Agenda
+                                                                        agendaList.forEach((ag: any) => {
+                                                                            const agDate = new Date(ag.fecha_hora);
+                                                                            if (dateStr(agDate) !== ds) return;
+                                                                            const durMin = ag.duracion_minutos || 60;
+                                                                            const duration = durMin >= 60 
+                                                                                ? `${Math.floor(durMin/60)}${durMin%60 > 0 ? `.${Math.round(durMin%60/6*10)/10}` : ''}h`
+                                                                                : `${durMin}min`;
+                                                                            const startTimeStr = agDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+                                                                            const sortValue = agDate.getHours() * 60 + agDate.getMinutes();
+                                                                            const startHour = agDate.getHours();
+                                                                            const durationHours = Math.max(1, Math.round(durMin / 60));
+                                                                            overlays.push({
+                                                                                id: `overlay-agenda-${ag.id}`,
+                                                                                time: `${startTimeStr} (${duration})`,
+                                                                                label: ag.tipo_evento === 'tarea_interna'
+                                                                                    ? (ag.notas || 'Bloqueo')
+                                                                                    : `Cita: ${ag.nombre} ${ag.apellido||''}`.trim(),
+                                                                                type: ag.tipo_evento === 'tarea_interna' ? 'bloqueo' : 'cita',
+                                                                                sortValue,
+                                                                                startHour,
+                                                                                durationHours
+                                                                            });
+                                                                        });
+                                                                        // Gather Milestones
+                                                                        milestonesList.forEach((m: any) => {
+                                                                            if (!m.scheduled_date) return;
+                                                                            const mDate = new Date(m.scheduled_date);
+                                                                            if (dateStr(mDate) !== ds) return;
+                                                                            const startTimeStr = mDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+                                                                            const sortValue = mDate.getHours() * 60 + mDate.getMinutes();
+                                                                            const startHour = mDate.getHours();
+                                                                            const custName = m.customer ? (Array.isArray(m.customer) ? m.customer[0]?.full_name : m.customer.full_name) : 'Clienta';
+                                                                            overlays.push({
+                                                                                id: `overlay-milestone-${m.id}`,
+                                                                                time: `${startTimeStr} (1h)`,
+                                                                                label: `Prueba Alta Costura: ${custName} - ${m.title}`,
+                                                                                type: 'cita',
+                                                                                sortValue,
+                                                                                startHour,
+                                                                                durationHours: 1
+                                                                            });
+                                                                        });
+                                                                        // Gather Deliveries
+                                                                        deliveriesList.forEach((group: any) => {
+                                                                            const deadlineDate = new Date(group.deadline);
+                                                                            if (dateStr(deadlineDate) !== ds) return;
+                                                                            const startTimeStr = deadlineDate.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+                                                                            const sortValue = deadlineDate.getHours() * 60 + deadlineDate.getMinutes();
+                                                                            const startHour = deadlineDate.getHours();
+                                                                            overlays.push({
+                                                                                id: `overlay-delivery-${group.ids[0]}`,
+                                                                                time: `${startTimeStr} (Entrega)`,
+                                                                                label: `Entrega: ${group.customer_name} - ${group.descriptions.join(', ') || 'Prenda'}`,
+                                                                                type: 'entrega',
+                                                                                sortValue,
+                                                                                startHour,
+                                                                                durationHours: 1
+                                                                            });
+                                                                        });
+                                                                    }
+
+                                                                    const useSplitLayout = overlays.length > 0;
                                                                     const layouts = computeTaskLayouts(cell.tasks);
-                                                                    return cell.tasks.map((task, taskIdx) => {
-                                                                        const layout = layouts[task.id] || { left: '4px', width: 'calc(100% - 8px)' };
-                                                                    const startIdx = (task.startHour || 9) - (dayHoursArray[0] || 9);
-                                                                    const top = Math.max(0, startIdx * 40);
-                                                                    const height = (task.durationHours || 1) * 40;
-                                                                    const style = TASK_ROW_STYLE[task.type];
-                                                                    const isShort = (task.durationHours || 1) <= 1;
-                                                                    const isLong = (task.durationHours || 1) >= 4;
+                                                                    const overlayLayouts = computeTaskLayouts(overlays);
+
                                                                     return (
-                                                                        <div
-                                                                            key={task.id}
-                                                                            className={`absolute rounded-lg border shadow-sm flex overflow-hidden bg-opacity-90 ${!previewMode ? 'cursor-pointer hover:shadow-md hover:z-20 transition-all group/task' : ''} ${isShort ? 'flex-row items-center px-2 py-1 gap-1.5' : 'flex-col p-2.5'}`}
-                                                                            style={{ 
-                                                                                top: `${top + 1}px`,
-                                                                                height: `${height - 2}px`,
-                                                                                backgroundColor: style.background, 
-                                                                                borderLeft: style.borderLeft,
-                                                                                borderColor: style.borderLeft,
-                                                                                left: layout.left,
-                                                                                    width: layout.width,
-                                                                                    zIndex: 10 + taskIdx
-                                                                            }}
-                                                                            onClick={() => !previewMode && openEdit(op.id, ds, task)}
-                                                                        >
-                                                                            <div className={`font-bold leading-tight text-slate-800 ${isShort ? 'text-[10.5px] truncate max-w-[50%]' : isLong ? 'text-sm mb-1' : 'text-xs mb-0.5'}`}>
-                                                                                {task.label}
-                                                                            </div>
-                                                                            <div className={`font-semibold text-slate-500/90 flex flex-wrap gap-x-1 ${isShort ? 'text-[9px] truncate flex-1' : 'text-[10px]'}`}>
-                                                                                {(() => {
-                                                                                    const sH = task.startHour || 9;
-                                                                                    const eH = sH + (task.durationHours || 1);
-                                                                                    let text = `⏱ ${sH.toString().padStart(2, '0')}:00 - ${eH.toString().padStart(2, '0')}:00`;
-                                                                                    if (!isShort) {
-                                                                                        text += ` (${task.durationHours || 1}h`;
-                                                                                        if (task.orderId) {
-                                                                                            const o = orders.find(ord => ord.id === task.orderId);
-                                                                                            if (o && o.estimated_hours) {
-                                                                                                text += ` / ${o.estimated_hours}h est.`;
-                                                                                            }
+                                                                        <>
+                                                                            {/* Production Tasks (Left Side if split) */}
+                                                                            {cell.tasks.map((task, taskIdx) => {
+                                                                                const layout = layouts[task.id] || { left: '4px', width: 'calc(100% - 8px)' };
+                                                                                const startIdx = (task.startHour || 9) - (dayHoursArray[0] || 9);
+                                                                                const top = Math.max(0, startIdx * 40);
+                                                                                const height = (task.durationHours || 1) * 40;
+                                                                                const style = TASK_ROW_STYLE[task.type] || { background: '#f1f5f9', borderLeft: '4px solid #64748b' };
+                                                                                const isShort = (task.durationHours || 1) <= 1;
+                                                                                const isLong = (task.durationHours || 1) >= 4;
+
+                                                                                let finalLeft = layout.left;
+                                                                                let finalWidth = layout.width;
+
+                                                                                if (useSplitLayout) {
+                                                                                    if (layout.left === '4px') {
+                                                                                        finalLeft = '4px';
+                                                                                        finalWidth = 'calc(50% - 6px)';
+                                                                                    } else {
+                                                                                        const leftPctMatch = layout.left.match(/calc\(([\d.]+)%/);
+                                                                                        const widthPctMatch = layout.width.match(/calc\(([\d.]+)%/);
+                                                                                        if (leftPctMatch && widthPctMatch) {
+                                                                                            const leftPct = parseFloat(leftPctMatch[1]);
+                                                                                            const widthPct = parseFloat(widthPctMatch[1]);
+                                                                                            finalLeft = `calc(${leftPct * 0.5}% + 2px)`;
+                                                                                            finalWidth = `calc(${widthPct * 0.5}% - 4px)`;
+                                                                                        } else {
+                                                                                            finalLeft = '4px';
+                                                                                            finalWidth = 'calc(50% - 6px)';
                                                                                         }
-                                                                                        text += ')';
                                                                                     }
-                                                                                    return text;
-                                                                                })()}
-                                                                            </div>
-                                                                            {isLong && (
-                                                                                <div className="mt-auto pt-2 border-t border-slate-200/50 text-[10px] text-slate-400 font-medium opacity-60">
-                                                                                    Bloque extendido de {task.durationHours} horas
-                                                                                </div>
-                                                                            )}
-                                                                            {!previewMode && (
-                                                                                <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover/task:opacity-100 transition-opacity bg-white/80 rounded backdrop-blur-sm p-0.5">
-                                                                                    <button className="p-1 text-slate-400 hover:text-slate-600 rounded" onClick={e => { e.stopPropagation(); openEdit(op.id, ds, task); }}><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
-                                                                                    <button className="p-1 text-red-400 hover:text-red-600 rounded" onClick={e => { e.stopPropagation(); deleteTask(op.id, ds, task.id); }}><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
+                                                                                }
+
+                                                                                return (
+                                                                                    <div
+                                                                                        key={task.id}
+                                                                                        className={`absolute rounded-lg border shadow-sm flex overflow-hidden bg-opacity-90 ${!previewMode ? 'cursor-pointer hover:shadow-md hover:z-20 transition-all group/task' : ''} ${isShort ? 'flex-row items-center px-2 py-1 gap-1.5' : 'flex-col p-2.5'}`}
+                                                                                        style={{ 
+                                                                                            top: `${top + 1}px`,
+                                                                                            height: `${height - 2}px`,
+                                                                                            backgroundColor: style.background, 
+                                                                                            borderLeft: style.borderLeft,
+                                                                                            borderColor: style.borderLeft,
+                                                                                            left: finalLeft,
+                                                                                            width: finalWidth,
+                                                                                            zIndex: 10 + taskIdx
+                                                                                        }}
+                                                                                        onClick={() => !previewMode && openEdit(op.id, ds, task)}
+                                                                                    >
+                                                                                        <div className={`font-bold leading-tight text-slate-800 ${isShort ? 'text-[10.5px] truncate max-w-[50%]' : isLong ? 'text-sm mb-1' : 'text-xs mb-0.5'}`}>
+                                                                                            {task.label}
+                                                                                        </div>
+                                                                                        <div className={`font-semibold text-slate-500/90 flex flex-wrap gap-x-1 ${isShort ? 'text-[9px] truncate flex-1' : 'text-[10px]'}`}>
+                                                                                            {(() => {
+                                                                                                const sH = task.startHour || 9;
+                                                                                                const eH = sH + (task.durationHours || 1);
+                                                                                                let text = `⏱ ${sH.toString().padStart(2, '0')}:00 - ${eH.toString().padStart(2, '0')}:00`;
+                                                                                                if (!isShort) {
+                                                                                                    text += ` (${task.durationHours || 1}h`;
+                                                                                                    if (task.orderId) {
+                                                                                                        const o = orders.find(ord => ord.id === task.orderId);
+                                                                                                        if (o && o.estimated_hours) {
+                                                                                                            text += ` / ${o.estimated_hours}h est.`;
+                                                                                                        }
+                                                                                                    }
+                                                                                                    text += ')';
+                                                                                                }
+                                                                                                return text;
+                                                                                            })()}
+                                                                                        </div>
+                                                                                        {isLong && (
+                                                                                            <div className="mt-auto pt-2 border-t border-slate-200/50 text-[10px] text-slate-400 font-medium opacity-60">
+                                                                                                Bloque extendido de {task.durationHours} horas
+                                                                                            </div>
+                                                                                        )}
+                                                                                        {!previewMode && (
+                                                                                            <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover/task:opacity-100 transition-opacity bg-white/80 rounded backdrop-blur-sm p-0.5">
+                                                                                                <button className="p-1 text-slate-400 hover:text-slate-600 rounded" onClick={e => { e.stopPropagation(); openEdit(op.id, ds, task); }}><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+                                                                                                <button className="p-1 text-red-400 hover:text-red-600 rounded" onClick={e => { e.stopPropagation(); deleteTask(op.id, ds, task.id); }}><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                );
+                                                                            })}
+
+                                                                            {/* Overlay Appointments (Right Side) */}
+                                                                            {overlays.map((o, oIdx) => {
+                                                                                const oLayout = overlayLayouts[o.id] || { left: '4px', width: 'calc(100% - 8px)' };
+                                                                                const startIdx = (o.startHour || 9) - (dayHoursArray[0] || 9);
+                                                                                const top = Math.max(0, startIdx * 40);
+                                                                                const height = (o.durationHours || 1) * 40;
+                                                                                
+                                                                                const OVERLAY_STYLE: Record<string, { background: string; borderLeft: string }> = {
+                                                                                    cita: { background: 'rgba(219, 234, 254, 0.45)', borderLeft: '4px dashed #3b82f6' },
+                                                                                    bloqueo: { background: 'rgba(254, 226, 226, 0.45)', borderLeft: '4px dashed #ef4444' },
+                                                                                    entrega: { background: 'rgba(254, 243, 199, 0.45)', borderLeft: '4px dashed #f59e0b' }
+                                                                                };
+                                                                                const style = OVERLAY_STYLE[o.type] || { background: 'rgba(241, 245, 249, 0.45)', borderLeft: '4px dashed #64748b' };
+                                                                                
+                                                                                let finalLeft = oLayout.left;
+                                                                                let finalWidth = oLayout.width;
+
+                                                                                if (oLayout.left === '4px') {
+                                                                                    finalLeft = 'calc(50% + 2px)';
+                                                                                    finalWidth = 'calc(50% - 6px)';
+                                                                                } else {
+                                                                                    const leftPctMatch = oLayout.left.match(/calc\(([\d.]+)%/);
+                                                                                    const widthPctMatch = oLayout.width.match(/calc\(([\d.]+)%/);
+                                                                                    if (leftPctMatch && widthPctMatch) {
+                                                                                        const leftPct = parseFloat(leftPctMatch[1]);
+                                                                                        const widthPct = parseFloat(widthPctMatch[1]);
+                                                                                        finalLeft = `calc(${50 + leftPct * 0.5}% + 2px)`;
+                                                                                        finalWidth = `calc(${widthPct * 0.5}% - 4px)`;
+                                                                                    } else {
+                                                                                        finalLeft = 'calc(50% + 2px)';
+                                                                                        finalWidth = 'calc(50% - 6px)';
+                                                                                    }
+                                                                                }
+
+                                                                                const isShort = (o.durationHours || 1) <= 1;
+
+                                                                                return (
+                                                                                    <div
+                                                                                        key={o.id}
+                                                                                        className={`absolute rounded-lg border border-slate-200/50 shadow-sm flex overflow-hidden pointer-events-none ${isShort ? 'flex-row items-center px-2 py-1 gap-1.5' : 'flex-col p-2.5'}`}
+                                                                                        style={{ 
+                                                                                            top: `${top + 1}px`,
+                                                                                            height: `${height - 2}px`,
+                                                                                            backgroundColor: style.background, 
+                                                                                            borderLeft: style.borderLeft,
+                                                                                            borderColor: 'rgba(226, 232, 240, 0.3)',
+                                                                                            left: finalLeft,
+                                                                                            width: finalWidth,
+                                                                                            zIndex: 5 + oIdx
+                                                                                        }}
+                                                                                        title={o.label}
+                                                                                    >
+                                                                                        <div className={`font-bold leading-tight text-slate-600/90 ${isShort ? 'text-[10px] truncate max-w-[50%]' : 'text-[11px] mb-0.5'}`}>
+                                                                                            {o.label}
+                                                                                        </div>
+                                                                                        <div className={`font-semibold text-slate-500/80 ${isShort ? 'text-[8.5px] truncate flex-1' : 'text-[9.5px]'}`}>
+                                                                                            ⏱ {o.time}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                );
+                                                                            })}
+                                                                        </>
                                                                     );
-                                                                })})()}
+                                                                })()}
                                                             </div>
                                                             
                                                             {/* Actions */}
@@ -1015,7 +1137,7 @@ export default function PlanificadorPage() {
                                                                     >
                                                                         Bloquear día
                                                                     </button>
-                                                                </div>
+                                                                                </div>
                                                             )}
                                                         </td>
                                                     );
@@ -1028,7 +1150,7 @@ export default function PlanificadorPage() {
                                     {/* ── MONTH VIEW ── */}
                                     {viewMode === 'month' && (
                                         <tr>
-                                            <td colSpan={operators.length + 2} className="p-0">
+                                            <td colSpan={visibleOperators.length + 2} className="p-0">
                                                 <div className="grid grid-cols-7 border-b border-slate-200">
                                                     {['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(d => (
                                                         <div key={d} className="p-3 text-center border-r border-slate-200 last:border-0 font-extrabold text-slate-400 uppercase text-[11px] tracking-wider bg-slate-50">
@@ -1046,12 +1168,12 @@ export default function PlanificadorPage() {
                                                         
                                                         // Collect all tasks for this day across all operators
                                                         const dayTasks: {op: Operator, task: Task}[] = [];
-                                                        operators.forEach(op => {
-                                                            const cell = planner[op.id]?.[ds];
-                                                            if (cell && cell.tasks) {
-                                                                cell.tasks.forEach(t => dayTasks.push({op, task: t}));
-                                                            }
-                                                        });
+                                                        visibleOperators.forEach(op => {
+                                                             const cell = planner[op.id]?.[ds];
+                                                             if (cell && cell.tasks) {
+                                                                 cell.tasks.forEach(t => dayTasks.push({op, task: t}));
+                                                             }
+                                                         });
                                                         
                                                         return (
                                                             <div 

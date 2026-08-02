@@ -583,45 +583,216 @@ export async function saveMeasurements(formData: FormData) {
 }
 
 export async function updateTimelineAction(projectId: string, milestonesData: any[]) {
-    const supabase = getAdminClient();
-    
-    const { data: currentMilestones, error: fetchErr } = await supabase
-        .from('bridal_milestones')
-        .select('id')
-        .eq('project_id', projectId);
+    try {
+        const supabase = getAdminClient();
         
-    if (fetchErr) {
-        return { success: false, error: fetchErr.message };
-    }
-        
-    const currentIds: string[] = (currentMilestones || []).map((m: any) => m.id as string);
-    const newIds: string[] = milestonesData.filter((m: any) => m.id).map((m: any) => m.id as string);
-    
-    const idsToDelete = currentIds.filter((id: string) => !newIds.includes(id));
-    if (idsToDelete.length > 0) {
-        await supabase.from('bridal_milestones').delete().in('id', idsToDelete);
-    }
-    
-    for (const m of milestonesData) {
-        const payload = {
-            project_id: projectId,
-            title: m.title,
-            scheduled_date: m.scheduled_date || null,
-            milestone_type: m.milestone_type || 'custom',
-            status: m.status || 'pending',
-            updated_at: new Date().toISOString()
-        };
-        if (m.id) {
-            await supabase.from('bridal_milestones').update(payload).eq('id', m.id);
-        } else {
-            await supabase.from('bridal_milestones').insert([payload]);
+        // 1. Get project and customer details
+        const { data: project, error: projectErr } = await supabase
+            .from('bridal_projects')
+            .select('*, customers(id, full_name, email, phone)')
+            .eq('id', projectId)
+            .single();
+
+        if (projectErr || !project) {
+            throw new Error('Proyecto no encontrado');
         }
+
+        // 2. Get corresponding work_order
+        const { data: woData } = await supabase
+            .from('work_orders')
+            .select('id')
+            .eq('legacy_bridal_project_id', projectId)
+            .maybeSingle();
+
+        // 3. Get current milestones in database
+        const { data: currentMilestones, error: fetchErr } = await supabase
+            .from('bridal_milestones')
+            .select('id, agenda_event_id, milestone_type')
+            .eq('project_id', projectId);
+            
+        if (fetchErr) {
+            throw new Error('Error al obtener hitos actuales: ' + fetchErr.message);
+        }
+            
+        const currentIds: string[] = (currentMilestones || []).map((m: any) => m.id as string);
+        const newIds: string[] = milestonesData.filter((m: any) => m.id).map((m: any) => m.id as string);
+        
+        // 4. Handle Deletions
+        const idsToDelete = currentIds.filter((id: string) => !newIds.includes(id));
+        if (idsToDelete.length > 0) {
+            const milestonesToDelete = (currentMilestones || []).filter((m: any) => idsToDelete.includes(m.id));
+            
+            // Delete corresponding agenda events
+            const agendaIdsToDelete = milestonesToDelete.map((m: any) => m.agenda_event_id).filter(Boolean);
+            if (agendaIdsToDelete.length > 0) {
+                const { error: deleteAgendaErr } = await supabase
+                    .from('agendamientos')
+                    .update({ estado: 'cancelado' })
+                    .in('id', agendaIdsToDelete);
+                if (deleteAgendaErr) {
+                    console.error('Error al cancelar eventos de agenda:', deleteAgendaErr);
+                }
+            }
+
+            // Delete from work_order_milestones
+            if (woData) {
+                const typesToDelete = milestonesToDelete.map((m: any) => m.milestone_type);
+                const { error: deleteWoMilestonesErr } = await supabase
+                    .from('work_order_milestones')
+                    .delete()
+                    .eq('work_order_id', woData.id)
+                    .in('milestone_type', typesToDelete);
+                if (deleteWoMilestonesErr) {
+                    console.error('Error al eliminar hitos de work_orders:', deleteWoMilestonesErr);
+                }
+            }
+
+            // Delete from bridal_milestones
+            const { error: deleteMilestonesErr } = await supabase
+                .from('bridal_milestones')
+                .delete()
+                .in('id', idsToDelete);
+            if (deleteMilestonesErr) {
+                throw new Error('Error al eliminar hitos: ' + deleteMilestonesErr.message);
+            }
+        }
+        
+        // 5. Handle Updates and Inserts
+        for (const m of milestonesData) {
+            let agendaEventId = m.agenda_event_id || null;
+            
+            // Sync with agendamientos table
+            if (m.scheduled_date) {
+                if (agendaEventId) {
+                    // Update existing appointment
+                    const { error: updateAgendaErr } = await supabase
+                        .from('agendamientos')
+                        .update({
+                            fecha_hora: m.scheduled_date,
+                            notas: `Prueba coordinada: ${m.title}`
+                        })
+                        .eq('id', agendaEventId);
+                        
+                    if (updateAgendaErr) {
+                        if (updateAgendaErr.code === '23505') {
+                            throw new Error(`El horario del hito "${m.title}" ya está ocupado por otra cita.`);
+                        }
+                        throw new Error(`Error al actualizar agenda para "${m.title}": ` + updateAgendaErr.message);
+                    }
+                } else {
+                    // Create new appointment
+                    const fullName = project.customers?.full_name || 'Novia';
+                    const nameParts = fullName.trim().split(/\s+/);
+                    const nombre = nameParts[0] || 'Novia';
+                    const apellido = nameParts.slice(1).join(' ') || '';
+
+                    const { data: newEvent, error: insertAgendaErr } = await supabase
+                        .from('agendamientos')
+                        .insert([{
+                            nombre,
+                            apellido,
+                            celular: project.customers?.phone || '',
+                            correo: project.customers?.email || '',
+                            fecha_hora: m.scheduled_date,
+                            origen: 'admin',
+                            tipo_evento: 'cita_cliente',
+                            estado: 'confirmado',
+                            notas: `Prueba coordinada: ${m.title}`
+                        }])
+                        .select()
+                        .maybeSingle();
+
+                    if (insertAgendaErr) {
+                        if (insertAgendaErr.code === '23505') {
+                            throw new Error(`El horario del hito "${m.title}" ya está ocupado por otra cita.`);
+                        }
+                        throw new Error(`Error al crear agenda para "${m.title}": ` + insertAgendaErr.message);
+                    }
+                    if (newEvent) {
+                        agendaEventId = newEvent.id;
+                    }
+                }
+            } else {
+                // If scheduled_date was cleared, cancel the appointment
+                if (agendaEventId) {
+                    await supabase.from('agendamientos').update({ estado: 'cancelado' }).eq('id', agendaEventId);
+                    agendaEventId = null;
+                }
+            }
+
+            const payload = {
+                project_id: projectId,
+                title: m.title,
+                scheduled_date: m.scheduled_date || null,
+                milestone_type: m.milestone_type || 'custom',
+                status: m.status || 'pending',
+                agenda_event_id: agendaEventId
+            };
+
+            if (m.id) {
+                // Update bridal_milestones
+                const { error: updateMilestoneErr } = await supabase
+                    .from('bridal_milestones')
+                    .update(payload)
+                    .eq('id', m.id);
+                if (updateMilestoneErr) {
+                    throw new Error(`Error al actualizar hito "${m.title}": ` + updateMilestoneErr.message);
+                }
+
+                // Update work_order_milestones
+                if (woData) {
+                    const { error: updateWoMilestoneErr } = await supabase
+                        .from('work_order_milestones')
+                        .update({
+                            title: m.title,
+                            scheduled_date: m.scheduled_date || null,
+                            status: m.status || 'pending',
+                            agenda_event_id: agendaEventId
+                        })
+                        .eq('work_order_id', woData.id)
+                        .eq('milestone_type', m.milestone_type || 'custom');
+                    if (updateWoMilestoneErr) {
+                        console.error('Error al actualizar hito de work_orders:', updateWoMilestoneErr);
+                    }
+                }
+            } else {
+                // Insert bridal_milestones
+                const { data: newMilestone, error: insertMilestoneErr } = await supabase
+                    .from('bridal_milestones')
+                    .insert([payload])
+                    .select()
+                    .single();
+                if (insertMilestoneErr) {
+                    throw new Error(`Error al insertar hito "${m.title}": ` + insertMilestoneErr.message);
+                }
+
+                // Insert work_order_milestones
+                if (woData && newMilestone) {
+                    const { error: insertWoMilestoneErr } = await supabase
+                        .from('work_order_milestones')
+                        .insert([{
+                            work_order_id: woData.id,
+                            milestone_type: m.milestone_type || 'custom',
+                            title: m.title,
+                            scheduled_date: m.scheduled_date || null,
+                            status: m.status || 'pending',
+                            agenda_event_id: agendaEventId
+                        }]);
+                    if (insertWoMilestoneErr) {
+                        console.error('Error al insertar hito de work_orders:', insertWoMilestoneErr);
+                    }
+                }
+            }
+        }
+        
+        revalidatePath(`/admin/novias/${projectId}`);
+        revalidatePath(`/admin/agenda`);
+        revalidatePath(`/admin/planificador`);
+        return { success: true };
+    } catch (e: any) {
+        console.error('Error in updateTimelineAction:', e);
+        return { success: false, error: e.message || 'Error al actualizar el cronograma' };
     }
-    
-    revalidatePath(`/admin/novias/${projectId}`);
-    revalidatePath(`/admin/agenda`);
-    revalidatePath(`/admin/planificador`);
-    return { success: true };
 }
 
 export async function cancelProject(projectId: string) {
@@ -1514,35 +1685,20 @@ export async function updateMilestoneDateAction(
         // 3. Sync with agendamientos (agenda)
         if (agendaEventId) {
             // Update existing agenda event
-            let attempts = 0;
-            let success = false;
-            let updateDateIso = dateIso;
-            
-            while (attempts < 8 && !success) {
-                const { error: updateError } = await supabase
-                    .from('agendamientos')
-                    .update({
-                        fecha_hora: updateDateIso,
-                        notas: `Prueba coordinada: ${milestone.title}`
-                    })
-                    .eq('id', agendaEventId);
-                    
-                if (!updateError) {
-                    success = true;
-                } else if (updateError.code === '23505') {
-                    const d = new Date(updateDateIso);
-                    d.setHours(d.getHours() + 1);
-                    updateDateIso = d.toISOString();
-                    attempts++;
-                } else {
-                    console.error('Error updating agenda event:', updateError);
-                    break;
+            const { error: updateError } = await supabase
+                .from('agendamientos')
+                .update({
+                    fecha_hora: dateIso,
+                    notas: `Prueba coordinada: ${milestone.title}`
+                })
+                .eq('id', agendaEventId);
+                
+            if (updateError) {
+                if (updateError.code === '23505') {
+                    throw new Error('El horario seleccionado ya está ocupado. Por favor, selecciona otro horario.');
                 }
-            }
-            if (success) {
-                dateIso = updateDateIso;
-            } else {
-                throw new Error('No se pudo guardar en la agenda (conflicto de horario o error de conexión).');
+                console.error('Error updating agenda event:', updateError);
+                throw new Error('No se pudo guardar en la agenda: ' + updateError.message);
             }
         } else {
             // Insert new agenda event
@@ -1551,44 +1707,31 @@ export async function updateMilestoneDateAction(
             const nombre = nameParts[0] || 'Novia';
             const apellido = nameParts.slice(1).join(' ') || '';
 
-            let attempts = 0;
-            let success = false;
-            let updateDateIso = dateIso;
+            const { data: newEvent, error: insertError } = await supabase
+                .from('agendamientos')
+                .insert([{
+                    nombre,
+                    apellido,
+                    celular: project.customers?.phone || '',
+                    correo: project.customers?.email || '',
+                    fecha_hora: dateIso,
+                    origen: 'admin',
+                    tipo_evento: 'cita_cliente',
+                    estado: 'confirmado',
+                    notas: `Prueba coordinada: ${milestone.title}`
+                }])
+                .select()
+                .maybeSingle();
 
-            while (attempts < 8 && !success) {
-                const { data: newEvent, error: insertError } = await supabase
-                    .from('agendamientos')
-                    .insert([{
-                        nombre,
-                        apellido,
-                        celular: project.customers?.phone || '',
-                        correo: project.customers?.email || '',
-                        fecha_hora: updateDateIso,
-                        origen: 'admin',
-                        tipo_evento: 'cita_cliente',
-                        estado: 'confirmado',
-                        notas: `Prueba coordinada: ${milestone.title}`
-                    }])
-                    .select()
-                    .maybeSingle();
-
-                if (!insertError && newEvent) {
-                    agendaEventId = newEvent.id;
-                    success = true;
-                } else if (insertError?.code === '23505') {
-                    const d = new Date(updateDateIso);
-                    d.setHours(d.getHours() + 1);
-                    updateDateIso = d.toISOString();
-                    attempts++;
-                } else {
-                    console.error('Error inserting agenda event:', insertError);
-                    break;
+            if (insertError) {
+                if (insertError.code === '23505') {
+                    throw new Error('El horario seleccionado ya está ocupado. Por favor, selecciona otro horario.');
                 }
+                console.error('Error inserting agenda event:', insertError);
+                throw new Error('No se pudo crear en la agenda: ' + insertError.message);
             }
-            if (success) {
-                dateIso = updateDateIso;
-            } else {
-                throw new Error('No se pudo crear en la agenda (conflicto de horario o error de conexión).');
+            if (newEvent) {
+                agendaEventId = newEvent.id;
             }
         }
 
@@ -1603,6 +1746,24 @@ export async function updateMilestoneDateAction(
 
         if (milestoneUpdateErr) {
             throw milestoneUpdateErr;
+        }
+
+        // 4.5. Update work_order_milestones
+        const { data: woData } = await supabase
+            .from('work_orders')
+            .select('id')
+            .eq('legacy_bridal_project_id', projectId)
+            .maybeSingle();
+
+        if (woData) {
+            await supabase
+                .from('work_order_milestones')
+                .update({
+                    scheduled_date: dateIso,
+                    agenda_event_id: agendaEventId
+                })
+                .eq('work_order_id', woData.id)
+                .eq('milestone_type', milestone.milestone_type);
         }
 
         // 5. Send notifications if checked
@@ -1634,6 +1795,7 @@ export async function updateMilestoneDateAction(
         return { success: false, error: e.message || 'Error al actualizar la fecha' };
     }
 }
+
 
 // ─── Moodboard / Inspirations Server Actions ───────────────────
 
