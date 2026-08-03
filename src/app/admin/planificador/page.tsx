@@ -511,6 +511,14 @@ export default function PlanificadorPage() {
                 });
             });
 
+            // If a cell has real tasks, never show it as blocked —
+            // scheduled work always takes priority over the operator's default schedule.
+            Object.values(p).forEach(opDays =>
+                Object.values(opDays).forEach(cell => {
+                    if (cell.tasks.length > 0) cell.blocked = false;
+                })
+            );
+
             // Adjust overlapping production tasks to overtime and then sort chronologically
             Object.values(p).forEach(opDays =>
                 Object.values(opDays).forEach(cell => {
