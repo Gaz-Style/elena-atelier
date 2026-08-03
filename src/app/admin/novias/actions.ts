@@ -2062,19 +2062,40 @@ export async function updatePaymentPlanAction(projectId: string, paymentPlanJson
         // Find existing work_order
         const { data: woData, error: woError } = await supabase
             .from('work_orders')
-            .select('id, paid_amount')
+            .select('*')
             .eq('legacy_bridal_project_id', projectId)
             .maybeSingle();
             
         if (woError || !woData) {
             return { success: false, error: 'Orden de trabajo no encontrada' };
         }
+
+        // Ensure all cuotas have consistent key names (monto/amount)
+        if (paymentPlan && Array.isArray(paymentPlan.cuotas)) {
+            paymentPlan.cuotas = paymentPlan.cuotas.map((c: any) => ({
+                ...c,
+                amount: c.amount !== undefined ? c.amount : c.monto,
+                monto: c.monto !== undefined ? c.monto : c.amount
+            }));
+        }
+
+        // Recalculate total paid from the edited installments that are marked as 'paid'
+        const newPaidAmount = (paymentPlan.cuotas || [])
+            .filter((c: any) => c.status === 'paid')
+            .reduce((acc: number, curr: any) => acc + (curr.amount || curr.monto || 0), 0);
+
+        let newPaymentStatus = 'pending';
+        const totalAmount = woData.total_amount || 0;
+        if (newPaidAmount >= totalAmount && totalAmount > 0) newPaymentStatus = 'paid';
+        else if (newPaidAmount > 0) newPaymentStatus = 'partial';
         
-        // Ensure paid_amount is respected or handled (simplified assumption: update raw plan)
+        // Update work_order with the new plan and the recalculated paid amount
         await supabase
             .from('work_orders')
             .update({ 
-                payment_plan: paymentPlan, 
+                payment_plan: paymentPlan,
+                paid_amount: newPaidAmount,
+                payment_status: newPaymentStatus,
                 updated_at: new Date().toISOString() 
             })
             .eq('id', woData.id);
