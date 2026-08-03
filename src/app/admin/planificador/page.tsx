@@ -284,10 +284,14 @@ export default function PlanificadorPage() {
     const [anchor, setAnchor]         = useState(new Date());
     const [workshopStart, setWorkshopStart] = useState('09:00');
     const [workshopEnd, setWorkshopEnd] = useState('18:00');
+    // Workshop working days driven by atelier_config.workshop_working_days (0=Dom … 6=Sab)
+    const [workshopWorkingDays, setWorkshopWorkingDays] = useState<number[]>([1, 2, 3, 4, 5, 6]);
     const [agendaList, setAgendaList] = useState<any[]>([]);
     const [milestonesList, setMilestonesList] = useState<any[]>([]);
     const [deliveriesList, setDeliveriesList] = useState<any[]>([]);
     const todayStr = dateStr(new Date());
+    // Ref for auto-scrolling to today's row when the planner loads
+    const todayRowRef = React.useRef<HTMLTableRowElement>(null);
 
     const visibleOperators = useMemo(() => {
         return operators.filter(op => selectedOperatorId === 'all' || op.id === selectedOperatorId);
@@ -319,7 +323,7 @@ export default function PlanificadorPage() {
             const days = [];
             let current = new Date(mon);
             while (days.length < 24) {
-                if (current.getDay() !== 0) { // Skip Sundays
+                if (workshopWorkingDays.includes(current.getDay())) { // Only include configured working days
                     days.push(new Date(current));
                 }
                 current.setDate(current.getDate() + 1);
@@ -336,7 +340,7 @@ export default function PlanificadorPage() {
             return [new Date(y, 0, 1), new Date(y, 11, 31)];
         }
         return [];
-    }, [anchor, viewMode]);
+    }, [anchor, viewMode, workshopWorkingDays]);
 
     // Modal
     const [modal, setModal]   = useState<{ opId: string; day: string; task?: Task } | null>(null);
@@ -408,16 +412,6 @@ export default function PlanificadorPage() {
         setOperators(activeOps);
         setOrders(activeOrds);
 
-        // Fetch workshop configuration
-        const { data: configData } = await supabase
-            .from('atelier_config')
-            .select('workshop_working_hour_start, workshop_working_hour_end')
-            .limit(1);
-        if (configData && configData[0]) {
-            setWorkshopStart(configData[0].workshop_working_hour_start?.slice(0, 5) || '09:00');
-            setWorkshopEnd(configData[0].workshop_working_hour_end?.slice(0, 5) || '18:00');
-        }
-
         if (activeDays.length === 0 || activeOps.length === 0) {
             setPlanner({});
             setLoading(false);
@@ -438,19 +432,22 @@ export default function PlanificadorPage() {
 
         const agenda = agendaRes.data || [];
 
-        // Fetch active bridal projects & milestones
-        const { data: bProjData } = await supabase
-            .from('bridal_projects')
-            .select('*, customers(full_name, phone, email)')
-            .neq('status', 'cancelado')
-            .neq('status', 'entregado')
-            .order('event_date', { ascending: true });
-
-        const { data: bMilestones } = await supabase
-            .from('bridal_milestones')
-            .select('*')
-            .neq('status', 'completed')
-            .order('scheduled_date', { ascending: true });
+        // Fetch bridal data in parallel — both queries are independent
+        const [bProjRes, bMilestonesRes] = await Promise.all([
+            supabase
+                .from('bridal_projects')
+                .select('*, customers(full_name, phone, email)')
+                .neq('status', 'cancelado')
+                .neq('status', 'entregado')
+                .order('event_date', { ascending: true }),
+            supabase
+                .from('bridal_milestones')
+                .select('*')
+                .neq('status', 'completed')
+                .order('scheduled_date', { ascending: true })
+        ]);
+        const bProjData = bProjRes.data;
+        const bMilestones = bMilestonesRes.data;
 
         setActiveBridalProjects(bProjData || []);
 
@@ -539,6 +536,35 @@ export default function PlanificadorPage() {
     }, [activeDays, viewMode]);
 
     useEffect(() => { load(); }, [load]);
+
+    // One-time fetch of workshop config (hours + working days) — runs only on mount
+    // Intentionally separated from load() to avoid triggering a reload loop when
+    // workshopWorkingDays changes (which would recreate activeDays → recreate load → infinite loop).
+    useEffect(() => {
+        async function fetchConfig() {
+            const { data: configData } = await supabase
+                .from('atelier_config')
+                .select('workshop_working_hour_start, workshop_working_hour_end, workshop_working_days')
+                .limit(1);
+            if (configData && configData[0]) {
+                setWorkshopStart(configData[0].workshop_working_hour_start?.slice(0, 5) || '09:00');
+                setWorkshopEnd(configData[0].workshop_working_hour_end?.slice(0, 5) || '18:00');
+                if (Array.isArray(configData[0].workshop_working_days) && configData[0].workshop_working_days.length > 0) {
+                    setWorkshopWorkingDays(configData[0].workshop_working_days);
+                }
+            }
+        }
+        fetchConfig();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Auto-scroll to today's row once loading is done
+    useEffect(() => {
+        if (!loading && todayRowRef.current) {
+            setTimeout(() => {
+                todayRowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 150); // small delay to ensure the DOM is fully painted
+        }
+    }, [loading]);
 
     // ── Modal helpers ─────────────────────────────────────────────────────────
     function openAdd(opId: string, day: string) {
@@ -824,7 +850,10 @@ export default function PlanificadorPage() {
                                         return (
                                             <React.Fragment key={ds}>
                                                 {/* Day Header Row */}
-                                                <tr className="bg-slate-50 border-b border-slate-200">
+                                                <tr
+                                                    ref={isToday ? todayRowRef : null}
+                                                    className="bg-slate-50 border-b border-slate-200"
+                                                >
                                                     <td colSpan={visibleOperators.length + 1} className="py-1.5 px-2 md:p-3 border-r border-slate-100">
                                                         <div className="flex items-center gap-2 md:gap-4 pl-1 md:pl-2">
                                                             <div className="flex items-baseline gap-1.5 md:gap-2">

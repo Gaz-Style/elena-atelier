@@ -54,10 +54,10 @@ export default function ProjectGanttTimeline({
     
     const filteredProjects = useMemo(() => {
         if (ganttFilter === 'bridal') {
-            return projects.filter(p => p.legacy_bridal_project_id !== null);
+            return projects.filter(p => p.isBridal === true);
         }
         if (ganttFilter === 'workshop') {
-            return projects.filter(p => p.legacy_bridal_project_id === null);
+            return projects.filter(p => p.isBridal !== true);
         }
         return projects;
     }, [projects, ganttFilter]);
