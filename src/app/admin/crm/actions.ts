@@ -221,6 +221,14 @@ export async function sendTemplatedEmailAction(
           variables.MESSAGE || ''
         );
         break;
+      case 'luxury_contact':
+        sendResult = await emailModule.sendLuxuryContactEmail(
+          targetEmail,
+          targetName,
+          subject,
+          variables.MESSAGE || ''
+        );
+        break;
       case 'luxury_pass':
         sendResult = await emailModule.sendLuxuryPassEmail(
           targetEmail,

@@ -96,6 +96,15 @@ const TEMPLATES: Template[] = [
         ]
     },
     {
+        id: 'luxury_contact',
+        name: 'Mensaje Luxury (Fondo e Imagen)',
+        description: 'Plantilla de comunicación oficial libre con estética luxury y fondo de imagen.',
+        defaultSubject: 'Mensaje exclusivo desde el Atelier ✨ - Elena Atelier',
+        variables: [
+            { key: 'MESSAGE', label: 'Mensaje del Correo', type: 'textarea', default: 'Te escribimos del taller para coordinar los siguientes pasos de tu diseño...' }
+        ]
+    },
+    {
         id: 'luxury_pass',
         name: 'Invitación Luxury Pass',
         description: 'Pase exclusivo digital y tarjeta de reserva o fitting VIP.',
@@ -312,6 +321,51 @@ const PREVIEW_TEMPLATES: Record<string, string> = {
     <p class="text" style="text-align: left;">{{MESSAGE}}</p>
     <div style="margin-top: 30px; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 20px; text-align: center;">
       <p style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #C17F5F; margin: 0 0 10px 0;">Es un placer acompañarte en cada detalle</p>
+      <p style="font-style: italic; font-size: 14px; color: #E5E0D8; margin: 0 0 4px 0;">Con cariño,</p>
+      <p style="font-family: 'Pinyon Script', cursive; font-size: 38px; color: #FFFFFF; margin: 0 0 4px 0; font-weight: normal;">Elena R.</p>
+      <p style="font-size: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; color: #8A857D; margin: 0;">ELENA La Costurera</p>
+    </div>
+    <p style="font-size: 8px; color: #8A857D; letter-spacing: 2.5px; margin-top: 36px; font-weight: 400; font-family: 'Inter', sans-serif;">Av. Tabancura 1091, Oficina 319 · Vitacura</p>
+  </div>
+</body>
+</html>
+`,
+    luxury_contact: `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,700;1,300&family=Inter:wght@200;300;400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #F0EDE8; margin: 0; padding: 20px; }
+    .card { max-width: 360px; margin: 0 auto; background-color: #1A1A1A; background-image: linear-gradient(to bottom, rgba(26, 26, 26, 0.45) 0%, rgba(26, 26, 26, 0.88) 75%, #1A1A1A 100%), url('/fiesta_gala_opt.jpg'); background-size: cover; background-position: center; border-radius: 24px; border: 1px solid rgba(245, 242, 235, 0.15); overflow: hidden; color: #F5F5F0; padding: 30px; text-align: center; }
+    .logo { font-family: 'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; color: #FFFFFF; letter-spacing: 12px; text-transform: uppercase; margin-bottom: 8px; text-align: center; padding-left: 12px; }
+    .divider { border-bottom: 1px dashed rgba(255,255,255,0.15); margin: 15px 0; }
+    .badge { font-family: 'Inter', sans-serif; font-size: 8px; font-weight: 700; color: #FFFFFF; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 20px; text-align: center; padding-left: 4px; }
+    .quote { font-style: italic; font-size: 16px; color: #FFF; margin: 15px 0; line-height: 1.3; }
+    .text { color: #CECAC2; font-size: 13px; line-height: 1.6; text-align: justify; white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="width: 12px; height: 12px; background-color: #F0EDE8; border-radius: 50%; margin: 0 auto 10px auto; opacity: 0.9;"></div>
+    <div class="logo">ELENA</div>
+    <div class="badge">LA COSTURERA</div>
+    
+    <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; margin: 15px 0; border-collapse: collapse;">
+      <tr>
+        <td style="width: 8px; height: 16px; background-color: #F0EDE8; border-radius: 0 8px 8px 0;"></td>
+        <td style="border-bottom: 1px dashed rgba(245, 242, 235, 0.12); vertical-align: middle; height: 8px; line-height: 1px; font-size: 1px;">&nbsp;</td>
+        <td style="width: 8px; height: 16px; background-color: #F0EDE8; border-radius: 8px 0 0 8px;"></td>
+      </tr>
+    </table>
+
+    <p style="font-size: 8px; font-weight: 600; color: #C17F5F; letter-spacing: 5px; text-transform: uppercase; margin: 0 0 8px 0; font-family: 'Inter', sans-serif;">Mensaje Especial</p>
+    <div class="quote">{{SUBJECT}}</div>
+    <p class="text" style="text-align: left;">Estimada {{NAME}},</p>
+    <p class="text" style="text-align: left;">{{MESSAGE}}</p>
+    
+    <div style="margin-top: 30px; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 20px; text-align: center;">
+      <p style="font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: #C17F5F; margin: 0 0 8px 0;">Es un placer acompañarte en cada detalle</p>
       <p style="font-style: italic; font-size: 14px; color: #E5E0D8; margin: 0 0 4px 0;">Con cariño,</p>
       <p style="font-family: 'Pinyon Script', cursive; font-size: 38px; color: #FFFFFF; margin: 0 0 4px 0; font-weight: normal;">Elena R.</p>
       <p style="font-size: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; color: #8A857D; margin: 0;">ELENA La Costurera</p>
