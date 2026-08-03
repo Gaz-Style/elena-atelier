@@ -43,7 +43,6 @@ export default async function WebpayCallbackPage({
 
             if (cuotaIndex === 0 && project && !project.contract_accepted) {
                 await acceptContract(projectId);
-                await sendBridalThankYouEmailAction(projectId);
             } else if (cuotaIndex > 0) {
                 await sendBridalPaymentConfirmationEmailAction(projectId, cuotaIndex, data.amount, 'Webpay Plus');
             }

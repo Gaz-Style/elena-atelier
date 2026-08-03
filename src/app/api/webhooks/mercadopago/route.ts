@@ -53,12 +53,11 @@ async function updateDatabaseAndNotify(
             // Register payment
             await registerBridalInstallment(projectId, cuotaIndex, 'Mercado Pago');
             
-            // Only accept contract and send thank you email if it's the first payment
+            // Only accept contract if it's the first payment
             if (cuotaIndex === 0) {
                 const { data: proj } = await supabase.from('bridal_projects').select('contract_accepted').eq('id', projectId).single();
                 if (proj && !proj.contract_accepted) {
                     await acceptContract(projectId);
-                    await sendBridalThankYouEmailAction(projectId);
                 }
             }
             
