@@ -43,9 +43,10 @@ export default async function WebpayCallbackPage({
 
             if (cuotaIndex === 0 && project && !project.contract_accepted) {
                 await acceptContract(projectId);
-            } else if (cuotaIndex > 0) {
-                await sendBridalPaymentConfirmationEmailAction(projectId, cuotaIndex, data.amount, 'Webpay Plus');
             }
+            
+            // Send payment confirmation email for all payments (including initial deposit)
+            await sendBridalPaymentConfirmationEmailAction(projectId, cuotaIndex, data.amount, 'Webpay Plus');
 
             redirect(`/portal-fiesta/${projectId}/pago-exitoso`);
         } else {
