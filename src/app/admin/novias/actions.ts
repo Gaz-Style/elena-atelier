@@ -490,6 +490,14 @@ export async function registerPayment(projectId: string, paymentNumber: 1 | 2 | 
     
     revalidatePath('/admin/novias');
     revalidatePath(`/admin/novias/${projectId}`);
+    
+    // Trigger email payment confirmation receipt
+    try {
+        await sendBridalPaymentConfirmationEmailAction(projectId, paymentNumber - 1, amount, paymentMethod);
+    } catch (mailErr) {
+        console.error('Error automatically sending payment confirmation email in registerPayment:', mailErr);
+    }
+
     return { success: true };
 }
 
@@ -501,7 +509,7 @@ export async function acceptContract(projectId: string) {
         .update({
             contract_accepted: true,
             contract_accepted_at: new Date().toISOString(),
-            status: 'contrato_pendiente', // Stays until first payment
+            status: 'esperando_pago', // Updated from contrato_pendiente to reflect acceptance but pending payment
             updated_at: new Date().toISOString(),
         })
         .eq('id', projectId);
@@ -509,9 +517,6 @@ export async function acceptContract(projectId: string) {
     if (error) {
         return { success: false, error: error.message };
     }
-
-    // Now trigger the contract and payment email
-    await sendBridalContractEmailAction(projectId);
     
     revalidatePath(`/admin/novias/${projectId}`);
     return { success: true };
@@ -1463,40 +1468,197 @@ export async function sendBridalPaymentConfirmationEmailAction(projectId: string
         const formattedAmount = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(amount);
         const cuotaName = cuotaIndex > 0 ? `Cuota ${cuotaIndex + 1}` : 'Abono Inicial';
 
+        // Fetch work order to get total budget, total paid, and balance
+        let total = project.total_amount || 0;
+        let paidSoFar = amount;
+        let balance = Math.max(0, total - paidSoFar);
+        
+        const { data: woData } = await supabase
+            .from('work_orders')
+            .select('total_amount, paid_amount')
+            .eq('legacy_bridal_project_id', projectId)
+            .maybeSingle();
+            
+        if (woData) {
+            total = woData.total_amount || total;
+            paidSoFar = woData.paid_amount || paidSoFar;
+            balance = Math.max(0, total - paidSoFar);
+        }
+
+        const dateStr = new Date().toLocaleDateString('es-CL', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric'
+        }).toUpperCase();
+
+        const siteUrl = await getSiteUrl();
+        const attachments: any[] = [];
+        let cardBgUrl = '';
+        const fs = require('fs');
+        const path = require('path');
+        
+        const filePath = path.join(process.cwd(), 'public', 'fiesta_gala_opt.jpg');
+        if (fs.existsSync(filePath)) {
+            attachments.push({
+                filename: 'fiesta_gala_opt.jpg',
+                path: filePath,
+                cid: 'luxuryPassBg'
+            });
+            cardBgUrl = 'cid:luxuryPassBg';
+        } else {
+            cardBgUrl = `${siteUrl}/fiesta_gala_opt.jpg`;
+        }
+
         const htmlContent = `<!DOCTYPE html>
 <html lang="es">
-<head><meta charset="utf-8" /></head>
-<body style="margin: 0; padding: 0; background-color: #F8F6F0; font-family: 'Inter', sans-serif;">
-  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #F8F6F0; padding: 40px 20px;">
-    <tr>
-      <td align="center">
-        <table width="600" border="0" cellpadding="0" cellspacing="0" style="background-color: #FCFAF7; border-radius: 4px; overflow: hidden; box-shadow: 0 20px 40px rgba(193,127,95,0.1); border: 1px solid #EAE6D7;">
-          <tr>
-            <td style="background-color: #FCFAF7; padding: 50px 40px; text-align: center;">
-              ${emailLogoHtml}
-              <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #1A1A1A; font-size: 28px; font-weight: 400; margin: 30px 0 20px 0; letter-spacing: 0.5px; font-style: italic;">
-                Confirmación de Pago
-              </h1>
-              <p style="color: #4A4A4A; font-size: 14px; line-height: 1.8; margin-bottom: 20px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
-                Estimada <i style="color: #1A1A1A;">${customerName}</i>, hemos recibido exitosamente tu pago correspondiente a <strong>${cuotaName}</strong> por un monto de <strong>${formattedAmount}</strong> vía ${paymentMethod}.
-              </p>
-              <p style="color: #4A4A4A; font-size: 14px; line-height: 1.8; margin-bottom: 20px; font-weight: 300; max-width: 90%; margin-left: auto; margin-right: auto;">
-                Puedes revisar el estado actualizado de tu plan de pagos directamente en tu Portal Privado en cualquier momento.
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td style="background-color: #F5F5F0; padding: 30px 40px; text-align: center; border-top: 1px solid #EAE6D7;">
-              <p style="color: #6B6660; font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0;">
-                Vitacura, Santiago de Chile<br><br>
-                © ${new Date().getFullYear()} ELENA LA COSTURERA | ATELIER
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elena La Costurera — Comprobante de Pago</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,700;1,300&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #F0EDE8; margin: 0; padding: 24px; -webkit-font-smoothing: antialiased;">
+  <!-- Card Container -->
+  <div style="max-width: 360px; margin: 0 auto; background-color: #1A1A1A; background-image: linear-gradient(to bottom, rgba(26, 26, 26, 0.4) 0%, rgba(26, 26, 26, 0.85) 75%, #1A1A1A 100%), url('${cardBgUrl}'); background-size: cover; background-position: center; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); border: 1px solid rgba(245, 242, 235, 0.15); overflow: hidden; color: #F5F5F0;">
+    
+    <!-- Tag Hole -->
+    <div style="width: 12px; height: 12px; background-color: #F0EDE8; border-radius: 50%; margin: 28px auto 0 auto; opacity: 0.9;"></div>
+    
+    <!-- Header -->
+    <div style="text-align: center; padding: 28px 20px 24px 20px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto; width: 130px; border-collapse: collapse;">
+        <tr>
+          <td>
+            <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td align="left" style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; color: #FFFFFF; line-height: 1; padding: 0;">E</td>
+                <td align="center" style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; color: #FFFFFF; line-height: 1; padding: 0;">L</td>
+                <td align="center" style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; color: #FFFFFF; line-height: 1; padding: 0;">E</td>
+                <td align="center" style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; color: #FFFFFF; line-height: 1; padding: 0;">N</td>
+                <td align="right" style="font-family:'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 900; color: #FFFFFF; line-height: 1; padding: 0;">A</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-top: 8px; line-height: 1; font-size: 1px;">&nbsp;</td>
+        </tr>
+        <tr>
+          <td>
+            <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td align="left" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">L</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">A</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0; width: 6px;">&nbsp;</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">C</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">O</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">S</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">T</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">U</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">R</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">E</td>
+                <td align="center" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">R</td>
+                <td align="right" style="font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 7.5px; font-weight: 700; color: #FFFFFF; line-height: 1; padding: 0;">A</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+    
+    <!-- Table-based Ticket Divider -->
+    <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; margin: 0; border-collapse: collapse;">
+      <tr>
+        <td style="width: 8px; height: 16px; background-color: #F0EDE8; border-radius: 0 8px 8px 0;"></td>
+        <td style="border-bottom: 1px dashed rgba(245, 242, 235, 0.12); vertical-align: middle; height: 8px; line-height: 1px; font-size: 1px;">&nbsp;</td>
+        <td style="width: 8px; height: 16px; background-color: #F0EDE8; border-radius: 8px 0 0 8px;"></td>
+      </tr>
+    </table>
+    
+    <!-- Body -->
+    <div style="padding: 30px 30px 40px 30px; text-align: center;">
+      <p style="font-size: 8px; font-weight: 600; color: #C17F5F; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 4px 0; font-family: 'Inter', sans-serif;">Comprobante de Pago</p>
+      
+      <!-- ID del Proyecto Elegante y Limpio -->
+      <p style="font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 300; color: #C17F5F; letter-spacing: 2px; margin: 0 0 10px 0; text-transform: uppercase;">
+        Folio #${projectId.substring(0,8).toUpperCase()}
+      </p>
+      
+      <!-- Nombre de Clienta como Protagonista -->
+      <h2 style="font-family: 'Playfair Display', Georgia, serif; font-size: 26px; font-style: italic; font-weight: 400; color: #FFFFFF; margin: 0 0 24px 0; letter-spacing: 0.5px;">
+        ${customerName}
+      </h2>
+      
+      <div style="margin-bottom: 20px;">
+        <div style="margin-bottom: 24px; text-align: left;">
+          <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
+            <tr style="border-bottom: 1px solid rgba(245, 242, 235, 0.08);">
+              <td style="padding: 10px 0; text-align: left; vertical-align: top; font-family: 'Inter', sans-serif;">
+                <!-- Descripcion con Medio de Pago -->
+                <p style="margin: 0; font-size: 11px; font-weight: 500; color: #FFFFFF; line-height: 1.3; letter-spacing: 0.5px;">
+                  Vestido de Novia (${cuotaName}) · <span style="color: #C17F5F; font-size: 10px; font-weight: 400;">${paymentMethod}</span>
+                </p>
+                <span style="font-size: 8px; text-transform: uppercase; color: #8A857D; font-weight: 500; letter-spacing: 1.5px; display: inline-block; margin-top: 2px;">Alta Costura</span>
+              </td>
+              <!-- PRECIO DE ARRIBA -->
+              <td style="padding: 10px 0; text-align: right; vertical-align: top; font-family: 'Playfair Display', Georgia, serif; font-size: 13px; font-weight: bold; color: #FFFFFF;">
+                ${formattedAmount}
+              </td>
+            </tr>
+          </table>
+          
+          <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
+            <tr>
+              <td style="padding: 5px 0; text-align: left; font-size: 8px; font-weight: 600; color: #8A857D; letter-spacing: 2px; text-transform: uppercase; font-family: 'Inter', sans-serif;">Total Presupuestado</td>
+              <td style="padding: 5px 0; text-align: right; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 300; color: #8A857D; letter-spacing: 1.5px;">
+                ${new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(total)}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 5px 0; text-align: left; font-size: 8px; font-weight: 600; color: #8A857D; letter-spacing: 2px; text-transform: uppercase; font-family: 'Inter', sans-serif;">Monto Abonado Hoy</td>
+              <td style="padding: 5px 0; text-align: right; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 300; color: #8A857D; letter-spacing: 1.5px;">
+                ${formattedAmount}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 5px 0; text-align: left; font-size: 8px; font-weight: 600; color: #8A857D; letter-spacing: 2px; text-transform: uppercase; font-family: 'Inter', sans-serif;">Total Pagado Proyecto</td>
+              <td style="padding: 5px 0; text-align: right; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 300; color: #8A857D; letter-spacing: 1.5px;">
+                ${new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(paidSoFar)}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 5px 0; text-align: left; font-size: 8px; font-weight: 600; color: #C17F5F; letter-spacing: 2px; text-transform: uppercase; font-family: 'Inter', sans-serif;">Saldo Pendiente</td>
+              <td style="padding: 5px 0; text-align: right; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 300; color: #C17F5F; letter-spacing: 1.5px;">
+                ${new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(balance)}
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      
+      <!-- FECHA PUESTA ABAJO -->
+      <p style="font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 300; color: #8A857D; letter-spacing: 2.5px; text-transform: uppercase; margin: 28px 0 0 0; text-align: center;">
+        ${dateStr}
+      </p>
+      
+      <!-- Barcode -->
+      <div style="margin: 24px 0 12px 0; text-align: center; opacity: 0.7;">
+        <span style="display: inline-block; width: 1px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 2px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 1px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 3px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 1px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 2px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 1px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 4px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 1.5px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <span style="display: inline-block; width: 1px; height: 24px; background-color: #F5F5F0; margin: 0 1px;"></span>
+        <div style="font-size: 7.5px; color: #8A857D; letter-spacing: 4px; margin-top: 6px; text-transform: uppercase; font-family: 'Inter', sans-serif;">ELENA*ALTA*COSTURA</div>
+      </div>
+      
+      <p style="font-size: 8px; color: #8A857D; letter-spacing: 2.5px; margin-top: 28px; font-weight: 400; font-family: 'Inter', sans-serif;">Av. Tabancura 1091 · Vitacura</p>
+    </div>
+  </div>
 </body>
 </html>`;
 
@@ -1505,9 +1667,10 @@ export async function sendBridalPaymentConfirmationEmailAction(projectId: string
             from: '"Elena Atelier" <contacto@elenalacosturera.cl>',
             to: customerEmail,
             cc: 'pagos@elenalacosturera.cl',
-            subject: `Confirmación de Pago: ${cuotaName} - ${customerName}`,
+            subject: `Confirmación de Pago Recibido — ${customerName}`,
             text: `Estimada ${customerName},\n\nHemos recibido exitosamente tu pago correspondiente a ${cuotaName} por un monto de ${formattedAmount} vía ${paymentMethod}.\n\nAtentamente,\nElena Atelier`,
-            html: htmlContent
+            html: htmlContent,
+            attachments
         });
 
         // Notificación de WhatsApp a Dueñas (Portal Novias)
@@ -1958,7 +2121,7 @@ export async function deleteBridalInspiration(projectId: string, inspirationId: 
     return { success: true };
 }
 
-export async function registerBridalInstallment(projectId: string, installmentIndex: number, paymentMethod: string = 'Efectivo/Transferencia') {
+export async function registerBridalInstallment(projectId: string, installmentIndex: number, paymentMethod: string = 'Efectivo/Transferencia', shouldNotify: boolean = true) {
     const supabase = getAdminClient();
     
     // 1. Fetch work_order
@@ -2050,6 +2213,16 @@ export async function registerBridalInstallment(projectId: string, installmentIn
     }
     
     revalidatePath(`/admin/novias/${projectId}`);
+    
+    // Trigger email payment confirmation receipt
+    if (shouldNotify) {
+        try {
+            await sendBridalPaymentConfirmationEmailAction(projectId, installmentIndex, amount, paymentMethod);
+        } catch (mailErr) {
+            console.error('Error automatically sending payment confirmation email in registerBridalInstallment:', mailErr);
+        }
+    }
+
     return { success: true };
 }
 

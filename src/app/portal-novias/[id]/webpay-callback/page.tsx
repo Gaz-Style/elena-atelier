@@ -41,7 +41,7 @@ export default async function WebpayCallbackPage({
                 cuotaIndex = parseInt(parts[1], 10);
             }
 
-            await registerBridalInstallment(projectId, cuotaIndex, 'Webpay');
+            await registerBridalInstallment(projectId, cuotaIndex, 'Webpay', false);
 
             if (cuotaIndex === 0 && project && !project.contract_accepted) {
                 await acceptContract(projectId);
