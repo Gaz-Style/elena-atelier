@@ -154,7 +154,8 @@ export default async function AgendaPage({
         .from('bridal_milestones')
         .select('*, bridal_projects(customers(id, full_name, email, phone))')
         .neq('status', 'completed')
-        .not('scheduled_date', 'is', null);
+        .not('scheduled_date', 'is', null)
+        .is('agenda_event_id', null);
 
     if (search) {
         const { data: custData } = await supabase

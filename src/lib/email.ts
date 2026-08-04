@@ -174,58 +174,25 @@ export const sendGeneralContactEmail = async (
   message: string,
   headers?: Record<string, string>
 ) => {
-  const html = loadTemplate('general_contact.html', {
-    NAME: name,
-    SUBJECT: subject,
-    MESSAGE: message
-  });
-  
-  if (!html) throw new Error('Template not found');
-
-  try {
-    const info = await transporter.sendMail({
-      from: `"Elena La Costurera" <${fromAddress}>`,
-      to,
-      subject: subject || 'Mensaje de Elena Atelier',
-      html,
-      headers
-    });
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    console.error('Error sending general contact email:', error);
-    return { success: false, error };
-  }
-};
-
-/**
- * Sends a general luxury contact notification email with a background image.
- */
-export const sendLuxuryContactEmail = async (
-  to: string,
-  name: string,
-  subject: string,
-  message: string,
-  headers?: Record<string, string>
-) => {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   const attachments: any[] = [];
   let cardBgUrl = '';
   
   const fs = require('fs');
   const path = require('path');
-  const filePath = path.join(process.cwd(), 'public', 'fiesta_gala_opt.jpg');
+  const filePath = path.join(process.cwd(), 'public', 'trabajos', 'model_desnuda_bw.png');
   if (fs.existsSync(filePath)) {
     attachments.push({
-      filename: 'fiesta_gala_opt.jpg',
+      filename: 'model_desnuda_bw.png',
       path: filePath,
       cid: 'luxuryPassBg'
     });
     cardBgUrl = 'cid:luxuryPassBg';
   } else {
-    cardBgUrl = `${siteUrl}/fiesta_gala_opt.jpg`;
+    cardBgUrl = `${siteUrl}/trabajos/model_desnuda_bw.png`;
   }
 
-  const html = loadTemplate('luxury_contact.html', {
+  const html = loadTemplate('general_contact.html', {
     NAME: name,
     SUBJECT: subject,
     MESSAGE: message,
@@ -245,7 +212,7 @@ export const sendLuxuryContactEmail = async (
     });
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('Error sending luxury contact email:', error);
+    console.error('Error sending general contact email:', error);
     return { success: false, error };
   }
 };

@@ -2355,6 +2355,15 @@ export async function getMonthAvailabilityAction(year: number, month: number) {
             .lte('fecha_hora', endDate.toISOString())
             .neq('estado', 'cancelado');
 
+        // Fetch active bridal milestones for the month
+        const { data: milestones } = await supabase
+            .from('bridal_milestones')
+            .select('scheduled_date')
+            .gte('scheduled_date', startDate.toISOString())
+            .lte('scheduled_date', endDate.toISOString())
+            .neq('status', 'completed')
+            .not('scheduled_date', 'is', null);
+
         // Group booked events by date string (YYYY-MM-DD)
         const bookedByDate = new Map<string, string[]>();
         if (eventos) {
@@ -2362,6 +2371,16 @@ export async function getMonthAvailabilityAction(year: number, month: number) {
                 const { dateStr, horaStr } = parseChileDateString(e.fecha_hora);
                 if (!bookedByDate.has(dateStr)) bookedByDate.set(dateStr, []);
                 bookedByDate.get(dateStr)!.push(horaStr);
+            });
+        }
+        if (milestones) {
+            milestones.forEach((m: any) => {
+                const { dateStr, horaStr } = parseChileDateString(m.scheduled_date);
+                if (!bookedByDate.has(dateStr)) bookedByDate.set(dateStr, []);
+                const dayBooked = bookedByDate.get(dateStr)!;
+                if (!dayBooked.includes(horaStr)) {
+                    dayBooked.push(horaStr);
+                }
             });
         }
 

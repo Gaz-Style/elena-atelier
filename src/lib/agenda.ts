@@ -36,7 +36,19 @@ export async function consultar_disponibilidad(fecha_inicial: string) {
             .neq('estado', 'cancelado');
             
         if (error) throw error;
-        const horasOcupadas = eventos ? eventos.map((e) => new Date(e.fecha_hora).toISOString()) : [];
+
+        const { data: milestones } = await supabase
+            .from('bridal_milestones')
+            .select('scheduled_date')
+            .gte('scheduled_date', startOfSearch.toISOString())
+            .lte('scheduled_date', endOfSearch.toISOString())
+            .neq('status', 'completed')
+            .not('scheduled_date', 'is', null);
+
+        const horasOcupadas = [
+            ...(eventos ? eventos.map((e) => new Date(e.fecha_hora).toISOString()) : []),
+            ...(milestones ? milestones.map((m) => new Date(m.scheduled_date).toISOString()) : [])
+        ];
 
         for (let i = 0; i < maxDiasBusqueda; i++) {
             if (slotsEncontrados.length >= 3) break;
@@ -368,7 +380,13 @@ export async function agendar_visita(nombre: string, apellido: string, celular: 
             .eq('fecha_hora', fechaAjustada)
             .neq('estado', 'cancelado');
 
-        if (existente && existente.length > 0) {
+        const { data: hitoExistente } = await supabase
+            .from('bridal_milestones')
+            .select('id')
+            .eq('scheduled_date', fechaAjustada)
+            .neq('status', 'completed');
+
+        if ((existente && existente.length > 0) || (hitoExistente && hitoExistente.length > 0)) {
             return `Lo siento, el bloque de las ${dateObj.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' })} acaba de ser ocupado. Por favor, elige otra hora.`;
         }
 
