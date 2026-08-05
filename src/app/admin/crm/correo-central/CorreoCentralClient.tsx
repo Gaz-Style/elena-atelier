@@ -66,7 +66,7 @@ const TEMPLATES: Template[] = [
         { key: 'FIELD2_VALUE',label: 'Valor 2',             default: '17:00 hrs' },
         { key: 'BARCODE_TEXT',label: 'Código',              default: 'ELENA*VIP*PASS' }
     ]},
-    { id: 'review',      emoji: '⭐', name: 'Solicitud Reseña',  description: 'Pide al cliente valorar su experiencia.',    defaultSubject: 'Nos encantaría conocer tu opinión ✨',          variables: [] },
+    { id: 'review',      emoji: '⭐', name: 'Solicitud Reseña',  description: 'Pide al cliente valorar su experiencia.',    defaultSubject: '¡Tu opinión es importante!',          variables: [] },
 ];
 
 // ─── Preview HTML map ──────────────────────────────────────────────────────────

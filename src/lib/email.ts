@@ -347,7 +347,7 @@ export const sendReviewEmail = async (to: string, name: string) => {
     const info = await transporter.sendMail({
       from: `"Elena La Costurera" <${fromAddress}>`,
       to,
-      subject: 'Nos encantaría conocer tu opinión ✨ - Elena Atelier',
+      subject: '¡Tu opinión es importante! - Elena Atelier',
       html,
       attachments
     });
