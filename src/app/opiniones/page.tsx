@@ -1,7 +1,7 @@
 'use client';
  
 import React, { useState } from 'react';
-import { Spool, CheckCircle2, MessageSquare, ArrowRight, Loader2, Sparkles, Heart } from 'lucide-react';
+import { Star, CheckCircle2, MessageSquare, ArrowRight, Loader2, Sparkles, Heart } from 'lucide-react';
 import { submitPrivateFeedbackAction, submitPositiveFeedbackKpiAction } from './actions';
  
 export default function ReviewPage() {
@@ -118,7 +118,7 @@ export default function ReviewPage() {
                                         onMouseLeave={() => setHoveredRating(0)}
                                         className="transition-all active:scale-90 duration-150 p-1"
                                     >
-                                        <Spool
+                                        <Star
                                             className={`w-9 h-9 transition-all duration-300 ${
                                                 star <= (hoveredRating || rating)
                                                     ? 'fill-[#C17F5F] text-[#C17F5F] drop-shadow-[0_0_10px_rgba(193,127,95,0.4)] scale-110'
@@ -130,7 +130,7 @@ export default function ReviewPage() {
                             </div>
 
                             <p className="text-xs text-white/30 uppercase tracking-widest">
-                                Selecciona de 1 a 5 hilos para continuar
+                                Selecciona de 1 a 5 estrellas para continuar
                             </p>
                         </div>
                     )}
