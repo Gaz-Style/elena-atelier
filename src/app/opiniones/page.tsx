@@ -16,6 +16,12 @@ export default function ReviewPage() {
     const [message, setMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Negative feedback KPI states (for 1-3 stars)
+    const [negKpiFit, setNegKpiFit] = useState(false);
+    const [negKpiTime, setNegKpiTime] = useState(false);
+    const [negKpiService, setNegKpiService] = useState(false);
+    const [negKpiPrice, setNegKpiPrice] = useState(false);
+
     // KPI & Private suggestion states (for 4-5 stars)
     const [kpiQuality, setKpiQuality] = useState(false);
     const [kpiService, setKpiService] = useState(false);
@@ -37,13 +43,32 @@ export default function ReviewPage() {
     const handleSubmitFeedback = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
+
+        const selectedAspects: string[] = [];
+        if (negKpiFit) selectedAspects.push("Calce o ajuste de la prenda");
+        if (negKpiTime) selectedAspects.push("Tiempos de entrega o plazos");
+        if (negKpiService) selectedAspects.push("Atención o comunicación");
+        if (negKpiPrice) selectedAspects.push("Claridad en precios o presupuestos");
+
+        let finalMessage = "";
+        if (selectedAspects.length > 0) {
+            finalMessage += `Aspectos a mejorar: ${selectedAspects.join(', ')}.\n`;
+        }
+        if (message.trim()) {
+            finalMessage += `Comentarios: ${message}`;
+        } else if (selectedAspects.length === 0) {
+            alert("Por favor, selecciona al menos una opción o escribe tu sugerencia.");
+            setIsSubmitting(false);
+            return;
+        }
+
         try {
             const res = await submitPrivateFeedbackAction({
-                name,
-                email,
-                phone,
+                name: "Anónimo",
+                email: "anonimo@elena-atelier.com",
+                phone: "",
                 rating,
-                message
+                message: finalMessage
             });
             if (res.success) {
                 setStep('success');
@@ -208,58 +233,72 @@ export default function ReviewPage() {
                                 </button>
                             </div>
                         </div>
-                         {/* STEP 3: Private Feedback Form (For 1-3 Stars) */}
+                    )}
+
+                    {/* STEP 3: Private Feedback Form (For 1-3 Stars) */}
                     {step === 'feedback' && (
                         <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
-                            <div className="space-y-3 text-center">
+                            <div className="space-y-2 text-center">
                                 <h3 className="font-serif text-2xl md:text-3xl text-white tracking-tight">Queremos escucharte y mejorar</h3>
                                 <p className="text-sm text-white/60 leading-relaxed">
-                                    Lamentamos no haber cumplido tus expectativas. Cuéntanos qué podemos mejorar. Dejar tus datos es opcional.
+                                    Cuéntanos qué podemos mejorar en tu experiencia en nuestro taller.
                                 </p>
                             </div>
 
                             <form onSubmit={handleSubmitFeedback} className="space-y-5 pt-2">
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] uppercase tracking-widest text-white/40 block font-bold">Nombre Completo (Opcional)</label>
-                                    <input
-                                        type="text"
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                        placeholder="Ej. María González"
-                                        className="w-full p-3.5 bg-white/5 border border-white/10 focus:border-[#C17F5F] text-white rounded-sm text-sm outline-none transition-colors"
-                                    />
+                                {/* KPI Options to Improve */}
+                                <div className="space-y-3 text-left">
+                                    <span className="text-[11px] uppercase tracking-widest text-[#C17F5F] font-bold block mb-1">¿Qué aspectos consideras que debemos mejorar?</span>
+                                    
+                                    <div className="space-y-3">
+                                        <label className="flex items-start gap-3.5 cursor-pointer text-[14px] text-white/80 hover:text-white select-none py-1 px-2.5 rounded-sm hover:bg-white/5 transition-colors">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={negKpiFit}
+                                                onChange={(e) => setNegKpiFit(e.target.checked)}
+                                                className="mt-0.5 w-4.5 h-4.5 accent-[#C17F5F] cursor-pointer"
+                                            />
+                                            <span className="leading-tight">📏 El calce o ajuste de la prenda.</span>
+                                        </label>
+                                        
+                                        <label className="flex items-start gap-3.5 cursor-pointer text-[14px] text-white/80 hover:text-white select-none py-1 px-2.5 rounded-sm hover:bg-white/5 transition-colors">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={negKpiTime}
+                                                onChange={(e) => setNegKpiTime(e.target.checked)}
+                                                className="mt-0.5 w-4.5 h-4.5 accent-[#C17F5F] cursor-pointer"
+                                            />
+                                            <span className="leading-tight">⏱️ Los tiempos de entrega o plazos.</span>
+                                        </label>
+                                        
+                                        <label className="flex items-start gap-3.5 cursor-pointer text-[14px] text-white/80 hover:text-white select-none py-1 px-2.5 rounded-sm hover:bg-white/5 transition-colors">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={negKpiService}
+                                                onChange={(e) => setNegKpiService(e.target.checked)}
+                                                className="mt-0.5 w-4.5 h-4.5 accent-[#C17F5F] cursor-pointer"
+                                            />
+                                            <span className="leading-tight">💬 La atención o comunicación.</span>
+                                        </label>
+                                        
+                                        <label className="flex items-start gap-3.5 cursor-pointer text-[14px] text-white/80 hover:text-white select-none py-1 px-2.5 rounded-sm hover:bg-white/5 transition-colors">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={negKpiPrice}
+                                                onChange={(e) => setNegKpiPrice(e.target.checked)}
+                                                className="mt-0.5 w-4.5 h-4.5 accent-[#C17F5F] cursor-pointer"
+                                            />
+                                            <span className="leading-tight">💰 La claridad en precios o presupuestos.</span>
+                                        </label>
+                                    </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] uppercase tracking-widest text-white/40 block font-bold">Email (Opcional)</label>
-                                        <input
-                                            type="email"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            placeholder="maria@email.com"
-                                            className="w-full p-3.5 bg-white/5 border border-white/10 focus:border-[#C17F5F] text-white rounded-sm text-sm outline-none transition-colors"
-                                        />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] uppercase tracking-widest text-white/40 block font-bold">Celular (Opcional)</label>
-                                        <input
-                                            type="tel"
-                                            value={phone}
-                                            onChange={(e) => setPhone(e.target.value)}
-                                            placeholder="+569..."
-                                            className="w-full p-3.5 bg-white/5 border border-white/10 focus:border-[#C17F5F] text-white rounded-sm text-sm outline-none transition-colors"
-                                        />
-                                    </div>
-                                </div>
-
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] uppercase tracking-widest text-white/40 block font-bold">¿Qué podemos mejorar?</label>
+                                    <label className="text-[10px] uppercase tracking-widest text-white/40 block font-bold">¿Tienes algún comentario o sugerencia adicional?</label>
                                     <textarea
-                                        required
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
-                                        placeholder="Por favor, cuéntanos en detalle qué ocurrió con tu calce, plazos o atención..."
+                                        placeholder="Por favor, cuéntanos aquí qué ocurrió o qué podemos hacer para mejorar..."
                                         rows={4}
                                         className="w-full p-3.5 bg-white/5 border border-white/10 focus:border-[#C17F5F] text-white rounded-sm text-sm outline-none resize-none transition-colors"
                                     />
@@ -284,7 +323,7 @@ export default function ReviewPage() {
                                             </>
                                         ) : (
                                             <>
-                                                Enviar Comentario <MessageSquare className="w-4 h-4" />
+                                                Enviar Sugerencia <MessageSquare className="w-4 h-4" />
                                             </>
                                         )}
                                     </button>
