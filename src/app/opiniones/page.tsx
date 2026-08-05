@@ -208,24 +208,21 @@ export default function ReviewPage() {
                                 </button>
                             </div>
                         </div>
-                    )}
-
-                    {/* STEP 3: Private Feedback Form (For 1-3 Stars) */}
+                         {/* STEP 3: Private Feedback Form (For 1-3 Stars) */}
                     {step === 'feedback' && (
                         <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
                             <div className="space-y-3 text-center">
-                                <h3 className="font-serif text-2xl md:text-3xl text-white tracking-tight">Tu feedback es vital</h3>
+                                <h3 className="font-serif text-2xl md:text-3xl text-white tracking-tight">Queremos escucharte y mejorar</h3>
                                 <p className="text-sm text-white/60 leading-relaxed">
-                                    Lamentamos mucho que tu experiencia no haya sido perfecta. Por favor, cuéntanos en privado qué ocurrió para que Elena pueda revisar tu caso personalmente.
+                                    Lamentamos de corazón que tu experiencia no haya sido perfecta en esta ocasión. Tu opinión nos ayuda a crecer. Si lo deseas, cuéntanos qué ocurrió para que podamos corregirlo. Dejar tus datos es opcional, pero nos encantaría poder contactarte para ofrecerte una solución.
                                 </p>
                             </div>
 
                             <form onSubmit={handleSubmitFeedback} className="space-y-5 pt-2">
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] uppercase tracking-widest text-white/40 block font-bold">Nombre Completo</label>
+                                    <label className="text-[10px] uppercase tracking-widest text-white/40 block font-bold">Nombre Completo (Opcional)</label>
                                     <input
                                         type="text"
-                                        required
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         placeholder="Ej. María González"
@@ -235,10 +232,9 @@ export default function ReviewPage() {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] uppercase tracking-widest text-white/40 block font-bold">Email</label>
+                                        <label className="text-[10px] uppercase tracking-widest text-white/40 block font-bold">Email (Opcional)</label>
                                         <input
                                             type="email"
-                                            required
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             placeholder="maria@email.com"
