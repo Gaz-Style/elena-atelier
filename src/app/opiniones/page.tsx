@@ -106,9 +106,6 @@ export default function ReviewPage() {
                                     <Sparkles className="w-3.5 h-3.5" /> Tu Experiencia nos Importa
                                 </span>
                                 <h2 className="font-serif text-3xl md:text-4xl text-white tracking-tight leading-tight px-2">¿Cómo calificarías tu visita a nuestro atelier?</h2>
-                                <p className="text-sm text-white/60 leading-relaxed px-4">
-                                    Cada prenda y cada ajuste se realizan con dedicación artesanal. Queremos saber tu opinión para seguir mejorando.
-                                </p>
                             </div>
 
                             {/* Stars Container */}
