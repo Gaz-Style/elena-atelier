@@ -89,30 +89,30 @@ export default function ReviewPage() {
             <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#C17F5F] mix-blend-screen filter blur-[120px] opacity-[0.06]"></div>
 
             {/* Header / Brand Logo */}
-            <header className="w-full max-w-md mx-auto pt-8 pb-4 text-center z-10 flex flex-col items-center">
+            <header className="w-full max-w-[560px] mx-auto pt-8 pb-4 text-center z-10 flex flex-col items-center">
                 <img src="/logotipo.png" alt="Elena La Costurera Logo" className="h-16 w-auto object-contain invert" />
-                <p className="text-[8px] uppercase tracking-[0.3em] text-white/40 mt-4">Alta Costura & Sastrería de Autor</p>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-white/40 mt-4">Alta Costura & Sastrería de Autor</p>
             </header>
 
             {/* Main Interactive Card */}
-            <main className="flex-1 flex items-center justify-center max-w-md w-full mx-auto py-12 z-10">
-                <div className="w-full bg-[#242424]/60 backdrop-blur-md border border-white/10 p-8 rounded-sm shadow-2xl relative overflow-hidden transition-all duration-300">
+            <main className="flex-1 flex items-center justify-center max-w-[560px] w-full mx-auto py-10 z-10">
+                <div className="w-full bg-[#242424]/60 backdrop-blur-md border border-white/10 p-10 rounded-sm shadow-2xl relative overflow-hidden transition-all duration-300">
                     
                     {/* STEP 1: Select Rating */}
                     {step === 'rating' && (
                         <div className="space-y-8 text-center animate-in fade-in zoom-in-95 duration-500">
-                            <div className="space-y-3">
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#C17F5F]/15 text-[#C17F5F] text-[9px] uppercase tracking-widest rounded-full font-bold">
-                                    <Sparkles className="w-3 h-3" /> Tu Experiencia nos Importa
+                            <div className="space-y-4">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#C17F5F]/15 text-[#C17F5F] text-[10px] uppercase tracking-widest rounded-full font-bold">
+                                    <Sparkles className="w-3.5 h-3.5" /> Tu Experiencia nos Importa
                                 </span>
-                                <h2 className="font-serif text-3xl text-white tracking-tight leading-tight">¿Cómo calificarías tu visita a nuestro atelier?</h2>
-                                <p className="text-xs text-white/50 leading-relaxed px-4">
+                                <h2 className="font-serif text-3xl md:text-4xl text-white tracking-tight leading-tight px-2">¿Cómo calificarías tu visita a nuestro atelier?</h2>
+                                <p className="text-sm text-white/60 leading-relaxed px-4">
                                     Cada prenda y cada ajuste se realizan con dedicación artesanal. Queremos saber tu opinión para seguir mejorando.
                                 </p>
                             </div>
 
                             {/* Stars Container */}
-                            <div className="flex items-center justify-center gap-2.5 py-4">
+                            <div className="flex items-center justify-center gap-3.5 py-4">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                     <button
                                         key={star}
@@ -122,9 +122,9 @@ export default function ReviewPage() {
                                         className="transition-all active:scale-90 duration-150 p-1"
                                     >
                                         <Star
-                                            className={`w-9 h-9 transition-all duration-300 ${
+                                            className={`w-11 h-11 transition-all duration-300 ${
                                                 star <= (hoveredRating || rating)
-                                                    ? 'fill-[#C17F5F] text-[#C17F5F] drop-shadow-[0_0_8px_rgba(193,127,95,0.4)] scale-110'
+                                                    ? 'fill-[#C17F5F] text-[#C17F5F] drop-shadow-[0_0_10px_rgba(193,127,95,0.4)] scale-110'
                                                     : 'text-white/20'
                                             }`}
                                         />
@@ -132,7 +132,7 @@ export default function ReviewPage() {
                                 ))}
                             </div>
 
-                            <p className="text-[10px] text-white/30 uppercase tracking-widest">
+                            <p className="text-xs text-white/30 uppercase tracking-widest">
                                 Selecciona de 1 a 5 estrellas para continuar
                             </p>
                         </div>
@@ -140,70 +140,75 @@ export default function ReviewPage() {
 
                     {/* STEP 2: Redirection to Google Maps (For 4-5 Stars) */}
                     {step === 'redirection' && (
-                        <div className="space-y-5 text-center animate-in fade-in zoom-in-95 duration-500">
-                            <div className="w-12 h-12 bg-[#C17F5F]/15 rounded-full flex items-center justify-center mx-auto text-[#C17F5F]">
-                                <Heart className="w-6 h-6 fill-[#C17F5F] text-[#C17F5F]" />
+                        <div className="space-y-6 text-center animate-in fade-in zoom-in-95 duration-500">
+                            <div className="w-14 h-14 bg-[#C17F5F]/15 rounded-full flex items-center justify-center mx-auto text-[#C17F5F]">
+                                <Heart className="w-7 h-7 fill-[#C17F5F] text-[#C17F5F]" />
                             </div>
                             
-                            <div className="space-y-2">
-                                <h3 className="font-serif text-xl text-white tracking-tight">¡Muchas gracias por valorarnos!</h3>
-                                <p className="text-[11px] text-white/60 leading-relaxed">
+                            <div className="space-y-3">
+                                <h3 className="font-serif text-2xl md:text-3xl text-white tracking-tight">¡Muchas gracias por valorarnos!</h3>
+                                <p className="text-[14px] text-white/70 leading-relaxed max-w-[90%] mx-auto">
                                     Nos alegra saber que tu experiencia fue excelente. Por favor, selecciona qué aspectos destacas y compártenos cualquier sugerencia de mejora de forma privada.
                                 </p>
                             </div>
 
                             {/* KPI Selection Section */}
-                            <div className="space-y-3 text-left">
-                                <span className="text-[9px] uppercase tracking-widest text-[#C17F5F] font-bold block">¿Qué fue lo que más te gustó del servicio?</span>
-                                <label className="flex items-start gap-2.5 cursor-pointer text-[11px] text-white/80 hover:text-white select-none py-0.5">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={kpiQuality}
-                                        onChange={(e) => setKpiQuality(e.target.checked)}
-                                        className="mt-0.5 accent-[#C17F5F]"
-                                    />
-                                    <span>✨ La calidad y el resultado final de mi prenda.</span>
-                                </label>
-                                <label className="flex items-start gap-2.5 cursor-pointer text-[11px] text-white/80 hover:text-white select-none py-0.5">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={kpiService}
-                                        onChange={(e) => setKpiService(e.target.checked)}
-                                        className="mt-0.5 accent-[#C17F5F]"
-                                    />
-                                    <span>❤️ La atención personalizada y el cariño durante todo el proceso.</span>
-                                </label>
-                                <label className="flex items-start gap-2.5 cursor-pointer text-[11px] text-white/80 hover:text-white select-none py-0.5">
-                                    <input 
-                                        type="checkbox" 
-                                        checked={kpiProfessionalism}
-                                        onChange={(e) => setKpiProfessionalism(e.target.checked)}
-                                        className="mt-0.5 accent-[#C17F5F]"
-                                    />
-                                    <span>🤝 El profesionalismo, la puntualidad y la confianza que me transmitieron.</span>
-                                </label>
+                            <div className="space-y-4 text-left pt-2">
+                                <span className="text-[11px] uppercase tracking-widest text-[#C17F5F] font-bold block mb-1">¿Qué fue lo que más te gustó del servicio?</span>
+                                
+                                <div className="space-y-3.5">
+                                    <label className="flex items-start gap-3.5 cursor-pointer text-[14px] text-white/80 hover:text-white select-none py-1.5 px-2.5 rounded-sm hover:bg-white/5 transition-colors">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={kpiQuality}
+                                            onChange={(e) => setKpiQuality(e.target.checked)}
+                                            className="mt-0.5 w-4.5 h-4.5 accent-[#C17F5F] cursor-pointer"
+                                        />
+                                        <span className="leading-tight">✨ La calidad y el resultado final de mi prenda.</span>
+                                    </label>
+                                    
+                                    <label className="flex items-start gap-3.5 cursor-pointer text-[14px] text-white/80 hover:text-white select-none py-1.5 px-2.5 rounded-sm hover:bg-white/5 transition-colors">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={kpiService}
+                                            onChange={(e) => setKpiService(e.target.checked)}
+                                            className="mt-0.5 w-4.5 h-4.5 accent-[#C17F5F] cursor-pointer"
+                                        />
+                                        <span className="leading-tight">❤️ La atención personalizada y el cariño durante todo el proceso.</span>
+                                    </label>
+                                    
+                                    <label className="flex items-start gap-3.5 cursor-pointer text-[14px] text-white/80 hover:text-white select-none py-1.5 px-2.5 rounded-sm hover:bg-white/5 transition-colors">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={kpiProfessionalism}
+                                            onChange={(e) => setKpiProfessionalism(e.target.checked)}
+                                            className="mt-0.5 w-4.5 h-4.5 accent-[#C17F5F] cursor-pointer"
+                                        />
+                                        <span className="leading-tight">🤝 El profesionalismo, la puntualidad y la confianza que me transmitieron.</span>
+                                    </label>
+                                </div>
                             </div>
 
-                            <div className="pt-2 space-y-2">
+                            <div className="pt-4 space-y-3">
                                 <button
                                     onClick={handleKpiSubmitAndRedirect}
                                     disabled={isSubmittingKpi}
-                                    className="w-full py-3.5 bg-[#C17F5F] hover:bg-[#b05c4b] disabled:opacity-50 text-white text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm shadow-lg shadow-[#C17F5F]/20 flex items-center justify-center gap-2 group"
+                                    className="w-full py-4 bg-[#C17F5F] hover:bg-[#b05c4b] disabled:opacity-50 text-white text-[12px] font-bold uppercase tracking-widest transition-all rounded-sm shadow-lg shadow-[#C17F5F]/20 flex items-center justify-center gap-2 group cursor-pointer"
                                 >
                                     {isSubmittingKpi ? (
                                         <>
-                                            <Loader2 className="w-3.5 h-3.5 animate-spin" /> Guardando...
+                                            <Loader2 className="w-4 h-4 animate-spin" /> Guardando...
                                         </>
                                     ) : (
                                         <>
-                                            Continuar a Google Review <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                                            Continuar a Google Review <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                         </>
                                     )}
                                 </button>
                                 
                                 <button
                                     onClick={() => setStep('rating')}
-                                    className="w-full py-2.5 border border-white/10 hover:border-white/20 text-white/50 hover:text-white text-[9px] font-bold uppercase tracking-widest transition-all rounded-sm"
+                                    className="w-full py-3 border border-white/10 hover:border-white/20 text-white/60 hover:text-white text-[11px] font-bold uppercase tracking-widest transition-all rounded-sm cursor-pointer"
                                 >
                                     Volver
                                 </button>
@@ -214,82 +219,82 @@ export default function ReviewPage() {
                     {/* STEP 3: Private Feedback Form (For 1-3 Stars) */}
                     {step === 'feedback' && (
                         <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
-                            <div className="space-y-2 text-center">
-                                <h3 className="font-serif text-2xl text-white tracking-tight">Tu feedback es vital</h3>
-                                <p className="text-xs text-white/60 leading-relaxed">
+                            <div className="space-y-3 text-center">
+                                <h3 className="font-serif text-2xl md:text-3xl text-white tracking-tight">Tu feedback es vital</h3>
+                                <p className="text-sm text-white/60 leading-relaxed">
                                     Lamentamos mucho que tu experiencia no haya sido perfecta. Por favor, cuéntanos en privado qué ocurrió para que Elena pueda revisar tu caso personalmente.
                                 </p>
                             </div>
 
-                            <form onSubmit={handleSubmitFeedback} className="space-y-4 pt-2">
-                                <div className="space-y-1">
-                                    <label className="text-[9px] uppercase tracking-widest text-white/40 block">Nombre Completo</label>
+                            <form onSubmit={handleSubmitFeedback} className="space-y-5 pt-2">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] uppercase tracking-widest text-white/40 block font-bold">Nombre Completo</label>
                                     <input
                                         type="text"
                                         required
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         placeholder="Ej. María González"
-                                        className="w-full p-3 bg-white/5 border border-white/10 focus:border-[#C17F5F] text-white rounded-sm text-xs outline-none transition-colors"
+                                        className="w-full p-3.5 bg-white/5 border border-white/10 focus:border-[#C17F5F] text-white rounded-sm text-sm outline-none transition-colors"
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="space-y-1">
-                                        <label className="text-[9px] uppercase tracking-widest text-white/40 block">Email</label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] uppercase tracking-widest text-white/40 block font-bold">Email</label>
                                         <input
                                             type="email"
                                             required
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             placeholder="maria@email.com"
-                                            className="w-full p-3 bg-white/5 border border-white/10 focus:border-[#C17F5F] text-white rounded-sm text-xs outline-none transition-colors"
+                                            className="w-full p-3.5 bg-white/5 border border-white/10 focus:border-[#C17F5F] text-white rounded-sm text-sm outline-none transition-colors"
                                         />
                                     </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[9px] uppercase tracking-widest text-white/40 block">Celular (Opcional)</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] uppercase tracking-widest text-white/40 block font-bold">Celular (Opcional)</label>
                                         <input
                                             type="tel"
                                             value={phone}
                                             onChange={(e) => setPhone(e.target.value)}
                                             placeholder="+569..."
-                                            className="w-full p-3 bg-white/5 border border-white/10 focus:border-[#C17F5F] text-white rounded-sm text-xs outline-none transition-colors"
+                                            className="w-full p-3.5 bg-white/5 border border-white/10 focus:border-[#C17F5F] text-white rounded-sm text-sm outline-none transition-colors"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="space-y-1">
-                                    <label className="text-[9px] uppercase tracking-widest text-white/40 block">¿Qué podemos mejorar?</label>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] uppercase tracking-widest text-white/40 block font-bold">¿Qué podemos mejorar?</label>
                                     <textarea
                                         required
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
                                         placeholder="Por favor, cuéntanos en detalle qué ocurrió con tu calce, plazos o atención..."
                                         rows={4}
-                                        className="w-full p-3 bg-white/5 border border-white/10 focus:border-[#C17F5F] text-white rounded-sm text-xs outline-none resize-none transition-colors"
+                                        className="w-full p-3.5 bg-white/5 border border-white/10 focus:border-[#C17F5F] text-white rounded-sm text-sm outline-none resize-none transition-colors"
                                     />
                                 </div>
 
-                                <div className="pt-2 flex gap-3">
+                                <div className="pt-2 flex gap-4">
                                     <button
                                         type="button"
                                         onClick={() => setStep('rating')}
-                                        className="flex-1 py-3.5 border border-white/10 hover:border-white/20 text-white/50 hover:text-white text-[9px] font-bold uppercase tracking-widest transition-all rounded-sm"
+                                        className="flex-1 py-4 border border-white/10 hover:border-white/20 text-white/60 hover:text-white text-[11px] font-bold uppercase tracking-widest transition-all rounded-sm cursor-pointer"
                                     >
                                         Atrás
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className="flex-1 py-3.5 bg-[#C17F5F] hover:bg-[#b05c4b] disabled:opacity-50 text-white text-[9px] font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2"
+                                        className="flex-1 py-4 bg-[#C17F5F] hover:bg-[#b05c4b] disabled:opacity-50 text-white text-[11px] font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2 cursor-pointer"
                                     >
                                         {isSubmitting ? (
                                             <>
-                                                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Enviando...
+                                                <Loader2 className="w-4 h-4 animate-spin" /> Enviando...
                                             </>
                                         ) : (
                                             <>
-                                                Enviar Comentario <MessageSquare className="w-3.5 h-3.5" />
+                                                Enviar Comentario <MessageSquare className="w-4 h-4" />
                                             </>
                                         )}
                                     </button>
@@ -306,8 +311,8 @@ export default function ReviewPage() {
                             </div>
                             
                             <div className="space-y-3">
-                                <h3 className="font-serif text-2xl text-white tracking-tight">Comentario Recibido</h3>
-                                <p className="text-xs text-white/60 leading-relaxed">
+                                <h3 className="font-serif text-2xl md:text-3xl text-white tracking-tight">Comentario Recibido</h3>
+                                <p className="text-sm text-white/60 leading-relaxed px-2">
                                     Agradecemos enormemente tu honestidad. Tu mensaje ha sido enviado directamente a la dirección del atelier. Elena se pondrá en contacto contigo a la brevedad para resolver cualquier inconveniente.
                                 </p>
                             </div>
@@ -320,7 +325,7 @@ export default function ReviewPage() {
                                             window.location.href = "https://elenalacosturera.cl";
                                         }, 100);
                                     }}
-                                    className="px-8 py-3.5 border border-white/10 hover:border-white/20 text-white text-[9px] font-bold uppercase tracking-widest transition-all rounded-sm"
+                                    className="px-10 py-4 border border-white/10 hover:border-white/20 text-white text-[11px] font-bold uppercase tracking-widest transition-all rounded-sm cursor-pointer"
                                 >
                                     Cerrar
                                 </button>
@@ -332,7 +337,7 @@ export default function ReviewPage() {
 
             {/* Footer */}
             <footer className="w-full text-center py-8 z-10">
-                <p className="text-[8px] tracking-[0.2em] text-white/30 uppercase">© {new Date().getFullYear()} Elena Atelier · Av. Tabancura 1091, Vitacura</p>
+                <p className="text-[10px] tracking-[0.2em] text-white/30 uppercase">© {new Date().getFullYear()} Elena Atelier · Av. Tabancura 1091, Vitacura</p>
             </footer>
         </div>
     );
