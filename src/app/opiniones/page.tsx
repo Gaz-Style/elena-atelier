@@ -214,7 +214,7 @@ export default function ReviewPage() {
                             <div className="space-y-3 text-center">
                                 <h3 className="font-serif text-2xl md:text-3xl text-white tracking-tight">Queremos escucharte y mejorar</h3>
                                 <p className="text-sm text-white/60 leading-relaxed">
-                                    Lamentamos de corazón que tu experiencia no haya sido perfecta en esta ocasión. Tu opinión nos ayuda a crecer. Si lo deseas, cuéntanos qué ocurrió para que podamos corregirlo. Dejar tus datos es opcional, pero nos encantaría poder contactarte para ofrecerte una solución.
+                                    Lamentamos no haber cumplido tus expectativas. Cuéntanos qué podemos mejorar. Dejar tus datos es opcional.
                                 </p>
                             </div>
 
