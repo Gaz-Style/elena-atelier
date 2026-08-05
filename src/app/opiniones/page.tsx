@@ -82,11 +82,8 @@ export default function ReviewPage() {
     return (
         <div 
             className="min-h-screen text-white flex flex-col justify-between p-6 relative overflow-hidden font-sans bg-cover bg-center"
-            style={{ backgroundImage: "linear-gradient(to bottom, rgba(26, 26, 26, 0.88), rgba(26, 26, 26, 0.82), rgba(26, 26, 26, 0.92)), url('/elena-taller.png')" }}
+            style={{ backgroundImage: "linear-gradient(to bottom, rgba(26, 26, 26, 0.94), rgba(26, 26, 26, 0.90), rgba(26, 26, 26, 0.96)), url('/elena-taller.png')" }}
         >
-            {/* Decorative organic shapes for background */}
-            <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-[#C17F5F] mix-blend-screen filter blur-[150px] opacity-[0.06] animate-pulse"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#C17F5F] mix-blend-screen filter blur-[120px] opacity-[0.06]"></div>
 
             {/* Header / Brand Logo */}
             <header className="w-full max-w-[560px] mx-auto pt-8 pb-4 text-center z-10 flex flex-col items-center">
