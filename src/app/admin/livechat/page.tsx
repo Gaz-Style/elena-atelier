@@ -185,6 +185,45 @@ export default function LiveChatPage() {
         loadChats();
     };
 
+    const formatMessageDate = (dateStr: string) => {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        const today = new Date();
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+        
+        if (d.toDateString() === today.toDateString()) {
+            return 'Hoy';
+        } else if (d.toDateString() === yesterday.toDateString()) {
+            return 'Ayer';
+        } else {
+            return d.toLocaleDateString('es-CL', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        }
+    };
+
+    const formatLastInteraction = (dateStr: string) => {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        const today = new Date();
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+        
+        if (d.toDateString() === today.toDateString()) {
+            return d.toLocaleTimeString('es-CL', {hour: '2-digit', minute:'2-digit'});
+        } else if (d.toDateString() === yesterday.toDateString()) {
+            return 'Ayer';
+        } else {
+            return d.toLocaleDateString('es-CL', {
+                day: 'numeric',
+                month: 'short'
+            });
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 flex font-sans h-screen">
             {/* Sidebar Simple */}
@@ -246,7 +285,7 @@ export default function LiveChatPage() {
                                         <div className="flex-grow overflow-hidden">
                                             <div className="flex justify-between items-center mb-1">
                                                 <h4 className="font-bold text-sm text-brand-charcoal truncate">{chat.customers?.full_name || chat.phone_number}</h4>
-                                                <span className="text-[10px] text-gray-400">{new Date(chat.last_interaction).toLocaleTimeString('es-CL', {hour: '2-digit', minute:'2-digit'})}</span>
+                                                <span className="text-[10px] text-gray-400">{formatLastInteraction(chat.last_interaction)}</span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <span className={`px-1.5 py-0.5 rounded-[4px] text-[8px] uppercase tracking-wider font-bold ${chat.session_status === 'bot' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
@@ -300,30 +339,45 @@ export default function LiveChatPage() {
 
                                 {/* Messages */}
                                 <div className="flex-grow overflow-y-auto p-6 space-y-4 bg-gray-50/50">
-                                    {messages.map(msg => {
+                                    {messages.map((msg, index) => {
                                         const isCustomer = msg.sender_type === 'customer';
+                                        
+                                        // Show a date separator when the day changes
+                                        const prevMsg = index > 0 ? messages[index - 1] : null;
+                                        const showDateSeparator = !prevMsg || 
+                                            new Date(msg.created_at).toDateString() !== new Date(prevMsg.created_at).toDateString();
+
                                         return (
-                                            <div key={msg.id} className={`flex ${isCustomer ? 'justify-start' : 'justify-end'}`}>
-                                                <div className={`max-w-[70%] rounded-2xl px-5 py-3 shadow-sm ${
-                                                    isCustomer ? 'bg-white border border-gray-100 text-gray-800 rounded-tl-none' 
-                                                    : msg.sender_type === 'bot' ? 'bg-brand-sand/30 border border-brand-sand text-brand-charcoal rounded-tr-none' 
-                                                    : 'bg-brand-charcoal text-white rounded-tr-none'
-                                                }`}>
-                                                    {!isCustomer && (
-                                                        <div className="flex items-center gap-1 mb-1 opacity-70">
-                                                            {msg.sender_type === 'bot' ? <Bot className="w-3 h-3" /> : <User className="w-3 h-3" />}
-                                                            <span className="text-[9px] uppercase tracking-widest font-bold">
-                                                                {msg.sender_type === 'bot' ? 'Elena La Costurera' : 'Asesor'}
-                                                            </span>
+                                            <React.Fragment key={msg.id}>
+                                                {showDateSeparator && (
+                                                    <div className="flex justify-center my-4">
+                                                        <span className="text-[9px] font-bold uppercase tracking-widest text-gray-500 bg-gray-200/50 px-3 py-1 rounded-full">
+                                                            {formatMessageDate(msg.created_at)}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                <div className={`flex ${isCustomer ? 'justify-start' : 'justify-end'}`}>
+                                                    <div className={`max-w-[70%] rounded-2xl px-5 py-3 shadow-sm ${
+                                                        isCustomer ? 'bg-white border border-gray-100 text-gray-800 rounded-tl-none' 
+                                                        : msg.sender_type === 'bot' ? 'bg-brand-sand/30 border border-brand-sand text-brand-charcoal rounded-tr-none' 
+                                                        : 'bg-brand-charcoal text-white rounded-tr-none'
+                                                    }`}>
+                                                        {!isCustomer && (
+                                                            <div className="flex items-center gap-1 mb-1 opacity-70">
+                                                                {msg.sender_type === 'bot' ? <Bot className="w-3 h-3" /> : <User className="w-3 h-3" />}
+                                                                <span className="text-[9px] uppercase tracking-widest font-bold">
+                                                                    {msg.sender_type === 'bot' ? 'Elena La Costurera' : 'Asesor'}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                                                        <div className={`text-[10px] mt-2 flex justify-end items-center gap-1 ${isCustomer ? 'text-gray-400' : 'text-white/70'}`}>
+                                                            {new Date(msg.created_at).toLocaleTimeString('es-CL', {hour: '2-digit', minute:'2-digit'})}
+                                                            {!isCustomer && <CheckCircle className="w-3 h-3" />}
                                                         </div>
-                                                    )}
-                                                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                                                    <div className={`text-[10px] mt-2 flex justify-end items-center gap-1 ${isCustomer ? 'text-gray-400' : 'text-white/70'}`}>
-                                                        {new Date(msg.created_at).toLocaleTimeString('es-CL', {hour: '2-digit', minute:'2-digit'})}
-                                                        {!isCustomer && <CheckCircle className="w-3 h-3" />}
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </React.Fragment>
                                         );
                                     })}
                                     <div ref={messagesEndRef} />

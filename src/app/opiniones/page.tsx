@@ -1,9 +1,9 @@
 'use client';
-
+ 
 import React, { useState } from 'react';
 import { Star, CheckCircle2, MessageSquare, ArrowRight, Loader2, Sparkles, Heart } from 'lucide-react';
-import { submitPrivateFeedbackAction } from './actions';
-
+import { submitPrivateFeedbackAction, submitPositiveFeedbackKpiAction } from './actions';
+ 
 export default function ReviewPage() {
     const [rating, setRating] = useState<number>(0);
     const [hoveredRating, setHoveredRating] = useState<number>(0);
@@ -16,6 +16,13 @@ export default function ReviewPage() {
     const [message, setMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // KPI & Private suggestion states (for 4-5 stars)
+    const [kpiQuality, setKpiQuality] = useState(false);
+    const [kpiService, setKpiService] = useState(false);
+    const [kpiProfessionalism, setKpiProfessionalism] = useState(false);
+    const [improvementMessage, setImprovementMessage] = useState('');
+    const [isSubmittingKpi, setIsSubmittingKpi] = useState(false);
+ 
     const googleReviewUrl = "https://g.page/r/Cfv2lRZLdYUuEBM/review";
 
     const handleRatingSelect = (selectedRating: number) => {
@@ -51,6 +58,27 @@ export default function ReviewPage() {
         }
     };
 
+    const handleKpiSubmitAndRedirect = async () => {
+        setIsSubmittingKpi(true);
+        try {
+            await submitPositiveFeedbackKpiAction({
+                rating,
+                kpiQuality,
+                kpiService,
+                kpiProfessionalism,
+                message: improvementMessage
+            });
+            window.open(googleReviewUrl, '_blank', 'noopener,noreferrer');
+            setStep('success');
+        } catch (err) {
+            console.error(err);
+            window.open(googleReviewUrl, '_blank', 'noopener,noreferrer');
+            setStep('success');
+        } finally {
+            setIsSubmittingKpi(false);
+        }
+    };
+ 
     return (
         <div 
             className="min-h-screen text-white flex flex-col justify-between p-6 relative overflow-hidden font-sans bg-cover bg-center"
@@ -62,7 +90,7 @@ export default function ReviewPage() {
 
             {/* Header / Brand Logo */}
             <header className="w-full max-w-md mx-auto pt-8 pb-4 text-center z-10 flex flex-col items-center">
-                <img src="/logotipo.png" alt="Elena La Costurera Logo" className="h-16 w-auto object-contain" />
+                <img src="/logotipo.png" alt="Elena La Costurera Logo" className="h-16 w-auto object-contain invert" />
                 <p className="text-[8px] uppercase tracking-[0.3em] text-white/40 mt-4">Alta Costura & Sastrería de Autor</p>
             </header>
 
@@ -112,31 +140,70 @@ export default function ReviewPage() {
 
                     {/* STEP 2: Redirection to Google Maps (For 4-5 Stars) */}
                     {step === 'redirection' && (
-                        <div className="space-y-6 text-center animate-in fade-in zoom-in-95 duration-500">
-                            <div className="w-16 h-16 bg-[#C17F5F]/15 rounded-full flex items-center justify-center mx-auto text-[#C17F5F]">
-                                <Heart className="w-8 h-8 fill-[#C17F5F] text-[#C17F5F]" />
+                        <div className="space-y-5 text-center animate-in fade-in zoom-in-95 duration-500">
+                            <div className="w-12 h-12 bg-[#C17F5F]/15 rounded-full flex items-center justify-center mx-auto text-[#C17F5F]">
+                                <Heart className="w-6 h-6 fill-[#C17F5F] text-[#C17F5F]" />
                             </div>
                             
-                            <div className="space-y-3">
-                                <h3 className="font-serif text-2xl text-white tracking-tight">¡Muchas gracias por valorarnos!</h3>
-                                <p className="text-xs text-white/60 leading-relaxed">
-                                    Nos alegra saber que tu experiencia fue excelente. Para un atelier independiente como el nuestro, las reseñas en Google son fundamentales. ¿Nos ayudarías a crecer dejándonos tu reseña pública?
+                            <div className="space-y-2">
+                                <h3 className="font-serif text-xl text-white tracking-tight">¡Muchas gracias por valorarnos!</h3>
+                                <p className="text-[11px] text-white/60 leading-relaxed">
+                                    Nos alegra saber que tu experiencia fue excelente. Por favor, selecciona qué aspectos destacas y compártenos cualquier sugerencia de mejora de forma privada.
                                 </p>
                             </div>
 
-                            <div className="pt-4 space-y-3">
-                                <a
-                                    href={googleReviewUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="w-full py-4 bg-[#C17F5F] hover:bg-[#b05c4b] text-white text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm shadow-lg shadow-[#C17F5F]/20 flex items-center justify-center gap-2 group"
+                            {/* KPI Selection Section */}
+                            <div className="space-y-3 text-left">
+                                <span className="text-[9px] uppercase tracking-widest text-[#C17F5F] font-bold block">¿Qué fue lo que más te gustó del servicio?</span>
+                                <label className="flex items-start gap-2.5 cursor-pointer text-[11px] text-white/80 hover:text-white select-none py-0.5">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={kpiQuality}
+                                        onChange={(e) => setKpiQuality(e.target.checked)}
+                                        className="mt-0.5 accent-[#C17F5F]"
+                                    />
+                                    <span>✨ La calidad y el resultado final de mi prenda.</span>
+                                </label>
+                                <label className="flex items-start gap-2.5 cursor-pointer text-[11px] text-white/80 hover:text-white select-none py-0.5">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={kpiService}
+                                        onChange={(e) => setKpiService(e.target.checked)}
+                                        className="mt-0.5 accent-[#C17F5F]"
+                                    />
+                                    <span>❤️ La atención personalizada y el cariño durante todo el proceso.</span>
+                                </label>
+                                <label className="flex items-start gap-2.5 cursor-pointer text-[11px] text-white/80 hover:text-white select-none py-0.5">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={kpiProfessionalism}
+                                        onChange={(e) => setKpiProfessionalism(e.target.checked)}
+                                        className="mt-0.5 accent-[#C17F5F]"
+                                    />
+                                    <span>🤝 El profesionalismo, la puntualidad y la confianza que me transmitieron.</span>
+                                </label>
+                            </div>
+
+                            <div className="pt-2 space-y-2">
+                                <button
+                                    onClick={handleKpiSubmitAndRedirect}
+                                    disabled={isSubmittingKpi}
+                                    className="w-full py-3.5 bg-[#C17F5F] hover:bg-[#b05c4b] disabled:opacity-50 text-white text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm shadow-lg shadow-[#C17F5F]/20 flex items-center justify-center gap-2 group"
                                 >
-                                    Escribir Reseña en Google <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                                </a>
+                                    {isSubmittingKpi ? (
+                                        <>
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" /> Guardando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            Continuar a Google Review <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                                        </>
+                                    )}
+                                </button>
                                 
                                 <button
                                     onClick={() => setStep('rating')}
-                                    className="w-full py-3.5 border border-white/10 hover:border-white/20 text-white/50 hover:text-white text-[9px] font-bold uppercase tracking-widest transition-all rounded-sm"
+                                    className="w-full py-2.5 border border-white/10 hover:border-white/20 text-white/50 hover:text-white text-[9px] font-bold uppercase tracking-widest transition-all rounded-sm"
                                 >
                                     Volver
                                 </button>
@@ -231,7 +298,7 @@ export default function ReviewPage() {
                         </div>
                     )}
 
-                    {/* STEP 4: Success Message (For negative reviews submitted privately) */}
+                    {/* STEP 4: Success Message */}
                     {step === 'success' && (
                         <div className="space-y-6 text-center py-4 animate-in fade-in zoom-in-95 duration-500">
                             <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto text-emerald-500">

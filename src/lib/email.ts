@@ -313,4 +313,50 @@ export const sendLuxuryPassEmail = async (
   }
 };
 
+/**
+ * Sends a client review / opinion request email.
+ */
+export const sendReviewEmail = async (to: string, name: string) => {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const attachments: any[] = [];
+  let cardBgUrl = '';
+  
+  const fs = require('fs');
+  const path = require('path');
+  const filePath = path.join(process.cwd(), 'public', 'elena-torso.webp');
+  if (fs.existsSync(filePath)) {
+    attachments.push({
+      filename: 'elena-torso.webp',
+      path: filePath,
+      cid: 'reviewBg'
+    });
+    cardBgUrl = 'cid:reviewBg';
+  } else {
+    cardBgUrl = `${siteUrl}/elena-torso.webp`;
+  }
+
+  const html = loadTemplate('review.html', {
+    NAME: name,
+    SITE_URL: siteUrl,
+    BACKGROUND_URL: cardBgUrl
+  });
+  
+  if (!html) throw new Error('Template not found');
+
+  try {
+    const info = await transporter.sendMail({
+      from: `"Elena La Costurera" <${fromAddress}>`,
+      to,
+      subject: 'Nos encantaría conocer tu opinión ✨ - Elena Atelier',
+      html,
+      attachments
+    });
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Error sending review email:', error);
+    return { success: false, error };
+  }
+};
+
+
 

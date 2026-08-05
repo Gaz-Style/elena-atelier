@@ -34,3 +34,35 @@ export async function submitPrivateFeedbackAction(payload: {
         return { success: false, error: err.message || String(err) };
     }
 }
+
+export async function submitPositiveFeedbackKpiAction(payload: {
+    rating: number;
+    kpiQuality: boolean;
+    kpiService: boolean;
+    kpiProfessionalism: boolean;
+    message: string;
+}) {
+    try {
+        const supabase = await createClient();
+        
+        const { error } = await supabase.from('system_logs').insert([{
+            service: 'Opiniones Cliente (Positivo + KPI)',
+            level: 'INFO',
+            message: `Feedback positivo recibido (${payload.rating} estrellas). KPIs marcados.`,
+            payload: {
+                ...payload,
+                submitted_at: new Date().toISOString()
+            }
+        }]);
+
+        if (error) {
+            console.error('Error saving positive feedback KPI to system_logs:', error);
+            return { success: false, error: error.message };
+        }
+
+        return { success: true };
+    } catch (err: any) {
+        console.error('Excepción al guardar feedback positivo KPI:', err);
+        return { success: false, error: err.message || String(err) };
+    }
+}

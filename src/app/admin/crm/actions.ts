@@ -236,6 +236,12 @@ export async function sendTemplatedEmailAction(
           variables.BARCODE_TEXT || 'ELENA*VIP*PASS'
         );
         break;
+      case 'review':
+        sendResult = await emailModule.sendReviewEmail(
+          targetEmail,
+          targetName
+        );
+        break;
       default:
         // Try compiling a raw template if custom html is generated client-side
         if (variables.HTML_CONTENT) {

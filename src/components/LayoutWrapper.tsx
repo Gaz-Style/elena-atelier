@@ -10,7 +10,8 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     const isPagar = pathname?.startsWith('/pagar');
     const isPortal = pathname?.startsWith('/portal-novias') || pathname?.startsWith('/portal-fiesta');
     const isAdmin = pathname?.startsWith('/admin');
-    const hideNavFooter = isPagar || isPortal || isAdmin;
+    const isOpiniones = pathname?.startsWith('/opiniones');
+    const hideNavFooter = isPagar || isPortal || isAdmin || isOpiniones;
 
     return (
         <>

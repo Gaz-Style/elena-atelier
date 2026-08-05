@@ -50,7 +50,7 @@ export default function WhatsAppButton() {
         };
     }, [pathname]);
 
-    if (pathname.startsWith('/admin') || pathname.startsWith('/portal-novias')) return null;
+    if (pathname.startsWith('/admin') || pathname.startsWith('/portal-novias') || pathname.startsWith('/opiniones')) return null;
 
     return (
         <motion.a
@@ -103,8 +103,7 @@ export default function WhatsAppButton() {
                 ¿En qué podemos ayudarte?
             </span>
 
-            {/* Pulsación sand muy tenue y lenta */}
-            <span className="absolute inset-0 rounded-full bg-white/10 animate-ping pointer-events-none" style={{ animationDuration: '4s' }} />
+        
         </motion.a>
     );
 }
