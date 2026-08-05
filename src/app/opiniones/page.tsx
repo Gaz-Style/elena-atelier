@@ -315,12 +315,10 @@ export default function ReviewPage() {
                             <div className="pt-4">
                                 <button
                                     onClick={() => {
-                                        setRating(0);
-                                        setName('');
-                                        setEmail('');
-                                        setPhone('');
-                                        setMessage('');
-                                        setStep('rating');
+                                        window.close();
+                                        setTimeout(() => {
+                                            window.location.href = "https://elenalacosturera.cl";
+                                        }, 100);
                                     }}
                                     className="px-8 py-3.5 border border-white/10 hover:border-white/20 text-white text-[9px] font-bold uppercase tracking-widest transition-all rounded-sm"
                                 >
