@@ -148,7 +148,7 @@ export default function ReviewPage() {
                             <div className="space-y-3">
                                 <h3 className="font-serif text-2xl md:text-3xl text-white tracking-tight">¡Muchas gracias por valorarnos!</h3>
                                 <p className="text-[14px] text-white/70 leading-relaxed max-w-[90%] mx-auto">
-                                    Nos alegra saber que tu experiencia fue excelente. Por favor, selecciona qué aspectos destacas y compártenos cualquier sugerencia de mejora de forma privada.
+                                    Nos alegra saber que tu experiencia fue excelente.
                                 </p>
                             </div>
 
