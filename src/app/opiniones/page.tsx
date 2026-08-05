@@ -109,7 +109,7 @@ export default function ReviewPage() {
                             </div>
 
                             {/* Stars Container */}
-                            <div className="flex items-center justify-center gap-3.5 py-4">
+                            <div className="flex items-center justify-center gap-3 py-4">
                                 {[1, 2, 3, 4, 5].map((star) => (
                                     <button
                                         key={star}
@@ -119,7 +119,7 @@ export default function ReviewPage() {
                                         className="transition-all active:scale-90 duration-150 p-1"
                                     >
                                         <Star
-                                            className={`w-11 h-11 transition-all duration-300 ${
+                                            className={`w-9 h-9 transition-all duration-300 ${
                                                 star <= (hoveredRating || rating)
                                                     ? 'fill-[#C17F5F] text-[#C17F5F] drop-shadow-[0_0_10px_rgba(193,127,95,0.4)] scale-110'
                                                     : 'text-white/20'
