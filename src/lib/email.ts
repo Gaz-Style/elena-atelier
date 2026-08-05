@@ -174,7 +174,7 @@ export const sendGeneralContactEmail = async (
   message: string,
   headers?: Record<string, string>
 ) => {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://elenalacosturera.cl';
   const attachments: any[] = [];
   let cardBgUrl = '';
   
@@ -317,7 +317,7 @@ export const sendLuxuryPassEmail = async (
  * Sends a client review / opinion request email.
  */
 export const sendReviewEmail = async (to: string, name: string) => {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://elenalacosturera.cl';
   const attachments: any[] = [];
   let cardBgUrl = '';
   
