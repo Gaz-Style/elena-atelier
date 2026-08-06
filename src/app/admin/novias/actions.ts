@@ -1692,7 +1692,7 @@ export async function sendBridalPaymentConfirmationEmailAction(projectId: string
                             type: 'template',
                             template: {
                                 name: 'alerta_pago_recibido',
-                                language: { code: 'es' },
+                                language: { code: 'en' },
                                 components: [{
                                     type: 'body',
                                     parameters: [

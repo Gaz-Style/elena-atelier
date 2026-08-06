@@ -757,7 +757,7 @@ export async function sendWhatsAppPaymentConfirmationAction(posOrderId: string, 
             for (const ownerNum of ['56984021940', '56937667709']) {
                 await sendWsp(ownerNum, 'alerta_pago_recibido', [
                     clienteName, prenda, monto, posOrderId, paymentMethod
-                ], 'es');
+                ], 'en');
             }
 
             // Confirmación al cliente
