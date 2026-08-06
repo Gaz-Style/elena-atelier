@@ -38,7 +38,7 @@ function CallbackContent() {
                     }
 
                     // Registrar abono
-                    await registerBridalInstallment(projectId, cuotaIndex, 'Webpay Plus', false);
+                    await registerBridalInstallment(projectId, cuotaIndex, 'Webpay Plus', true);
 
                     if (cuotaIndex === 0) {
                         await acceptContract(projectId);
