@@ -55,10 +55,7 @@ async function updateDatabaseAndNotify(
             
             // Only accept contract if it's the first payment
             if (cuotaIndex === 0) {
-                const { data: proj } = await supabase.from('bridal_projects').select('contract_accepted').eq('id', projectId).single();
-                if (proj && !proj.contract_accepted) {
-                    await acceptContract(projectId);
-                }
+                await acceptContract(projectId);
             }
             
             await logSystemEvent(supabase, 'INFO', `Pago de Novia Procesado`, { projectId, cuotaIndex, paymentId });
