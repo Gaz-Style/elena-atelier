@@ -1,76 +1,103 @@
-import React from 'react';
-import { commitWebpayTransaction } from '@/lib/transbank';
-import { redirect } from 'next/navigation';
-import { XCircle } from 'lucide-react';
+'use client';
+
+import React, { useEffect, useState, Suspense } from 'react';
+import { useSearchParams, useRouter, useParams } from 'next/navigation';
+import { XCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { getBridalProjectById, registerBridalInstallment, acceptContract, sendBridalThankYouEmailAction, sendBridalPaymentConfirmationEmailAction } from '@/app/admin/novias/actions';
+import { registerBridalInstallment, acceptContract } from '@/app/admin/novias/actions';
+import { commitWebpayTransaction } from '@/lib/transbank';
 
-export const dynamic = 'force-dynamic';
+function CallbackContent() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const params = useParams();
+    const projectId = params.id as string;
 
-export default async function WebpayCallbackPage({
-    params,
-    searchParams,
-}: {
-    params: Promise<{ id: string }>;
-    searchParams: Promise<{ token_ws?: string; TBK_TOKEN?: string }>;
-}) {
-    const { id: projectId } = await params;
-    const resolvedSearchParams = await searchParams;
-    const token = resolvedSearchParams.token_ws || resolvedSearchParams.TBK_TOKEN;
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    if (!token) {
-        return <ErrorView projectId={projectId} message="No se recibió token de Transbank. El pago pudo haber sido anulado." />;
-    }
+    const token = searchParams.get('token_ws') || searchParams.get('TBK_TOKEN');
 
-    try {
-        const commitResponse = await commitWebpayTransaction(token);
-
-        if (!commitResponse.success || !commitResponse.data) {
-            return <ErrorView projectId={projectId} message={`Error al confirmar el pago: ${commitResponse.error}`} />;
+    useEffect(() => {
+        if (!token) {
+            setError("No se recibió token de Transbank. El pago pudo haber sido anulado.");
+            setLoading(false);
+            return;
         }
 
-        const data = commitResponse.data;
+        // Llamar al commit de Webpay
+        commitWebpayTransaction(token)
+            .then(async (res) => {
+                if (res.success && res.data && res.data.response_code === 0 && res.data.status === 'AUTHORIZED') {
+                    const data = res.data;
+                    
+                    let cuotaIndex = 0;
+                    if (data.buy_order && data.buy_order.includes('_C')) {
+                        const parts = data.buy_order.split('_C');
+                        cuotaIndex = parseInt(parts[1], 10);
+                    }
 
-        if (data.response_code === 0 && data.status === 'AUTHORIZED') {
-            const project = await getBridalProjectById(projectId);
-            let cuotaIndex = 0;
-            if (data.buy_order && data.buy_order.includes('_C')) {
-                const parts = data.buy_order.split('_C');
-                cuotaIndex = parseInt(parts[1], 10);
-            }
+                    // Registrar abono
+                    await registerBridalInstallment(projectId, cuotaIndex, 'Webpay Plus', false);
 
-            await registerBridalInstallment(projectId, cuotaIndex, 'Webpay', false);
+                    if (cuotaIndex === 0) {
+                        await acceptContract(projectId);
+                    }
 
-            if (cuotaIndex === 0) {
-                await acceptContract(projectId);
-            }
-            
-            // Send payment confirmation email for all payments (including initial deposit)
-            await sendBridalPaymentConfirmationEmailAction(projectId, cuotaIndex, data.amount, 'Webpay Plus');
+                    // Redireccionar al éxito
+                    router.replace(`/portal-fiesta/${projectId}/pago-exitoso`);
+                } else {
+                    setError(res.error || `El pago fue rechazado por su banco o tarjeta. (Código: ${res.data?.response_code ?? 'N/A'})`);
+                    setLoading(false);
+                }
+            })
+            .catch((err) => {
+                console.error("Excepción al procesar pago:", err);
+                setError(`Excepción al procesar pago: ${err.message || String(err)}`);
+                setLoading(false);
+            });
+    }, [token, projectId, router]);
 
-            redirect(`/portal-fiesta/${projectId}/pago-exitoso`);
-        } else {
-            return <ErrorView projectId={projectId} message={`El pago fue rechazado por su banco o tarjeta. (Código: ${data.response_code})`} />;
-        }
-    } catch (err: any) {
-        return <ErrorView projectId={projectId} message={`Excepción al procesar pago: ${err.message || String(err)}`} />;
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#F8F6F0] font-sans text-[#1A1A1A] flex flex-col items-center justify-center p-6 text-center">
+                <Loader2 className="w-12 h-12 animate-spin text-[#C17F5F] mb-6" />
+                <h1 className="font-serif text-3xl mb-4">Confirmando Pago</h1>
+                <p className="text-gray-500 max-w-md">Por favor, no cierres la ventana. Estamos validando tu transacción con Webpay...</p>
+            </div>
+        );
     }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-[#F8F6F0] font-sans text-[#1A1A1A] flex flex-col items-center justify-center p-6 text-center">
+                <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-red-500 mb-6">
+                    <XCircle className="w-8 h-8" />
+                </div>
+                <h1 className="font-serif text-3xl mb-4">Error en el Pago</h1>
+                <p className="text-gray-500 mb-8 max-w-md">{error}</p>
+                <Link 
+                    href={`/portal-fiesta/${projectId}/pagar`}
+                    className="bg-[#1A1A1A] text-white px-8 py-3 rounded-sm text-sm uppercase tracking-widest font-bold hover:bg-[#C17F5F] transition-colors"
+                >
+                    Volver a intentar
+                </Link>
+            </div>
+        );
+    }
+
+    return null;
 }
 
-function ErrorView({ projectId, message }: { projectId: string; message: string }) {
+export default function WebpayCallbackPage() {
     return (
-        <div className="min-h-screen bg-[#F5F5F0] font-sans text-[#1A1A1A] flex flex-col items-center justify-center p-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center text-red-500 mb-6">
-                <XCircle className="w-8 h-8" />
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#F8F6F0] font-sans text-[#1A1A1A] flex flex-col items-center justify-center p-6 text-center">
+                <Loader2 className="w-12 h-12 animate-spin text-[#C17F5F] mb-6" />
+                <h1 className="font-serif text-3xl mb-4">Cargando...</h1>
             </div>
-            <h1 className="font-serif text-3xl mb-4">Error en el Pago</h1>
-            <p className="text-gray-500 mb-8 max-w-md">{message}</p>
-            <Link 
-                href={`/portal-fiesta/${projectId}/pagar`}
-                className="bg-[#1A1A1A] text-white px-8 py-3 rounded-sm text-sm uppercase tracking-widest font-bold hover:bg-[#C17F5F] transition-colors"
-            >
-                Volver a intentar
-            </Link>
-        </div>
+        }>
+            <CallbackContent />
+        </Suspense>
     );
 }
