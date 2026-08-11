@@ -22,6 +22,8 @@ export async function searchAgendaEventsAction(query: string) {
         .limit(10);
         
     let mEvents: any[] = [];
+    let deliveryEvents: any[] = [];
+
     if (custData && custData.length > 0) {
         const custIds = custData.map(c => c.id);
         const { data: projData } = await supabase
@@ -56,6 +58,31 @@ export async function searchAgendaEventsAction(query: string) {
                 });
             }
         }
+
+        // Obtener entregas de prendas para estos clientes
+        const { data: pOrders } = await supabase
+            .from('production_orders')
+            .select('id, description, deadline, pos_order_id, customer_id')
+            .in('customer_id', custIds)
+            .not('status', 'in', '("delivered", "cancelled", "cancelado")')
+            .not('deadline', 'is', null);
+
+        if (pOrders) {
+            deliveryEvents = pOrders.map((o: any) => {
+                const c = custData.find(cu => cu.id === o.customer_id);
+                return {
+                    id: `delivery-${o.id}`,
+                    fecha_hora: o.deadline,
+                    nombre: c?.full_name?.split(' ')[0] || 'Clienta',
+                    apellido: c?.full_name?.split(' ').slice(1).join(' ') || '',
+                    correo: c?.email,
+                    celular: c?.phone,
+                    tipo_evento: 'retiro_encargo',
+                    estado: 'confirmado',
+                    notas: `Retiro de: ${o.description || 'Prenda'} (${o.pos_order_id || 'S/N'})`
+                };
+            });
+        }
     }
     
     if (agErr) {
@@ -63,7 +90,9 @@ export async function searchAgendaEventsAction(query: string) {
         return { success: false, error: agErr.message };
     }
     
-    const combined = [...(agData || []), ...mEvents].sort((a, b) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime()).slice(0, 10);
+    const combined = [...(agData || []), ...mEvents, ...deliveryEvents]
+        .sort((a, b) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime())
+        .slice(0, 10);
     
     return { success: true, events: combined };
 }

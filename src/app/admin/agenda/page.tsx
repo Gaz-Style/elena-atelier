@@ -127,7 +127,18 @@ export default async function AgendaPage({
         .not('deadline', 'is', null);
 
     if (search) {
-        pOrdersQuery = pOrdersQuery.or(`description.ilike.%${search}%,pos_order_id.ilike.%${search}%`);
+        // Primero buscar si hay clientes que coincidan
+        const { data: matchingCusts } = await supabase
+            .from('customers')
+            .select('id')
+            .or(`full_name.ilike.%${search}%,email.ilike.%${search}%`);
+        
+        if (matchingCusts && matchingCusts.length > 0) {
+            const custIds = matchingCusts.map(c => c.id);
+            pOrdersQuery = pOrdersQuery.or(`description.ilike.%${search}%,pos_order_id.ilike.%${search}%,customer_id.in.(${custIds.join(',')})`);
+        } else {
+            pOrdersQuery = pOrdersQuery.or(`description.ilike.%${search}%,pos_order_id.ilike.%${search}%`);
+        }
     } else {
         pOrdersQuery = pOrdersQuery.gte('deadline', startQuery.toISOString())
                                    .lte('deadline', endQuery.toISOString());

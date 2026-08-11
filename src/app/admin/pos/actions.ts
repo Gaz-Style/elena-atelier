@@ -6,6 +6,9 @@ import { revalidatePath } from 'next/cache';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { getCurrentCashRegisterAction } from '../caja/actions';
 
+// INTERRUPTOR DE SEGURIDAD: Cambiar a 'true' para reactivar el envío automático de confirmaciones de pago a clientes por WhatsApp
+const ENABLE_CLIENT_PAYMENT_WHATSAPP = false;
+
 const getAdminClient = () => {
     return createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -628,11 +631,12 @@ export async function sendOrderConfirmationEmailByOrderIdAction(posOrderId: stri
             return { success: true, message: 'Cliente sin correo registrado' };
         }
 
-        // 3. Obtener prendas asociadas a la orden
+        // 3. Obtener prendas asociadas a la orden (usando ID base si es saldo)
+        const baseOrderId = posOrderId.split('_balance_')[0];
         const { data: prodOrders } = await supabase
             .from('production_orders')
             .select('*')
-            .eq('pos_order_id', posOrderId);
+            .eq('pos_order_id', baseOrderId);
 
         const ordersList = prodOrders || [];
         const itemCount = ordersList.length || 1;
@@ -760,43 +764,60 @@ export async function sendWhatsAppPaymentConfirmationAction(posOrderId: string, 
                 ], 'en');
             }
 
-            // Confirmación al cliente
-            const cleanPhone = clientePhone.replace(/[^0-9]/g, '');
-            if (cleanPhone && cleanPhone.length >= 9) {
-                const fullPhone = cleanPhone.startsWith('56') ? cleanPhone : `56${cleanPhone}`;
-                await sendWsp(fullPhone, 'confirmacion_pago_cliente', [
-                    clienteName
-                ], 'es_CL');
+            // Confirmación al cliente (Envolver en interruptor de seguridad)
+            if (ENABLE_CLIENT_PAYMENT_WHATSAPP) {
+                const cleanPhone = clientePhone.replace(/[^0-9]/g, '');
+                if (cleanPhone && cleanPhone.length >= 9) {
+                    const fullPhone = cleanPhone.startsWith('56') ? cleanPhone : `56${cleanPhone}`;
+                    await sendWsp(fullPhone, 'confirmacion_pago_cliente', [
+                        clienteName,
+                        prenda,
+                        monto,
+                        posOrderId,
+                        paymentMethod
+                    ], 'es_CL');
 
-                // Registrar en el Chat en Vivo (CRM)
-                try {
-                    let { data: chatData } = await supabase
-                        .from('crm_whatsapp_chats')
-                        .select('id')
-                        .eq('phone_number', fullPhone)
-                        .single();
-
-                    if (!chatData) {
-                        const { data: newChat } = await supabase
+                    // Registrar en el Chat en Vivo (CRM)
+                    try {
+                        let { data: chatData } = await supabase
                             .from('crm_whatsapp_chats')
-                            .insert([{ phone_number: fullPhone, session_status: 'bot' }])
-                            .select('id')
+                            .select('id, customer_id')
+                            .eq('phone_number', fullPhone)
                             .single();
-                        chatData = newChat;
-                    }
 
-                    if (chatData) {
-                        const readableMsg = `✅ *Confirmación de Pago Enviada*\n\nEstimada ${clienteName}, confirmamos el pago de tu prenda *${prenda}* por un valor de *${monto}* (ID Orden: ${posOrderId}) a través de *${paymentMethod}*. ¡Tu proyecto ya está en proceso!`;
-                        await supabase.from('crm_whatsapp_messages').insert([{
-                            chat_id: chatData.id,
-                            sender_type: 'system',
-                            message_type: 'text',
-                            content: readableMsg
-                        }]);
+                        if (!chatData) {
+                            const { data: newChat } = await supabase
+                                .from('crm_whatsapp_chats')
+                                .insert([{ 
+                                    phone_number: fullPhone, 
+                                    session_status: 'bot',
+                                    customer_id: customerId || null
+                                }])
+                                .select('id, customer_id')
+                                .single();
+                            chatData = newChat;
+                        } else if (!chatData.customer_id && customerId) {
+                            await supabase
+                                .from('crm_whatsapp_chats')
+                                .update({ customer_id: customerId })
+                                .eq('id', chatData.id);
+                        }
+
+                        if (chatData) {
+                            const readableMsg = `✅ *Confirmación de Pago Enviada*\n\nEstimada ${clienteName}, confirmamos el pago de tu prenda *${prenda}* por un valor de *${monto}* (ID Orden: ${posOrderId}) a través de *${paymentMethod}*. ¡Tu proyecto ya está en proceso!`;
+                            await supabase.from('crm_whatsapp_messages').insert([{
+                                chat_id: chatData.id,
+                                sender_type: 'system',
+                                message_type: 'text',
+                                content: readableMsg
+                            }]);
+                        }
+                    } catch (dbErr) {
+                        console.error('Error logging confirmacion_pago to LiveChat:', dbErr);
                     }
-                } catch (dbErr) {
-                    console.error('Error logging confirmacion_pago to LiveChat:', dbErr);
                 }
+            } else {
+                console.log('Notificación de WhatsApp al cliente omitida (ENABLE_CLIENT_PAYMENT_WHATSAPP = false)');
             }
         }
         return { success: true };
@@ -1676,13 +1697,14 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
     // Pero en production_orders el pos_order_id es "order_123" completo, así que actualizamos usando eso.
     // El buyOrder de Transbank viene con el formato "order_123" o "budget_123"
     // Pero en production_orders el pos_order_id es "order_123" completo, así que actualizamos usando eso.
-    const internalId = posOrderId;
+    const isBalancePayment = posOrderId.includes('_balance_');
+    const baseOrderId = posOrderId.split('_balance_')[0];
     
-    // 1. Obtener los datos actuales de la venta principal (sales_ledger)
+    // 1. Obtener los datos actuales de la venta principal (sales_ledger usando ID base)
     const { data: saleData } = await supabase
         .from('sales_ledger')
         .select('*')
-        .eq('internal_id', internalId)
+        .eq('internal_id', baseOrderId)
         .single();
         
     if (!saleData) {
@@ -1690,33 +1712,33 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
         return { success: false, error: 'Venta no encontrada' };
     }
 
-    // 2. Buscar si existe una transacción de saldo pendiente en sales_ledger (ej. order_25182_balance_xxxx)
-    const { data: pendingBalanceRow } = await supabase
-        .from('sales_ledger')
-        .select('*')
-        .like('internal_id', `${internalId}_balance_%`)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
     let finalPaid = 0;
     const finalTotal = saleData.total_amount || 0;
 
-    if (pendingBalanceRow) {
-        // ES UN PAGO DE SALDO: Acumular al monto que ya estaba pagado
-        const paidNow = amountPaid !== undefined ? amountPaid : pendingBalanceRow.total_amount;
-        finalPaid = Number(saleData.paid_amount || 0) + Number(paidNow);
-        
-        // Completar la fila de balance pendiente
-        await supabase
+    if (isBalancePayment) {
+        // ES UN PAGO DE SALDO: Obtener la fila específica del balance pendiente
+        const { data: pendingBalanceRow } = await supabase
             .from('sales_ledger')
-            .update({
-                status: 'completed',
-                paid_amount: paidNow,
-                payment_method: 'transbank' // Webpay Plus
-            })
-            .eq('id', pendingBalanceRow.id);
+            .select('*')
+            .eq('internal_id', posOrderId)
+            .single();
+
+        if (pendingBalanceRow) {
+            const paidNow = amountPaid !== undefined ? amountPaid : pendingBalanceRow.total_amount;
+            finalPaid = Number(saleData.paid_amount || 0) + Number(paidNow);
+            
+            // Completar la fila de balance pendiente
+            await supabase
+                .from('sales_ledger')
+                .update({
+                    status: 'completed',
+                    paid_amount: paidNow,
+                    payment_method: 'transbank' // Webpay Plus
+                })
+                .eq('id', pendingBalanceRow.id);
+        } else {
+            finalPaid = Number(saleData.paid_amount || 0);
+        }
     } else {
         // PAGO INICIAL O TOTAL NORMAL
         finalPaid = amountPaid !== undefined ? amountPaid : finalTotal;
@@ -1731,9 +1753,7 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
             paid_amount: finalPaid,
             payment_method: 'transbank'
         })
-        .eq('internal_id', internalId);
-        
-    const baseOrderId = posOrderId.split('_balance_')[0];
+        .eq('internal_id', baseOrderId);
         
     // Actualizar production_orders con el paid_amount también
     const { error: prodError } = await supabase
@@ -1756,65 +1776,94 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
     
     // --- WhatsApp Confirmation ---
     try {
-        const { data: orderInfo } = await supabase.from('production_orders').select('customer_id').eq('pos_order_id', baseOrderId).single();
+        // Usar limit(1).maybeSingle() para evitar caídas con órdenes de múltiples prendas
+        const { data: orderInfo } = await supabase
+            .from('production_orders')
+            .select('customer_id, description')
+            .eq('pos_order_id', baseOrderId)
+            .limit(1)
+            .maybeSingle();
+            
         if (orderInfo && orderInfo.customer_id && orderInfo.customer_id !== 'unassigned') {
             const { data: custInfo } = await supabase.from('customers').select('phone, full_name').eq('id', orderInfo.customer_id).single();
             if (custInfo) {
                 const WHATSAPP_API_TOKEN = process.env.NEXT_PUBLIC_WHATSAPP_API_TOKEN || process.env.WHATSAPP_API_TOKEN;
                 const PHONE_NUMBER_ID = process.env.NEXT_PUBLIC_WHATSAPP_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_NUMBER_ID;
                 if (WHATSAPP_API_TOKEN && PHONE_NUMBER_ID) {
-                    if (custInfo.phone) {
-                        const cleanPhone = custInfo.phone.replace(/\D/g, '');
-                        const finalPhone = cleanPhone.startsWith('56') ? cleanPhone : `56${cleanPhone}`;
-                        
-                        const wpRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
-                            method: 'POST',
-                            headers: { 'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                messaging_product: 'whatsapp',
-                                to: finalPhone,
-                                type: 'template',
-                                template: {
-                                    name: 'confirmacion_pago_cliente',
-                                    language: { code: 'es_CL' },
-                                    components: [{
-                                        type: 'body',
-                                        parameters: [{ type: 'text', text: custInfo.full_name }]
-                                    }]
-                                }
-                            })
-                        });
-                        
-                        if (wpRes.ok) {
-                            // Log to Live Chat (CRM)
-                            try {
-                                let { data: chatData } = await supabase
-                                    .from('crm_whatsapp_chats')
-                                    .select('id')
-                                    .eq('phone_number', finalPhone)
-                                    .single();
-
-                                if (!chatData) {
-                                    const { data: newChat } = await supabase
+                    // Envolver en interruptor de seguridad
+                    if (ENABLE_CLIENT_PAYMENT_WHATSAPP) {
+                        if (custInfo.phone) {
+                            const cleanPhone = custInfo.phone.replace(/\D/g, '');
+                            const finalPhone = cleanPhone.startsWith('56') ? cleanPhone : `56${cleanPhone}`;
+                            const prenda = orderInfo.description || 'Servicio';
+                            const formattedMonto = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(finalTotal);
+                            
+                            const wpRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
+                                method: 'POST',
+                                headers: { 'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    messaging_product: 'whatsapp',
+                                    to: finalPhone,
+                                    type: 'template',
+                                    template: {
+                                        name: 'confirmacion_pago_cliente',
+                                        language: { code: 'es_CL' },
+                                        components: [{
+                                            type: 'body',
+                                            parameters: [
+                                                { type: 'text', text: custInfo.full_name },
+                                                { type: 'text', text: prenda },
+                                                { type: 'text', text: formattedMonto },
+                                                { type: 'text', text: posOrderId },
+                                                { type: 'text', text: 'Transbank Webpay Plus' }
+                                            ]
+                                        }]
+                                    }
+                                })
+                            });
+                            
+                            if (wpRes.ok) {
+                                // Log to Live Chat (CRM)
+                                try {
+                                    let { data: chatData } = await supabase
                                         .from('crm_whatsapp_chats')
-                                        .insert([{ phone_number: finalPhone, session_status: 'bot' }])
-                                        .select('id')
+                                        .select('id, customer_id')
+                                        .eq('phone_number', finalPhone)
                                         .single();
-                                    chatData = newChat;
+     
+                                    if (!chatData) {
+                                        const { data: newChat } = await supabase
+                                            .from('crm_whatsapp_chats')
+                                            .insert([{ 
+                                                phone_number: finalPhone, 
+                                                session_status: 'bot',
+                                                customer_id: orderInfo.customer_id
+                                            }])
+                                            .select('id, customer_id')
+                                            .single();
+                                        chatData = newChat;
+                                    } else if (!chatData.customer_id) {
+                                        await supabase
+                                            .from('crm_whatsapp_chats')
+                                            .update({ customer_id: orderInfo.customer_id })
+                                            .eq('id', chatData.id);
+                                    }
+     
+                                    if (chatData) {
+                                        await supabase.from('crm_whatsapp_messages').insert([{
+                                            chat_id: chatData.id,
+                                            sender_type: 'system',
+                                            message_type: 'text',
+                                            content: `[Sistema] Webpay Plus: Se envió la plantilla confirmacion_pago_cliente automáticamente.`
+                                        }]);
+                                    }
+                                } catch (dbErr) {
+                                    console.error('Error logging confirmacion_pago Webpay to LiveChat:', dbErr);
                                 }
-
-                                if (chatData) {
-                                    await supabase.from('crm_whatsapp_messages').insert([{
-                                        chat_id: chatData.id,
-                                        sender_type: 'system',
-                                        message_type: 'text',
-                                        content: `[Sistema] Webpay Plus: Se envió la plantilla confirmacion_pago_cliente automáticamente.`
-                                    }]);
-                                }
-                            } catch (dbErr) {
-                                console.error('Error logging confirmacion_pago Webpay to LiveChat:', dbErr);
                             }
                         }
+                    } else {
+                        console.log('Notificación de WhatsApp al cliente por Webpay omitida (ENABLE_CLIENT_PAYMENT_WHATSAPP = false)');
                     }
                     
                     // Alerta a los dueños (independiente de si el cliente tiene teléfono o no)

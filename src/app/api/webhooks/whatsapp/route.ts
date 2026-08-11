@@ -43,16 +43,38 @@ export async function POST(req: Request) {
                     // 1. Find or create the chat session
                     let { data: chatData, error: chatError } = await supabase
                         .from('crm_whatsapp_chats')
-                        .select('id, session_status')
+                        .select('id, session_status, customer_id')
                         .eq('phone_number', phoneNumber)
                         .single();
 
                     if (!chatData) {
+                        // Buscar coincidencia de cliente por teléfono
+                        const { data: customers } = await supabase
+                            .from('customers')
+                            .select('id, phone')
+                            .not('phone', 'is', null);
+                        
+                        const cleanDigits = (n: string) => n ? n.replace(/\D/g, '') : '';
+                        const chatDigits = cleanDigits(phoneNumber);
+                        let matchedCustomerId = null;
+                        
+                        if (customers) {
+                            const match = customers.find(c => {
+                                const custDigits = cleanDigits(c.phone);
+                                return custDigits && (custDigits.slice(-9) === chatDigits.slice(-9));
+                            });
+                            if (match) matchedCustomerId = match.id;
+                        }
+
                         // Create a new chat session
                         const { data: newChat, error: newChatError } = await supabase
                             .from('crm_whatsapp_chats')
-                            .insert([{ phone_number: phoneNumber, session_status: 'bot' }])
-                            .select('id, session_status')
+                            .insert([{ 
+                                phone_number: phoneNumber, 
+                                session_status: 'bot',
+                                customer_id: matchedCustomerId
+                            }])
+                            .select('id, session_status, customer_id')
                             .single();
 
                         if (newChatError) {
@@ -60,6 +82,28 @@ export async function POST(req: Request) {
                             continue;
                         }
                         chatData = newChat;
+                    } else if (!chatData.customer_id) {
+                        // Si el chat ya existe pero no está enrolado, buscar y enrolar proactivamente
+                        const { data: customers } = await supabase
+                            .from('customers')
+                            .select('id, phone')
+                            .not('phone', 'is', null);
+                        
+                        const cleanDigits = (n: string) => n ? n.replace(/\D/g, '') : '';
+                        const chatDigits = cleanDigits(phoneNumber);
+                        
+                        if (customers) {
+                            const match = customers.find(c => {
+                                const custDigits = cleanDigits(c.phone);
+                                return custDigits && (custDigits.slice(-9) === chatDigits.slice(-9));
+                            });
+                            if (match) {
+                                await supabase
+                                    .from('crm_whatsapp_chats')
+                                    .update({ customer_id: match.id })
+                                    .eq('id', chatData.id);
+                            }
+                        }
                     }
 
                     // 2. Parse message content

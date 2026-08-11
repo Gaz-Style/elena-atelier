@@ -3,6 +3,8 @@ import crypto from 'crypto';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { sendOrderConfirmationEmailByOrderIdAction } from '@/app/admin/pos/actions';
 
+const ENABLE_CLIENT_PAYMENT_WHATSAPP = false;
+
 async function logSystemEvent(supabase: any, level: string, message: string, payload: any = null) {
     try {
         await supabase.from('system_logs').insert([{
@@ -253,7 +255,9 @@ async function updateDatabaseAndNotify(
             .from('production_orders')
             .select(`
                 description,
+                customer_id,
                 customers (
+                    id,
                     full_name,
                     phone
                 )
@@ -264,6 +268,7 @@ async function updateDatabaseAndNotify(
         if (orders && orders.length > 0) {
             const order = orders[0];
             const customerObj: any = Array.isArray(order.customers) ? order.customers[0] : order.customers;
+            const customerId = customerObj?.id || order.customer_id;
             const finalAmount = isFullyPaidProd ? totalOrderAmount : newProdPaidAmount > 0 ? newProdPaidAmount : amount || existingLedger?.total_amount || 0;
             const monto = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(finalAmount);
             const prenda = order.description || 'Servicio';
@@ -277,42 +282,59 @@ async function updateDatabaseAndNotify(
                 ], 'en');
             }
 
-            // Confirmación al cliente
-            if (clientePhone && clientePhone.length >= 9) {
-                const fullPhone = clientePhone.startsWith('56') ? clientePhone : `56${clientePhone}`;
-                await sendWsp(fullPhone, 'confirmacion_pago_cliente', [
-                    clienteName
-                ], 'es_CL');
+            // Confirmación al cliente (Envolver en interruptor de seguridad)
+            if (ENABLE_CLIENT_PAYMENT_WHATSAPP) {
+                if (clientePhone && clientePhone.length >= 9) {
+                    const fullPhone = clientePhone.startsWith('56') ? clientePhone : `56${clientePhone}`;
+                    await sendWsp(fullPhone, 'confirmacion_pago_cliente', [
+                        clienteName,
+                        prenda,
+                        monto,
+                        externalRef,
+                        paymentMethodLabel
+                    ], 'es_CL');
 
-                // Registrar en el Chat en Vivo
-                try {
-                    let { data: chatData } = await supabase
-                        .from('crm_whatsapp_chats')
-                        .select('id')
-                        .eq('phone_number', fullPhone)
-                        .single();
-
-                    if (!chatData) {
-                        const { data: newChat } = await supabase
+                    // Registrar en el Chat en Vivo
+                    try {
+                        let { data: chatData } = await supabase
                             .from('crm_whatsapp_chats')
-                            .insert([{ phone_number: fullPhone, session_status: 'bot' }])
-                            .select('id')
+                            .select('id, customer_id')
+                            .eq('phone_number', fullPhone)
                             .single();
-                        chatData = newChat;
-                    }
 
-                    if (chatData) {
-                        const readableMsg = `✅ *Confirmación de Pago Enviada*\n\nEstimada ${clienteName}, confirmamos el pago de tu prenda *${prenda}* por un valor de *${monto}* (ID Orden: ${externalRef}) a través de *${paymentMethodLabel}*. ¡Tu proyecto ya está en proceso!`;
-                        await supabase.from('crm_whatsapp_messages').insert([{
-                            chat_id: chatData.id,
-                            sender_type: 'system',
-                            message_type: 'text',
-                            content: readableMsg
-                        }]);
+                        if (!chatData) {
+                            const { data: newChat } = await supabase
+                                .from('crm_whatsapp_chats')
+                                .insert([{ 
+                                    phone_number: fullPhone, 
+                                    session_status: 'bot',
+                                    customer_id: customerId || null
+                                }])
+                                .select('id, customer_id')
+                                .single();
+                            chatData = newChat;
+                        } else if (!chatData.customer_id && customerId) {
+                            await supabase
+                                .from('crm_whatsapp_chats')
+                                .update({ customer_id: customerId })
+                                .eq('id', chatData.id);
+                        }
+
+                        if (chatData) {
+                            const readableMsg = `✅ *Confirmación de Pago Enviada*\n\nEstimada ${clienteName}, confirmamos el pago de tu prenda *${prenda}* por un valor de *${monto}* (ID Orden: ${externalRef}) a través de *${paymentMethodLabel}*. ¡Tu proyecto ya está en proceso!`;
+                            await supabase.from('crm_whatsapp_messages').insert([{
+                                chat_id: chatData.id,
+                                sender_type: 'system',
+                                message_type: 'text',
+                                content: readableMsg
+                            }]);
+                        }
+                    } catch (dbErr) {
+                        console.error('Error logging confirmacion_pago to LiveChat:', dbErr);
                     }
-                } catch (dbErr) {
-                    console.error('Error logging confirmacion_pago to LiveChat:', dbErr);
                 }
+            } else {
+                console.log('Notificación de WhatsApp al cliente omitida (ENABLE_CLIENT_PAYMENT_WHATSAPP = false)');
             }
         } else {
             // Sin detalles de orden — es probable que sea un pago personal o ajeno al POS.
