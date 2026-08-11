@@ -63,6 +63,7 @@ export const sidebarSections = [
         title: 'EMPRESA',
         items: [
             { name: 'Dashboard Central', href: '/admin', icon: LayoutDashboard },
+            { name: 'Estadísticas & Reseñas', href: '/admin/statistics', icon: Activity },
             { name: 'Finanzas', href: '/admin/finance', icon: Activity },
             { name: 'Contabilidad ERP', href: '/admin/accounting', icon: Receipt },
             { name: 'Catálogo Servicios', href: '/admin/catalog', icon: Package },
