@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import { trackEvent } from '@/components/FacebookPixel';
 import { trackTikTokEvent } from '@/components/TikTokPixel';
+import { trackGAEvent } from '@/components/GoogleAnalytics';
 
 export default function WhatsAppButton() {
     const pathname = usePathname();
@@ -21,6 +22,7 @@ export default function WhatsAppButton() {
             method: 'WhatsApp Floating Button',
             content_name: 'Clic Boton Whatsapp Flotante'
         });
+        trackGAEvent('Contact', 'WhatsApp', 'Clic Boton Whatsapp Flotante');
     };
 
     const [isScrolling, setIsScrolling] = useState(false);

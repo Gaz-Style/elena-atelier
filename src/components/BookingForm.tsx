@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { trackEvent } from '@/components/FacebookPixel';
 import { trackTikTokEvent } from '@/components/TikTokPixel';
+import { trackGAEvent } from '@/components/GoogleAnalytics';
 
 export default function BookingForm() {
     const [step, setStep] = useState(1);
@@ -30,6 +31,7 @@ export default function BookingForm() {
             content_name: 'Inicio Registro Cita',
             content_category: formData.serviceType
         });
+        trackGAEvent('Lead', 'Booking Flow', 'Inicio Registro Cita');
         setStep(2);
     };
 
@@ -52,6 +54,8 @@ export default function BookingForm() {
             occasion: formData.occasion,
             style: formData.stylePreference
         });
+
+        trackGAEvent('Schedule', 'Booking Flow', 'Cita Agendada Taller');
 
         setIsSaving(false);
         setStep(3);
