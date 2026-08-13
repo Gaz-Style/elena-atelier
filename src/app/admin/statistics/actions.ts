@@ -18,7 +18,7 @@ export async function getStatisticsData() {
     const { data: logs, error } = await supabase
         .from('system_logs')
         .select('id, created_at, service, level, message, payload')
-        .or('service.eq.Opiniones Cliente (Privado),service.eq.Opiniones Cliente (Positivo + KPI)')
+        .in('service', ['Opiniones Cliente (Privado)', 'Opiniones Cliente (Positivo + KPI)'])
         .order('created_at', { ascending: false });
 
     if (error) {
