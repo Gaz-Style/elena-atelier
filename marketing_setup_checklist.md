@@ -28,8 +28,8 @@ El objetivo de esta fase es que cada visita, clic y reserva en la web sea medibl
   - [x] Generar el **TikTok Pixel** e instalarlo en la web.
   - [x] Configurar la medición de eventos en TikTok (clic a WhatsApp, inicio de reserva).
 
-- [ ] **1.4. Google Analytics 4 (GA4) y Google Tag Manager (GTM)**
-  - [ ] Crear contenedor de GTM e instalar los tags de cabecera y cuerpo en Next.js.
+- [/] **1.4. Google Analytics 4 (GA4) y Google Tag Manager (GTM)**
+  - [x] Crear contenedor de GTM e instalar los tags de cabecera y cuerpo en Next.js.
   - [ ] Migrar el Meta Pixel y TikTok Pixel a etiquetas de GTM para mantener el código del frontend limpio y optimizado.
 
 ---

@@ -4,6 +4,8 @@ import LayoutWrapper from "@/components/LayoutWrapper";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import FacebookPixel from "@/components/FacebookPixel";
 import TikTokPixel from "@/components/TikTokPixel";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
+import GoogleTagManager from "@/components/GoogleTagManager";
 import { ElenaAtelierSchema } from "@/lib/seo";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -58,6 +60,8 @@ export default function RootLayout({
       >
         <FacebookPixel />
         <TikTokPixel />
+        <GoogleAnalytics />
+        <GoogleTagManager />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ElenaAtelierSchema) }}
