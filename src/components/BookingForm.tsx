@@ -32,6 +32,25 @@ export default function BookingForm() {
             content_category: formData.serviceType
         });
         trackGAEvent('Lead', 'Booking Flow', 'Inicio Registro Cita');
+
+        // Server-side Event Relay (Meta CAPI & TikTok Events API)
+        fetch('/api/tracking', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                eventName: 'Lead',
+                userData: {
+                    email: formData.email,
+                    phone: formData.phone,
+                    name: formData.name
+                },
+                customData: {
+                    content_name: 'Inicio Registro Cita',
+                    content_category: formData.serviceType
+                }
+            })
+        }).catch((err) => console.error('Server tracking error:', err));
+
         setStep(2);
     };
 
@@ -56,6 +75,24 @@ export default function BookingForm() {
         });
 
         trackGAEvent('Schedule', 'Booking Flow', 'Cita Agendada Taller');
+
+        // Server-side Event Relay (Meta CAPI & TikTok Events API)
+        fetch('/api/tracking', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                eventName: 'Schedule',
+                userData: {
+                    email: formData.email,
+                    phone: formData.phone,
+                    name: formData.name
+                },
+                customData: {
+                    content_name: 'Cita Agendada Taller',
+                    content_category: formData.serviceType
+                }
+            })
+        }).catch((err) => console.error('Server tracking error:', err));
 
         setIsSaving(false);
         setStep(3);

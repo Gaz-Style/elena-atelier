@@ -23,6 +23,19 @@ export default function WhatsAppButton() {
             content_name: 'Clic Boton Whatsapp Flotante'
         });
         trackGAEvent('Contact', 'WhatsApp', 'Clic Boton Whatsapp Flotante');
+
+        // Server-side Event Relay (Meta CAPI & TikTok Events API)
+        fetch('/api/tracking', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                eventName: 'Contact',
+                customData: {
+                    content_name: 'Clic Boton Whatsapp Flotante',
+                    content_category: 'WhatsApp'
+                }
+            })
+        }).catch((err) => console.error('Server tracking error:', err));
     };
 
     const [isScrolling, setIsScrolling] = useState(false);
