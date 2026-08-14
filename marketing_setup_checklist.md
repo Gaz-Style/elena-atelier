@@ -13,15 +13,15 @@ El objetivo de esta fase es que cada visita, clic y reserva en la web sea medibl
   - [x] Vincular la página de Facebook y la cuenta profesional de Instagram.
   - [x] Verificar el dominio web (`elenalacosturera.cl` o equivalente) en la sección de seguridad de la marca.
 
-- [/] **1.2. Implementación del Meta Pixel & Conversions API (CAPI)**
+- [x] **1.2. Implementación del Meta Pixel & Conversions API (CAPI)**
   - [x] Generar el Meta Pixel en el Administrador de Eventos.
   - [x] **Código Base:** Integrar el script del Pixel en la aplicación Next.js (`src/app/layout.tsx`).
-  - [ ] **Eventos Estándar:** Configurar eventos clave mediante el pixel o código personalizado:
+  - [x] **Eventos Estándar:** Configurar eventos clave mediante el pixel o código personalizado:
     - [x] `PageView` (Todas las páginas).
     - [x] `Lead` (Cuando completan el formulario de datos para agendar).
     - [x] `Schedule` / `Book` (Cuando la cita queda confirmada en el calendario).
     - [x] `Contact` (Cuando hacen clic en el botón de WhatsApp).
-  - [ ] Configurar la **API de Conversiones (Conversions API)** desde el servidor para evitar pérdidas por bloqueadores de anuncios (ad-blockers).
+  - [x] Configurar la **API de Conversiones (Conversions API)** desde el servidor para evitar pérdidas por bloqueadores de anuncios (ad-blockers).
 
 - [x] **1.3. Configuración de TikTok Ads Manager & Pixel**
   - [x] Crear cuenta en **TikTok Business Center**.
