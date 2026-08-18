@@ -10,7 +10,9 @@ export default function Step4Payment() {
   const { 
     cart, 
     selectedCustomer, 
+    setSelectedCustomer,
     deadline, 
+    setDeadline,
     setCurrentStep, 
     paymentMethod, 
     setPaymentMethod,
@@ -714,7 +716,18 @@ export default function Step4Payment() {
                     Ver como Cliente
                   </button>
                   <button
-                    onClick={() => setIsBudgetModalOpen(false)}
+                    onClick={() => {
+                      setIsBudgetModalOpen(false);
+                      setSelectedCustomer(null);
+                      clearCart();
+                      setDeadline('');
+                      setPaymentMethod(null);
+                      setInitialPaymentType('total');
+                      setSplitCardAmount(0);
+                      setSplitCashAmount(0);
+                      setPosMode('new_sale');
+                      setCurrentStep(1);
+                    }}
                     className="py-3 bg-zinc-900 text-white text-[10px] uppercase tracking-widest font-bold hover:bg-[#C17B5C] transition-all rounded-sm"
                   >
                     Finalizar

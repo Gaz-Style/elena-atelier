@@ -106,7 +106,7 @@ export async function getProductionTimeline() {
         full_name
       )
     `)
-    .not('status', 'in', '("delivered","cancelled","quote","archived")')
+    .not('status', 'in', '("delivered","entregado","entregada","cancelled","cancelado","cancelada","quote","archived")')
     .order('deadline', { ascending: true, nullsFirst: false });
 
   if (ordersErr) {
@@ -181,7 +181,7 @@ export async function getProductionOrdersWithDeadlines(startDate: string, endDat
     .select('id, description, deadline, status, pos_order_id, customers(full_name)')
     .gte('deadline', `${startDate}T00:00:00`)
     .lte('deadline', `${endDate}T23:59:59`)
-    .not('status', 'in', '("delivered", "cancelled", "cancelado", "quote", "archived")')
+    .not('status', 'in', '("delivered","entregado","entregada","cancelled","cancelado","cancelada","quote","archived")')
     .not('deadline', 'is', null);
 
   if (error) {

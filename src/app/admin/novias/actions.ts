@@ -360,7 +360,20 @@ export async function updateBridalProject(id: string, formData: FormData) {
     if (updates.internal_notes !== undefined) woUpdates.internal_notes = updates.internal_notes;
     if (updates.contract_notes !== undefined) woUpdates.contract_notes = updates.contract_notes;
     if (updates.event_venue !== undefined) woUpdates.event_venue = updates.event_venue;
-    if (updates.status !== undefined) woUpdates.status = updates.status;
+    if (updates.status !== undefined) {
+        woUpdates.status = updates.status;
+        
+        let prodStatus = undefined;
+        if (updates.status === 'entregado') prodStatus = 'delivered';
+        else if (updates.status === 'cancelado') prodStatus = 'cancelled';
+        
+        if (prodStatus) {
+            await supabase
+                .from('production_orders')
+                .update({ status: prodStatus })
+                .eq('pos_order_id', id);
+        }
+    }
     if (updates.total_amount !== undefined) woUpdates.total_amount = updates.total_amount;
     if (updates.event_date !== undefined) woUpdates.event_date = updates.event_date;
     
@@ -549,6 +562,11 @@ export async function completeMilestone(milestoneId: string, projectId: string) 
             .from('bridal_projects')
             .update({ status: 'entregado', updated_at: new Date().toISOString() })
             .eq('id', projectId);
+
+        await supabase
+            .from('production_orders')
+            .update({ status: 'delivered' })
+            .eq('pos_order_id', projectId);
     }
     
     revalidatePath(`/admin/novias/${projectId}`);
@@ -814,6 +832,11 @@ export async function cancelProject(projectId: string) {
     if (error) {
         return { success: false, error: error.message };
     }
+
+    await supabase
+        .from('production_orders')
+        .update({ status: 'cancelled' })
+        .eq('pos_order_id', projectId);
     
     revalidatePath('/admin/novias');
     revalidatePath(`/admin/novias/${projectId}`);
