@@ -14,7 +14,7 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        const { fromName, fromEmail, subject, bodyText, bodyHtml } = body;
+        const { fromName, fromEmail, subject, bodyText, bodyHtml, messageId } = body;
 
         if (!fromEmail || !subject) {
             return NextResponse.json({ error: 'Missing required fields (fromEmail, subject)' }, { status: 400 });
@@ -46,6 +46,7 @@ export async function POST(req: Request) {
             recipient: 'contacto@elenalacosturera.cl',
             body_text: bodyText || null,
             body_html: bodyHtml || null,
+            message_id: messageId || null,
             read_at: null  // unread by default
         });
 

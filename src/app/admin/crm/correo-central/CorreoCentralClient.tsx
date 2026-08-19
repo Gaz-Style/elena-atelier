@@ -654,9 +654,22 @@ export default function CorreoCentralClient({
                                                         <p className={`text-[11px] italic mb-2 ${msg.direction === 'outbound' ? 'text-white/60' : 'text-[#78716C]'}`}>
                                                             {msg.subject}
                                                         </p>
-                                                        <p className={`text-[12px] leading-relaxed whitespace-pre-wrap ${msg.direction === 'outbound' ? 'text-white/85' : 'text-[#44403C]'}`}>
-                                                            {msg.body_text || '(HTML)'}
-                                                        </p>
+                                                         {msg.body_text ? (
+                                                             <p className={`text-[12px] leading-relaxed whitespace-pre-wrap ${msg.direction === 'outbound' ? 'text-white/85' : 'text-[#44403C]'}`}>
+                                                                 {msg.body_text}
+                                                             </p>
+                                                         ) : msg.body_html ? (
+                                                             <div className="mt-1 rounded-lg overflow-hidden border border-gray-200 bg-white" style={{ height: '350px', width: '100%', minWidth: '320px' }}>
+                                                                 <iframe
+                                                                     title={`email-body-${msg.id}`}
+                                                                     srcDoc={msg.body_html}
+                                                                     className="w-full h-full border-none"
+                                                                     sandbox="allow-popups allow-popups-to-escape-sandbox"
+                                                                 />
+                                                             </div>
+                                                         ) : (
+                                                             <p className="text-[12px] italic text-gray-400">(Mensaje vacío)</p>
+                                                         )}
                                                     </div>
                                                 </div>
                                             ))
