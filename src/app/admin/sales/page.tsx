@@ -9,7 +9,6 @@ export const revalidate = 0; // Disable caching
 export default async function SalesLedgerPage() {
     const supabase = await createClient();
     
-    // Fetch sales ledger
     const { data: sales, error } = await supabase
         .from('sales_ledger')
         .select(`
@@ -21,7 +20,10 @@ export default async function SalesLedgerPage() {
             paid_amount,
             status,
             payment_method,
-            customer_id
+            customer_id,
+            customers (
+                full_name
+            )
         `)
         .order('created_at', { ascending: false });
 
@@ -29,7 +31,10 @@ export default async function SalesLedgerPage() {
         console.error('Error fetching sales:', error);
     }
 
-    const safeSales = sales || [];
+    const safeSales = (sales || []).map((s: any) => ({
+        ...s,
+        customers: Array.isArray(s.customers) ? s.customers[0] : s.customers
+    }));
 
     return (
         <div className="min-h-screen bg-gray-50 font-sans">

@@ -20,6 +20,9 @@ interface Sale {
     status: string;
     payment_method?: string;
     customer_id?: string;
+    customers?: {
+        full_name: string;
+    } | null;
 }
 
 interface SalesLedgerTableProps {
@@ -314,7 +317,7 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
                                             {formatDate(sale.created_at)}
                                         </td>
                                         <td className="p-4 font-serif text-brand-charcoal">
-                                            {sale.customer_id ? `Cliente (${sale.customer_id.substring(0,6)})` : 'Cliente General'}
+                                            {sale.customers?.full_name ? sale.customers.full_name : sale.customer_id ? `Cliente (${sale.customer_id.substring(0,6)})` : 'Cliente General'}
                                         </td>
                                         <td className="p-4 font-bold text-brand-terracotta">
                                             {formatCurrency(sale.total_amount)}
