@@ -211,13 +211,13 @@ export default function GraduationQualifierForm() {
                     >
                         <div className="text-center pb-4">
                             <span className="text-[10px] uppercase tracking-[0.3em] text-brand-sand font-bold block mb-1">Paso 2 de 2</span>
-                            <h2 className="font-serif text-2xl md:text-3xl text-white/95 tracking-wide">Filtro de Exclusividad</h2>
-                            <p className="text-xs text-white/50 mt-1">Queremos garantizar que tu vestido sea único en tu fiesta.</p>
+                            <h2 className="font-serif text-2xl md:text-3xl text-white/95 tracking-wide">Viabilidad de Diseño</h2>
+                            <p className="text-xs text-white/50 mt-1">Queremos conocer tu entorno para diseñar tu pieza perfecta.</p>
                         </div>
 
                         <div className="space-y-4">
                             <div className="space-y-2">
-                                <label className="text-[10px] uppercase tracking-widest text-white/50 block font-bold">Colegio o Universidad</label>
+                                <label className="text-[10px] uppercase tracking-widest text-white/50 block font-bold">Colegio o Universidad del Evento</label>
                                 <input
                                     required
                                     className="w-full border-b border-white/20 py-3 bg-transparent text-white focus:border-brand-sand outline-none transition-colors placeholder:text-white/20 text-sm"
@@ -230,7 +230,7 @@ export default function GraduationQualifierForm() {
                             <div className="p-4 bg-brand-sand/5 border border-brand-sand/20 rounded-sm flex items-start gap-3">
                                 <ShieldCheck className="w-5 h-5 text-brand-sand flex-shrink-0 mt-0.5" />
                                 <div className="text-[11px] text-white/70 leading-relaxed">
-                                    <strong className="text-brand-sand">Garantía Anti-Clon:</strong> En Elena Atelier bloqueamos el modelo de tu vestido para tu colegio una vez contratado. Nadie más llevará tu mismo diseño confeccionado por nosotros.
+                                    <strong className="text-brand-sand">Diseño de Autor Irrepetible:</strong> Confeccionamos cada pieza sobre tus medidas y estilo desde cero. Tu vestido será una creación exclusiva e inédita.
                                 </div>
                             </div>
 
@@ -319,15 +319,15 @@ export default function GraduationQualifierForm() {
                     >
                         <div className="w-16 h-16 bg-green-500/10 border border-green-500/30 rounded-full flex items-center justify-center mx-auto text-green-500 text-2xl shadow-md">✓</div>
                         <div className="space-y-2">
-                            <span className="text-[10px] uppercase tracking-[0.3em] text-brand-sand font-bold block">Verificación Exitosa</span>
-                            <h2 className="font-serif text-2xl md:text-3xl text-white/95 tracking-wide">¡Diseño Disponible y Exclusivo!</h2>
+                            <span className="text-[10px] uppercase tracking-[0.3em] text-brand-sand font-bold block">Solicitud Recibida</span>
+                            <h2 className="font-serif text-2xl md:text-3xl text-white/95 tracking-wide">¡Tu Propuesta de Diseño es Viable!</h2>
                             <p className="text-white/60 text-sm max-w-md mx-auto leading-relaxed">
-                                Hemos reservado de forma temporal tu exclusividad de diseño para el colegio/u <strong className="text-brand-sand">{formData.school}</strong>.
+                                Contamos con cupos en agenda para diseñar y confeccionar tu vestido a medida para tu gala en <strong className="text-brand-sand">{formData.school}</strong>.
                             </p>
                         </div>
 
                         <div className="border border-white/5 p-4 rounded-sm bg-white/[0.01] text-xs text-white/40 max-w-sm mx-auto flex items-center gap-2 justify-center">
-                            <AlertCircle className="w-4 h-4 text-brand-sand" /> Reservación web válida por las próximas 48 horas.
+                            <AlertCircle className="w-4 h-4 text-brand-sand" /> Reserva tu cupo de asesoría de diseño para asegurar tu fecha de entrega.
                         </div>
 
                         <div className="pt-4 max-w-xs mx-auto">

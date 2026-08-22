@@ -6,12 +6,12 @@ import PortfolioClient from '@/app/portafolio/PortfolioClient';
 import GraduationQualifierForm from './GraduationQualifierForm';
 
 export const metadata: Metadata = {
-    title: 'Vestidos de Graduación 2026: Diseños Exclusivos a Medida | Elena La Costurera',
-    description: 'Encuentra el vestido de graduación perfecto. Alta costura a medida, exclusividad por colegio garantizada y upcycling. Agenda tu prueba en Vitacura, Santiago.',
-    keywords: 'vestidos de graduacion, vestidos de fiesta a medida, vestidos de gala santiago, exclusividad por colegio, upcycling vestidos, elena la costurera',
+    title: 'Vestidos de Graduación 2026: Diseños Únicos a Medida | Elena La Costurera',
+    description: 'Encuentra el vestido de graduación perfecto. Diseño y confección a medida de piezas únicas y upcycling en nuestro Atelier. Agenda tu prueba en Vitacura, Santiago.',
+    keywords: 'vestidos de graduacion, vestidos de fiesta a medida, vestidos de gala santiago, confeccion a medida, upcycling vestidos, elena la costurera',
     openGraph: {
-        title: 'Vestidos de Graduación 2026 | Alta Costura a Medida',
-        description: 'Explora nuestra colección exclusiva de gala. Confección a medida con garantía de exclusividad por colegio. Agenda tu cita en nuestro Atelier.',
+        title: 'Vestidos de Graduación 2026 | Diseños a Medida y Personalizados',
+        description: 'Explora nuestra colección exclusiva de gala. Confección y diseño a medida adaptado a tu estilo. Agenda tu cita en nuestro Atelier de Vitacura.',
         images: ['https://www.elenalacosturera.cl/trabajos/fiesta/4.%20Rebecca%20Verde%20Sage.jpg'],
         locale: 'es_CL',
         type: 'website',
@@ -74,10 +74,10 @@ export default function GraduationLandingPage() {
             {/* Formulario Cualificador Dinámico (Paso 2 del Embudo de Ventas) */}
             <section id="agenda" className="py-20 bg-[#0d0d0d] relative z-10 border-t border-white/5">
                 <div className="max-w-4xl mx-auto px-6 text-center space-y-4 mb-12">
-                    <span className="text-brand-sand text-[10px] uppercase tracking-widest font-bold">Garantía de Exclusividad</span>
-                    <h2 className="font-serif text-3xl text-white">¿Vestido disponible para tu fecha?</h2>
+                    <span className="text-brand-sand text-[10px] uppercase tracking-widest font-bold">Diseño Único de Autor</span>
+                    <h2 className="font-serif text-3xl text-white">Diseña tu Vestido Ideal</h2>
                     <p className="text-white/60 text-xs max-w-sm mx-auto leading-relaxed">
-                        Verifica al instante si tu diseño está disponible y libre para tu colegio. Reserva tu exclusividad online antes de agendar tu cita presencial.
+                        Verifica la disponibilidad de agenda en nuestro taller de Vitacura y da el primer paso para confeccionar una pieza única e irrepetible adaptada a tus medidas.
                     </p>
                 </div>
                 <GraduationQualifierForm />
