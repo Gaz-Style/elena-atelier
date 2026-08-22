@@ -84,7 +84,8 @@ export async function syncSalesLedgerToAccounting() {
     const relatedBalances = balanceSales.filter(b => b.internal_id.startsWith(`${mainSale.internal_id}_balance_`));
     const balancePaidSum = relatedBalances.reduce((sum, b) => sum + (Number(b.paid_amount) || 0), 0);
     
-    const initialPaid = (Number(mainSale.paid_amount) || 0) - balancePaidSum;
+    // Compatible with both legacy cumulative payments and new Option A event-based payments
+    const initialPaid = Math.min(Number(mainSale.paid_amount || 0), Number(mainSale.total_amount || 0) - balancePaidSum);
     
     if (initialPaid > 0) {
       const dateStr = mainSale.created_at.split('T')[0];

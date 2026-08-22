@@ -298,7 +298,11 @@ export async function sendOrderConfirmationEmailAction(payload: {
         const { data: sale } = await supabase.from('sales_ledger').select('total_amount, paid_amount').eq('internal_id', `order_${orderId}`).single();
         if (sale) {
             originalTotal = sale.total_amount;
-            dbPaidAmount = sale.paid_amount || 0;
+            const { data: allPayments } = await supabase
+                .from('sales_ledger')
+                .select('paid_amount')
+                .like('internal_id', `order_${orderId}%`);
+            dbPaidAmount = allPayments?.reduce((sum, p) => sum + (Number(p.paid_amount) || 0), 0) || sale.paid_amount || 0;
             dbBalance = Math.max(0, originalTotal - dbPaidAmount);
         }
 
@@ -1748,11 +1752,11 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
 
     const { error: salesError } = await supabase
         .from('sales_ledger')
-        .update({ 
-            status: isFullPayment ? 'completed' : 'partial', 
-            paid_amount: finalPaid,
-            payment_method: 'transbank'
-        })
+        .update(
+            isBalancePayment
+                ? { status: isFullPayment ? 'completed' : 'partial', payment_method: 'transbank' }
+                : { status: isFullPayment ? 'completed' : 'partial', paid_amount: finalPaid, payment_method: 'transbank' }
+        )
         .eq('internal_id', baseOrderId);
         
     // Actualizar production_orders con el paid_amount también

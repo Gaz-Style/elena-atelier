@@ -78,12 +78,12 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
     // Separate main orders from balance payment entries for UI table rendering
     const mainSales = filteredSales.filter(s => !s.internal_id.includes('_balance_'));
 
-    // Recalculate KPIs based on filtered results
-    const totalRevenue = mainSales.reduce((sum, s) => sum + (Number(s.total_amount) || 0), 0);
+    // Recalculate KPIs based on filtered results - Option A: Sum actual paid amounts to reflect cash collected
+    const totalRevenue = filteredSales.reduce((sum, s) => sum + (Number(s.paid_amount) || 0), 0);
     
     const todayStr = new Date().toISOString().split('T')[0];
-    const todaysSales = salesList.filter(s => s.created_at.startsWith(todayStr) && !s.internal_id.includes('_balance_'));
-    const todayRevenue = todaysSales.reduce((sum, s) => sum + (Number(s.total_amount) || 0), 0);
+    const todaysSales = salesList.filter(s => s.created_at.startsWith(todayStr));
+    const todayRevenue = todaysSales.reduce((sum, s) => sum + (Number(s.paid_amount) || 0), 0);
     
     const pendingSales = mainSales.filter(s => s.status === 'pending' || s.status === 'pending_terminal').length;
 

@@ -443,14 +443,13 @@ export async function getSalesMetrics(month: number, year: number) {
   const startDate = new Date(year, month - 1, 1).toISOString();
   const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
 
-  // 1. Get Net Sales
+  // 1. Get Net Sales - Option A: Sum actual paid_amount of all payments/balances in the period
   const { data: sales } = await supabase.from('sales_ledger')
-    .select('total_amount, status')
+    .select('paid_amount')
     .gte('created_at', startDate)
-    .lte('created_at', endDate)
-    .not('internal_id', 'like', '%_balance_%');
+    .lte('created_at', endDate);
     
-  const totalGrossSales = sales?.reduce((sum, s) => sum + (Number(s.total_amount) || 0), 0) || 0;
+  const totalGrossSales = sales?.reduce((sum, s) => sum + (Number(s.paid_amount) || 0), 0) || 0;
   // Net Sales = Gross / 1.19
   const netSales = Math.round(totalGrossSales / 1.19);
   const ivaDebito = totalGrossSales - netSales;

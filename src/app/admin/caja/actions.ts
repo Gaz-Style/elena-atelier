@@ -332,11 +332,10 @@ export async function payOrderBalanceAction(posOrderId: string, amountToPay: num
         
     if (updateError) return { success: false, error: updateError.message };
     
-    // Update Sales Ledger (the main transaction)
+    // Update Sales Ledger (the main transaction) - Option A: Only update status, keep original paid_amount
     const { error: salesError } = await supabase
         .from('sales_ledger')
         .update({
-            paid_amount: newPaidAmount,
             status: parentStatus
         })
         .eq('internal_id', posOrderId);
