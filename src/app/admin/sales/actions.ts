@@ -122,6 +122,20 @@ export async function deleteSaleAction(saleId: string) {
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
+
+    const { data: sale } = await supabase
+        .from('sales_ledger')
+        .select('internal_id')
+        .eq('id', saleId)
+        .maybeSingle();
+
+    if (sale) {
+        await supabase
+            .from('sales_ledger')
+            .delete()
+            .like('internal_id', `${sale.internal_id}_balance_%`);
+    }
+
     const { error } = await supabase
         .from('sales_ledger')
         .delete()
