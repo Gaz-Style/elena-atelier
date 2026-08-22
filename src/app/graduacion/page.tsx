@@ -3,6 +3,7 @@ import Link from 'next/link';
 import fs from 'fs';
 import path from 'path';
 import PortfolioClient from '@/app/portafolio/PortfolioClient';
+import GraduationQualifierForm from './GraduationQualifierForm';
 
 export const metadata: Metadata = {
     title: 'Vestidos de Graduación 2026: Diseños Exclusivos a Medida | Elena La Costurera',
@@ -69,6 +70,18 @@ export default function GraduationLandingPage() {
 
             {/* Replicamos el Catálogo inmersivo que ya tiene el CTA de Agendar integrado */}
             <PortfolioClient data={categoryData} generalImages={generalImages} hideFilters={true} forceCategory="fiesta" />
+
+            {/* Formulario Cualificador Dinámico (Paso 2 del Embudo de Ventas) */}
+            <section id="agenda" className="py-20 bg-[#0d0d0d] relative z-10 border-t border-white/5">
+                <div className="max-w-4xl mx-auto px-6 text-center space-y-4 mb-12">
+                    <span className="text-brand-sand text-[10px] uppercase tracking-widest font-bold">Garantía de Exclusividad</span>
+                    <h2 className="font-serif text-3xl text-white">¿Vestido disponible para tu fecha?</h2>
+                    <p className="text-white/60 text-xs max-w-sm mx-auto leading-relaxed">
+                        Verifica al instante si tu diseño está disponible y libre para tu colegio. Reserva tu exclusividad online antes de agendar tu cita presencial.
+                    </p>
+                </div>
+                <GraduationQualifierForm />
+            </section>
 
             {/* Comunas Cobertura Section */}
             <section id="comunas" className="py-20 bg-[#121212] border-t border-white/5 relative z-10">
