@@ -91,4 +91,21 @@ Actualmente, las interacciones detalladas de cada vestido no se trackean porque 
     *   Modificar la función `DressGridItem` en [PortfolioClient.tsx](file:///c:/Users/ADMIN/Downloads/IA%20trabajaos/Elena%20Atalier/src/app/portafolio/PortfolioClient.tsx).
     *   Interceptar el `onClick` que abre el modal para llamar a `window.gtag` con el evento `view_item` de GA4, enviando los parámetros `item_id`, `item_name` y `value` (precio del vestido).
 
+---
+
+## 6. Futura Implementación: Mini-Chatbot Web (Árbol de Decisiones)
+
+Para mejorar el engagement y pre-cualificar a las clientas sin forzarlas a salir abruptamente de la web, se propone un widget interactivo antes de la redirección definitiva a WhatsApp.
+
+### Diseño de la Experiencia:
+1. **Acción de Clic:** Al pulsar "Hablar con Elena" en el modal del vestido, en lugar de abrir WhatsApp, se despliega una mini-ventana flotante en la esquina inferior de la pantalla.
+2. **Mensaje de Bienvenida:** Un bot pre-programado (Sofía) saluda y presenta 2 o 3 opciones rápidas con botones para evitar que el cliente tenga que escribir:
+   * *¿Qué tipo de asesoría buscas?*
+     * [Diseño a Medida]
+     * [Arreglo de Vestido Heredado (Upcycling)]
+     * [Solo una Consulta de Valores]
+3. **Redirección Parametrizada:** Al hacer clic en una opción, el widget procesa la respuesta y abre una pestaña de WhatsApp dirigida al nuevo número oficial de coexistencia con la respuesta y el nombre del vestido ya pre-cargados en el texto.
+4. **Ventajas:** Cero costo de procesamiento (no usa la API de DeepSeek en esta fase web), mayor control sobre el embudo, y alta tasa de conversión al simplificar la interacción a base de botones.
+
+
 
