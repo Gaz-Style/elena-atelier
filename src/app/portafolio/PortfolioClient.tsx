@@ -134,8 +134,8 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
             <div>
               <span className="text-[10px] uppercase tracking-widest text-brand-sand block mb-1 md:mb-2">Modelo #{vestido.id}</span>
               <h2 className="font-serif text-2xl md:text-5xl mb-1 md:mb-2">{vestido.nombre}</h2>
-              <p className="text-lg md:text-2xl text-white/90 font-light">
-                {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(vestido.precio)}
+              <p className="text-sm md:text-base text-brand-sand tracking-widest uppercase font-semibold mt-1">
+                Consultar Diseño a Medida
               </p>
             </div>
             
@@ -144,13 +144,22 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
             </p>
             
 
-
             <div className="pt-4 flex flex-col gap-3">
               <Link
-                href="/registro?redirect=/portal/agenda"
+                href={`https://wa.me/56937667709?text=${encodeURIComponent(`Hola Elena, me gustaría consultar por el diseño a medida del modelo ${vestido.nombre} (${vestido.color}).`)}`}
+                target="_blank"
+                onClick={() => {
+                  if (typeof window !== 'undefined' && (window as any).gtag) {
+                    (window as any).gtag('event', 'generate_lead', {
+                      item_name: vestido.nombre,
+                      value: vestido.precio,
+                      currency: 'CLP'
+                    });
+                  }
+                }}
                 className="glass-btn group relative inline-flex items-center justify-center w-full py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.2em] font-bold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:text-[#121212] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px]"
               >
-                Agendar Prueba
+                Hablar con Elena
               </Link>
             </div>
           </div>
@@ -177,9 +186,24 @@ function DressGridItem({ vestido, onClick }: { vestido: Vestido, onClick: () => 
     }
   };
 
+  const handleClick = () => {
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'view_item', {
+        currency: 'CLP',
+        value: vestido.precio,
+        items: [{
+          item_id: vestido.id.toString(),
+          item_name: vestido.nombre,
+          item_category: vestido.color
+        }]
+      });
+    }
+    onClick();
+  };
+
   return (
     <div 
-      onClick={onClick}
+      onClick={handleClick}
       className="break-inside-avoid relative group overflow-hidden sm:rounded-sm border-b sm:border border-white/5 sm:border-white/10 sm:shadow-sm sm:hover:shadow-[0_0_24px_rgba(255,255,255,0.06)] hover:border-brand-sand/30 transition-all duration-500 mb-1 sm:mb-0 cursor-pointer"
     >
       <div 
