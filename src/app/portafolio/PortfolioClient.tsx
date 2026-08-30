@@ -169,7 +169,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
               <div className="flex justify-between items-center border-b border-white/10 pb-2">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-[#cda45e] animate-pulse" />
-                  <span className="text-[10px] uppercase tracking-wider text-brand-sand font-bold">Elena Rojas</span>
+                  <span className="text-[10px] uppercase tracking-wider text-brand-sand font-bold">Elena La Costurera</span>
                 </div>
                 <button 
                   onClick={() => { setShowChatbot(false); setChatStep(1); }} 
@@ -184,7 +184,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
                 {chatStep === 1 ? (
                   <div className="space-y-4 animate-fade-in">
                     <p className="text-xs md:text-sm text-white/80 leading-relaxed font-sans bg-white/5 p-3 rounded-sm">
-                      ¡Hola! Diseñemos juntas tu vestido ideal ✨. Soy Elena Rojas Rojas. Me encantaría ayudarte personalmente con tu consulta sobre mi diseño <strong>{vestido.nombre}</strong>.
+                      ¡Hola! Diseñemos juntas tu vestido ideal ✨. Soy Elena. Me encantaría ayudarte personalmente con tu consulta sobre mi diseño <strong>{vestido.nombre}</strong>.
                       <br /><br />
                       ¿Qué tipo de asesoría buscas?
                     </p>
