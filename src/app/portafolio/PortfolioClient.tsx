@@ -20,6 +20,11 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
   const [current, setCurrent] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  // Chatbot State
+  const [showChatbot, setShowChatbot] = useState(false);
+  const [chatStep, setChatStep] = useState(1);
+  const [selectedOption, setSelectedOption] = useState('');
+
   // Swipe state
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -32,13 +37,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
     setTouchStart(e.targetTouches[0].clientX);
   };
   const handleTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    if (distance > 50) next();
-    if (distance < -50) prev();
-  };
-
+  
   // Vertical swipe to close
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [touchEndY, setTouchEndY] = useState<number | null>(null);
@@ -79,6 +78,16 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
       document.body.style.overflow = '';
     };
   }, [onClose, prev, next]);
+
+  const selectChatOption = (option: string) => {
+    setSelectedOption(option);
+    setChatStep(2);
+  };
+
+  const getWhatsAppLink = () => {
+    const text = `Hola Elena, me gustaría consultar por el diseño a medida del modelo ${vestido.nombre} (${vestido.color}). Me interesa la opción: ${selectedOption}.`;
+    return `https://wa.me/56937667709?text=${encodeURIComponent(text)}`;
+  };
 
   return (
     <div
@@ -128,41 +137,107 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
           )}
         </div>
 
-        {/* INFO DEL VESTIDO */}
+        {/* INFO DEL VESTIDO / CHATBOT */}
         <div className={`flex-none text-white flex flex-col justify-end p-5 pb-6 md:p-0 md:flex-1 md:max-w-sm transition-opacity duration-300 ${isFullscreen ? 'hidden' : 'flex'}`}>
-          <div className="space-y-3 md:space-y-6">
-            <div>
-              <span className="text-[10px] uppercase tracking-widest text-brand-sand block mb-1 md:mb-2">Modelo #{vestido.id}</span>
-              <h2 className="font-serif text-2xl md:text-5xl mb-1 md:mb-2">{vestido.nombre}</h2>
-              <p className="text-sm md:text-base text-brand-sand tracking-widest uppercase font-semibold mt-1">
-                Consultar Diseño a Medida
+          {!showChatbot ? (
+            <div className="space-y-3 md:space-y-6 animate-fade-in">
+              <div>
+                <span className="text-[10px] uppercase tracking-widest text-brand-sand block mb-1 md:mb-2">Modelo #{vestido.id}</span>
+                <h2 className="font-serif text-2xl md:text-5xl mb-1 md:mb-2">{vestido.nombre}</h2>
+                <p className="text-sm md:text-base text-brand-sand tracking-widest uppercase font-semibold mt-1">
+                  Consultar Diseño a Medida
+                </p>
+              </div>
+              
+              <p className="text-white/60 text-xs md:text-sm leading-relaxed font-sans line-clamp-3 md:line-clamp-none">
+                {vestido.descripcion}
               </p>
+              
+              <div className="pt-4 flex flex-col gap-3">
+                <button
+                  onClick={() => setShowChatbot(true)}
+                  className="glass-btn group relative inline-flex items-center justify-center w-full py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.2em] font-bold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:text-[#121212] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] cursor-pointer"
+                >
+                  Hablar con Elena
+                </button>
+              </div>
             </div>
-            
-            <p className="text-white/60 text-xs md:text-sm leading-relaxed font-sans line-clamp-3 md:line-clamp-none">
-              {vestido.descripcion}
-            </p>
-            
+          ) : (
+            <div className="border border-white/10 bg-[#111111]/80 backdrop-blur-md p-5 rounded-sm space-y-4 shadow-2xl animate-fade-in relative min-h-[300px] flex flex-col justify-between">
+              
+              {/* Bot Cabecera */}
+              <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-[#cda45e] animate-pulse" />
+                  <span className="text-[10px] uppercase tracking-wider text-brand-sand font-bold">Asistente de Elena</span>
+                </div>
+                <button 
+                  onClick={() => { setShowChatbot(false); setChatStep(1); }} 
+                  className="text-white/40 hover:text-white text-[10px] uppercase tracking-wider transition-colors"
+                >
+                  Volver
+                </button>
+              </div>
 
-            <div className="pt-4 flex flex-col gap-3">
-              <Link
-                href={`https://wa.me/56937667709?text=${encodeURIComponent(`Hola Elena, me gustaría consultar por el diseño a medida del modelo ${vestido.nombre} (${vestido.color}).`)}`}
-                target="_blank"
-                onClick={() => {
-                  if (typeof window !== 'undefined' && (window as any).gtag) {
-                    (window as any).gtag('event', 'generate_lead', {
-                      item_name: vestido.nombre,
-                      value: vestido.precio,
-                      currency: 'CLP'
-                    });
-                  }
-                }}
-                className="glass-btn group relative inline-flex items-center justify-center w-full py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.2em] font-bold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:text-[#121212] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px]"
-              >
-                Hablar con Elena
-              </Link>
+              {/* Contenido Conversacional */}
+              <div className="flex-1 flex flex-col justify-center space-y-4">
+                {chatStep === 1 ? (
+                  <div className="space-y-4 animate-fade-in">
+                    <p className="text-xs md:text-sm text-white/80 leading-relaxed font-sans bg-white/5 p-3 rounded-sm">
+                      ¡Hola! Diseñemos juntas tu vestido ideal ✨. Soy la asistente virtual del taller de Elena Rojas. Me encantaría ayudarte con tu consulta del modelo <strong>{vestido.nombre}</strong>.
+                      <br /><br />
+                      ¿Qué tipo de diseño buscas?
+                    </p>
+                    <div className="flex flex-col gap-2">
+                      {[
+                        'Diseño de Alta Costura a Medida',
+                        'Modificación de Vestido Heredado (Upcycling)',
+                        'Consultar valores orientativos'
+                      ].map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() => selectChatOption(opt)}
+                          className="w-full text-left p-3 border border-white/10 hover:border-brand-sand/50 bg-white/[0.02] hover:bg-white/[0.05] rounded-sm text-xs font-sans text-white/90 hover:text-white transition-all cursor-pointer"
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4 animate-fade-in">
+                    <p className="text-xs md:text-sm text-white/80 leading-relaxed font-sans bg-white/5 p-3 rounded-sm">
+                      ¡Excelente elección! Agendaremos tu cita y resolveremos todas tus dudas.
+                      <br /><br />
+                      Te conectaré directamente con el chat personal de Elena Rojas para afinar los detalles de tu visita a nuestro taller en Vitacura.
+                    </p>
+                    <a
+                      href={getWhatsAppLink()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => {
+                        if (typeof window !== 'undefined' && (window as any).gtag) {
+                          (window as any).gtag('event', 'generate_lead', {
+                            item_name: vestido.nombre,
+                            value: vestido.precio,
+                            currency: 'CLP',
+                            option_selected: selectedOption
+                          });
+                        }
+                      }}
+                      className="glass-btn group relative inline-flex items-center justify-center w-full py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.2em] font-bold bg-[#cda45e]/90 hover:bg-[#cda45e] hover:text-[#121212] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] cursor-pointer"
+                    >
+                      Continuar a WhatsApp
+                    </a>
+                  </div>
+                )}
+              </div>
+              
+              <div className="text-center text-[9px] text-white/30 uppercase tracking-widest pt-2">
+                Conexión segura cifrada
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
