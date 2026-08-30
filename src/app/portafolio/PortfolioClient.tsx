@@ -169,7 +169,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
               <div className="flex justify-between items-center border-b border-white/10 pb-2">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-[#cda45e] animate-pulse" />
-                  <span className="text-[10px] uppercase tracking-wider text-brand-sand font-bold">Asistente de Elena</span>
+                  <span className="text-[10px] uppercase tracking-wider text-brand-sand font-bold">Elena Rojas</span>
                 </div>
                 <button 
                   onClick={() => { setShowChatbot(false); setChatStep(1); }} 
@@ -184,9 +184,9 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
                 {chatStep === 1 ? (
                   <div className="space-y-4 animate-fade-in">
                     <p className="text-xs md:text-sm text-white/80 leading-relaxed font-sans bg-white/5 p-3 rounded-sm">
-                      ¡Hola! Diseñemos juntas tu vestido ideal ✨. Soy la asistente virtual del taller de Elena Rojas. Me encantaría ayudarte con tu consulta del modelo <strong>{vestido.nombre}</strong>.
+                      ¡Hola! Diseñemos juntas tu vestido ideal ✨. Soy Elena Rojas Rojas. Me encantaría ayudarte personalmente con tu consulta sobre mi diseño <strong>{vestido.nombre}</strong>.
                       <br /><br />
-                      ¿Qué tipo de diseño buscas?
+                      ¿Qué tipo de asesoría buscas?
                     </p>
                     <div className="flex flex-col gap-2">
                       {[
@@ -207,9 +207,9 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
                 ) : (
                   <div className="space-y-4 animate-fade-in">
                     <p className="text-xs md:text-sm text-white/80 leading-relaxed font-sans bg-white/5 p-3 rounded-sm">
-                      ¡Excelente elección! Agendaremos tu cita y resolveremos todas tus dudas.
+                      ¡Excelente elección! Agendaremos tu cita en mi taller y resolveremos todas tus dudas.
                       <br /><br />
-                      Te conectaré directamente con el chat personal de Elena Rojas para afinar los detalles de tu visita a nuestro taller en Vitacura.
+                      Hagamos clic abajo para que sigamos conversando directamente en mi chat de WhatsApp personal. ¡Te espero!
                     </p>
                     <a
                       href={getWhatsAppLink()}
