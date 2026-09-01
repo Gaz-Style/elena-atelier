@@ -184,6 +184,15 @@ export default function Hero() {
                             href={`https://wa.me/56937667709?text=${encodeURIComponent('Hola Elena, tengo una idea para mi vestido y me gustaría contártela.')}`}
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={() => {
+                                if (typeof window !== 'undefined' && (window as any).gtag) {
+                                    (window as any).gtag('event', 'generate_lead', {
+                                        event_category: 'WhatsApp',
+                                        event_label: 'Conversación desde Hero',
+                                        value: 1
+                                    });
+                                }
+                            }}
                             className="glass-btn group relative inline-flex items-center justify-center w-full py-[18px] border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 bg-white/[0.06] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/92 hover:border-[#f5f2eb] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] cursor-pointer"
                         >
                             <span className="glass-text relative z-10 flex items-center justify-center gap-2.5 whitespace-nowrap">
