@@ -14,6 +14,16 @@ export const pageview = (url: string) => {
   }
 };
 
+export const getStoredUTMs = (): Record<string, string> => {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = sessionStorage.getItem('ea_utm');
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
 export const trackGAEvent = (
   action: string,
   category: string,
@@ -22,10 +32,12 @@ export const trackGAEvent = (
   params?: Record<string, any>
 ) => {
   if (typeof window !== 'undefined') {
+    const utms = getStoredUTMs();
     const payload = {
       event_category: category,
       event_label: label,
       value: value,
+      ...utms,
       ...params,
     };
     if ((window as any).gtag) {
@@ -46,6 +58,31 @@ function AnalyticsTracker() {
   useEffect(() => {
     if (!GA_TRACKING_ID) return;
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
+
+    // Auto-capture UTM parameters if present in URL
+    if (searchParams) {
+      const utmSource = searchParams.get('utm_source');
+      const utmMedium = searchParams.get('utm_medium');
+      const utmCampaign = searchParams.get('utm_campaign');
+      const utmContent = searchParams.get('utm_content');
+      const utmTerm = searchParams.get('utm_term');
+
+      if (utmSource || utmMedium || utmCampaign) {
+        const utmObj = {
+          ...(utmSource && { utm_source: utmSource }),
+          ...(utmMedium && { utm_medium: utmMedium }),
+          ...(utmCampaign && { utm_campaign: utmCampaign }),
+          ...(utmContent && { utm_content: utmContent }),
+          ...(utmTerm && { utm_term: utmTerm }),
+        };
+        try {
+          sessionStorage.setItem('ea_utm', JSON.stringify(utmObj));
+        } catch {
+          // Ignore storage errors
+        }
+      }
+    }
+
     pageview(url);
   }, [pathname, searchParams]);
 

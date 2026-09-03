@@ -1,13 +1,13 @@
-# 📊 Análisis Completo e Implementación de Google Analytics 4 (GA4) & GTM
+# 📊 Análisis Completo, Plan de Mejoras e Implementación de Google Analytics 4 (GA4) & GTM
 **Elena Atelier — Vitacura Hub**
 
 ---
 
 ## 1. Resumen Ejecutivo
 
-Este documento presenta la auditoría exhaustiva, la arquitectura de eventos y el estado de implementación de **Google Analytics 4 (GA4)** y **Google Tag Manager (GTM)** para el ecosistema digital de **Elena Atelier**.
+Este documento presenta la auditoría exhaustiva, la arquitectura de eventos y el **Plan de Mejoras Avanzadas** de **Google Analytics 4 (GA4)** y **Google Tag Manager (GTM)** para **Elena Atelier**.
 
-El objetivo principal de esta configuración es garantizar un rastreo preciso del embudo de conversión completo: desde la navegación inicial en el catálogo de alta costura hasta la reserva de citas en el taller de Vitacura y la confirmación de pagos en línea.
+El objetivo principal es garantizar la trazabilidad total del embudo de conversión: desde el primer clic publicitario en Meta/TikTok hasta la navegación en el catálogo, la consulta por WhatsApp, la reserva de cita en el taller de Vitacura y el pago final de la orden.
 
 ---
 
@@ -22,55 +22,58 @@ El objetivo principal de esta configuración es garantizar un rastreo preciso de
 
 ---
 
-## 3. Diccionario de Eventos GA4 y Cobertura en el Código
+## 3. Diccionario de Eventos GA4 y Cobertura en Código
 
 | Evento GA4 | Tipo | Disparador (Trigger) | Parámetros Enviados | Archivo de Origen |
 | :--- | :--- | :--- | :--- | :--- |
-| `pageview` | Estándar | Cambio de ruta en Next.js App Router (`usePathname`, `useSearchParams`) | `page_path` | `src/components/GoogleAnalytics.tsx` |
-| `view_item` | E-Commerce | Clic en vestuario en el catálogo (`DressGridItem`) | `currency`, `value`, `item_id`, `item_name`, `item_category` | `src/app/portafolio/PortfolioClient.tsx` |
+| `pageview` | Estándar | Cambio de ruta en Next.js App Router | `page_path` | `src/components/GoogleAnalytics.tsx` |
+| `view_item` | E-Commerce | Clic en vestuario en el catálogo | `currency`, `value`, `item_id`, `item_name`, `item_category` | `src/app/portafolio/PortfolioClient.tsx` |
+| `view_item_list` | E-Commerce | Cambio de categoría o filtro en catálogo | `item_list_name`, `category` | `src/app/portafolio/PortfolioClient.tsx` |
 | `generate_lead` | Conversión | Clic en CTA de contacto en Hero y Lightbox | `item_name`, `value`, `currency` | `src/components/Hero.tsx`, `PortfolioClient.tsx` |
-| `Lead` | Conversión | Inicio de formulario de agendamiento o paso 1 de graduación | `event_category`, `event_label` | `src/components/BookingForm.tsx`, `GraduationQualifierForm.tsx` |
-| `Schedule` | Conversión Crítica | Confirmación de cita agendada en el taller | `event_category`, `event_label` | `src/components/BookingForm.tsx`, `GraduationQualifierForm.tsx` |
-| `Contact` | Conversión | Clic en el botón flotante de WhatsApp | `event_category`, `event_label` | `src/components/WhatsAppButton.tsx` |
-| `begin_checkout` | E-Commerce | Selección de pasarela (Webpay Plus / Mercado Pago) en `/pagar/[id]` | `order_id`, `currency`, `value`, `payment_method` | `src/app/pagar/[id]/PaymentClient.tsx` |
-| `add_payment_info` | E-Commerce | Copiado de datos bancarios para transferencia directa | `order_id`, `currency`, `value`, `payment_type` | `src/app/pagar/[id]/PaymentClient.tsx` |
+| `Lead` | Conversión | Inicio de formulario de agendamiento o paso 1 graduación | `event_category`, `event_label`, `utm_*` | `src/components/BookingForm.tsx`, `GraduationQualifierForm.tsx` |
+| `Schedule` | Conversión Crítica | Confirmación de cita agendada en el taller | `event_category`, `event_label`, `utm_*` | `src/components/BookingForm.tsx`, `GraduationQualifierForm.tsx` |
+| `Contact` | Conversión | Clic en botón flotante de WhatsApp | `event_category`, `event_label`, `utm_*` | `src/components/WhatsAppButton.tsx` |
+| `begin_checkout` | E-Commerce | Selección de pasarela (Webpay / Mercado Pago) | `order_id`, `currency`, `value`, `payment_method` | `src/app/pagar/[id]/PaymentClient.tsx` |
+| `add_payment_info` | E-Commerce | Copiado de datos bancarios para transferencia | `order_id`, `currency`, `value`, `payment_type` | `src/app/pagar/[id]/PaymentClient.tsx` |
 
 ---
 
-## 4. Mejoras Técnicas Implementadas en el Código
+## 4. Plan de Mejoras Avanzadas Implementadas
 
-1. **Soporte Dual `gtag` + `dataLayer` (`src/components/GoogleAnalytics.tsx`)**:
-   - Se refactorizó el helper `trackGAEvent` para enviar eventos tanto por `window.gtag` como mediante `window.dataLayer.push()`. Esto evita pérdida de eventos si GTM o scripts asíncronos tardan en cargar.
-   - Soporta transmisión de parámetros personalizados extendidos (`params`).
+### 🎯 Mejora 1: Captura Automática de Parámetros UTM (Atribución Directa)
+* **Diagnóstico:** Muchas conversiones llegaban sin contexto de qué anuncio específico o campaña generó el clic.
+* **Solución Implementada (`src/components/GoogleAnalytics.tsx`):**
+  - Creada la función `getStoredUTMs()` que extrae automáticamente `utm_source`, `utm_medium`, `utm_campaign`, `utm_content` y `utm_term` de la URL de entrada y los persiste en `sessionStorage`.
+  - Todos los eventos posteriores (clic en WhatsApp, agendamiento de cita, cotización) adjuntan automáticamente estos parámetros a GA4.
 
-2. **Medición del Embudo de Pago (`src/app/pagar/[id]/PaymentClient.tsx`)**:
-   - Integración de los eventos e-commerce `begin_checkout` y `add_payment_info` para medir el abandono y conversión en la pasarela de pago de órdenes.
+### 👗 Mejora 2: Rastreo del Catálogo y Categorías (`view_item` y `view_item_list`)
+* **Diagnóstico:** Solo se medían los vestidos abiertos en modal, pero no qué categorías (Fiesta, Novias, Upcycling) eran más exploradas.
+* **Solución Implementada:**
+  - Se gatilla el evento `view_item_list` al cambiar los filtros superiores en el portafolio.
 
-3. **Catálogo Interactivo y Lightbox (`src/app/portafolio/PortfolioClient.tsx`)**:
-   - Rastreo de interacción `view_item` por vestido con parámetros de valor (precio en CLP) y categoría.
-   - Rastreo de `generate_lead` al presionar "Conversemos" dentro de la ficha de detalle.
+### 💳 Mejora 3: Rastreo de Abandono y Pasarela de Pago
+* **Diagnóstico:** No se medía la interacción de pagos de clientes recibiendo órdenes por WhatsApp o mail.
+* **Solución Implementada (`src/app/pagar/[id]/PaymentClient.tsx`):**
+  - Disparo de `begin_checkout` con desglose de método (Webpay Plus vs Mercado Pago).
+  - Disparo de `add_payment_info` cuando el usuario opta por copiar los datos de transferencia bancaria directa.
 
-4. **Navegación Dinámica SPA en Next.js 14**:
-   - `AnalyticsTracker` monitorea activamente las transiciones de URL mediante React Suspense y hooks de Next.js (`usePathname`, `useSearchParams`).
+### 📱 Mejora 4: Corrección de Activación de Meta Pixel
+* **Diagnóstico:** Meta Pixel Helper mostraba la alerta *"El píxel está instalado pero no se ha activado recientemente"* por falta de un `PageView` síncrono inicial.
+* **Solución Implementada (`src/components/FacebookPixel.tsx`):**
+  - Adición de `fbq('track', 'PageView');` dentro de la carga base del Script.
 
 ---
 
-## 5. Recomendaciones de Configuración en el Panel de GA4 (Google Analytics Admin)
+## 5. Lista de Chequeo en el Panel de GA4 (Acciones del Administrador)
 
-Para habilitar informes de atribución completos en Google Ads y Meta Ads, ejecute las siguientes acciones en el panel web de GA4 (`G-MFET871LBV`):
+Para visualizar correctamente estos datos en los reportes de GA4:
 
-1. **Marcar Eventos Clave (Conversiones)**:
+1. **Activar Conversiones (Eventos Clave)**:
    - Ir a **Administrar > Mostrar datos > Eventos**.
-   - Marcar como **Evento clave (Key Event)** los siguientes eventos:
-     - `Schedule` (Citas confirmadas en taller)
-     - `generate_lead` (Interés en vestidos/diseño)
-     - `Contact` (Inicios de chat por WhatsApp)
-     - `begin_checkout` (Inicio de proceso de pago)
-
-2. **Dimensiones Personalizadas (Custom Dimensions)**:
-   - Registrar las siguientes dimensiones personalizadas en **Administrar > Definiciones personalizadas**:
-     - `payment_method` (Alcance del evento)
-     - `item_name` (Alcance del evento)
-
-3. **Vinculación con Google Ads / Meta CAPI**:
-   - Vincular la propiedad de GA4 con la cuenta publicitaria de Google Ads para importar los eventos `Schedule` y `generate_lead` como conversiones principales de la campaña.
+   - Marcar con el interruptor azul los eventos: `Schedule`, `generate_lead`, `Contact`, `begin_checkout`.
+2. **Crear Dimensiones Personalizadas**:
+   - Ir a **Definiciones personalizadas > Crear dimensión personalizada**:
+     - Nombre: `payment_method` | Ámbito: Evento | Parámetro: `payment_method`
+     - Nombre: `item_name` | Ámbito: Evento | Parámetro: `item_name`
+3. **Vincular con Google Ads**:
+   - Ir a **Administrar > Vinculación de productos > Vinculación con Google Ads** e importar los eventos `Schedule` y `generate_lead` para optimización del costo por adquisición (CPA).
