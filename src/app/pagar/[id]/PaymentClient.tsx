@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { CreditCard, Globe, Loader2, Lock, ArrowRight, Wallet, Building, Copy, Check } from 'lucide-react';
 import { createWebpayTransaction } from '@/lib/transbank';
 import { createPaymentPreference } from '@/lib/payments';
+import { trackGAEvent } from '@/components/GoogleAnalytics';
 
 export default function PaymentClient({ orderId, total }: { orderId: string; total: number }) {
     const [isProcessing, setIsProcessing] = useState(false);
@@ -15,6 +16,11 @@ export default function PaymentClient({ orderId, total }: { orderId: string; tot
 
     const processPayment = async (method: 'transbank' | 'mercadopago') => {
         setIsProcessing(true);
+        trackGAEvent('begin_checkout', 'Payment Flow', method, total, {
+          order_id: orderId,
+          currency: 'CLP',
+          payment_method: method
+        });
         try {
             const cleanOrderId = orderId.replace(/[^a-zA-Z0-9_]/g, '');
             const buyOrder = cleanOrderId.startsWith('order_') ? cleanOrderId : `order_${cleanOrderId}`;
@@ -49,6 +55,11 @@ export default function PaymentClient({ orderId, total }: { orderId: string; tot
     };
 
     const handleCopy = async () => {
+        trackGAEvent('add_payment_info', 'Payment Flow', 'Bank Transfer Copy', total, {
+          order_id: orderId,
+          currency: 'CLP',
+          payment_type: 'bank_transfer'
+        });
         const text = `Destinatario: ATELIER HORTENSIA SPA\nRUT: 78.158.853-9\nBanco: Banco Bci / Mach\nTipo de cuenta: Cuenta corriente\nNº de cuenta: 77180795\nCorreo: pagos@elenalacosturera.cl`;
         try {
             await navigator.clipboard.writeText(text);

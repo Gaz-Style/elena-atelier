@@ -14,13 +14,28 @@ export const pageview = (url: string) => {
   }
 };
 
-export const trackGAEvent = (action: string, category: string, label?: string, value?: number) => {
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', action, {
+export const trackGAEvent = (
+  action: string,
+  category: string,
+  label?: string,
+  value?: number,
+  params?: Record<string, any>
+) => {
+  if (typeof window !== 'undefined') {
+    const payload = {
       event_category: category,
       event_label: label,
       value: value,
-    });
+      ...params,
+    };
+    if ((window as any).gtag) {
+      (window as any).gtag('event', action, payload);
+    } else if ((window as any).dataLayer) {
+      (window as any).dataLayer.push({
+        event: action,
+        ...payload,
+      });
+    }
   }
 };
 
