@@ -80,7 +80,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
   }, [onClose, prev, next]);
 
   const getWhatsAppLink = () => {
-    const text = 'Hola Elena, tengo una idea para mi vestido y me gustaría contártela.';
+    const text = `Hola Elena, me encantó el vestido "${vestido.nombre}" (${vestido.color}) de tu colección y me gustaría consultar por la confección a medida.`;
     return `https://wa.me/56937667709?text=${encodeURIComponent(text)}`;
   };
 
@@ -132,66 +132,22 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
           )}
         </div>
 
-        {/* INFO DEL VESTIDO / CHATBOT */}
+        {/* INFO DEL VESTIDO / CONTACTO DIRECTO */}
         <div className={`flex-none text-white flex flex-col justify-end p-5 pb-6 md:p-0 md:flex-1 md:max-w-sm transition-opacity duration-300 ${isFullscreen ? 'hidden' : 'flex'}`}>
-          {!showChatbot ? (
-            <div className="space-y-3 md:space-y-6 animate-fade-in">
-              <div>
-                <span className="text-[10px] uppercase tracking-widest text-brand-sand block mb-1 md:mb-2">Modelo #{vestido.id}</span>
-                <h2 className="font-serif text-2xl md:text-5xl mb-1 md:mb-2">{vestido.nombre}</h2>
-                <p className="text-sm md:text-base text-brand-sand tracking-widest uppercase font-semibold mt-1">
-                  Diseño a Medida
-                </p>
-              </div>
-              
-              <p className="text-white/60 text-xs md:text-sm leading-relaxed font-sans line-clamp-3 md:line-clamp-none">
-                {vestido.descripcion}
+          <div className="space-y-3 md:space-y-6 animate-fade-in">
+            <div>
+              <span className="text-[10px] uppercase tracking-widest text-brand-sand block mb-1 md:mb-2">Modelo #{vestido.id}</span>
+              <h2 className="font-serif text-2xl md:text-5xl mb-1 md:mb-2">{vestido.nombre}</h2>
+              <p className="text-sm md:text-base text-brand-sand tracking-widest uppercase font-semibold mt-1">
+                Diseño a Medida · {vestido.color}
               </p>
-              
-              <div className="pt-4 flex flex-col gap-3">
-                <button
-                  onClick={() => setShowChatbot(true)}
-                  className="glass-btn group relative inline-flex items-center justify-center w-full py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.2em] font-bold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:text-[#121212] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] cursor-pointer"
-                >
-                  Hablemos
-                </button>
-              </div>
             </div>
-          ) : (
-            <div 
-              className="relative w-full border-[0.5px] border-white/[0.08] px-8 py-10 backdrop-blur-[8px] bg-black/[0.18] rounded-[1px] shadow-[0_8px_32px_0_rgba(0,0,0,0.25)] animate-scale-up"
-            >
-              {/* Cabecera — Misma tipografía del logo */}
-              <div className="flex justify-between items-center mb-8">
-                <div>
-                  <h3 className="font-serif text-sm uppercase tracking-[0.25em] text-white font-normal">Elena</h3>
-                  <p className="text-[8px] uppercase tracking-[0.35em] text-white/35 font-normal mt-0.5">La Costurera</p>
-                </div>
-                <button 
-                  onClick={() => setShowChatbot(false)} 
-                  className="text-white/25 hover:text-white/60 text-[9px] uppercase tracking-[0.2em] transition-colors duration-500 cursor-pointer"
-                >
-                  Volver
-                </button>
-              </div>
-
-              {/* Línea divisoria sutil */}
-              <div className="w-8 h-px bg-white/10 mb-8" />
-
-              {/* Mensaje — Serif ligera, sin negritas, aire editorial */}
-              <div className="space-y-5 text-left mb-10">
-                <p className="text-[15px] text-white/90 leading-[1.8] font-serif font-light">
-                  Hola, soy Elena ✨
-                </p>
-                <p className="text-[15px] text-white/70 leading-[1.8] font-serif font-light">
-                  Será un placer conocerte y escuchar tu idea.
-                </p>
-                <p className="text-[15px] text-white/90 leading-[1.8] font-serif font-normal italic">
-                  Cuéntame, ¿qué tienes en mente?
-                </p>
-              </div>
-
-              {/* Botón — Mismo vidrio translúcido del Hero */}
+            
+            <p className="text-white/60 text-xs md:text-sm leading-relaxed font-sans line-clamp-3 md:line-clamp-none">
+              {vestido.descripcion}
+            </p>
+            
+            <div className="pt-4 flex flex-col gap-3">
               <a
                 href={getWhatsAppLink()}
                 target="_blank"
@@ -205,21 +161,17 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
                     });
                   }
                 }}
-                className="glass-btn group relative inline-flex items-center justify-center w-full py-[18px] border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 bg-white/[0.06] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/92 hover:border-[#f5f2eb] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] cursor-pointer"
+                className="glass-btn group relative inline-flex items-center justify-center w-full py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.2em] font-bold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:text-[#121212] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] cursor-pointer gap-2.5"
               >
-                <span className="glass-text relative z-10 flex items-center justify-center gap-2.5 whitespace-nowrap">
-                  CONVERSEMOS
-                  <svg className="w-[14px] h-[14px] opacity-60 group-hover:opacity-100 transition-opacity duration-500" viewBox="0 0 24 24" fill="currentColor">
+                <span className="glass-text relative z-10 flex items-center justify-center gap-2 whitespace-nowrap">
+                  Cotizar {vestido.nombre}
+                  <svg className="w-3.5 h-3.5 opacity-80 group-hover:opacity-100 transition-opacity duration-500 fill-current" viewBox="0 0 24 24">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                   </svg>
                 </span>
               </a>
-
-              <p className="text-center text-[7px] text-white/15 uppercase tracking-[0.3em] mt-6">
-                Conexión directa · WhatsApp
-              </p>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
