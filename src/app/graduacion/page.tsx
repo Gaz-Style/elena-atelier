@@ -71,18 +71,6 @@ export default function GraduationLandingPage() {
             {/* Replicamos el Catálogo inmersivo que ya tiene el CTA de Agendar integrado */}
             <PortfolioClient data={categoryData} generalImages={generalImages} hideFilters={true} forceCategory="fiesta" />
 
-            {/* Formulario Cualificador Dinámico (Paso 2 del Embudo de Ventas) */}
-            <section id="agenda" className="py-20 bg-[#0d0d0d] relative z-10 border-t border-white/5">
-                <div className="max-w-4xl mx-auto px-6 text-center space-y-4 mb-12">
-                    <span className="text-brand-sand text-[10px] uppercase tracking-widest font-bold">Diseño Único de Autor</span>
-                    <h2 className="font-serif text-3xl text-white">Diseña tu Vestido Ideal</h2>
-                    <p className="text-white/60 text-xs max-w-sm mx-auto leading-relaxed">
-                        Verifica la disponibilidad de agenda en nuestro taller de Vitacura y da el primer paso para confeccionar una pieza única e irrepetible adaptada a tus medidas.
-                    </p>
-                </div>
-                <GraduationQualifierForm />
-            </section>
-
             {/* Comunas Cobertura Section */}
             <section id="comunas" className="py-20 bg-[#121212] border-t border-white/5 relative z-10">
                 <div className="max-w-4xl mx-auto px-6 text-center space-y-8">

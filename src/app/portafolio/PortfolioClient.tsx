@@ -141,6 +141,10 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
               <p className="text-sm md:text-base text-brand-sand tracking-widest uppercase font-semibold mt-1">
                 Diseño a Medida · {vestido.color}
               </p>
+              <div className="mt-2.5 text-[11px] md:text-xs text-white/80 bg-white/[0.05] border border-white/10 px-3.5 py-2.5 rounded-[1px] font-sans leading-relaxed">
+                <span className="font-semibold text-brand-sand block uppercase tracking-wider text-[10px]">Confección a Medida:</span>
+                <span className="text-white/90">$185.000 (Todo Incluido) · $140.000 (Traes tu tela)</span>
+              </div>
             </div>
             
             <p className="text-white/60 text-xs md:text-sm leading-relaxed font-sans line-clamp-3 md:line-clamp-none">
