@@ -309,7 +309,7 @@ export default function Home() {
           <div className="flex-1 w-full space-y-8">
             <div className="h-[300px] md:h-[500px] w-full rounded-sm overflow-hidden relative shadow-2xl">
               <Image
-                src="/elena-torso.jpeg"
+                src="/elena-torso.png"
                 alt="Elena La Costurera torso"
                 fill
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
