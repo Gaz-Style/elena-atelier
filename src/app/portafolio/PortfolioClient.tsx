@@ -134,26 +134,23 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
 
         {/* INFO DEL VESTIDO / INVITACIÓN DE AUTOR */}
         <div className={`flex-none text-white flex flex-col justify-end p-5 pb-6 md:p-0 md:flex-1 md:max-w-sm transition-opacity duration-300 ${isFullscreen ? 'hidden' : 'flex'}`}>
-          <div className="space-y-4 md:space-y-5 animate-fade-in">
+          <div className="space-y-3 md:space-y-4 animate-fade-in">
             <div>
-              <span className="text-[10px] uppercase tracking-widest text-brand-sand block mb-1">Modelo de Inspiración #{vestido.id}</span>
-              <h2 className="font-serif text-2xl md:text-4xl mb-1">{vestido.nombre}</h2>
-              <p className="text-xs text-brand-sand tracking-widest uppercase font-semibold">
-                Diseño a Medida · {vestido.color}
-              </p>
+              <span className="text-[9px] uppercase tracking-[0.3em] text-brand-sand block mb-1">Modelo de Inspiración #{vestido.id}</span>
+              <h2 className="font-serif text-2xl md:text-4xl font-light mb-1">{vestido.nombre}</h2>
             </div>
             
-            {/* Invitación Editorial */}
-            <div className="border-l-2 border-brand-sand/60 pl-3.5 py-0.5 space-y-1">
-              <p className="font-serif italic text-white/90 text-xs md:text-sm leading-relaxed">
+            {/* Cita de Invitación Editorial */}
+            <div className="border-l-2 border-brand-sand/60 pl-3.5 py-0.5">
+              <p className="font-serif italic text-white/90 text-xs leading-relaxed">
                 "Usa este modelo como inspiración. En nuestro Atelier crearemos una versión única y exclusiva para ti, moldeada perfectamente a tu silueta."
               </p>
             </div>
 
-            {/* Opciones de Inversión y Escasez de Lujo */}
+            {/* Opciones de Confección & Escasez */}
             <div className="bg-white/[0.04] border border-white/10 p-3.5 rounded-[1px] font-sans text-xs space-y-2">
-              <span className="font-semibold text-brand-sand uppercase tracking-wider text-[10px] block">Opciones de Confección:</span>
-              <div className="flex justify-between items-center text-[11px] border-b border-white/5 pb-1.5">
+              <span className="font-semibold text-brand-sand uppercase tracking-wider text-[9px] block">Opciones de Confección:</span>
+              <div className="flex justify-between items-center text-[11px] border-b border-white/5 pb-1">
                 <span className="text-white/80">✦ Todo Incluido (Diseño + Tela + Medida)</span>
                 <span className="font-semibold text-white ml-2">$185.000</span>
               </div>
@@ -161,12 +158,12 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
                 <span className="text-white/80">✦ Confección a Medida (Tú traes tu tela)</span>
                 <span className="font-semibold text-white ml-2">$140.000</span>
               </div>
-              <div className="pt-1.5 text-[9px] text-brand-sand uppercase tracking-widest font-medium border-t border-white/5 flex items-center gap-1">
-                <span>• Cupos limitados por agenda en Atelier Vitacura</span>
+              <div className="pt-1 text-[9px] text-brand-sand uppercase tracking-widest font-medium border-t border-white/5">
+                • Cupos limitados por agenda en Atelier Vitacura
               </div>
             </div>
             
-            <div className="pt-2 flex flex-col gap-3">
+            <div className="pt-1 flex flex-col gap-3">
               <a
                 href={getWhatsAppLink()}
                 target="_blank"
