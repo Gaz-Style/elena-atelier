@@ -132,34 +132,51 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
           )}
         </div>
 
-        {/* INFO DEL VESTIDO / INVITACIÓN DE AUTOR */}
-        <div className={`flex-none text-white flex flex-col justify-end p-5 pb-6 md:p-0 md:flex-1 md:max-w-sm transition-opacity duration-300 ${isFullscreen ? 'hidden' : 'flex'}`}>
-          <div className="space-y-3 md:space-y-4 animate-fade-in">
+        {/* INFO DEL VESTIDO / INVITACIÓN DE AUTOR (FONDO NEGRO / ELEGANCIA DE AUTOR) */}
+        <div className={`flex-none text-white bg-gradient-to-b from-[#141414] via-[#121212] to-[#0e0e0e] p-6 md:p-10 rounded-[2px] shadow-2xl flex flex-col justify-end md:flex-1 md:max-w-md transition-opacity duration-300 ${isFullscreen ? 'hidden' : 'flex'}`}>
+          <div className="space-y-6 md:space-y-7 animate-fade-in">
             <div>
-              <span className="text-[9px] uppercase tracking-[0.3em] text-brand-sand block mb-1">Modelo de Inspiración #{vestido.id}</span>
-              <h2 className="font-serif text-2xl md:text-4xl font-light mb-1">{vestido.nombre}</h2>
+              <span className="text-[10px] sm:text-xs uppercase tracking-[0.3em] text-brand-sand/80 block mb-2 font-semibold">Modelo de Inspiración #{vestido.id}</span>
+              <h2 className="font-serif text-3xl md:text-5xl text-white font-normal leading-tight">{vestido.nombre}</h2>
             </div>
             
-            {/* Cita de Invitación Editorial */}
-            <div className="border-l-2 border-brand-sand/60 pl-3.5 py-0.5">
-              <p className="font-serif italic text-white/90 text-xs leading-relaxed">
-                "Usa este modelo como inspiración. En nuestro Atelier crearemos una versión única y exclusiva para ti, moldeada perfectamente a tu silueta."
+            {/* Texto de Invitación Editorial con Línea de Alineación */}
+            <div className="border-l-2 border-brand-sand/50 pl-4 py-1 space-y-1.5">
+              <p className="font-serif text-white/95 text-base sm:text-lg font-normal leading-snug italic">
+                Hazlo tuyo, hasta el último detalle.
+              </p>
+              <p className="font-sans text-white/60 text-xs sm:text-sm leading-relaxed">
+                Personaliza el color, escote, tela, abertura y detalles para crear un vestido que refleje tu estilo.
               </p>
             </div>
 
-            {/* Opciones de Confección & Escasez */}
-            <div className="bg-white/[0.04] border border-white/10 p-3.5 rounded-[1px] font-sans text-xs space-y-2">
-              <span className="font-semibold text-brand-sand uppercase tracking-wider text-[9px] block">Opciones de Confección:</span>
-              <div className="flex justify-between items-center text-[11px] border-b border-white/5 pb-1">
-                <span className="text-white/80">✦ Todo Incluido (Diseño + Tela + Medida)</span>
-                <span className="font-semibold text-white ml-2">$185.000</span>
+            {/* Separador decorativo */}
+            <div className="flex items-center gap-3 opacity-30">
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-brand-sand to-transparent"></div>
+              <span className="text-brand-sand text-[8px] tracking-[0.5em]">✦</span>
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-brand-sand to-transparent"></div>
+            </div>
+
+            {/* Opciones de Confección en Cuadro Contenedor */}
+            <div className="bg-white/[0.03] border border-white/[0.08] p-5 rounded-sm font-sans space-y-3.5 relative overflow-hidden">
+              {/* Acento superior decorativo */}
+              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-brand-sand/40 to-transparent"></div>
+              
+              <span className="font-semibold text-brand-sand/90 uppercase tracking-[0.2em] text-[10px] sm:text-xs block">Confección a medida</span>
+              
+              <div className="flex justify-between items-center text-xs sm:text-sm border-b border-white/[0.06] pb-3">
+                <span className="text-white/85 font-medium">✦ Vestido completo · Tela incluida</span>
+                <span className="font-bold text-white text-sm sm:text-base ml-2 whitespace-nowrap">$185.000</span>
               </div>
-              <div className="flex justify-between items-center text-[11px]">
-                <span className="text-white/80">✦ Confección a Medida (Tú traes tu tela)</span>
-                <span className="font-semibold text-white ml-2">$140.000</span>
+              
+              <div className="flex justify-between items-center text-xs sm:text-sm border-b border-white/[0.06] pb-3 pt-0.5">
+                <span className="text-white/85 font-medium">✦ Solo Confección · Tú traes la tela</span>
+                <span className="font-bold text-white text-sm sm:text-base ml-2 whitespace-nowrap">$140.000</span>
               </div>
-              <div className="pt-1 text-[9px] text-brand-sand uppercase tracking-widest font-medium border-t border-white/5">
-                • Cupos limitados por agenda en Atelier Vitacura
+
+              {/* Microcopy inferior de confianza */}
+              <div className="pt-0.5 text-[11px] sm:text-xs text-brand-sand/80 font-medium flex items-center gap-1.5">
+                <span className="text-brand-sand/60">✓</span> Incluye 2 sesiones de prueba y ajuste
               </div>
             </div>
             
@@ -177,11 +194,11 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
                     });
                   }
                 }}
-                className="glass-btn group relative inline-flex items-center justify-center w-full py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.2em] font-bold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:text-[#121212] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] cursor-pointer gap-2.5"
+                className="glass-btn group relative inline-flex items-center justify-center w-full py-4 sm:py-5 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-sm sm:text-base uppercase tracking-[0.2em] font-bold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:text-[#121212] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] cursor-pointer gap-2.5"
               >
-                <span className="glass-text relative z-10 flex items-center justify-center gap-2 whitespace-nowrap">
-                  Diseñar Mi Versión
-                  <svg className="w-3.5 h-3.5 opacity-80 group-hover:opacity-100 transition-opacity duration-500 fill-current" viewBox="0 0 24 24">
+                <span className="glass-text relative z-10 flex items-center justify-center gap-2.5 whitespace-nowrap !text-sm sm:!text-base">
+                  Diseñar con Elena
+                  <svg className="glass-arrow w-4 h-4 fill-current opacity-90 group-hover:opacity-100" viewBox="0 0 24 24">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                   </svg>
                 </span>
