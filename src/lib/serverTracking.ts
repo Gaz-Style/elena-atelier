@@ -28,10 +28,10 @@ export async function sendServerEvent(
   userData: TrackingUserData,
   customData: TrackingCustomData = {}
 ) {
-  const metaPixelId = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID;
-  const metaAccessToken = process.env.FACEBOOK_ACCESS_TOKEN;
-  const tiktokPixelId = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID;
-  const tiktokAccessToken = process.env.TIKTOK_ACCESS_TOKEN;
+  const metaPixelId = process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID || process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID;
+  const metaAccessToken = process.env.FACEBOOK_ACCESS_TOKEN || process.env.TOKEN_DE_ACCESO_A_FACEBOOK;
+  const tiktokPixelId = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID || process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID;
+  const tiktokAccessToken = process.env.TIKTOK_ACCESS_TOKEN || process.env.TOKEN_DE_ACCESO_DE_TIKTOK;
 
   const eventTime = Math.floor(Date.now() / 1000);
   const hashedEmail = hashSHA256(userData.email);
