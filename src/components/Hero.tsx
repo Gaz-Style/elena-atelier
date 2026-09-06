@@ -1,19 +1,29 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Link from 'next/link';
 import { trackGAEvent } from '@/components/GoogleAnalytics';
 
 export default function Hero() {
+    const [isSafari, setIsSafari] = useState(false);
+
+    useEffect(() => {
+        const ua = navigator.userAgent;
+        const safari = /^((?!chrome|android).)*safari/i.test(ua) || /iPad|iPhone|iPod/.test(ua);
+        setIsSafari(safari);
+    }, []);
+
     const { scrollY } = useScroll();
     
     // Al deslizar, la opacidad de la capa Blanco y Negro pasa de 0 (transparente) a 1 (100% B&N)
     const bwOpacity = useTransform(scrollY, [0, 350], [0, 1]);
-    const scaleImg = useTransform(scrollY, [0, 600], [1, 1.06]);
-    const yImg = useTransform(scrollY, [0, 600], [0, 36]);
+    // En Safari/iOS, deshabilitamos scale/translate del parallax para evitar jank en scroll
+    const scaleImg = useTransform(scrollY, [0, 600], [1, isSafari ? 1 : 1.06]);
+    const yImg = useTransform(scrollY, [0, 600], [0, isSafari ? 0 : 36]);
 
     // Parallax y desvanecimiento para el contenedor del texto
-    const yText = useTransform(scrollY, [0, 500], [0, 120]);
+    const yText = useTransform(scrollY, [0, 500], [0, isSafari ? 40 : 120]);
     const opacityText = useTransform(scrollY, [0, 400], [1, 0]);
 
     const handleWhatsAppClick = () => {
@@ -28,22 +38,27 @@ export default function Hero() {
     };
 
     return (
-        <section className="relative h-screen overflow-hidden">
+        <section className="relative h-[100dvh] h-screen overflow-hidden">
             <div className="fixed inset-0 -z-10 bg-brand-charcoal">
                 {/* 1. Capa de Fondo: Imagen Tratada Color (100% Opacidad, nítida y expuesta) */}
                 <motion.img
-                    style={{ scale: scaleImg, y: yImg }}
-                    src="/trabajos/model_desnuda_color.png"
+                    style={{ scale: scaleImg, y: yImg, willChange: 'transform' }}
+                    src="/trabajos/model_desnuda_color.webp"
                     alt="ELENA LA COSTURERA - Somos tu piel (Color)"
                     className="absolute inset-0 w-full h-full object-cover object-center"
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
                 />
 
                 {/* 2. Capa Superior: Imagen Tratada Blanco y Negro (Aparece lentamente al hacer scroll) */}
                 <motion.img
-                    style={{ opacity: bwOpacity, scale: scaleImg, y: yImg }}
-                    src="/trabajos/model_desnuda_bw.png"
+                    style={{ opacity: bwOpacity, scale: scaleImg, y: yImg, willChange: 'transform, opacity' }}
+                    src="/trabajos/model_desnuda_bw.webp"
                     alt="ELENA LA COSTURERA - Somos tu piel (B&W)"
                     className="absolute inset-0 w-full h-full object-cover object-center"
+                    loading="eager"
+                    decoding="async"
                 />
 
                 {/* Un viñeteado mínimo y sutil en los bordes para mantener la elegancia de la foto */}

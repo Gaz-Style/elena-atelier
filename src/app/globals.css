@@ -289,9 +289,30 @@ input, select, textarea {
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-overflow-scrolling: touch;
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* Safari/iOS Compatibility Fixes */
+@supports (-webkit-touch-callout: none) {
+  /* Fix viewport height for Safari's dynamic address bar */
+  .h-screen {
+    height: -webkit-fill-available;
+  }
+  
+  /* Reduce backdrop-blur intensity on iOS to prevent GPU overhead */
+  @media (max-width: 768px) {
+    .backdrop-blur-xl {
+      -webkit-backdrop-filter: blur(6px) !important;
+      backdrop-filter: blur(6px) !important;
+    }
+    .backdrop-blur-sm {
+      -webkit-backdrop-filter: blur(2px) !important;
+      backdrop-filter: blur(2px) !important;
+    }
   }
 }
 
