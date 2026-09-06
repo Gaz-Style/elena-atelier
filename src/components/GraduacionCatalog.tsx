@@ -37,7 +37,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
       onClick={onClose}
     >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/90 backdrop-blur-sm lightbox-enter" />
+      <div className="absolute inset-0 bg-black/95 lightbox-enter" />
 
       {/* Content */}
       <div
@@ -72,14 +72,14 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
             <>
               <button
                 onClick={prev}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm text-white/80 hover:bg-black/60 hover:text-white flex items-center justify-center transition-all"
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 text-white/80 hover:bg-black/70 hover:text-white flex items-center justify-center transition-all"
                 aria-label="Anterior"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
                 onClick={next}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-sm text-white/80 hover:bg-black/60 hover:text-white flex items-center justify-center transition-all"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 text-white/80 hover:bg-black/70 hover:text-white flex items-center justify-center transition-all"
                 aria-label="Siguiente"
               >
                 <ChevronRight className="w-5 h-5" />
@@ -179,7 +179,7 @@ function ProductCard({ vestido, onClick }: { vestido: Vestido; onClick: () => vo
 
         {/* Quick CTA on hover */}
         <div className={`absolute bottom-0 left-0 right-0 p-4 transition-all duration-500 ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
-          <span className="block w-full text-center text-white text-[10px] uppercase tracking-[0.3em] font-semibold bg-black/50 backdrop-blur-sm py-3 px-4 rounded-sm border border-white/10 hover:bg-black/70 transition-colors">
+          <span className="block w-full text-center text-white text-[10px] uppercase tracking-[0.3em] font-semibold bg-black/60 py-3 px-4 rounded-sm border border-white/10 hover:bg-black/70 transition-colors">
             Ver Detalles
           </span>
         </div>
@@ -261,7 +261,7 @@ function FilterBar({
       <div
         className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isOpen ? 'max-h-[600px] opacity-100 mb-10' : 'max-h-0 opacity-0'}`}
       >
-        <div className="bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-sm p-6 sm:p-8 space-y-6">
+        <div className="bg-white/[0.03] border border-white/10 rounded-sm p-6 sm:p-8 space-y-6">
           {/* Silueta */}
           <div>
             <h4 className="text-[10px] uppercase tracking-[0.3em] font-bold text-white/50 mb-3">Silueta</h4>

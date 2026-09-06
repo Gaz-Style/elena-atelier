@@ -89,7 +89,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
       className="fixed inset-0 z-[9999] flex items-center justify-center"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/95" />
       <div
         className="relative z-10 flex flex-col md:flex-row items-stretch md:items-center gap-0 md:gap-12 w-full h-[100dvh] md:h-auto max-w-6xl mx-auto md:px-6 py-0 md:py-8 overflow-hidden md:overflow-visible"
         onClick={(e) => e.stopPropagation()}

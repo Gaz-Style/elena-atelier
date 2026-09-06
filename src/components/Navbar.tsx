@@ -25,7 +25,7 @@ export default function Navbar() {
 
     return (
         <>
-            <nav className="fixed top-0 w-full z-50 bg-black/20 backdrop-blur-xl border-b border-white/10 transition-all duration-300">
+            <nav className="fixed top-0 w-full z-50 bg-black/30 backdrop-blur-md md:backdrop-blur-xl border-b border-white/10 transition-all duration-300">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between relative">
                     {/* Left Area: Back Button (History) & Brand Logo */}
                     <div className="flex items-center gap-4">
@@ -97,7 +97,7 @@ export default function Navbar() {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="fixed top-20 left-0 w-full bg-black/90 backdrop-blur-xl border-b border-white/10 p-6 flex flex-col gap-6 shadow-xl z-40"
+                        className="fixed top-20 left-0 w-full bg-black/90 backdrop-blur-md border-b border-white/10 p-6 flex flex-col gap-6 shadow-xl z-40"
                     >
                         {navLinks.map((link) => (
                             <Link

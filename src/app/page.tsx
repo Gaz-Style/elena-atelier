@@ -177,19 +177,23 @@ export default function Home() {
             <div className="flex flex-col gap-4 md:gap-8">
               {/* Imagen 1 - Dominante (Muy Alta) */}
               <div className="aspect-[3/5] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500">
-                <img 
+                <Image 
                   src="/trabajos/PHOTO-2026-02-25-13-20-08.jpg" 
                   alt="Trabajo Destacado 1" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  fill
+                  sizes="(max-width: 768px) 50vw, 40vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
               </div>
               
               {/* Imagen 3 - Apaisada Horizontal */}
               <div className="aspect-[4/3] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500">
-                <img 
+                <Image 
                   src="/trabajos/PHOTO-2026-02-25-13-20-10.jpg" 
                   alt="Trabajo Destacado 3" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  fill
+                  sizes="(max-width: 768px) 50vw, 40vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
               </div>
             </div>
@@ -198,19 +202,23 @@ export default function Home() {
             <div className="flex flex-col gap-4 md:gap-8">
               {/* Imagen 2 - Cuadrada */}
               <div className="aspect-[1/1] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500">
-                <img 
+                <Image 
                   src="/trabajos/PHOTO-2026-02-25-13-20-09.jpg" 
                   alt="Trabajo Destacado 2" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  fill
+                  sizes="(max-width: 768px) 50vw, 40vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
               </div>
 
               {/* Imagen 4 - Mediana Alta */}
               <div className="aspect-[3/4.25] relative group rounded-sm overflow-hidden bg-brand-sand/10 border border-white/5 shadow-sm hover:shadow-xl transition-all duration-500">
-                <img 
+                <Image 
                   src="/trabajos/PHOTO-2026-02-25-13-20-11.jpg" 
                   alt="Trabajo Destacado 4" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  fill
+                  sizes="(max-width: 768px) 50vw, 40vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
               </div>
             </div>
