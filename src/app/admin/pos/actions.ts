@@ -2235,6 +2235,7 @@ export async function getOperatorsDailyLoadAction() {
 }
 
 import { enviar_correo_confirmacion } from '@/lib/agenda';
+import { toSantiagoISO } from '@/lib/timezone';
 
 function parseChileDateString(isoString: string) {
     const d = new Date(isoString);
@@ -2294,7 +2295,7 @@ export async function getAvailableSlotsAction(dateStr: string) {
 
         for (let h = startHour; h < endHour; h++) {
             const horaStr = h.toString().padStart(2, '0') + ':00';
-            const bloqueISO = `${dateStr}T${h.toString().padStart(2, '0')}:00:00-04:00`;
+            const bloqueISO = toSantiagoISO(dateStr, `${h.toString().padStart(2, '0')}:00:00`);
             const bloqueDate = new Date(bloqueISO);
             
             if (bloqueDate > new Date() && !horasOcupadas.includes(horaStr)) {
@@ -2322,7 +2323,7 @@ export async function confirmPresencialBookingAction(payload: {
         const { budgetId, dateStr, timeStr, customerName, customerEmail, customerPhone, orderPayload } = payload;
         
         const supabase = getAdminClient();
-        const fechaHoraIso = `${dateStr}T${timeStr.padStart(5, '0')}:00-04:00`;
+        const fechaHoraIso = toSantiagoISO(dateStr, timeStr);
 
         // 1. Manage POS order (ONLY if payment method is local/presencial)
         if (orderPayload.paymentMethod === 'local') {
@@ -2471,7 +2472,7 @@ export async function getMonthAvailabilityAction(year: number, month: number) {
                 const horaStr = h.toString().padStart(2, '0') + ':00';
                 
                 // If checking today, don't allow past hours
-                const bloqueISO = `${dateStr}T${horaStr}:00-04:00`;
+                const bloqueISO = toSantiagoISO(dateStr, horaStr);
                 const bloqueDate = new Date(bloqueISO);
                 
                 if (bloqueDate < now) {

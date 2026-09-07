@@ -10,6 +10,7 @@ const getAdminClient = () => {
 };
 
 import { enviar_correo_confirmacion } from '@/lib/agenda';
+import { toSantiagoISO } from '@/lib/timezone';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
 
@@ -56,7 +57,7 @@ export async function bookCatalogConsultationAction(payload: {
             return { success: false, error: 'No se encontró el perfil de cliente.' };
         }
 
-        const fechaHoraIso = `${dateStr}T${timeStr.padStart(5, '0')}:00-04:00`;
+        const fechaHoraIso = toSantiagoISO(dateStr, timeStr);
 
         const nombre = customer.full_name ? customer.full_name.split(' ')[0] : 'Cliente';
         const apellido = customer.full_name ? customer.full_name.split(' ').slice(1).join(' ') : '';

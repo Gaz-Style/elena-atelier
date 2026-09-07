@@ -147,7 +147,7 @@ export default function PremiumCalendar({ onConfirm, isConfirming = false }: Pre
                 <div className="space-y-2">
                     <h3 className="font-serif text-2xl text-white">
                         {selectedDate 
-                            ? new Date(`${selectedDate}T12:00:00-04:00`).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' }) 
+                            ? new Date(`${selectedDate}T12:00:00`).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' }) 
                             : 'Seleccione un día'}
                     </h3>
                     <p className="text-xs text-white/40 uppercase tracking-widest font-bold">Horas Disponibles</p>

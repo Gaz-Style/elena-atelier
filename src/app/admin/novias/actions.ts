@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import nodemailer from 'nodemailer';
 import { headers } from 'next/headers';
+import { toSantiagoISO } from '@/lib/timezone';
 // ─── Types ───────────────────────────────────────────────────
 type ProjectType = 'novia' | 'madrina' | 'graduacion';
 type ServiceType = 'modificacion_tienda' | 'vestido_propio' | 'bespoke';
@@ -175,7 +176,7 @@ export async function createBridalProject(formData: FormData) {
         parsedPaymentPlan = { cuotas: defaultCuotas };
     }
     
-    const eventDate = eventDateStr ? new Date(`${eventDateStr}T12:00:00-04:00`) : null;
+    const eventDate = eventDateStr ? new Date(toSantiagoISO(eventDateStr, '12:00:00')) : null;
     
     // 1. Create the project
     const { data: project, error: projError } = await supabase
@@ -338,7 +339,7 @@ export async function updateBridalProject(id: string, formData: FormData) {
     
     const eventDate = formData.get('event_date');
     if (eventDate !== null && eventDate !== '') {
-        updates.event_date = new Date(`${eventDate}T12:00:00-04:00`).toISOString();
+        updates.event_date = toSantiagoISO(eventDate as string, '12:00:00');
     }
     
     updates.updated_at = new Date().toISOString();
@@ -1284,7 +1285,7 @@ export async function processBridalFormAction(projectId: string, formData: FormD
 
         // 2. Update Project
         const projectData: any = {};
-        if (formData.get('eventDate')) projectData.event_date = new Date(`${formData.get('eventDate')}T12:00:00-04:00`).toISOString();
+        if (formData.get('eventDate')) projectData.event_date = toSantiagoISO(formData.get('eventDate') as string, '12:00:00');
         if (formData.get('eventVenue')) projectData.event_venue = formData.get('eventVenue');
         if (formData.get('notes')) projectData.description = formData.get('notes');
         
@@ -1865,7 +1866,7 @@ export async function updateMilestoneDateAction(
         }
 
         const timePart = newTimeStr || '12:00';
-        let dateIso = new Date(`${newDateStr}T${timePart}:00-04:00`).toISOString();
+        let dateIso = toSantiagoISO(newDateStr, timePart);
         let agendaEventId = milestone.agenda_event_id;
 
         // 3. Sync with agendamientos (agenda)

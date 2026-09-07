@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { revalidatePath } from 'next/cache';
 import AgendaForm from './AgendaForm';
 import AgendaSearchBar from './AgendaSearchBar';
+import { toSantiagoISO } from '@/lib/timezone';
 
 function groupProductionOrdersForDeliveries(orders: any[]) {
     const grouped: Record<string, {
@@ -84,7 +85,7 @@ export default async function AgendaPage({
     
     const formatToTZ = (d: Date, endOfDay = false) => {
         const dateStr = d.toLocaleDateString('en-CA');
-        return new Date(`${dateStr}T${endOfDay ? '23:59:59' : '00:00:00'}-04:00`);
+        return new Date(toSantiagoISO(dateStr, endOfDay ? '23:59:59' : '00:00:00'));
     };
 
     if (view === 'year') {
@@ -101,8 +102,8 @@ export default async function AgendaPage({
         endGridWeek.setDate(endGridWeek.getDate() + 6);
         endQuery = formatToTZ(endGridWeek, true);
     } else {
-        startQuery = new Date(`${selectedDateStr}T00:00:00-04:00`);
-        endQuery = new Date(`${selectedDateStr}T23:59:59-04:00`);
+        startQuery = new Date(toSantiagoISO(selectedDateStr, '00:00:00'));
+        endQuery = new Date(toSantiagoISO(selectedDateStr, '23:59:59'));
     }
 
     let query = supabase
@@ -251,7 +252,7 @@ export default async function AgendaPage({
             const tipo = formData.get('tipo') as string;
             const horaStr = formData.get('hora') as string;
             const dateStr = formData.get('date') as string;
-            const fechaHoraIso = new Date(`${dateStr}T${horaStr}:00-04:00`).toISOString();
+            const fechaHoraIso = toSantiagoISO(dateStr, horaStr);
             
             if (tipo === 'cliente') {
                 const nombre = formData.get('nombre') as string;

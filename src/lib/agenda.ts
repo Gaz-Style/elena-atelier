@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
+import { toSantiagoISO } from './timezone';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -19,12 +20,12 @@ export async function consultar_disponibilidad(fecha_inicial: string) {
     try {
         const slotsEncontrados = [];
         const maxDiasBusqueda = 7;
-        let fechaActual = new Date(`${fecha_inicial}T12:00:00-04:00`);
+        let fechaActual = new Date(toSantiagoISO(fecha_inicial, '12:00:00'));
 
         const { data: configs } = await supabase.from('configuracion_horarios').select('*').eq('activo', true);
         if (!configs || configs.length === 0) return "El taller no tiene horarios configurados.";
 
-        const startOfSearch = new Date(`${fecha_inicial}T00:00:00-04:00`);
+        const startOfSearch = new Date(toSantiagoISO(fecha_inicial, '00:00:00'));
         const endOfSearch = new Date(startOfSearch);
         endOfSearch.setDate(endOfSearch.getDate() + maxDiasBusqueda);
 
@@ -63,7 +64,7 @@ export async function consultar_disponibilidad(fecha_inicial: string) {
 
                 for (let h = startHour; h < endHour; h++) {
                     const horaStr = h.toString().padStart(2, '0');
-                    const bloqueISO = `${fechaStr}T${horaStr}:00:00-04:00`;
+                    const bloqueISO = toSantiagoISO(fechaStr, `${horaStr}:00:00`);
                     
                     const bloqueDate = new Date(bloqueISO);
                     if (bloqueDate > new Date()) {
