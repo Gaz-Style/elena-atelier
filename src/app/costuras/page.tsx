@@ -42,21 +42,15 @@ export default function CosturasPillarPage() {
             <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-[#C17F5F] mix-blend-screen filter blur-[160px] opacity-[0.04]"></div>
             <div className="absolute bottom-[-10%] left-[-15%] w-[500px] h-[500px] rounded-full bg-[#C17F5F] mix-blend-screen filter blur-[140px] opacity-[0.03]"></div>
 
-            {/* HERO SECTION CON VIDEO REAL DE ELENA COSIENDO EN EL FONDO */}
+            {/* HERO SECTION CON FOTOGRAFÍA EDITORIAL DE LUJO EN EL FONDO */}
             <header className="relative min-h-[75vh] flex items-center justify-center pt-28 pb-16 px-6 overflow-hidden">
-                {/* Video de Fondo con Overlay Oscuro Elegante */}
+                {/* Imagen de Fondo de Alta Definición con Degradado Cinematic */}
                 <div className="absolute inset-0 z-0">
-                    <video
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        poster="/elena_cociendo.webp"
-                        className="w-full h-full object-cover object-center scale-105 filter brightness-[0.40] contrast-[1.1]"
-                    >
-                        <source src="/Elena cociendo.mp4" type="video/mp4" />
-                        <img src="/elena_cociendo.webp" alt="Elena cociendo" className="w-full h-full object-cover" />
-                    </video>
+                    <img
+                        src="/hero_seamstress_taller.png"
+                        alt="Taller de sastrería y arreglos de ropa de alta costura"
+                        className="w-full h-full object-cover object-center scale-105 filter brightness-[0.38] contrast-[1.15]"
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/60 to-transparent" />
                     <div className="absolute inset-0 bg-gradient-to-r from-[#0d0d0d]/80 via-transparent to-[#0d0d0d]/80" />
                 </div>

@@ -26,8 +26,8 @@ export default function BrandCarousel({ comuna }: BrandCarouselProps) {
             : 'standard'
     }));
 
-    // Duplicamos el array para lograr un bucle infinito continuo e imperceptible
-    const doubleBrands = [...brands, ...brands, ...brands];
+    // Duplicamos exactamente una vez para lograr 2 bloques idénticos y bucle 100% fluido a -50%
+    const marqueeBrands = [...brands, ...brands];
 
     return (
         <section className="py-12 sm:py-16 md:py-20 my-4 sm:my-8 relative z-10 overflow-hidden pointer-events-none select-none">
@@ -39,8 +39,8 @@ export default function BrandCarousel({ comuna }: BrandCarouselProps) {
 
             {/* CONTENEDOR MASCARADO DEL CARRUSEL INFINITO CON GRADIENT FADE EN BORDES */}
             <div className="relative w-full overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_48px,_black_calc(100%-48px),transparent_100%)] sm:[mask-image:_linear-gradient(to_right,transparent_0,_black_96px,_black_calc(100%-96px),transparent_100%)]">
-                <div className="animate-marquee flex items-center gap-16 sm:gap-24 md:gap-32 py-6 sm:py-8">
-                    {doubleBrands.map((brand, idx) => (
+                <div className="animate-marquee flex items-center gap-16 sm:gap-24 md:gap-32 py-6 sm:py-8 w-max">
+                    {marqueeBrands.map((brand, idx) => (
                         <div
                             key={`brand-${brand.id}-${idx}`}
                             className={`flex items-center justify-center shrink-0 px-2 sm:px-4 ${
@@ -53,7 +53,7 @@ export default function BrandCarousel({ comuna }: BrandCarouselProps) {
                                     : 'h-4.5 sm:h-5.5 md:h-6 opacity-85'
                             }`}
                         >
-                            {/* Logotipos en blanco ceniza: Tamaño general reducido al 50% */}
+                            {/* Logotipos en blanco ceniza */}
                             <img
                                 src={brand.src}
                                 alt={brand.alt}
@@ -66,7 +66,7 @@ export default function BrandCarousel({ comuna }: BrandCarouselProps) {
                                         ? 'max-w-[45px] sm:max-w-[60px]'
                                         : 'max-w-[65px] sm:max-w-[85px]'
                                 }`}
-                                loading="lazy"
+                                loading="eager"
                             />
                         </div>
                     ))}
