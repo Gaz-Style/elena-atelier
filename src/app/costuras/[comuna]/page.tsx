@@ -1,7 +1,8 @@
 import React from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, MapPin, Clock, Truck, ShieldCheck, Scissors, Star } from 'lucide-react';
+import { ArrowRight, MapPin, Clock, Truck, ShieldCheck, Scissors, Star, Camera, UserCheck } from 'lucide-react';
+import BrandCarousel from '@/components/BrandCarousel';
 
 function formatTitle(slug: string) {
     if (slug === 'el-huinganal') return 'El Huinganal';
@@ -23,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const comuna = formatTitle(resolvedParams.comuna);
 
     const title = `Arreglos de Ropa y Sastrería a Domicilio en ${comuna} | ELENA`;
-    const description = `Recupera el calce original de tus prendas en ${comuna} sin moverte de tu casa. Expertos en trajes, vestidos de fiesta y reparaciones técnicas complejas.`;
+    const description = `Recupera el calce original de tus prendas en ${comuna} sin moverte de tu casa. Expertos en trajes, vestidos y reparaciones técnicas con retiro a domicilio.`;
 
     return {
         title,
@@ -36,10 +37,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
 }
 
-function getWhatsAppUrl(comunaFormatted: string) {
+function getWhatsAppUrl(comunaFormatted: string, servicio: string = "general") {
     const phone = "56937667709";
-    const text = `Hola. Tengo una prenda que necesita arreglo y estoy en el sector de ${comunaFormatted}. ¿Puedo enviarles una foto rápida para saber si se puede reparar y cuánto costaría?`;
-    
+    const text = `Hola. Tengo una prenda que necesita arreglo (${servicio}) y estoy en el sector de ${comunaFormatted}. ¿Puedo enviarles una foto rápida para saber si se puede reparar y cuánto costaría?`;
+    return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+}
+
+function getWhatsAppPhotoUrl(comunaFormatted: string) {
+    const phone = "56937667709";
+    const text = `Hola Elena Atelier. Estoy en ${comunaFormatted} y les envío una foto de mi prenda para cotizar el arreglo. ¿Pueden darme un precio estimado?`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 }
 
@@ -62,128 +68,253 @@ export default async function CosturasComunaPage({ params }: Props) {
             <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#C17F5F] mix-blend-screen filter blur-[150px] opacity-[0.05] animate-pulse"></div>
             <div className="absolute bottom-[20%] right-[-10%] w-[400px] h-[400px] rounded-full bg-[#C17F5F] mix-blend-screen filter blur-[120px] opacity-[0.05]"></div>
 
-            {/* HERO SECTION */}
-            <header className="max-w-3xl mx-auto px-6 pt-32 pb-16 text-center space-y-6 relative z-10">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#C17F5F]/15 text-[#C17F5F] text-[9px] uppercase tracking-wider font-bold rounded-sm">
-                    <MapPin className="w-3.5 h-3.5" /> Servicio y retiro a domicilio en {comuna}
-                </div>
-                <div className="space-y-3">
-                    <h1 className="font-serif text-4xl md:text-5xl text-white tracking-tight leading-tight font-extrabold">
-                        Arreglos de Ropa y Sastrería a Domicilio en {comuna}
-                    </h1>
-                    <p className="text-white/70 text-sm md:text-base max-w-2xl mx-auto leading-relaxed font-light">
-                        Recupera el calce original de tus prendas en {comuna} sin moverte de tu casa. Expertos en trajes, vestidos de fiesta y reparaciones técnicas complejas.
-                    </p>
+            {/* HERO SECTION CON VIDEO REAL DE ELENA COSIENDO EN EL FONDO */}
+            <header className="relative min-h-[75vh] flex items-center justify-center pt-28 pb-16 px-6 overflow-hidden">
+                {/* Video de Fondo con Overlay Oscuro Elegante */}
+                <div className="absolute inset-0 z-0">
+                    <video
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        poster="/elena_cociendo.webp"
+                        className="w-full h-full object-cover object-center scale-105 filter brightness-[0.40] contrast-[1.1]"
+                    >
+                        <source src="/Elena cociendo.mp4" type="video/mp4" />
+                        <img src="/elena_cociendo.webp" alt="Elena cociendo" className="w-full h-full object-cover" />
+                    </video>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/60 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#0d0d0d]/80 via-transparent to-[#0d0d0d]/80" />
                 </div>
 
-                <div className="flex flex-col items-center justify-center gap-3 pt-2">
-                    <Link 
-                        href={getWhatsAppUrl(comuna)} 
-                        target="_blank" 
-                        className="w-full sm:w-auto bg-[#C17F5F] hover:bg-[#b05c4b] text-white px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2"
-                    >
-                        Agendar Retiro por WhatsApp <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                    <span className="text-[10px] uppercase tracking-wider text-white/40 flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 text-[#C17F5F]" /> Entregas promedio en 7 días
-                    </span>
+                <div className="max-w-4xl mx-auto text-center relative z-10">
+                    <p className="inline-flex items-center gap-2 text-xs text-[#C17F5F] uppercase tracking-widest font-bold mb-6 sm:mb-8 md:mb-10">
+                        <MapPin className="w-3.5 h-3.5" /> Servicio y retiro a domicilio en {comuna}
+                    </p>
+                    <div className="space-y-5">
+                        <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-white tracking-tight leading-tight font-extrabold max-w-3xl mx-auto drop-shadow-md">
+                            Arreglos de Ropa y Sastrería en {comuna}
+                        </h1>
+                        <p className="text-white/80 text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-light drop-shadow">
+                            Recupera el calce perfecto de tus prendas en {comuna} sin salir de casa. Ajustes de precisión en trajes, vestidos, pantalones y abrigos con retiro directo en tu puerta.
+                        </p>
+                    </div>
+
+                    {/* DOBLE CTA WHATSAPP */}
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 max-w-md mx-auto">
+                        <Link 
+                            href={getWhatsAppUrl(comuna)} 
+                            target="_blank" 
+                            className="w-full sm:w-1/2 bg-[#C17F5F] hover:bg-[#b05c4b] text-white px-6 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2 shadow-lg shadow-[#C17F5F]/20 hover:scale-[1.02]"
+                        >
+                            Agendar Retiro <ArrowRight className="w-4 h-4" />
+                        </Link>
+                        <Link 
+                            href={getWhatsAppPhotoUrl(comuna)} 
+                            target="_blank" 
+                            className="w-full sm:w-1/2 border border-[#C17F5F]/50 bg-black/40 hover:bg-[#C17F5F]/20 text-[#E29D7A] hover:text-white px-6 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2 backdrop-blur-md hover:scale-[1.02]"
+                        >
+                            <Camera className="w-4 h-4 text-[#C17F5F]" /> Cotizar con Foto
+                        </Link>
+                    </div>
+
+                    <div className="pt-4 flex flex-wrap items-center justify-center gap-6 text-xs text-white/60 font-light">
+                        <span className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-[#C17F5F]" /> Entregas promedio en 7 días
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <UserCheck className="w-3.5 h-3.5 text-[#C17F5F]" /> Costurera a Domicilio en {comuna}
+                        </span>
+                    </div>
                 </div>
             </header>
 
-            {/* SECCIÓN VISUAL: ARREGLOS Y REPARACIONES FRECUENTES */}
-            <section className="max-w-4xl mx-auto px-6 py-12 relative z-10 border-t border-white/5">
-                <div className="text-center mb-10 space-y-2">
-                    <h2 className="font-serif text-2xl text-white">Servicios en el Taller</h2>
-                    <p className="text-xs text-white/50 uppercase tracking-widest">Problemas frecuentes que solucionamos a domicilio en {comuna}</p>
-                </div>
+            {/* CARRUSEL DE MARCAS DE PRESTIGIO CON LOGOS REALES (ESTILO SOJO LUXURY) */}
+            <BrandCarousel comuna={comuna} />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Caso 1: Jeans Rotos / Remiendos */}
-                    <div className="border border-white/5 rounded-sm bg-[#121212] overflow-hidden group">
-                        <div className="relative aspect-video w-full overflow-hidden bg-black/40">
-                            <img 
-                                src="/patched_jeans_repair.png" 
-                                alt="Reparación de roturas en pantalones y jeans" 
-                                className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" 
+            {/* DESTACADO: SERVICIO COSTURERA A DOMICILIO CON ENFOQUE SEO Y DISEÑO DE LUJO */}
+            <section className="max-w-5xl mx-auto px-6 py-12 relative z-10">
+                <div className="relative overflow-hidden border border-[#C17F5F]/30 rounded-lg bg-[#141414] shadow-2xl">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 items-stretch">
+                        {/* FOTOGRAFÍA PROFESIONAL DE COSTURERA TOMANDO MEDIDAS */}
+                        <div className="lg:col-span-5 relative min-h-[300px] sm:min-h-[360px] lg:min-h-full overflow-hidden bg-black">
+                            <img
+                                src="/costurera_domicilio_medidas.png"
+                                alt={`Costurera a domicilio en ${comuna} tomando medidas exactas a una persona`}
+                                className="w-full h-full object-cover object-center opacity-90 transition-transform duration-700 hover:scale-105"
                             />
-                            <div className="absolute top-3 left-3 bg-[#C17F5F]/20 text-[#C17F5F] text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-sm">
-                                Jeans & Pantalones
-                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-[#141414]" />
                         </div>
-                        <div className="p-5 space-y-2">
-                            <h3 className="font-serif text-lg text-white">Reparación de Jeans</h3>
-                            <p className="text-xs text-white/60 leading-relaxed font-light">
-                                Parches y costuras de refuerzo en zonas gastadas o rotas.
-                            </p>
-                        </div>
-                    </div>
 
-                    {/* Caso 2: Cierres de Parkas / Chaquetas */}
-                    <div className="border border-white/5 rounded-sm bg-[#121212] overflow-hidden group">
-                        <div className="relative aspect-video w-full overflow-hidden bg-black/40">
-                            <img 
-                                src="/zipper_repair_macro.png" 
-                                alt="Reemplazo de cierre en parkas y chaquetas" 
-                                className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" 
-                            />
-                            <div className="absolute top-3 left-3 bg-[#C17F5F]/20 text-[#C17F5F] text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-sm">
-                                Cierres & Parkas
-                            </div>
-                        </div>
-                        <div className="p-5 space-y-2">
-                            <h3 className="font-serif text-lg text-white">Cambio de Cierres</h3>
-                            <p className="text-xs text-white/60 leading-relaxed font-light">
-                                Reemplazo de cierres en parkas, chaquetas y pantalones.
-                            </p>
-                        </div>
-                    </div>
+                        {/* DETALLES DEL SERVICIO Y CONVERSIÓN SEO EN COMUNA */}
+                        <div className="lg:col-span-7 p-8 sm:p-10 md:p-12 flex flex-col justify-center space-y-6 relative">
+                            <span className="text-xs text-[#C17F5F] uppercase tracking-widest font-bold">
+                                Servicio Estrella en {comuna}
+                            </span>
 
-                    {/* Caso 3: Ajustes / Medidas */}
-                    <div className="border border-white/5 rounded-sm bg-[#121212] overflow-hidden group">
-                        <div className="relative aspect-video w-full overflow-hidden bg-black/40">
-                            <img 
-                                src="/dress_measuring_tape.png" 
-                                alt="Ajuste de talla y entalle de prendas" 
-                                className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" 
-                            />
-                            <div className="absolute top-3 left-3 bg-[#C17F5F]/20 text-[#C17F5F] text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-sm">
-                                Entalle & Ajuste
+                            <div className="space-y-3">
+                                <h2 className="font-serif text-2xl sm:text-3xl md:text-4xl text-white font-bold tracking-tight leading-tight">
+                                    Costurera a Domicilio: <span className="text-[#E29D7A]">Elena Va a {comuna}</span>
+                                </h2>
+                                <p className="text-sm text-white/75 font-light leading-relaxed">
+                                    Nuestra costurera especialista visita tu residencia en {comuna} para tomar medidas exactas directamente en tu propia prenda. Retiramos, confeccionamos en nuestro Taller de Vitacura y te entregamos la prenda impecable en tu puerta.
+                                </p>
                             </div>
-                        </div>
-                        <div className="p-5 space-y-2">
-                            <h3 className="font-serif text-lg text-white">Ajuste de Cintura y Entalle</h3>
-                            <p className="text-xs text-white/60 leading-relaxed font-light">
-                                Ajustamos el calce en trajes, faldas y vestidos en {comuna}.
-                            </p>
-                        </div>
-                    </div>
 
-                    {/* Caso 4: Basta original / Marcado */}
-                    <div className="border border-white/5 rounded-sm bg-[#121212] overflow-hidden group">
-                        <div className="relative aspect-video w-full overflow-hidden bg-black/40">
-                            <img 
-                                src="/tailoring_chalk_mark.png" 
-                                alt="Modificación de bastas de pantalones" 
-                                className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" 
-                            />
-                            <div className="absolute top-3 left-3 bg-[#C17F5F]/20 text-[#C17F5F] text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-sm">
-                                Bastas & Dobladillos
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-white/10">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-full bg-[#C17F5F]/15 border border-[#C17F5F]/30 flex items-center justify-center shrink-0">
+                                        <Truck className="w-4 h-4 text-[#C17F5F]" />
+                                    </div>
+                                    <div>
+                                        <div className="text-[11px] text-white/50 uppercase tracking-wider font-semibold">Delivery en {comuna}</div>
+                                        <div className="text-xs text-white font-medium"><strong className="text-[#C17F5F]">$10.000</strong> ida y vuelta</div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-full bg-[#C17F5F]/15 border border-[#C17F5F]/30 flex items-center justify-center shrink-0">
+                                        <MapPin className="w-4 h-4 text-[#C17F5F]" />
+                                    </div>
+                                    <div>
+                                        <div className="text-[11px] text-white/50 uppercase tracking-wider font-semibold">Visita de Costurera</div>
+                                        <div className="text-xs text-white font-medium"><strong className="text-[#C17F5F]">$10.000</strong> (Toma de medidas)</div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <div className="p-5 space-y-2">
-                            <h3 className="font-serif text-lg text-white">Bastas y Dobladillos</h3>
-                            <p className="text-xs text-white/60 leading-relaxed font-light">
-                                Acortamos el largo en pantalones y jeans.
-                            </p>
+
+                            <div className="pt-2">
+                                <Link
+                                    href={getWhatsAppUrl(comuna)}
+                                    target="_blank"
+                                    className="inline-flex items-center justify-center gap-2 bg-[#C17F5F] hover:bg-[#b05c4b] text-white px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm shadow-lg shadow-[#C17F5F]/20 hover:scale-[1.02]"
+                                >
+                                    Agendar Costurera a Domicilio en {comuna} <ArrowRight className="w-4 h-4" />
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* TABLA DE PRECIOS BASE (Tema Oscuro por Comuna) */}
+            {/* SECCIÓN VISUAL: ARREGLOS POR TIPO DE PRENDA */}
+            <section className="max-w-4xl mx-auto px-6 py-12 relative z-10">
+                <div className="text-center mb-10 space-y-2">
+                    <span className="text-xs text-[#C17F5F] uppercase tracking-widest font-bold">Servicios en {comuna}</span>
+                    <h2 className="font-serif text-2xl text-white">Arreglos por Tipo de Prenda</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Prenda 1: Sacos & Trajes */}
+                    <div className="border border-white/5 rounded-sm bg-[#121212] overflow-hidden group hover:border-[#C17F5F]/40 transition-all duration-300">
+                        <div className="relative aspect-video w-full overflow-hidden bg-black/40">
+                            <img 
+                                src="/hero_tailoring.png" 
+                                alt={`Ajuste de sacos y trajes en ${comuna}`} 
+                                className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" 
+                            />
+                            <div className="absolute top-3 left-3 bg-[#C17F5F]/20 text-[#C17F5F] text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-sm border border-[#C17F5F]/30">
+                                Sacos, Trajes & Camisas
+                            </div>
+                        </div>
+                        <div className="p-5 space-y-2">
+                            <h3 className="font-serif text-lg text-white">Sastrería & Sacos</h3>
+                            <p className="text-xs text-white/60 leading-relaxed font-light">
+                                Entalle de chaquetas en espalda y sisa, ajuste de largo de mangas, entalle de camisas y basta en pantalones de vestir.
+                            </p>
+                            <div className="pt-2 flex items-center justify-between text-xs text-[#C17F5F]">
+                                <span>Desde $8.500</span>
+                                <Link href={getWhatsAppUrl(comuna, "Trajes y Sacos")} target="_blank" className="font-bold flex items-center gap-1 hover:underline">
+                                    Cotizar <ArrowRight className="w-3 h-3" />
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Prenda 2: Vestidos & Faldas */}
+                    <div className="border border-white/5 rounded-sm bg-[#121212] overflow-hidden group hover:border-[#C17F5F]/40 transition-all duration-300">
+                        <div className="relative aspect-video w-full overflow-hidden bg-black/40">
+                            <img 
+                                src="/dress_measuring_tape.png" 
+                                alt={`Ajuste de vestidos en ${comuna}`} 
+                                className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" 
+                            />
+                            <div className="absolute top-3 left-3 bg-[#C17F5F]/20 text-[#C17F5F] text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-sm border border-[#C17F5F]/30">
+                                Vestidos & Faldas
+                            </div>
+                        </div>
+                        <div className="p-5 space-y-2">
+                            <h3 className="font-serif text-lg text-white">Vestidos & Calce Anatómico</h3>
+                            <p className="text-xs text-white/60 leading-relaxed font-light">
+                                Bastas invisibles a mano, toma de sisa, reducción de cintura, ajuste de tirantes y calce de vestidos de uso diario o fiesta.
+                            </p>
+                            <div className="pt-2 flex items-center justify-between text-xs text-[#C17F5F]">
+                                <span>Desde $9.500</span>
+                                <Link href={getWhatsAppUrl(comuna, "Vestidos y Faldas")} target="_blank" className="font-bold flex items-center gap-1 hover:underline">
+                                    Cotizar <ArrowRight className="w-3 h-3" />
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Prenda 3: Cierres & Parkas */}
+                    <div className="border border-white/5 rounded-sm bg-[#121212] overflow-hidden group hover:border-[#C17F5F]/40 transition-all duration-300">
+                        <div className="relative aspect-video w-full overflow-hidden bg-black/40">
+                            <img 
+                                src="/zipper_repair_macro.png" 
+                                alt={`Reemplazo de cierres en parkas en ${comuna}`} 
+                                className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" 
+                            />
+                            <div className="absolute top-3 left-3 bg-[#C17F5F]/20 text-[#C17F5F] text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-sm border border-[#C17F5F]/30">
+                                Parkas & Chaquetas
+                            </div>
+                        </div>
+                        <div className="p-5 space-y-2">
+                            <h3 className="font-serif text-lg text-white">Cierres & Reparaciones Técnicas</h3>
+                            <p className="text-xs text-white/60 leading-relaxed font-light">
+                                Cambio de cierres metálicos y plásticos YKK en parkas de pluma, cortavientos, chaquetas de cuero y abrigos pesados.
+                            </p>
+                            <div className="pt-2 flex items-center justify-between text-xs text-[#C17F5F]">
+                                <span>Desde $12.000</span>
+                                <Link href={getWhatsAppUrl(comuna, "Cierres y Parkas")} target="_blank" className="font-bold flex items-center gap-1 hover:underline">
+                                    Cotizar <ArrowRight className="w-3 h-3" />
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Prenda 4: Jeans & Denim */}
+                    <div className="border border-white/5 rounded-sm bg-[#121212] overflow-hidden group hover:border-[#C17F5F]/40 transition-all duration-300">
+                        <div className="relative aspect-video w-full overflow-hidden bg-black/40">
+                            <img 
+                                src="/patched_jeans_repair.png" 
+                                alt={`Basta original y reparación de jeans en ${comuna}`} 
+                                className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" 
+                            />
+                            <div className="absolute top-3 left-3 bg-[#C17F5F]/20 text-[#C17F5F] text-[9px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-sm border border-[#C17F5F]/30">
+                                Jeans & Pantalones
+                            </div>
+                        </div>
+                        <div className="p-5 space-y-2">
+                            <h3 className="font-serif text-lg text-white">Bastas & Reparaciones Denim</h3>
+                            <p className="text-xs text-white/60 leading-relaxed font-light">
+                                Basta con conservación del ruedo original de fábrica, refuerzos invisibles en entrepierna y achique de pretina en jeans.
+                            </p>
+                            <div className="pt-2 flex items-center justify-between text-xs text-[#C17F5F]">
+                                <span>Desde $8.000</span>
+                                <Link href={getWhatsAppUrl(comuna, "Jeans y Pantalones")} target="_blank" className="font-bold flex items-center gap-1 hover:underline">
+                                    Cotizar <ArrowRight className="w-3 h-3" />
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* TABLA DE PRECIOS BASE EN COMUNA */}
             <section className="max-w-3xl mx-auto px-6 py-12 relative z-10 border-t border-white/5">
-                <div className="text-center mb-8">
-                    <h2 className="font-serif text-lg text-white/60 uppercase tracking-wider">Valores Base Referenciales en {comuna}</h2>
+                <div className="text-center mb-8 space-y-1">
+                    <span className="text-xs text-[#C17F5F] uppercase tracking-widest font-bold">Tarifario Transparente</span>
+                    <h2 className="font-serif text-lg text-white/90">Valores Base Referenciales en {comuna}</h2>
                 </div>
 
                 <div className="overflow-x-auto border border-white/5 rounded-sm bg-[#1c1c1c]/50">
@@ -196,8 +327,8 @@ export default async function CosturasComunaPage({ params }: Props) {
                         </thead>
                         <tbody className="divide-y divide-white/5 text-white/80">
                             <tr className="hover:bg-white/[0.02] transition-colors">
-                                <td className="p-4">Basta original de pantalón o jeans</td>
-                                <td className="p-4 text-right font-bold text-[#C17F5F] font-serif text-sm">Desde $6.500</td>
+                                <td className="p-4 font-semibold text-white">Basta original de pantalón o jeans</td>
+                                <td className="p-4 text-right font-bold text-[#C17F5F] font-serif text-sm">Desde $8.000</td>
                             </tr>
                             <tr className="hover:bg-white/[0.02] transition-colors">
                                 <td className="p-4">Cambio de cierre (pantalón o falda)</td>
@@ -212,11 +343,11 @@ export default async function CosturasComunaPage({ params }: Props) {
                                 <td className="p-4 text-right font-bold text-[#C17F5F] font-serif text-sm">Desde $18.000 a $35.000</td>
                             </tr>
                             <tr className="bg-white/[0.01] hover:bg-white/[0.02] transition-colors">
-                                <td className="p-4 font-semibold">Retiro y entrega a domicilio (Logística)</td>
+                                <td className="p-4 font-semibold text-white">Retiro y entrega a domicilio en {comuna}</td>
                                 <td className="p-4 text-right font-bold text-[#C17F5F] font-serif text-sm">$10.000</td>
                             </tr>
                             <tr className="bg-white/[0.01] hover:bg-white/[0.02] transition-colors">
-                                <td className="p-4 font-semibold">Visita a domicilio para toma de medidas</td>
+                                <td className="p-4 font-semibold text-white">Visita a domicilio para toma de medidas</td>
                                 <td className="p-4 text-right font-bold text-[#C17F5F] font-serif text-sm">$20.000</td>
                             </tr>
                         </tbody>
@@ -224,204 +355,28 @@ export default async function CosturasComunaPage({ params }: Props) {
                 </div>
             </section>
 
-            {/* TRES GARANTÍAS OBLIGATORIAS (Tema Oscuro) */}
-            <section className="max-w-4xl mx-auto px-6 py-12 relative z-10 border-t border-white/5">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="space-y-3 p-6 border border-white/5 rounded-sm bg-[#1c1c1c]/30">
-                        <div className="flex items-center gap-2">
-                            <Truck className="w-5 h-5 text-[#C17F5F]" />
-                            <h3 className="font-serif text-base text-white">Retiro & Medidas a Domicilio</h3>
-                        </div>
-                        <p className="text-xs text-white/60 font-light leading-relaxed">
-                            No pierdas tiempo en el tráfico. Vamos a tu puerta en {comuna} para retirar tus prendas o tomarte las medidas de forma cómoda.
-                        </p>
-                    </div>
-
-                    <div className="space-y-3 p-6 border border-white/5 rounded-sm bg-[#1c1c1c]/30">
-                        <div className="flex items-center gap-2">
-                            <ShieldCheck className="w-5 h-5 text-[#C17F5F]" />
-                            <h3 className="font-serif text-base text-white">Calidad Premium Garantizada</h3>
-                        </div>
-                        <p className="text-xs text-white/60 font-light leading-relaxed">
-                            Tratamos prendas finas, trajes de sastre y ropa técnica con maquinaria de precisión especializada para mantener acabados y costuras idénticas a las de fábrica.
-                        </p>
-                    </div>
-
-                    <div className="space-y-3 p-6 border border-white/5 rounded-sm bg-[#1c1c1c]/30">
-                        <div className="flex items-center gap-2">
-                            <Scissors className="w-5 h-5 text-[#C17F5F]" />
-                            <h3 className="font-serif text-base text-white">Precios y Tiempos Claros</h3>
-                        </div>
-                        <p className="text-xs text-white/60 font-light leading-relaxed">
-                            Sin presupuestos ocultos. Sabrás exactamente cuánto cuesta y cuándo estará listo antes de que toquemos la tela.
-                        </p>
-                    </div>
-                </div>
-            </section>
-
-            {/* TESTIMONIOS (Tema Oscuro) */}
-            <section className="max-w-4xl mx-auto px-6 py-12 relative z-10 border-t border-white/5">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-[#121212] p-5 border border-white/5 text-center space-y-1">
-                        <div className="flex text-[#C17F5F] gap-0.5 justify-center mb-2">
-                            {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3 h-3 fill-current" />)}
-                        </div>
-                        <p className="text-xs text-white/80 font-light italic">"Salvaron mi vestido a 2 días del evento en {comuna}. Excelente trabajo."</p>
-                        <p className="text-[9px] text-[#C17F5F] font-bold">María — {comuna}</p>
-                    </div>
-                    <div className="bg-[#121212] p-5 border border-white/5 text-center space-y-1">
-                        <div className="flex text-[#C17F5F] gap-0.5 justify-center mb-2">
-                            {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3 h-3 fill-current" />)}
-                        </div>
-                        <p className="text-xs text-white/80 font-light italic">"Basta original idéntica en mis jeans y entrega a tiempo."</p>
-                        <p className="text-[9px] text-[#C17F5F] font-bold">Andrés — {comuna}</p>
-                    </div>
-                    <div className="bg-[#121212] p-5 border border-white/5 text-center space-y-1">
-                        <div className="flex text-[#C17F5F] gap-0.5 justify-center mb-2">
-                            {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3 h-3 fill-current" />)}
-                        </div>
-                        <p className="text-xs text-white/80 font-light italic">"El servicio de retiro a domicilio en {comuna} funciona impecable."</p>
-                        <p className="text-[9px] text-[#C17F5F] font-bold">Camila — {comuna}</p>
-                    </div>
-                </div>
-            </section>
-
-            {/* CTAs DIRECTOS (Tema Oscuro) */}
-            <section className="max-w-4xl mx-auto px-6 py-12 relative z-10 border-t border-white/5">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* CTA A */}
-                    <div className="bg-[#121212]/50 p-6 border border-white/5 rounded-sm flex flex-col justify-between text-center space-y-4">
-                        <p className="text-xs text-white/70 font-light leading-relaxed">No pierdas tiempo en el tráfico. Retiramos en tu casa en {comuna}.</p>
-                        <Link 
-                            href={getWhatsAppUrl(comuna)}
-                            target="_blank"
-                            className="py-3 bg-[#C17F5F] hover:bg-[#b05c4b] text-white text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm block"
-                        >
-                            Agendar Retiro por WhatsApp
-                        </Link>
-                    </div>
-
-                    {/* CTA B */}
-                    <div className="bg-[#121212]/50 p-6 border border-white/5 rounded-sm flex flex-col justify-between text-center space-y-4">
-                        <p className="text-xs text-white/70 font-light leading-relaxed">¿Quieres cotizar tu arreglo enviándonos fotos rápidas?</p>
-                        <Link 
-                            href={getWhatsAppUrl(comuna)}
-                            target="_blank"
-                            className="py-3 bg-transparent border border-[#C17F5F] hover:bg-[#C17F5F] text-[#C17F5F] hover:text-white text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm block"
-                        >
-                            Cotizar Arreglo con una Foto
-                        </Link>
-                    </div>
-
-                    {/* CTA C */}
-                    <div className="bg-[#121212]/50 p-6 border border-white/5 rounded-sm flex flex-col justify-between text-center space-y-4">
-                        <p className="text-xs text-white/70 font-light leading-relaxed">¿Quieres validar plazos de entrega especiales en {comuna}?</p>
-                        <Link 
-                            href={getWhatsAppUrl(comuna)}
-                            target="_blank"
-                            className="py-3 bg-transparent border border-white/10 hover:border-white/20 text-white/60 hover:text-white text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm block"
-                        >
-                            Consultar Factibilidad
-                        </Link>
-                    </div>
-                </div>
-            </section>
-
             {/* SECCIÓN DE OTRAS COMUNAS */}
             <section className="max-w-4xl mx-auto px-6 py-8 relative z-10 bg-[#242424]/40 border border-white/5 p-6 rounded-sm mt-12">
                 <div className="text-center mb-6">
-                    <p className="text-xs text-white/50 uppercase tracking-widest">También retiramos en otros sectores aledaños</p>
+                    <p className="text-xs text-white/50 uppercase tracking-widest">Otras Comunas con Cobertura de Retiro</p>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {communes.filter(c => c.name !== comuna).map((commune) => (
+                    {communes.map((c) => (
                         <Link 
-                            key={commune.slug}
-                            href={`/costuras/${commune.slug}`}
-                            className="py-3 border border-white/5 hover:border-[#C17F5F]/40 hover:bg-[#242424]/60 text-center rounded-sm transition-all duration-300 group flex items-center justify-center gap-1.5 text-xs text-white/80"
+                            key={c.slug}
+                            href={`/costuras/${c.slug}`}
+                            className={`py-3 border text-center rounded-sm transition-all duration-300 group flex items-center justify-center gap-1.5 text-xs ${
+                                c.name === comuna 
+                                    ? 'border-[#C17F5F] bg-[#C17F5F]/20 text-[#C17F5F] font-bold' 
+                                    : 'border-white/5 hover:border-[#C17F5F]/40 hover:bg-[#242424]/60 text-white/80'
+                            }`}
                         >
                             <MapPin className="w-3.5 h-3.5 text-[#C17F5F]" />
-                            {commune.name}
+                            {c.name}
                         </Link>
                     ))}
                 </div>
             </section>
-
-            {/* JSON-LD Schema local dinámico para la comuna como LocalBusiness */}
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{
-                    __html: JSON.stringify({
-                        "@context": "https://schema.org",
-                        "@type": "LocalBusiness",
-                        "name": `Taller de Costura y Arreglos de Ropa en ${comuna}`,
-                        "provider": {
-                            "@type": "LocalBusiness",
-                            "name": "ELENA - Alta Costura & Sastrería",
-                            "address": {
-                                "@type": "PostalAddress",
-                                "streetAddress": "Av. Tabancura 1091, Oficina 319",
-                                "addressLocality": "Vitacura",
-                                "addressRegion": "Santiago",
-                                "addressCountry": "CL"
-                            },
-                            "telephone": "+56937667709"
-                        },
-                        "description": `Taller de costura especializado en arreglos de ropa rápidos, hacer bastas, cambiar cierres y achicar prendas en la comuna de ${comuna}.`,
-                        "areaServed": {
-                            "@type": "City",
-                            "name": comuna
-                        },
-                        "hasOfferCatalog": {
-                            "@type": "OfferCatalog",
-                            "name": `Servicios de Arreglos de Ropa en ${comuna}`,
-                            "itemListElement": [
-                                {
-                                    "@type": "OfferCatalog",
-                                    "name": "Arreglos Rápidos",
-                                    "itemListElement": [
-                                        {
-                                            "@type": "Offer",
-                                            "itemOffered": {
-                                                "@type": "Service",
-                                                "name": "Hacer Basta de Pantalones",
-                                                "serviceType": "Clothing Alteration"
-                                            }
-                                        }
-                                    ]
-                                },
-                                {
-                                    "@type": "OfferCatalog",
-                                    "name": "Reparaciones",
-                                    "itemListElement": [
-                                        {
-                                            "@type": "Offer",
-                                            "itemOffered": {
-                                                "@type": "Service",
-                                                "name": "Cambio de Cierres",
-                                                "serviceType": "Clothing Repair"
-                                            }
-                                        }
-                                    ]
-                                },
-                                {
-                                    "@type": "OfferCatalog",
-                                    "name": "Arreglos Mayores",
-                                    "itemListElement": [
-                                        {
-                                            "@type": "Offer",
-                                            "itemOffered": {
-                                                "@type": "Service",
-                                                "name": "Achicar Trajes y Vestidos",
-                                                "serviceType": "Clothing Alteration"
-                                            }
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    })
-                }}
-            />
         </div>
     );
 }

@@ -14,10 +14,11 @@ Elena Atelier opera bajo el concepto de **Quiet Luxury** y **Alta Costura Transp
 
 | Categoría | Precio Base (CLP) | Cobertura de Telas | Alcance del Servicio de Atelier |
 | :--- | :--- | :--- | :--- |
-| **Novias** | **$480.000** | ❌ *No incluye telas* | Asesoría de imagen, ilustración/boceto exclusivo, moldería a medida, pruebas de lienzo y calce ilimitadas. *(Telas a elección del cliente/asesoradas en taller)*. |
-| **Madrina / Alta Gala** | **$320.000** | ❌ *No incluye telas* | Diseño personalizado, patronaje fino, estructura interior (varillas/copas/forro) y pruebas de calce presenciales. |
-| **Fiesta / Graduación (Full)** | **$185.000** | ✅ *Incluye telas base* | Solución completa: Diseño exclusivo, telas base de alta densidad seleccionadas por el Atelier y confección a medida. |
-| **Fiesta / Graduación (Tu Tela)** | **$140.000** | ✂️ *Tú traes tu tela* | La clienta aporta la tela de su preferencia; el Atelier aporta el diseño, patronaje y confección a medida. |
+| **Novias** | **Desde $480.000** | ❌ *No incluye telas* | Asesoría de imagen, boceto exclusivo, moldería a medida, pruebas de lienzo y calce ilimitadas. *(Telas a elección del cliente/asesoradas en taller)*. |
+| **Madrinas & Mamás de Novia/o (Alta Estructuración)** | **Desde $320.000** | ❌ *No incluye telas* | Corsetería/estructuración interna pesada (varillas/copas/morsa), patronaje fino y pruebas presenciales en Atelier Vitacura. |
+| **Invitada de Matrimonio & Gala** | **Desde $185.000** | ✅ *Incluye telas base / $140k Tu tela* | Solución accesible para invitadas de boda y eventos formales: diseño de autor, tela base incluida y confección a medida. |
+| **Graduación & Fiesta Joven (Full)** | **$185.000** | ✅ *Incluye telas base* | Oferta completa para graduadas: diseño exclusivo, telas de alta caída seleccionadas y confección a medida. |
+| **Graduación & Fiesta Joven (Tu Tela)** | **$140.000** | ✂️ *Tú traes tu tela* | La graduada/mamá aporta la tela de su preferencia; el Atelier aporta diseño, patronaje y confección a medida. |
 
 ---
 
