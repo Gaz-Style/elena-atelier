@@ -44,26 +44,26 @@ export default function CosturasPillarPage() {
 
             {/* HERO SECTION CON FOTOGRAFÍA EDITORIAL DE LUJO EN EL FONDO */}
             <header className="relative min-h-[75vh] flex items-center justify-center pt-28 pb-16 px-6 overflow-hidden">
-                {/* Imagen de Fondo de Alta Definición con Degradado Cinematic */}
+                {/* Imagen de Fondo de Alta Definición con Degradado Cinematic Optimizado para Móvil */}
                 <div className="absolute inset-0 z-0">
                     <img
                         src="/hero_seamstress_taller.png"
                         alt="Taller de sastrería y arreglos de ropa de alta costura"
-                        className="w-full h-full object-cover object-center scale-105 filter brightness-[0.38] contrast-[1.15]"
+                        className="w-full h-full object-cover object-[65%_center] sm:object-center scale-105 filter brightness-[0.75] sm:brightness-[0.55] md:brightness-[0.45] contrast-[1.10] transition-all"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/60 to-transparent" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#0d0d0d]/80 via-transparent to-[#0d0d0d]/80" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-[#0d0d0d]/40 to-black/30 md:via-[#0d0d0d]/60" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#0d0d0d]/30 via-transparent to-[#0d0d0d]/30 md:from-[#0d0d0d]/80 md:to-[#0d0d0d]/80" />
                 </div>
 
                 <div className="max-w-4xl mx-auto text-center relative z-10">
-                    <p className="inline-flex items-center gap-2 text-xs text-[#C17F5F] uppercase tracking-widest font-bold mb-6 sm:mb-8 md:mb-10">
+                    <p className="inline-flex items-center gap-2 text-xs text-[#C17F5F] uppercase tracking-widest font-bold mb-6 sm:mb-8 md:mb-10 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                         <Truck className="w-3.5 h-3.5" /> Retiro y entrega a domicilio • Sector Oriente
                     </p>
                     <div className="space-y-5">
-                        <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-white tracking-tight leading-tight font-extrabold max-w-3xl mx-auto drop-shadow-md">
+                        <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl text-white tracking-tight leading-tight font-extrabold max-w-3xl mx-auto drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
                             Arreglos de Ropa y Sastrería a Domicilio
                         </h1>
-                        <p className="text-white/80 text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-light drop-shadow">
+                        <p className="text-white/90 text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-light drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)]">
                             Recupera el calce perfecto de tus prendas sin salir de casa. Ajustes de precisión en trajes, vestidos, pantalones y abrigos en Vitacura, Las Condes y Lo Barnechea.
                         </p>
                     </div>
