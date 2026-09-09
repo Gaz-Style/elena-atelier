@@ -158,25 +158,19 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
             </div>
 
             {/* Opciones de Confección en Cuadro Contenedor */}
-            <div className="bg-white/[0.03] border border-white/[0.08] p-5 rounded-sm font-sans space-y-3.5 relative overflow-hidden">
+            <div className="bg-white/[0.03] border border-white/[0.08] p-5 rounded-sm font-sans space-y-3 relative overflow-hidden">
               {/* Acento superior decorativo */}
               <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-brand-sand/40 to-transparent"></div>
               
-              <span className="font-semibold text-brand-sand/90 uppercase tracking-[0.2em] text-[10px] sm:text-xs block">Confección a medida</span>
+              <span className="font-semibold text-brand-sand/90 uppercase tracking-[0.2em] text-[10px] sm:text-xs block">Confección a medida en Atelier Vitacura</span>
               
-              <div className="flex justify-between items-center text-xs sm:text-sm border-b border-white/[0.06] pb-3">
-                <span className="text-white/85 font-medium">✦ Vestido completo · Tela incluida</span>
-                <span className="font-bold text-white text-sm sm:text-base ml-2 whitespace-nowrap">$185.000</span>
-              </div>
-              
-              <div className="flex justify-between items-center text-xs sm:text-sm border-b border-white/[0.06] pb-3 pt-0.5">
-                <span className="text-white/85 font-medium">✦ Solo Confección · Tú traes la tela</span>
-                <span className="font-bold text-white text-sm sm:text-base ml-2 whitespace-nowrap">$140.000</span>
-              </div>
+              <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
+                Cada vestido se crea de forma única y exclusiva. Cotizamos tu proyecto a medida según diseño, moldería y selección textil.
+              </p>
 
               {/* Microcopy inferior de confianza */}
-              <div className="pt-0.5 text-[11px] sm:text-xs text-brand-sand/80 font-medium flex items-center gap-1.5">
-                <span className="text-brand-sand/60">✓</span> Incluye 2 sesiones de prueba y ajuste
+              <div className="pt-2 text-[11px] sm:text-xs text-brand-sand/80 font-medium flex items-center gap-1.5 border-t border-white/[0.06]">
+                <span className="text-brand-sand/60">✓</span> Incluye moldería exclusiva y pruebas de calce presenciales
               </div>
             </div>
             
