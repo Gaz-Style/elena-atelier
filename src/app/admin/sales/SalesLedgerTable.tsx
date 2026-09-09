@@ -64,28 +64,63 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
         });
     };
 
-    // Filter sales based on selected period
-    const filteredSales = salesList.filter(s => {
-        const date = new Date(s.created_at);
-        const year = date.getFullYear().toString();
-        const month = (date.getMonth() + 1).toString();
+    const getChileDateParts = (dateInput: string | Date) => {
+        const d = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+        const formatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/Santiago',
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric'
+        });
+        const parts = formatter.formatToParts(d);
+        const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
+        return {
+            year: map.year,
+            month: map.month,
+            day: map.day.padStart(2, '0'),
+            dateStr: `${map.year}-${map.month.padStart(2, '0')}-${map.day.padStart(2, '0')}`
+        };
+    };
 
-        if (selectedYear && year !== selectedYear) return false;
-        if (selectedMonth && month !== selectedMonth) return false;
+    const todayChileStr = getChileDateParts(new Date()).dateStr;
+
+    // Filter sales based on selected period (excluding cancelled from calculations)
+    const filteredSales = salesList.filter(s => {
+        if (s.status === 'cancelled') return false;
+        const sParts = getChileDateParts(s.created_at);
+
+        if (selectedYear && sParts.year !== selectedYear) return false;
+        if (selectedMonth && sParts.month !== selectedMonth) return false;
         return true;
     });
 
-    // Separate main orders from balance payment entries for UI table rendering
+    // Separate main orders (exclude balance entries _balance_) for UI table rendering & total order volume
     const mainSales = filteredSales.filter(s => !s.internal_id.includes('_balance_'));
 
-    // Recalculate KPIs based on filtered results - Option A: Sum actual paid amounts to reflect cash collected
-    const totalRevenue = filteredSales.reduce((sum, s) => sum + (Number(s.paid_amount) || 0), 0);
+    // 1. Ventas del Mes (Volumen Total Comercial: pendientes + pagadas)
+    const totalSalesVolume = mainSales.reduce((sum, s) => sum + (Number(s.total_amount) || 0), 0);
     
-    const todayStr = new Date().toISOString().split('T')[0];
-    const todaysSales = salesList.filter(s => s.created_at.startsWith(todayStr));
-    const todayRevenue = todaysSales.reduce((sum, s) => sum + (Number(s.paid_amount) || 0), 0);
+    // 2. Caja Real Cobrada (Dinero efectivamente cobrado en el período)
+    const cashCollected = filteredSales.reduce((sum, s) => {
+        if (s.status === 'completed' || s.status === 'paid' || s.status === 'partial') {
+            return sum + (Number(s.paid_amount) || 0);
+        }
+        return sum;
+    }, 0);
     
-    const pendingSales = mainSales.filter(s => s.status === 'pending' || s.status === 'pending_terminal').length;
+    // 3. Ventas de Hoy (Jornada diaria en fecha local de Chile)
+    const todaysMainSales = salesList.filter(s => {
+        if (s.status === 'cancelled') return false;
+        if (s.internal_id.includes('_balance_')) return false;
+        const sParts = getChileDateParts(s.created_at);
+        return sParts.dateStr === todayChileStr;
+    });
+    const todaySalesVolume = todaysMainSales.reduce((sum, s) => sum + (Number(s.total_amount) || 0), 0);
+    
+    // 4. Ventas Pendientes de Pago
+    const pendingSalesList = mainSales.filter(s => s.status === 'pending' || s.status === 'pending_terminal');
+    const pendingCount = pendingSalesList.length;
+    const pendingAmountToCollect = pendingSalesList.reduce((sum, s) => sum + (Math.max(0, (Number(s.total_amount) || 0) - (Number(s.paid_amount) || 0))), 0);
 
     // Handler when user selects a new status in the dropdown
     async function handleStatusChange(sale: Sale, newStatus: string) {
@@ -236,20 +271,30 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
                 <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">
-                            {selectedMonth ? `Ingresos del Mes (${monthNames.find(m => m.val === selectedMonth)?.label})` : 'Ingresos Totales (Histórico)'}
+                            {selectedMonth ? `Ventas del Mes (${monthNames.find(m => m.val === selectedMonth)?.label})` : 'Ventas Totales (Histórico)'}
                         </h3>
                         <DollarSign className="w-4 h-4 text-brand-terracotta" />
                     </div>
-                    <p className="text-3xl font-serif text-brand-charcoal">{formatCurrency(totalRevenue)}</p>
+                    <p className="text-3xl font-serif text-brand-charcoal">{formatCurrency(totalSalesVolume)}</p>
+                    <p className="text-[10px] text-gray-400 mt-2">{mainSales.length} órdenes (Pendientes + Pagadas)</p>
                 </div>
 
                 <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Ingresos de Hoy</h3>
-                        <Activity className="w-4 h-4 text-green-600" />
+                        <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Caja Real Cobrada</h3>
+                        <Wallet className="w-4 h-4 text-green-600" />
                     </div>
-                    <p className="text-3xl font-serif text-brand-charcoal">{formatCurrency(todayRevenue)}</p>
-                    <p className="text-[10px] text-gray-400 mt-2">{todaysSales.length} transacciones hoy</p>
+                    <p className="text-3xl font-serif text-brand-charcoal">{formatCurrency(cashCollected)}</p>
+                    <p className="text-[10px] text-gray-400 mt-2">Recaudación efectiva recibida</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Ventas de Hoy</h3>
+                        <Activity className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <p className="text-3xl font-serif text-brand-charcoal">{formatCurrency(todaySalesVolume)}</p>
+                    <p className="text-[10px] text-gray-400 mt-2">{todaysMainSales.length} transacciones hoy (Hora Chile)</p>
                 </div>
 
                 <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-between">
@@ -257,19 +302,8 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
                         <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Ventas Pendientes</h3>
                         <Clock className="w-4 h-4 text-orange-400" />
                     </div>
-                    <p className="text-3xl font-serif text-brand-charcoal">{pendingSales}</p>
-                    <p className="text-[10px] text-gray-400 mt-2">Esperando confirmación de pago</p>
-                </div>
-
-                <div className="bg-brand-charcoal p-6 rounded-sm border border-gray-800 shadow-sm flex flex-col justify-between text-white">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Conciliación Bancaria</h3>
-                        <Wallet className="w-4 h-4 text-brand-sand" />
-                    </div>
-                    <p className="text-sm font-light text-gray-300">Las transferencias deben ser conciliadas manualmente.</p>
-                    <button className="mt-4 text-[10px] uppercase tracking-widest font-bold text-brand-sand hover:text-white transition-colors text-left">
-                        Exportar Libro Diario →
-                    </button>
+                    <p className="text-3xl font-serif text-brand-charcoal">{pendingCount}</p>
+                    <p className="text-[10px] text-gray-400 mt-2">{formatCurrency(pendingAmountToCollect)} por cobrar</p>
                 </div>
             </div>
 
