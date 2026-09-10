@@ -162,7 +162,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
               {/* Acento superior decorativo */}
               <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-brand-sand/40 to-transparent"></div>
               
-              <span className="font-semibold text-brand-sand/90 uppercase tracking-[0.2em] text-[10px] sm:text-xs block">Confección a medida en Atelier Vitacura</span>
+              <span className="font-semibold text-brand-sand/90 uppercase tracking-[0.2em] text-[10px] sm:text-xs block">Confección a medida en nuestro Atelier de Vitacura</span>
               
               <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
                 Cada vestido se crea de forma única y exclusiva. Cotizamos tu proyecto a medida según diseño, moldería y selección textil.
