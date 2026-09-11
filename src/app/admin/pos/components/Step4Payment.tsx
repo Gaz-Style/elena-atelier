@@ -458,12 +458,11 @@ export default function Step4Payment() {
           {initialPaymentType !== 'zero' && (
             <div>
               <label className="block text-[10px] uppercase tracking-widest font-bold text-zinc-700 mb-3">Método de Pago</label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 {[
-                  { id: 'transbank_pos', label: 'Máquina Transbank', icon: 'tbk' },
-                  { id: 'mercadopago_point', label: 'Máquina MP', icon: 'mp' },
-                  { id: 'transbank', label: 'Webpay (Link)', icon: 'globe' },
-                  { id: 'cash', label: 'Efectivo / Mixto', icon: 'cash' },
+                  { id: 'mercadopago_point', label: 'Pago Máquina' },
+                  { id: 'transbank', label: 'Pago en Línea' },
+                  { id: 'cash', label: 'Efectivo / Mixto' },
                 ].map(method => (
                   <button
                     key={method.id}
@@ -475,15 +474,12 @@ export default function Step4Payment() {
                         setSplitCardAmount(0);
                       }
                     }}
-                    className={`flex flex-col items-center justify-center gap-1.5 py-3 px-2 text-[8px] uppercase tracking-widest transition-all rounded-sm border font-bold ${
+                    className={`flex flex-col items-center justify-center gap-1.5 py-2.5 text-[8px] uppercase tracking-widest transition-all rounded-sm border font-bold ${
                       paymentMethod === method.id
                         ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm'
                         : 'border-zinc-200 hover:border-[#C17B5C] text-slate-700 bg-white cursor-pointer'
                     }`}
                   >
-                    {method.id === 'transbank_pos' && (
-                      <CreditCard className={`w-4 h-4 ${paymentMethod === method.id ? 'text-white' : 'text-red-600'}`} />
-                    )}
                     {method.id === 'mercadopago_point' && (
                       <CreditCard className={`w-4 h-4 ${paymentMethod === method.id ? 'text-white' : 'text-[#C17B5C]'}`} />
                     )}
@@ -496,7 +492,7 @@ export default function Step4Payment() {
                         <span>💳</span>
                       </div>
                     )}
-                    <span className="text-center leading-tight">{method.label}</span>
+                    {method.label}
                   </button>
                 ))}
               </div>
@@ -610,10 +606,8 @@ export default function Step4Payment() {
                 ? 'Procesando...'
                 : initialPaymentType === 'zero'
                 ? 'Registrar Orden sin Pago Inicial'
-                : paymentMethod === 'transbank_pos'
-                ? 'Enviar a Máquina Transbank'
                 : paymentMethod === 'mercadopago_point'
-                ? 'Enviar a Máquina MP'
+                ? 'Enviar a Terminal Físico'
                 : paymentMethod === 'transbank'
                 ? 'Generar Link de Pago'
                 : 'Cobrar y Emitir Boleta'
