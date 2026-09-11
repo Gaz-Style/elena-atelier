@@ -49,7 +49,7 @@ interface POSState {
   setEstimatedDates: (dates: any) => void;
   
   // Step 4: Payments
-  paymentMethod: 'mercadopago_point' | 'transbank' | 'cash' | 'split' | null;
+  paymentMethod: 'transbank_pos' | 'mercadopago_point' | 'transbank' | 'cash' | 'split' | null;
   setPaymentMethod: (method: any) => void;
   initialPaymentType: 'total' | '50percent' | 'zero';
   setInitialPaymentType: (type: any) => void;

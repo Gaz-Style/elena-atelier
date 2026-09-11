@@ -168,8 +168,9 @@ export default function Step5Confirmation() {
 
   const paidAmount = confirmedPaidAmount ?? checkoutResult.paidAmount ?? checkoutResult.paid_amount ?? 0;
   const orderId = checkoutResult.orderId ?? checkoutResult.order_number ?? checkoutResult.internal_id ?? 'XXX';
-  const methodLabel = checkoutResult.method === 'mercadopago_point' ? 'Mercado Pago Point'
-    : checkoutResult.method === 'transbank' ? 'Webpay Plus'
+  const methodLabel = checkoutResult.method === 'transbank_pos' ? 'Transbank POS Integrado'
+    : checkoutResult.method === 'mercadopago_point' ? 'Mercado Pago Point'
+    : checkoutResult.method === 'transbank' ? 'Webpay Plus (Línea)'
     : checkoutResult.method === 'cash' ? 'Efectivo / Transferencia'
     : checkoutResult.method || '—';
 
