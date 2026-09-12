@@ -272,7 +272,7 @@ export async function sendWhatsAppTemplateAction(chatId: string, templateName: s
         await Promise.all([
             supabase.from('crm_whatsapp_messages').insert([{
                 chat_id: chatId,
-                sender_type: 'human',
+                sender_type: 'agent',
                 message_type: 'text',
                 content: readableContent
             }]),

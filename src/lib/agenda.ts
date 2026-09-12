@@ -336,6 +336,15 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
                 }).then(async (resp) => {
                     const dataClient = await resp.json();
                     console.log(`WhatsApp Cliente (${finalPhone}):`, dataClient);
+                    
+                    // Registrar el mensaje en LiveChat
+                    try {
+                        const fullName = `${nombre} ${apellido}`.trim();
+                        const msgContent = `📅 *Confirmación de Cita*\n\n¡Hola ${fullName}! Tu cita ha sido agendada con éxito para el *${fechaLegible}* a las *${horaLegible} hrs*. ¡Te esperamos en Elena Atelier!`;
+                        await registrarMensajeSalienteLiveChat(finalPhone, fullName, msgContent);
+                    } catch (chatErr) {
+                        console.error('Error registrando mensaje de confirmación en LiveChat:', chatErr);
+                    }
                 }).catch(err => {
                     console.error(`Error al enviar WhatsApp de confirmación al cliente (${finalPhone}):`, err);
                 })
@@ -347,6 +356,142 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
         await Promise.allSettled(promises);
     } catch (mailError) {
         console.error('Error enviando notificaciones en paralelo:', mailError);
+    }
+}
+
+export async function registrarMensajeSalienteLiveChat(
+    finalPhone: string, 
+    nombreCliente: string, 
+    textoMensaje: string, 
+    timestamp?: string
+) {
+    try {
+        const { createClient: createAdminClient } = await import('@supabase/supabase-js');
+        const adminClient = createAdminClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
+        const cleanDigits = (n: string) => n ? n.replace(/\D/g, '') : '';
+        const phoneDigits = cleanDigits(finalPhone);
+        if (!phoneDigits) return;
+
+        const formattedPhone = phoneDigits.startsWith('56') ? phoneDigits : `56${phoneDigits}`;
+
+        // 1. Buscar si ya existe la sesión de chat por el número
+        const { data: existingChats } = await adminClient
+            .from('crm_whatsapp_chats')
+            .select('id, phone_number, customer_id')
+            .order('last_interaction', { ascending: false });
+
+        let chat = existingChats?.find(c => {
+            const cd = cleanDigits(c.phone_number);
+            return cd && cd.slice(-9) === phoneDigits.slice(-9);
+        });
+
+        let chatId = chat?.id;
+        const msgTime = timestamp || new Date().toISOString();
+
+        if (!chatId) {
+            // Buscar customer_id en la tabla customers
+            const { data: customers } = await adminClient
+                .from('customers')
+                .select('id, phone')
+                .not('phone', 'is', null);
+
+            let matchedCustomerId = null;
+            if (customers) {
+                const match = customers.find(c => {
+                    const custDigits = cleanDigits(c.phone);
+                    return custDigits && (custDigits.slice(-9) === phoneDigits.slice(-9));
+                });
+                if (match) matchedCustomerId = match.id;
+            }
+
+            // Si no existe el cliente en customers y tenemos su nombre, crearlo
+            if (!matchedCustomerId && nombreCliente) {
+                const { data: newCust } = await adminClient
+                    .from('customers')
+                    .insert([{
+                        full_name: nombreCliente,
+                        phone: formattedPhone
+                    }])
+                    .select('id')
+                    .single();
+                if (newCust) matchedCustomerId = newCust.id;
+            }
+
+            // Crear nuevo chat
+            const { data: newChat, error: newChatErr } = await adminClient
+                .from('crm_whatsapp_chats')
+                .insert([{
+                    phone_number: formattedPhone,
+                    session_status: 'bot',
+                    customer_id: matchedCustomerId,
+                    last_interaction: msgTime
+                }])
+                .select('id')
+                .single();
+
+            if (newChatErr) {
+                console.error('Error al crear chat en LiveChat:', newChatErr);
+                return;
+            }
+            chatId = newChat.id;
+        } else {
+            // Si el chat existía pero no estaba enrolado a un customer, intentar vincularlo
+            if (!chat?.customer_id && nombreCliente) {
+                const { data: customers } = await adminClient
+                    .from('customers')
+                    .select('id, phone')
+                    .not('phone', 'is', null);
+                let matchedCustomerId = customers?.find(c => {
+                    const custDigits = cleanDigits(c.phone);
+                    return custDigits && (custDigits.slice(-9) === phoneDigits.slice(-9));
+                })?.id;
+
+                if (!matchedCustomerId) {
+                    const { data: newCust } = await adminClient
+                        .from('customers')
+                        .insert([{ full_name: nombreCliente, phone: formattedPhone }])
+                        .select('id')
+                        .single();
+                    if (newCust) matchedCustomerId = newCust.id;
+                }
+
+                if (matchedCustomerId) {
+                    await adminClient
+                        .from('crm_whatsapp_chats')
+                        .update({ customer_id: matchedCustomerId, last_interaction: msgTime })
+                        .eq('id', chatId);
+                } else {
+                    await adminClient
+                        .from('crm_whatsapp_chats')
+                        .update({ last_interaction: msgTime })
+                        .eq('id', chatId);
+                }
+            } else {
+                await adminClient
+                    .from('crm_whatsapp_chats')
+                    .update({ last_interaction: msgTime })
+                    .eq('id', chatId);
+            }
+        }
+
+        // 2. Insertar el mensaje en crm_whatsapp_messages si no existe uno idéntico en esa hora
+        await adminClient
+            .from('crm_whatsapp_messages')
+            .insert([{
+                chat_id: chatId,
+                sender_type: 'bot',
+                message_type: 'text',
+                content: textoMensaje,
+                created_at: msgTime
+            }]);
+
+        console.log(`[LiveChat] Notificación registrada para ${formattedPhone}`);
+    } catch (err) {
+        console.error('Error en registrarMensajeSalienteLiveChat:', err);
     }
 }
 
