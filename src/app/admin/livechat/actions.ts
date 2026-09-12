@@ -23,7 +23,8 @@ export async function getWhatsAppChatsAction() {
             const { data: customers } = await supabase
                 .from('customers')
                 .select('id, full_name, phone')
-                .not('phone', 'is', null);
+                .not('phone', 'is', null)
+                .order('created_at', { ascending: false });
 
             if (customers && customers.length > 0) {
                 const cleanDigits = (n: string) => n ? n.replace(/\D/g, '') : '';
