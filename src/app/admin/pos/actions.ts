@@ -1960,7 +1960,7 @@ export async function wakeUpMercadoPagoTerminalAction(amount: number, descriptio
             return { success: false, error: 'No hay maquinitas Mercado Pago Point vinculadas a esta cuenta.' };
         }
 
-        // 2. Crear la orden de cobro en el terminal usando la nueva API
+        // 2. Crear la orden de cobro en el terminal usando ambas vías de MP (Point v1 Orders e InStore QR)
         const { randomUUID } = require('crypto');
         const payload = {
             type: "point",
@@ -1976,6 +1976,22 @@ export async function wakeUpMercadoPagoTerminalAction(amount: number, descriptio
                 }
             }
         };
+
+        // InStore QR Order fallback para cajas asignadas
+        fetch(`https://api.mercadopago.com/instore/orders/qr/seller/collectors/3682215796/pos/caja1vitacura/qrs`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${mpToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                external_reference: posOrderId,
+                title: description || 'Venta Elena Atelier',
+                description: 'Elena La Costurera',
+                total_amount: amount,
+                items: [{ title: description || 'Servicio Costura', unit_price: amount, quantity: 1, unit_measure: 'unit', total_amount: amount }]
+            })
+        }).catch(err => console.error('InStore Order push error:', err));
 
         const response = await fetch(`https://api.mercadopago.com/v1/orders`, {
             method: 'POST',
