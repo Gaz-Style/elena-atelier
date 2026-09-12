@@ -18,6 +18,31 @@ async function logSystemEvent(supabase: any, level: string, message: string, pay
     }
 }
 
+async function updateDatabaseStatusFailed(
+    supabase: any,
+    externalRefParam: string,
+    paymentId: string,
+    failedStatus: string
+) {
+    let externalRef = externalRefParam;
+    console.log(`Procesando pago fallido (${failedStatus}) para external_reference: ${externalRef}`);
+    await logSystemEvent(supabase, 'WARN', `Pago fallido MP (${failedStatus})`, { paymentId, externalRef });
+
+    const cleanRef = externalRef.split('_balance_')[0];
+
+    // Actualizar production_orders
+    await supabase
+        .from('production_orders')
+        .update({ payment_status: failedStatus })
+        .eq('pos_order_id', cleanRef);
+
+    // Actualizar sales_ledger
+    await supabase
+        .from('sales_ledger')
+        .update({ status: failedStatus, external_transaction_id: paymentId })
+        .eq('internal_id', externalRef);
+}
+
 async function updateDatabaseAndNotify(
     supabase: any,
     externalRefParam: string,
@@ -435,6 +460,9 @@ export async function POST(req: Request) {
                 const amount = Number(orderData?.total_paid_amount || firstPayment?.paid_amount || null);
                 
                 await updateDatabaseAndNotify(supabase, externalRef, resolvedPaymentId, paymentMethodLabel, amount);
+            } else if (externalRef && (status === 'canceled' || status === 'rejected' || status === 'expired')) {
+                const failedStatus = (status === 'canceled' || status === 'expired') ? 'canceled' : status;
+                await updateDatabaseStatusFailed(supabase, externalRef, orderData?.id || 'point_order', failedStatus);
             } else {
                 console.log(`Orden Point recibida pero no está aprobada aún (Estado: ${status}, Detalle: ${statusDetail})`);
             }
@@ -476,6 +504,14 @@ export async function POST(req: Request) {
                         } else {
                             console.warn('El pago aprobado no tiene external_reference. Imposible asociar automáticamente.');
                             await logSystemEvent(supabase, 'WARN', 'Pago aprobado sin external_reference', { paymentId });
+                        }
+                    } else if (payment.status === 'rejected' || payment.status === 'cancelled' || payment.status === 'canceled' || payment.status === 'refunded' || payment.status === 'charged_back') {
+                        const externalRef = payment.external_reference;
+                        if (externalRef) {
+                            const failedStatus = (payment.status === 'cancelled' || payment.status === 'canceled' || payment.status === 'refunded' || payment.status === 'charged_back') ? 'canceled' : payment.status;
+                            await updateDatabaseStatusFailed(supabase, externalRef, paymentId, failedStatus);
+                        } else {
+                            await logSystemEvent(supabase, 'INFO', `Pago rechazado/cancelado sin external_reference. Estado: ${payment.status}`, { paymentId });
                         }
                     } else {
                         await logSystemEvent(supabase, 'INFO', `Pago no está aprobado. Estado: ${payment.status}`, { paymentId, status: payment.status });

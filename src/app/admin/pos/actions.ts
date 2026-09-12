@@ -1120,6 +1120,9 @@ export async function checkOrderStatusAction(posOrderId: string) {
     if (prodData?.payment_status === 'paid' || prodData?.payment_status === 'completed') {
         return { success: true, status: 'paid', paidAmount: prodData.paid_amount || 0 };
     }
+    if (prodData?.payment_status === 'rejected' || prodData?.payment_status === 'canceled' || prodData?.payment_status === 'cancelled') {
+        return { success: true, status: prodData.payment_status, paidAmount: prodData.paid_amount || 0 };
+    }
     
     // 2. Fallback: verificar sales_ledger
     const { data: ledgerSales } = await supabase
@@ -1137,6 +1140,9 @@ export async function checkOrderStatusAction(posOrderId: string) {
             .or(`pos_order_id.eq.${posOrderId},pos_order_id.eq.${cleanId}`);
             
         return { success: true, status: 'paid', paidAmount: ledgerData.paid_amount || 0 };
+    }
+    if (ledgerData?.status === 'rejected' || ledgerData?.status === 'canceled' || ledgerData?.status === 'cancelled') {
+        return { success: true, status: ledgerData.status, paidAmount: ledgerData.paid_amount || 0 };
     }
     
     return { 
