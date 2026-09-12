@@ -1947,7 +1947,7 @@ export async function wakeUpMercadoPagoTerminalAction(amount: number, descriptio
         // Buscar el terminal que contenga el SN proporcionado, o usar el primero
         let terminalId = '';
         const targetSN = 'NCC804183989';
-        const foundDevice = devices.find((d: any) => d.id.includes(targetSN));
+        const foundDevice = devices.find((d: any) => d.id.includes(targetSN) || (d.pos_id && String(d.pos_id) === '138045526'));
         
         if (foundDevice) {
             terminalId = foundDevice.id;
