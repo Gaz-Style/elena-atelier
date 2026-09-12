@@ -1956,13 +1956,30 @@ export async function wakeUpMercadoPagoTerminalAction(amount: number, descriptio
         let terminalId = '';
         const targetSN = 'NCC804183989';
         const foundDevice = devices.find((d: any) => d.id.includes(targetSN) || (d.pos_id && String(d.pos_id) === '138045526'));
+        const deviceToUse = foundDevice || devices[0];
         
-        if (foundDevice) {
-            terminalId = foundDevice.id;
-            console.log(`[Terminal] Dispositivo SN ${targetSN} encontrado. ID: ${terminalId}`);
-        } else if (devices.length > 0) {
-            terminalId = devices[0].id;
-            console.log(`[Terminal] SN ${targetSN} no encontrado. Usando primer dispositivo disponible ID: ${terminalId}`);
+        if (deviceToUse) {
+            terminalId = deviceToUse.id;
+            console.log(`[Terminal] Dispositivo ${terminalId} seleccionado. Modo actual: ${deviceToUse.operating_mode || 'desconocido'}`);
+            
+            // Auto-activación de modo PDV (Punto de Venta) si no está activo
+            if (deviceToUse.operating_mode !== 'PDV') {
+                console.log(`[Terminal] Activando modo PDV automáticamente para ${terminalId}...`);
+                try {
+                    await fetch('https://api.mercadopago.com/terminals/v1/setup', {
+                        method: 'PATCH',
+                        headers: {
+                            'Authorization': `Bearer ${mpToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            terminals: [{ id: terminalId, operating_mode: 'PDV' }]
+                        })
+                    });
+                } catch (pdvErr) {
+                    console.error('[Terminal] Error al cambiar modo a PDV:', pdvErr);
+                }
+            }
         } else {
             console.error('[Terminal] Error: No hay dispositivos vinculados');
             return { success: false, error: 'No hay maquinitas Mercado Pago Point vinculadas a esta cuenta.' };
