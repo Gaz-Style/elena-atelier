@@ -1716,6 +1716,8 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
         return { success: false, error: 'Venta no encontrada' };
     }
 
+    const wasAlreadyPaid = saleData.status === 'completed' || saleData.status === 'paid';
+
     let finalPaid = 0;
     const finalTotal = saleData.total_amount || 0;
 
@@ -1778,6 +1780,12 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
         console.error('Error updating sales ledger in updateOrderStatusToPaidAction:', salesError);
     }
     
+    // Si la orden ya estaba pagada previamente, evitamos re-enviar la notificación de WhatsApp para prevenir duplicados
+    if (wasAlreadyPaid) {
+        console.log(`Orden ${posOrderId} ya estaba marcada como pagada. Omitiendo envío duplicado de WhatsApp.`);
+        return { success: true };
+    }
+
     // --- WhatsApp Confirmation ---
     try {
         // Usar limit(1).maybeSingle() para evitar caídas con órdenes de múltiples prendas

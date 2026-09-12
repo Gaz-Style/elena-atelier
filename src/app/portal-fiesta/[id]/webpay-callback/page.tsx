@@ -4,7 +4,6 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import { XCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { registerBridalInstallment, acceptContract } from '@/app/admin/novias/actions';
 import { commitWebpayTransaction } from '@/lib/transbank';
 
 function CallbackContent() {
@@ -27,23 +26,8 @@ function CallbackContent() {
 
         // Llamar al commit de Webpay
         commitWebpayTransaction(token)
-            .then(async (res) => {
+            .then((res) => {
                 if (res.success && res.data && res.data.response_code === 0 && res.data.status === 'AUTHORIZED') {
-                    const data = res.data;
-                    
-                    let cuotaIndex = 0;
-                    if (data.buy_order && data.buy_order.includes('_C')) {
-                        const parts = data.buy_order.split('_C');
-                        cuotaIndex = parseInt(parts[1], 10);
-                    }
-
-                    // Registrar abono
-                    await registerBridalInstallment(projectId, cuotaIndex, 'Webpay Plus', true);
-
-                    if (cuotaIndex === 0) {
-                        await acceptContract(projectId);
-                    }
-
                     // Redireccionar al éxito
                     router.replace(`/portal-fiesta/${projectId}/pago-exitoso`);
                 } else {

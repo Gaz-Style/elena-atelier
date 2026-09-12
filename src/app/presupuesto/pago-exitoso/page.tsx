@@ -79,11 +79,9 @@ function CallbackContent() {
 
         // Llamar al commit de Webpay
         commitWebpayTransaction(token_ws)
-            .then(async (res) => {
+            .then((res) => {
                 if (res.success && res.data && res.data.response_code === 0) {
                     setPaymentData(res.data);
-                    // Actualizar orden a pagada
-                    await updateOrderStatusToPaidAction(res.data.buy_order, res.data.amount);
                 } else {
                     if (res.success && res.data) {
                         setPaymentData(res.data);
