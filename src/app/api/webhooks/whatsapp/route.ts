@@ -138,6 +138,12 @@ export async function POST(req: Request) {
                         continue;
                     }
 
+                    // Update last_interaction timestamp on chat session
+                    await supabase
+                        .from('crm_whatsapp_chats')
+                        .update({ last_interaction: new Date().toISOString() })
+                        .eq('id', chatData.id);
+
                     // 4. Trigger Auto-Reply if session is 'bot' and content is text (Smart filter)
                     if (chatData.session_status === 'bot' && content) {
                         try {
