@@ -342,11 +342,19 @@ export async function payOrderBalanceAction(posOrderId: string, amountToPay: num
         
     if (salesError) console.error('Error updating sales ledger:', salesError);
     
+    // Clean up any previously uncompleted pending balance attempts for this base order
+    const baseOrderId = posOrderId.split('_balance_')[0];
+    await supabase
+        .from('sales_ledger')
+        .delete()
+        .like('internal_id', `${baseOrderId}_balance_%`)
+        .eq('status', 'pending');
+
     // Insert new record in Sales Ledger for the balance payment to track cash properly for today
     const { error: newSaleError } = await supabase
         .from('sales_ledger')
         .insert([{
-            internal_id: `${posOrderId}_balance_${Date.now()}`,
+            internal_id: `${baseOrderId}_balance_${Date.now()}`,
             status: isPendingTerminal ? 'pending' : 'completed',
             total_amount: amountToPay,
             paid_amount: isPendingTerminal ? 0 : amountToPay,

@@ -29,6 +29,9 @@ export async function getPendingBalancesAction() {
     const balancesByCustomer: Record<string, { internal_id: string, balance: number, sale_id: number }[]> = {};
     if (sales) {
         for (const sale of sales) {
+            // Ignorar sub-registros de intentos de abono para evitar tarjetas duplicadas
+            if (sale.internal_id?.includes('_balance_')) continue;
+
             const balance = Number(sale.total_amount || 0) - Number(sale.paid_amount || 0);
             if (balance > 0 && sale.customer_id) {
                 if (!balancesByCustomer[sale.customer_id]) balancesByCustomer[sale.customer_id] = [];
