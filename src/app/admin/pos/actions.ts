@@ -1106,31 +1106,35 @@ export async function createPOSOrdersAction(payload: {
 
 export async function checkOrderStatusAction(posOrderId: string) {
     const supabase = await createClient();
+    const cleanId = posOrderId.replace(/^order_/, '');
     
     // 1. Verificar production_orders
-    const { data: prodData } = await supabase
+    const { data: prodOrders } = await supabase
         .from('production_orders')
         .select('payment_status, paid_amount')
-        .eq('pos_order_id', posOrderId)
-        .limit(1)
-        .single();
+        .or(`pos_order_id.eq.${posOrderId},pos_order_id.eq.${cleanId}`)
+        .limit(1);
         
-    if (prodData?.payment_status === 'paid') {
+    const prodData = prodOrders?.[0];
+        
+    if (prodData?.payment_status === 'paid' || prodData?.payment_status === 'completed') {
         return { success: true, status: 'paid', paidAmount: prodData.paid_amount || 0 };
     }
     
     // 2. Fallback: verificar sales_ledger
-    const { data: ledgerData } = await supabase
+    const { data: ledgerSales } = await supabase
         .from('sales_ledger')
         .select('status, paid_amount')
-        .eq('internal_id', posOrderId)
-        .single();
+        .or(`internal_id.eq.${posOrderId},internal_id.eq.${cleanId}`)
+        .limit(1);
+        
+    const ledgerData = ledgerSales?.[0];
         
     if (ledgerData?.status === 'completed' || ledgerData?.status === 'paid') {
         await supabase
             .from('production_orders')
             .update({ payment_status: 'paid' })
-            .eq('pos_order_id', posOrderId);
+            .or(`pos_order_id.eq.${posOrderId},pos_order_id.eq.${cleanId}`);
             
         return { success: true, status: 'paid', paidAmount: ledgerData.paid_amount || 0 };
     }
@@ -2003,7 +2007,9 @@ export async function wakeUpMercadoPagoTerminalAction(amount: number, descriptio
         };
 
         // InStore QR Order fallback para cajas asignadas
-        fetch(`https://api.mercadopago.com/instore/orders/qr/seller/collectors/3682215796/pos/caja1vitacura/qrs`, {
+        const collectorId = mpToken.split('-').pop() || '3682215796';
+        const externalPosId = deviceToUse?.external_pos_id || 'caja1vitacura';
+        fetch(`https://api.mercadopago.com/instore/orders/qr/seller/collectors/${collectorId}/pos/${externalPosId}/qrs`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${mpToken}`,

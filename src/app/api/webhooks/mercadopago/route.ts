@@ -82,8 +82,8 @@ async function updateDatabaseAndNotify(
     const safeAmount = Number(amount || 0);
 
     // --- FALLBACK PARA PAGOS MANUALES EN TERMINAL POINT ---
-    // Si la referencia externa (ej: POS-12345) no existe en la BD, buscamos una orden reciente esperando pago en terminal
-    if (!existingLedger && (!existingOrders || existingOrders.length === 0) && externalRef.startsWith('POS-')) {
+    // Si la referencia externa no existe en la BD o viene nula, buscamos una orden reciente esperando pago en terminal
+    if (!existingLedger && (!existingOrders || existingOrders.length === 0)) {
         const { data: pendingSales } = await supabase
             .from('sales_ledger')
             .select('internal_id, total_amount, paid_amount')

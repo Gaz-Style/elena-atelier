@@ -36,10 +36,12 @@ export default function Step5Confirmation() {
 
     const checkStatus = async () => {
       try {
-        const orderIdStr = checkoutResult.orderId ?? checkoutResult.order_number ?? checkoutResult.internal_id;
-        if (!orderIdStr) return;
+        const rawId = String(checkoutResult.internal_id || checkoutResult.orderId || checkoutResult.order_number || '');
+        if (!rawId) return;
         
-        const posOrderId = `order_${orderIdStr}`;
+        const posOrderId = (rawId.startsWith('order_') || rawId.startsWith('ERP-') || rawId.startsWith('WO-'))
+          ? rawId
+          : `order_${rawId}`;
         const res = await checkOrderStatusAction(posOrderId);
         
         if (res.success) {
