@@ -16,6 +16,42 @@ export async function getWhatsAppChatsAction() {
         console.error('Error fetching chats:', error);
         return [];
     }
+
+    if (data && data.length > 0) {
+        const unlinked = data.filter(c => !c.customer_id && c.phone_number);
+        if (unlinked.length > 0) {
+            const { data: customers } = await supabase
+                .from('customers')
+                .select('id, full_name, phone')
+                .not('phone', 'is', null);
+
+            if (customers && customers.length > 0) {
+                const cleanDigits = (n: string) => n ? n.replace(/\D/g, '') : '';
+                for (const chat of unlinked) {
+                    const chatDigits = cleanDigits(chat.phone_number);
+                    if (!chatDigits) continue;
+
+                    const match = customers.find(c => {
+                        const custDigits = cleanDigits(c.phone);
+                        return custDigits && (custDigits.slice(-9) === chatDigits.slice(-9));
+                    });
+
+                    if (match) {
+                        chat.customer_id = match.id;
+                        chat.customers = { full_name: match.full_name };
+                        // Persist in DB asynchronously
+                        supabase.from('crm_whatsapp_chats')
+                            .update({ customer_id: match.id })
+                            .eq('id', chat.id)
+                            .then(({ error: uErr }) => {
+                                if (uErr) console.error('Error auto-enrolling chat:', uErr);
+                            });
+                    }
+                }
+            }
+        }
+    }
+
     return data || [];
 }
 

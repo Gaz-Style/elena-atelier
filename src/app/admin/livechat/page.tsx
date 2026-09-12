@@ -26,7 +26,7 @@ export default function LiveChatPage() {
     const [templateSending, setTemplateSending] = useState(false);
     const [templateSendError, setTemplateSendError] = useState<string | null>(null);
 
-    const AUTO_REVERT_SECS = 30; // 30 seconds
+    const AUTO_REVERT_SECS = 180; // 3 minutos (180 segundos)
 
     const clearAutoRevert = () => {
         if (autoRevertRef.current) clearInterval(autoRevertRef.current);
@@ -64,7 +64,7 @@ export default function LiveChatPage() {
 
     useEffect(() => {
         loadChats();
-        // Polling for new messages (realtime subscription would be better)
+        // Polling for new messages
         const interval = setInterval(loadChats, 10000);
         return () => clearInterval(interval);
     }, []);
@@ -76,7 +76,9 @@ export default function LiveChatPage() {
             if (selectedChat?.id) {
                 getWhatsAppMessagesAction(selectedChat.id).then(msgs => {
                     setMessages(prev => {
-                        if (prev.length !== msgs.length) {
+                        const lastPrev = prev[prev.length - 1];
+                        const lastMsgs = msgs[msgs.length - 1];
+                        if (prev.length !== msgs.length || lastPrev?.id !== lastMsgs?.id || lastPrev?.content !== lastMsgs?.content) {
                             scrollToBottom();
                             return msgs;
                         }
@@ -419,7 +421,13 @@ export default function LiveChatPage() {
                                     <div className="flex gap-3">
                                         <textarea
                                             value={replyText}
-                                            onChange={(e) => { setReplyText(e.target.value); setSendError(null); }}
+                                            onChange={(e) => { 
+                                                setReplyText(e.target.value); 
+                                                setSendError(null);
+                                                if (selectedChat?.id && selectedChat?.session_status !== 'bot') {
+                                                    startAutoRevert(selectedChat.id);
+                                                }
+                                            }}
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter' && !e.shiftKey) {
                                                     e.preventDefault();
