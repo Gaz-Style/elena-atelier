@@ -363,9 +363,6 @@ export default async function AgendaPage({
                     <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">Admin Panel</p>
                 </div>
                 <nav className="flex-1 space-y-2">
-                    <Link href="/admin/livechat" className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-black transition-colors text-sm font-medium">
-                        Live Chat
-                    </Link>
                     <Link href="/admin/agenda" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black text-white text-sm font-medium">
                         Agenda
                     </Link>

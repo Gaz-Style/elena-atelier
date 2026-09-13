@@ -228,24 +228,7 @@ export default function LiveChatPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 flex font-sans h-screen">
-            {/* Sidebar Simple */}
-            <aside className="w-64 bg-white border-r border-gray-200 p-6 flex flex-col hidden md:flex shrink-0">
-                <div className="mb-10">
-                    <h2 className="text-xl font-serif font-bold tracking-wider">ELENA ATELIER</h2>
-                    <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">Admin Panel</p>
-                </div>
-                <nav className="flex-1 space-y-2">
-                    <Link href="/admin/livechat" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black text-white text-sm font-medium">
-                        Live Chat
-                    </Link>
-                    <Link href="/admin/agenda" className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-black transition-colors text-sm font-medium">
-                        Agenda
-                    </Link>
-                    <Link href="/admin/horarios" className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gray-50 hover:text-black transition-colors text-sm font-medium">
-                        Horarios
-                    </Link>
-                </nav>
-            </aside>
+
 
             {/* Main Chat Area Wrapper */}
             <div className="flex-1 p-6 flex flex-col h-screen overflow-hidden">

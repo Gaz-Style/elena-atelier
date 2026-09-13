@@ -21,7 +21,8 @@ import {
     BrainCircuit,
     X,
     LogOut,
-    Mail
+    Mail,
+    MessageSquare
 } from 'lucide-react';
 import { logoutAction } from '@/app/admin/login/actions';
 import { clsx, type ClassValue } from 'clsx';
@@ -53,6 +54,7 @@ export const sidebarSections = [
     {
         title: 'CLIENTES',
         items: [
+            { name: 'Live Chat', href: '/admin/livechat', icon: MessageSquare },
             { name: 'CRM & WhatsApp', href: '/admin/crm', icon: Users },
             { name: 'Central de Correos', href: '/admin/crm/correo-central', icon: Mail },
             { name: 'Agenda & Citas', href: '/admin/agenda', icon: Calendar },
