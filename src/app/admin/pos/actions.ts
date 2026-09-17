@@ -7,7 +7,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { getCurrentCashRegisterAction } from '../caja/actions';
 
 // INTERRUPTOR DE SEGURIDAD: Cambiar a 'true' para reactivar el envío automático de confirmaciones de pago a clientes por WhatsApp
-const ENABLE_CLIENT_PAYMENT_WHATSAPP = false;
+const ENABLE_CLIENT_PAYMENT_WHATSAPP = true;
 
 const getAdminClient = () => {
     return createSupabaseClient(

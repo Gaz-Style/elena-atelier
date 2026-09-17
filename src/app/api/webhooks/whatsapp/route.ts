@@ -200,8 +200,8 @@ export async function POST(req: Request) {
                                     .update({ session_status: 'human' })
                                     .eq('id', chatData.id);
                             }
-                        } catch (err) {
-                            console.error('Error in smart bot filter:', err);
+                        } catch (botErr) {
+                            console.error('Error en auto-reply WhatsApp:', botErr);
                         }
                     }
                 }

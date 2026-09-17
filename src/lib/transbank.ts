@@ -33,41 +33,83 @@ export async function commitWebpayTransaction(token: string) {
         if (response.response_code === 0) {
             console.log(`Webpay transaction authorized successfully. Starting server-side database update for buy_order: ${response.buy_order}`);
             try {
-                if (response.buy_order && response.buy_order.startsWith('BRDL_')) {
-                    // Format: BRDL_${shortId}_C${cuotaIndex}
-                    const parts = response.buy_order.split('_C');
-                    const shortId = parts[0].replace('BRDL_', '');
-                    const cuotaIndex = parseInt(parts[1], 10);
+                const { createClient } = await import('@supabase/supabase-js');
+                const supabase = createClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                    process.env.SUPABASE_SERVICE_ROLE_KEY!
+                );
 
-                    const { createClient } = await import('@supabase/supabase-js');
-                    const supabase = createClient(
-                        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                        process.env.SUPABASE_SERVICE_ROLE_KEY!
-                    );
+                const buyOrder = response.buy_order || '';
+                let processedBridal = false;
 
-                    // Fetch the full UUID for the bridal project
-                    const { data: project } = await supabase
+                // CASO A: Formato BRDL_..._C... o bridal_...
+                if (buyOrder.startsWith('BRDL_') || buyOrder.startsWith('bridal_') || buyOrder.includes('_C')) {
+                    let projectId = '';
+                    let cuotaIndex = 0;
+
+                    if (buyOrder.includes('_C')) {
+                        const parts = buyOrder.split('_C');
+                        const rawId = parts[0].replace('BRDL_', '').replace('bridal_', '');
+                        cuotaIndex = parseInt(parts[1], 10) || 0;
+
+                        // Buscar el proyecto por ID corto o UUID completo
+                        const { data: project } = await supabase
+                            .from('bridal_projects')
+                            .select('id')
+                            .or(`id.eq.${rawId},id.like.${rawId}%`)
+                            .maybeSingle();
+
+                        if (project) projectId = project.id;
+                    }
+
+                    if (projectId) {
+                        const { registerBridalInstallment, acceptContract } = await import('@/app/admin/novias/actions');
+                        await registerBridalInstallment(projectId, cuotaIndex, 'Webpay Plus', true);
+                        if (cuotaIndex === 0) {
+                            await acceptContract(projectId);
+                        }
+                        processedBridal = true;
+                        console.log(`Successfully updated bridal project installment server-side for project: ${projectId}, cuota: ${cuotaIndex}`);
+                    }
+                }
+
+                // CASO B: Si no se procesó como Novias/Fiesta por prefijo, intentar buscar en bridal_projects por ID
+                if (!processedBridal) {
+                    const cleanRef = buyOrder.split('_balance_')[0];
+                    const { data: directBridal } = await supabase
                         .from('bridal_projects')
                         .select('id')
-                        .like('id', `${shortId}%`)
-                        .single();
+                        .eq('id', cleanRef)
+                        .maybeSingle();
 
-                    if (project) {
+                    if (directBridal) {
                         const { registerBridalInstallment, acceptContract } = await import('@/app/admin/novias/actions');
-                        await registerBridalInstallment(project.id, cuotaIndex, 'Webpay Plus', true);
-                        if (cuotaIndex === 0) {
-                            await acceptContract(project.id);
-                        }
-                        console.log(`Successfully updated bridal project installment server-side for project: ${project.id}`);
-                    } else {
-                        console.error(`Could not find bridal project starting with short ID: ${shortId}`);
+                        await registerBridalInstallment(directBridal.id, 0, 'Webpay Plus', true);
+                        await acceptContract(directBridal.id);
+                        processedBridal = true;
+                        console.log(`Successfully matched direct bridal project ID: ${directBridal.id}`);
                     }
-                } else {
-                    // Standard order or budget payment
-                    const { updateOrderStatusToPaidAction } = await import('@/app/admin/pos/actions');
-                    await updateOrderStatusToPaidAction(response.buy_order, response.amount);
-                    console.log(`Successfully updated standard order/budget to paid server-side for buy_order: ${response.buy_order}`);
                 }
+
+                // CASO C: Orden estándar de POS / Presupuesto / Arreglos
+                if (!processedBridal) {
+                    const { updateOrderStatusToPaidAction } = await import('@/app/admin/pos/actions');
+                    await updateOrderStatusToPaidAction(buyOrder, response.amount);
+                    console.log(`Successfully updated standard order/budget to paid server-side for buy_order: ${buyOrder}`);
+                }
+
+                // Registrar en system_logs
+                try {
+                    await supabase.from('system_logs').insert([{
+                        service: 'Transbank Webpay',
+                        level: 'INFO',
+                        message: `Pago Webpay Autorizado (${response.buy_order})`,
+                        payload: { buy_order: response.buy_order, amount: response.amount, authorization_code: response.authorization_code }
+                    }]);
+                } catch (logErr) {
+                    console.error('Error logging system event for Transbank:', logErr);
+                }
+
             } catch (dbErr) {
                 console.error('Error in server-side Webpay auto-update:', dbErr);
             }

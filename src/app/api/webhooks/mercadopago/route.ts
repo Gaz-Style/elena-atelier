@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { sendOrderConfirmationEmailByOrderIdAction } from '@/app/admin/pos/actions';
 
-const ENABLE_CLIENT_PAYMENT_WHATSAPP = false;
+const ENABLE_CLIENT_PAYMENT_WHATSAPP = true;
 
 async function logSystemEvent(supabase: any, level: string, message: string, payload: any = null) {
     try {

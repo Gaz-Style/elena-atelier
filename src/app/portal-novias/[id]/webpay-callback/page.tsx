@@ -5,6 +5,7 @@ import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import { XCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { commitWebpayTransaction } from '@/lib/transbank';
+import { registerBridalInstallment, acceptContract } from '@/app/admin/novias/actions';
 
 function CallbackContent() {
     const searchParams = useSearchParams();
@@ -26,8 +27,25 @@ function CallbackContent() {
 
         // Llamar al commit de Webpay
         commitWebpayTransaction(token)
-            .then((res) => {
+            .then(async (res) => {
                 if (res.success && res.data && res.data.response_code === 0 && res.data.status === 'AUTHORIZED') {
+                    const data = res.data;
+                    let cuotaIndex = 0;
+                    if (data.buy_order && data.buy_order.includes('_C')) {
+                        const parts = data.buy_order.split('_C');
+                        cuotaIndex = parseInt(parts[1], 10) || 0;
+                    }
+
+                    // Asegurar registro de abono y contrato como respaldo
+                    try {
+                        await registerBridalInstallment(projectId, cuotaIndex, 'Webpay Plus', true);
+                        if (cuotaIndex === 0) {
+                            await acceptContract(projectId);
+                        }
+                    } catch (fallbackErr) {
+                        console.error("Error en respaldo de callback novias:", fallbackErr);
+                    }
+
                     // Redireccionar al éxito
                     router.replace(`/portal-novias/${projectId}/pago-exitoso`);
                 } else {

@@ -32,9 +32,14 @@ function CallbackContent() {
 
         // Llamar al commit de Webpay
         commitWebpayTransaction(token_ws)
-            .then((res) => {
+            .then(async (res) => {
                 if (res.success && res.data && res.data.response_code === 0) {
                     setPaymentData(res.data);
+                    try {
+                        await updateOrderStatusToPaidAction(res.data.buy_order, res.data.amount);
+                    } catch (fallbackErr) {
+                        console.error('Error en respaldo updateOrderStatusToPaidAction:', fallbackErr);
+                    }
                 } else {
                     if (res.success && res.data) {
                         setPaymentData(res.data);
