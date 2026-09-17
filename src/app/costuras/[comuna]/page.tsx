@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, MapPin, Clock, Truck, ShieldCheck, Scissors, Star, Camera, UserCheck } from 'lucide-react';
 import BrandCarousel from '@/components/BrandCarousel';
+import LocationMap from '@/components/LocationMap';
 
 function formatTitle(slug: string) {
     const titles: Record<string, string> = {
@@ -380,6 +381,9 @@ export default async function CosturasComunaPage({ params }: Props) {
                     </table>
                 </div>
             </section>
+
+            {/* SECCIÓN MAPA DE UBICACIÓN E INTELIGENCIA DE NAVEGACIÓN */}
+            <LocationMap comuna={comuna} />
 
             {/* SECCIÓN DE OTRAS COMUNAS */}
             <section className="max-w-4xl mx-auto px-6 py-8 relative z-10 bg-[#242424]/40 border border-white/5 p-6 rounded-sm mt-12">
