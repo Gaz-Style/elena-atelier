@@ -65,11 +65,13 @@ export default function Footer() {
               <li><Link href="/costuras/santa-maria-de-manquehue" className="hover:text-[#cda45e] transition-colors pl-1">Santa María de Manquehue</Link></li>
               <li><Link href="/costuras/jardin-del-este" className="hover:text-[#cda45e] transition-colors pl-1">Jardín del Este</Link></li>
               <li><Link href="/costuras/lo-curro" className="hover:text-[#cda45e] transition-colors pl-1">Lo Curro</Link></li>
+              <li><Link href="/costuras/alonso-de-cordova" className="hover:text-[#cda45e] transition-colors pl-1">Alonso de Córdova</Link></li>
 
               <li className="pt-1"><Link href="/costuras/las-condes" className="hover:text-[#cda45e] transition-colors font-semibold text-white/80">Las Condes</Link></li>
               <li><Link href="/costuras/san-carlos-de-apoquindo" className="hover:text-[#cda45e] transition-colors pl-1">San Carlos de Apoquindo</Link></li>
               <li><Link href="/costuras/el-golf" className="hover:text-[#cda45e] transition-colors pl-1">El Golf</Link></li>
               <li><Link href="/costuras/san-damian" className="hover:text-[#cda45e] transition-colors pl-1">San Damián</Link></li>
+              <li><Link href="/costuras/estoril" className="hover:text-[#cda45e] transition-colors pl-1">Estoril / Tabancura</Link></li>
 
               <li className="pt-1"><Link href="/costuras/lo-barnechea" className="hover:text-[#cda45e] transition-colors font-semibold text-white/80">Lo Barnechea</Link></li>
               <li><Link href="/costuras/la-dehesa" className="hover:text-[#cda45e] transition-colors pl-1">La Dehesa</Link></li>

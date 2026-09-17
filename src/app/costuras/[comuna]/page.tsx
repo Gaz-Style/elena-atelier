@@ -16,11 +16,13 @@ function formatTitle(slug: string) {
         'san-carlos-de-apoquindo': 'San Carlos de Apoquindo',
         'el-golf': 'El Golf',
         'san-damian': 'San Damián',
+        'estoril': 'Estoril / Tabancura',
         'lo-barnechea': 'Lo Barnechea',
         'vitacura': 'Vitacura',
         'santa-maria-de-manquehue': 'Santa María de Manquehue',
         'jardin-del-este': 'Jardín del Este',
         'lo-curro': 'Lo Curro',
+        'alonso-de-cordova': 'Alonso de Córdova',
     };
     if (titles[slug]) return titles[slug];
     return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
@@ -71,10 +73,12 @@ export default async function CosturasComunaPage({ params }: Props) {
         { name: 'Santa María de Manquehue', slug: 'santa-maria-de-manquehue' },
         { name: 'Jardín del Este', slug: 'jardin-del-este' },
         { name: 'Lo Curro', slug: 'lo-curro' },
+        { name: 'Alonso de Córdova', slug: 'alonso-de-cordova' },
         { name: 'Las Condes', slug: 'las-condes' },
         { name: 'San Carlos de Apoquindo', slug: 'san-carlos-de-apoquindo' },
         { name: 'El Golf', slug: 'el-golf' },
         { name: 'San Damián', slug: 'san-damian' },
+        { name: 'Estoril / Tabancura', slug: 'estoril' },
         { name: 'Lo Barnechea', slug: 'lo-barnechea' },
         { name: 'La Dehesa', slug: 'la-dehesa' },
         { name: 'Los Trapenses', slug: 'los-trapenses' },
