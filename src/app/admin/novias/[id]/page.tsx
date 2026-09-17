@@ -368,9 +368,26 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                 <div>
                                     <div className="flex items-center gap-3 mb-1">
                                         <h1 className="font-serif text-3xl text-zinc-900">{project.customers?.full_name || 'Sin asignar'}</h1>
-                                        <span className={`text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-full ${status.bg} ${status.color}`}>
-                                            {status.label}
-                                        </span>
+                                        <select
+                                            value={project.status}
+                                            onChange={async (e) => {
+                                                const newStatus = e.target.value;
+                                                setSaving(true);
+                                                const formData = new FormData();
+                                                formData.set('status', newStatus);
+                                                await updateBridalProject(projectId, formData);
+                                                await loadProject(projectId);
+                                                setSaving(false);
+                                            }}
+                                            disabled={saving}
+                                            className={`text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-full border cursor-pointer focus:outline-none transition-all ${status.bg} ${status.color}`}
+                                        >
+                                            {Object.entries(statusConfig).map(([key, cfg]) => (
+                                                <option key={key} value={key} className="bg-white text-zinc-800">
+                                                    {cfg.label}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <p className="text-zinc-500 text-sm">{serviceTypeLabel[project.service_type]} · {typeConfig.label}</p>
                                     {project.description && <p className="text-zinc-400 text-xs mt-1 italic">"{project.description}"</p>}
@@ -634,7 +651,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                                             <Calendar className="w-3 h-3" />
                                                             {formatMilestoneDate(milestone.scheduled_date)}
                                                             {isPast && <span className="text-red-500 font-bold ml-2">• Atrasado</span>}
-                                                            {!isCompleted && project.status !== 'cancelado' && project.status !== 'entregado' && (
+                                                            {!isCompleted && project.status !== 'cancelado' && (
                                                                 <button 
                                                                     onClick={() => {
                                                                         setEditingMilestoneId(milestone.id);
@@ -660,7 +677,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                                         <p className="text-[10px] text-emerald-600 mt-1">Completado el {formatDate(milestone.completed_date)}</p>
                                                     )}
                                                 </div>
-                                                {!isCompleted && project.status !== 'cancelado' && project.status !== 'entregado' && (
+                                                {!isCompleted && project.status !== 'cancelado' && (
                                                     <button
                                                         onClick={() => handleCompleteMilestone(milestone.id)}
                                                         disabled={saving}
