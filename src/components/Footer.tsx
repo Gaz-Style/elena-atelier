@@ -66,12 +66,14 @@ export default function Footer() {
               <li><Link href="/costuras/jardin-del-este" className="hover:text-[#cda45e] transition-colors pl-1">Jardín del Este</Link></li>
               <li><Link href="/costuras/lo-curro" className="hover:text-[#cda45e] transition-colors pl-1">Lo Curro</Link></li>
               <li><Link href="/costuras/alonso-de-cordova" className="hover:text-[#cda45e] transition-colors pl-1">Alonso de Córdova</Link></li>
+              <li><Link href="/costuras/borde-rio" className="hover:text-[#cda45e] transition-colors pl-1">Borde Río / Nueva Costanera</Link></li>
 
               <li className="pt-1"><Link href="/costuras/las-condes" className="hover:text-[#cda45e] transition-colors font-semibold text-white/80">Las Condes</Link></li>
               <li><Link href="/costuras/san-carlos-de-apoquindo" className="hover:text-[#cda45e] transition-colors pl-1">San Carlos de Apoquindo</Link></li>
               <li><Link href="/costuras/el-golf" className="hover:text-[#cda45e] transition-colors pl-1">El Golf</Link></li>
               <li><Link href="/costuras/san-damian" className="hover:text-[#cda45e] transition-colors pl-1">San Damián</Link></li>
               <li><Link href="/costuras/estoril" className="hover:text-[#cda45e] transition-colors pl-1">Estoril / Tabancura</Link></li>
+              <li><Link href="/costuras/los-dominicos" className="hover:text-[#cda45e] transition-colors pl-1">Los Dominicos</Link></li>
 
               <li className="pt-1"><Link href="/costuras/lo-barnechea" className="hover:text-[#cda45e] transition-colors font-semibold text-white/80">Lo Barnechea</Link></li>
               <li><Link href="/costuras/la-dehesa" className="hover:text-[#cda45e] transition-colors pl-1">La Dehesa</Link></li>
@@ -79,6 +81,7 @@ export default function Footer() {
               <li><Link href="/costuras/el-huinganal" className="hover:text-[#cda45e] transition-colors pl-1">El Huinganal</Link></li>
               <li><Link href="/costuras/el-arrayan" className="hover:text-[#cda45e] transition-colors pl-1">El Arrayán</Link></li>
               <li><Link href="/costuras/golf-de-manquehue" className="hover:text-[#cda45e] transition-colors pl-1">Golf de Manquehue</Link></li>
+              <li><Link href="/costuras/valle-escondido" className="hover:text-[#cda45e] transition-colors pl-1">Valle Escondido</Link></li>
             </ul>
           </div>
         </div>

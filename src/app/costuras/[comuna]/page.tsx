@@ -12,17 +12,20 @@ function formatTitle(slug: string) {
         'el-arrayan': 'El Arrayán',
         'golf-de-manquehue': 'Golf de Manquehue',
         'cerro-dieciocho': 'Cerro Dieciocho',
+        'valle-escondido': 'Valle Escondido',
         'las-condes': 'Las Condes',
         'san-carlos-de-apoquindo': 'San Carlos de Apoquindo',
         'el-golf': 'El Golf',
         'san-damian': 'San Damián',
         'estoril': 'Estoril / Tabancura',
+        'los-dominicos': 'Los Dominicos',
         'lo-barnechea': 'Lo Barnechea',
         'vitacura': 'Vitacura',
         'santa-maria-de-manquehue': 'Santa María de Manquehue',
         'jardin-del-este': 'Jardín del Este',
         'lo-curro': 'Lo Curro',
         'alonso-de-cordova': 'Alonso de Córdova',
+        'borde-rio': 'Borde Río / Nueva Costanera',
     };
     if (titles[slug]) return titles[slug];
     return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
@@ -74,11 +77,13 @@ export default async function CosturasComunaPage({ params }: Props) {
         { name: 'Jardín del Este', slug: 'jardin-del-este' },
         { name: 'Lo Curro', slug: 'lo-curro' },
         { name: 'Alonso de Córdova', slug: 'alonso-de-cordova' },
+        { name: 'Borde Río / Nueva Costanera', slug: 'borde-rio' },
         { name: 'Las Condes', slug: 'las-condes' },
         { name: 'San Carlos de Apoquindo', slug: 'san-carlos-de-apoquindo' },
         { name: 'El Golf', slug: 'el-golf' },
         { name: 'San Damián', slug: 'san-damian' },
         { name: 'Estoril / Tabancura', slug: 'estoril' },
+        { name: 'Los Dominicos', slug: 'los-dominicos' },
         { name: 'Lo Barnechea', slug: 'lo-barnechea' },
         { name: 'La Dehesa', slug: 'la-dehesa' },
         { name: 'Los Trapenses', slug: 'los-trapenses' },
@@ -86,6 +91,7 @@ export default async function CosturasComunaPage({ params }: Props) {
         { name: 'El Arrayán', slug: 'el-arrayan' },
         { name: 'Golf de Manquehue', slug: 'golf-de-manquehue' },
         { name: 'Cerro Dieciocho', slug: 'cerro-dieciocho' },
+        { name: 'Valle Escondido', slug: 'valle-escondido' },
     ];
 
     return (
