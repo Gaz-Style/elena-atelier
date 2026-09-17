@@ -57,16 +57,26 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Col 5: Costuras por Comuna */}
+          {/* Col 5: Costuras por Comuna & Sectores */}
           <div className="space-y-4">
             <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Taller Costuras</h4>
-            <ul className="space-y-1.5 text-[11px]">
-              <li><Link href="/costuras/vitacura" className="hover:text-[#cda45e] transition-colors">Costuras Vitacura</Link></li>
-              <li><Link href="/costuras/las-condes" className="hover:text-[#cda45e] transition-colors">Costuras Las Condes</Link></li>
-              <li><Link href="/costuras/lo-barnechea" className="hover:text-[#cda45e] transition-colors">Costuras Lo Barnechea</Link></li>
-              <li><Link href="/costuras/la-dehesa" className="hover:text-[#cda45e] transition-colors">Costuras La Dehesa</Link></li>
-              <li><Link href="/costuras/los-trapenses" className="hover:text-[#cda45e] transition-colors">Costuras Los Trapenses</Link></li>
-              <li><Link href="/costuras/el-huinganal" className="hover:text-[#cda45e] transition-colors">Costuras El Huinganal</Link></li>
+            <ul className="space-y-1 text-[10px]">
+              <li><Link href="/costuras/vitacura" className="hover:text-[#cda45e] transition-colors font-semibold text-white/80">Vitacura</Link></li>
+              <li><Link href="/costuras/santa-maria-de-manquehue" className="hover:text-[#cda45e] transition-colors pl-1">Santa María de Manquehue</Link></li>
+              <li><Link href="/costuras/jardin-del-este" className="hover:text-[#cda45e] transition-colors pl-1">Jardín del Este</Link></li>
+              <li><Link href="/costuras/lo-curro" className="hover:text-[#cda45e] transition-colors pl-1">Lo Curro</Link></li>
+
+              <li className="pt-1"><Link href="/costuras/las-condes" className="hover:text-[#cda45e] transition-colors font-semibold text-white/80">Las Condes</Link></li>
+              <li><Link href="/costuras/san-carlos-de-apoquindo" className="hover:text-[#cda45e] transition-colors pl-1">San Carlos de Apoquindo</Link></li>
+              <li><Link href="/costuras/el-golf" className="hover:text-[#cda45e] transition-colors pl-1">El Golf</Link></li>
+              <li><Link href="/costuras/san-damian" className="hover:text-[#cda45e] transition-colors pl-1">San Damián</Link></li>
+
+              <li className="pt-1"><Link href="/costuras/lo-barnechea" className="hover:text-[#cda45e] transition-colors font-semibold text-white/80">Lo Barnechea</Link></li>
+              <li><Link href="/costuras/la-dehesa" className="hover:text-[#cda45e] transition-colors pl-1">La Dehesa</Link></li>
+              <li><Link href="/costuras/los-trapenses" className="hover:text-[#cda45e] transition-colors pl-1">Los Trapenses</Link></li>
+              <li><Link href="/costuras/el-huinganal" className="hover:text-[#cda45e] transition-colors pl-1">El Huinganal</Link></li>
+              <li><Link href="/costuras/el-arrayan" className="hover:text-[#cda45e] transition-colors pl-1">El Arrayán</Link></li>
+              <li><Link href="/costuras/golf-de-manquehue" className="hover:text-[#cda45e] transition-colors pl-1">Golf de Manquehue</Link></li>
             </ul>
           </div>
         </div>

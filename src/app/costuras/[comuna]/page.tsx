@@ -5,11 +5,24 @@ import { ArrowRight, MapPin, Clock, Truck, ShieldCheck, Scissors, Star, Camera, 
 import BrandCarousel from '@/components/BrandCarousel';
 
 function formatTitle(slug: string) {
-    if (slug === 'el-huinganal') return 'El Huinganal';
-    if (slug === 'la-dehesa') return 'La Dehesa';
-    if (slug === 'los-trapenses') return 'Los Trapenses';
-    if (slug === 'las-condes') return 'Las Condes';
-    if (slug === 'lo-barnechea') return 'Lo Barnechea';
+    const titles: Record<string, string> = {
+        'el-huinganal': 'El Huinganal',
+        'la-dehesa': 'La Dehesa',
+        'los-trapenses': 'Los Trapenses',
+        'el-arrayan': 'El Arrayán',
+        'golf-de-manquehue': 'Golf de Manquehue',
+        'cerro-dieciocho': 'Cerro Dieciocho',
+        'las-condes': 'Las Condes',
+        'san-carlos-de-apoquindo': 'San Carlos de Apoquindo',
+        'el-golf': 'El Golf',
+        'san-damian': 'San Damián',
+        'lo-barnechea': 'Lo Barnechea',
+        'vitacura': 'Vitacura',
+        'santa-maria-de-manquehue': 'Santa María de Manquehue',
+        'jardin-del-este': 'Jardín del Este',
+        'lo-curro': 'Lo Curro',
+    };
+    if (titles[slug]) return titles[slug];
     return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 }
 
@@ -55,11 +68,20 @@ export default async function CosturasComunaPage({ params }: Props) {
 
     const communes = [
         { name: 'Vitacura', slug: 'vitacura' },
+        { name: 'Santa María de Manquehue', slug: 'santa-maria-de-manquehue' },
+        { name: 'Jardín del Este', slug: 'jardin-del-este' },
+        { name: 'Lo Curro', slug: 'lo-curro' },
         { name: 'Las Condes', slug: 'las-condes' },
+        { name: 'San Carlos de Apoquindo', slug: 'san-carlos-de-apoquindo' },
+        { name: 'El Golf', slug: 'el-golf' },
+        { name: 'San Damián', slug: 'san-damian' },
         { name: 'Lo Barnechea', slug: 'lo-barnechea' },
         { name: 'La Dehesa', slug: 'la-dehesa' },
         { name: 'Los Trapenses', slug: 'los-trapenses' },
-        { name: 'El Huinganal', slug: 'el-huinganal' }
+        { name: 'El Huinganal', slug: 'el-huinganal' },
+        { name: 'El Arrayán', slug: 'el-arrayan' },
+        { name: 'Golf de Manquehue', slug: 'golf-de-manquehue' },
+        { name: 'Cerro Dieciocho', slug: 'cerro-dieciocho' },
     ];
 
     return (
