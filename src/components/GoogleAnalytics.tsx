@@ -32,6 +32,9 @@ export const trackGAEvent = (
   params?: Record<string, any>
 ) => {
   if (typeof window !== 'undefined') {
+    if (window.location.pathname.startsWith('/admin')) {
+      return;
+    }
     const utms = getStoredUTMs();
     const payload = {
       event_category: category,
@@ -57,6 +60,12 @@ function AnalyticsTracker() {
 
   useEffect(() => {
     if (!GA_TRACKING_ID) return;
+    
+    // Ignore tracking for internal admin portal routes
+    if (pathname && pathname.startsWith('/admin')) {
+      return;
+    }
+
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
 
     // Auto-capture UTM parameters if present in URL
