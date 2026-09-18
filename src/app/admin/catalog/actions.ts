@@ -73,3 +73,19 @@ export async function deleteCatalogItem(id: string) {
     revalidatePath('/admin/catalog');
     return { success: true };
 }
+
+export async function toggleCatalogItemActive(id: string, active: boolean) {
+    const supabase = await createClient();
+    const { error } = await supabase.from('catalog').update({ active }).eq('id', id);
+    if (error) return { error: error.message };
+    revalidatePath('/admin/catalog');
+    return { success: true };
+}
+
+export async function toggleCatalogItemFeatured(id: string, featured: boolean) {
+    const supabase = await createClient();
+    const { error } = await supabase.from('catalog').update({ featured }).eq('id', id);
+    if (error) return { error: error.message };
+    revalidatePath('/admin/catalog');
+    return { success: true };
+}

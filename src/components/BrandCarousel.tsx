@@ -30,9 +30,9 @@ export default function BrandCarousel({ comuna }: BrandCarouselProps) {
     const marqueeBrands = [...brands, ...brands];
 
     return (
-        <section className="py-12 sm:py-16 md:py-20 my-4 sm:my-8 relative z-10 overflow-hidden pointer-events-none select-none">
-            <div className="max-w-4xl mx-auto text-center px-4 mb-8 sm:mb-12 md:mb-14">
-                <span className="text-xs text-[#C17F5F] uppercase tracking-widest font-bold">
+        <section className="py-6 sm:py-8 relative z-10 overflow-hidden pointer-events-none select-none">
+            <div className="max-w-4xl mx-auto text-center px-4 mb-4 sm:mb-6">
+                <span className="text-[10px] sm:text-xs text-[#C17F5F] uppercase tracking-widest font-bold">
                     Trabajamos con tus marcas preferidas {comuna ? `en ${comuna}` : ''}
                 </span>
             </div>

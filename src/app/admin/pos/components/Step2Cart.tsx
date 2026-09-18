@@ -59,6 +59,10 @@ export default function Step2Cart() {
   });
 
   const handleAddToCart = (item: any) => {
+    // Tomar los minutos configurados en el catálogo maestro y convertirlos a horas exactas
+    const catalogMinutes = Number(item.production_time_minutes || 0);
+    const calculatedHours = catalogMinutes > 0 ? (catalogMinutes / 60) : getDefaultProductionHours(item.name, item.category);
+
     addToCart({
       id: crypto.randomUUID(),
       name: item.name,
@@ -66,8 +70,8 @@ export default function Step2Cart() {
       category: item.category,
       isCustom: item.isCustom || false,
       details: {
-        hours: getDefaultProductionHours(item.name, item.category),
-        notes: ''
+        hours: calculatedHours,
+        notes: item.description || ''
       }
     });
   };

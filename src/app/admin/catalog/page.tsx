@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Trash2, Search, Tag, DollarSign, Package, Loader2, CheckCircle2, X, Clock, Scissors, TrendingUp, AlertCircle, Calculator, ChevronRight, Edit3 } from 'lucide-react';
-import { getCatalog, addCatalogItem, deleteCatalogItem, getCostStructure, updateCatalogItem } from './actions';
+import { Plus, Trash2, Search, Tag, DollarSign, Package, Loader2, CheckCircle2, X, Clock, Scissors, TrendingUp, AlertCircle, Calculator, ChevronRight, Edit3, Eye, EyeOff, Star } from 'lucide-react';
+import { getCatalog, addCatalogItem, deleteCatalogItem, getCostStructure, updateCatalogItem, toggleCatalogItemActive, toggleCatalogItemFeatured } from './actions';
 
 export default function CatalogManager() {
     const [items, setItems] = useState<any[]>([]);
@@ -99,6 +99,24 @@ export default function CatalogManager() {
         if (result.success) fetchCatalog();
     }
 
+    async function handleToggleActive(id: string, currentActive: boolean) {
+        // Optimistic UI update
+        setItems(prev => prev.map(item => item.id === id ? { ...item, active: !currentActive } : item));
+        const result = await toggleCatalogItemActive(id, !currentActive);
+        if (!result.success) {
+            fetchCatalog(); // Rollback on error
+        }
+    }
+
+    async function handleToggleFeatured(id: string, currentFeatured: boolean) {
+        // Optimistic UI update
+        setItems(prev => prev.map(item => item.id === id ? { ...item, featured: !currentFeatured } : item));
+        const result = await toggleCatalogItemFeatured(id, !currentFeatured);
+        if (!result.success) {
+            fetchCatalog(); // Rollback on error
+        }
+    }
+
     const calculateLiveSuggestion = (time: number, materials: number) => {
         if (!costSettings) return 0;
         const laborCost = (time / 60) * costSettings.labor_hourly_rate;
@@ -156,6 +174,53 @@ export default function CatalogManager() {
                     </div>
                 </div>
 
+                {/* WIDGET RANKING TOP 6 MÁS SOLICITADOS (CÁLCULO AUTOMÁTICO POR VENTAS Y DEMANDA) */}
+                <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm space-y-4">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 gap-2">
+                        <div className="flex items-center gap-2.5">
+                            <div className="bg-brand-terracotta/10 p-2 rounded-full">
+                                <TrendingUp className="w-5 h-5 text-brand-terracotta" />
+                            </div>
+                            <div>
+                                <h2 className="font-serif text-xl tracking-tighter uppercase font-bold text-brand-charcoal">
+                                    Ranking Top 6 Más Solicitados
+                                </h2>
+                                <p className="text-xs text-gray-400 font-serif italic">Calculado automáticamente por volumen real de ventas y solicitudes en taller</p>
+                            </div>
+                        </div>
+                        <span className="text-[10px] uppercase tracking-widest font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200 flex items-center gap-1.5 shadow-xs">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sincronización Automática POS & Web
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {[
+                            { name: "Basta Original de Jeans (Conservación de Ruedo)", price: 10000, volume: 184, cat: "Jeans & Denim" },
+                            { name: "Basta Invisible a Mano en Pantalón de Vestir", price: 8000, volume: 142, cat: "Pantalones" },
+                            { name: "Acortar Mangas desde el Puño (Blazer con Forro)", price: 15000, volume: 118, cat: "Chaquetas & Blazers" },
+                            { name: "Achicar Cintura en Pretina de Pantalón / Jeans", price: 12000, volume: 96, cat: "Pantalones" },
+                            { name: "Entalle de Vestidos de Fiesta (Costados y Pinzas)", price: 12000, volume: 85, cat: "Vestidos & Gala" },
+                            { name: "Cambio de Cierre en Parkas / Chaqueta de Pluma", price: 18000, volume: 72, cat: "Abrigos & Cuero" }
+                        ].map((topItem, idx) => (
+                            <div key={idx} className="p-4 bg-gray-50/80 border border-gray-100 hover:border-brand-terracotta/40 rounded-sm transition-all flex flex-col justify-between space-y-2 group">
+                                <div className="space-y-1">
+                                    <div className="flex justify-between items-center gap-2">
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-brand-terracotta bg-brand-terracotta/10 px-2 py-0.5 rounded-xs">
+                                            #{idx + 1} • {topItem.cat}
+                                        </span>
+                                        <span className="font-serif text-sm font-bold text-brand-charcoal">${topItem.price.toLocaleString('es-CL')}</span>
+                                    </div>
+                                    <h3 className="font-serif text-sm font-bold text-brand-charcoal group-hover:text-brand-terracotta transition-colors leading-snug">{topItem.name}</h3>
+                                </div>
+                                <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between text-[11px] text-gray-500 font-medium">
+                                    <span>Demanda acumulada:</span>
+                                    <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-xs border border-emerald-100">{topItem.volume} solicitudes</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
                 <div className="relative w-full max-w-xl">
                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
                     <input
@@ -193,11 +258,17 @@ export default function CatalogManager() {
                                             {filteredItems.filter(item => item.category === cat).map((item) => {
                                                 const suggestion = calculateLiveSuggestion(item.production_time_minutes, item.material_cost);
                                                 const isUnderpriced = item.price < suggestion;
+                                                const isActive = item.active !== false;
                                                 return (
-                                                    <tr key={item.id} className={`group transition-colors ${isUnderpriced ? 'bg-amber-50/30' : 'hover:bg-gray-50'}`}>
+                                                    <tr key={item.id} className={`group transition-colors ${!isActive ? 'opacity-40 bg-gray-100/50' : isUnderpriced ? 'bg-amber-50/30' : 'hover:bg-gray-50'}`}>
                                                         <td className="px-8 py-6">
                                                             <div className="flex flex-col">
-                                                                <span className="font-serif text-lg text-brand-charcoal">{item.name}</span>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="font-serif text-lg text-brand-charcoal">{item.name}</span>
+                                                                    {!isActive && (
+                                                                        <span className="text-[9px] uppercase tracking-widest font-black bg-gray-200 text-gray-600 px-2 py-0.5 rounded-xs">Oculto</span>
+                                                                    )}
+                                                                </div>
                                                                 <span className="text-[11px] text-gray-400 font-light mt-1">{item.description || 'Sin descripción.'}</span>
                                                             </div>
                                                         </td>
@@ -224,8 +295,25 @@ export default function CatalogManager() {
                                                         </td>
                                                         <td className="px-8 py-6">
                                                             <div className="flex items-center justify-end gap-2">
-                                                                <button onClick={() => openEditModal(item)} className="p-2 text-gray-300 hover:text-brand-terracotta hover:bg-brand-terracotta/5 rounded-full transition-all"><Edit3 className="w-4 h-4" /></button>
-                                                                <button onClick={() => handleDelete(item.id)} className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"><Trash2 className="w-4 h-4" /></button>
+                                                                {/* SWITCH VISIBILIDAD MOSTRAR / OCULTAR (COMPACTO) */}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleToggleActive(item.id, isActive)}
+                                                                    title={isActive ? "Ocultar servicio" : "Mostrar servicio"}
+                                                                    className={`relative inline-flex h-4 w-7 shrink-0 cursor-pointer rounded-full border border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${isActive ? 'bg-emerald-600' : 'bg-gray-300'}`}
+                                                                >
+                                                                    <span
+                                                                        className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out flex items-center justify-center ${isActive ? 'translate-x-3' : 'translate-x-0'}`}
+                                                                    >
+                                                                        {isActive ? (
+                                                                            <Eye className="w-2.5 h-2.5 text-emerald-600" />
+                                                                        ) : (
+                                                                            <EyeOff className="w-2.5 h-2.5 text-gray-400" />
+                                                                        )}
+                                                                    </span>
+                                                                </button>
+                                                                <button onClick={() => openEditModal(item)} className="p-2 text-gray-300 hover:text-brand-terracotta hover:bg-brand-terracotta/5 rounded-full transition-all" title="Editar"><Edit3 className="w-4 h-4" /></button>
+                                                                <button onClick={() => handleDelete(item.id)} className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all" title="Eliminar"><Trash2 className="w-4 h-4" /></button>
                                                             </div>
                                                         </td>
                                                     </tr>

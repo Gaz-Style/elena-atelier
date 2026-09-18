@@ -10,7 +10,7 @@ export default function Footer() {
   return (
     <footer className="w-full py-16 border-t border-white/5 bg-[#0d0d0d] mt-auto relative z-10 text-white/60">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-8 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 mb-12">
           {/* Col 1: Brand */}
           <div className="space-y-4 md:col-span-1">
             <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Elena La Costurera</h4>
@@ -27,6 +27,7 @@ export default function Footer() {
               <li><Link href="/novias" className="hover:text-[#cda45e] transition-colors">Vestidos de Novia</Link></li>
               <li><Link href="/graduacion" className="hover:text-[#cda45e] transition-colors">Vestidos de Gala</Link></li>
               <li><Link href="/costuras" className="hover:text-[#cda45e] transition-colors">Taller de Costuras</Link></li>
+              <li><Link href="/faq" className="hover:text-[#cda45e] transition-colors">Centro de Conocimiento (FAQ)</Link></li>
               <li><Link href="/graduacion/registro-exclusividad" className="hover:text-[#cda45e] transition-colors">Registro Exclusividad</Link></li>
             </ul>
           </div>
@@ -57,32 +58,37 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Col 5: Costuras por Comuna & Sectores */}
-          <div className="space-y-4">
+          {/* Col 5 & 6: Costuras por Comuna & Sectores */}
+          <div className="space-y-4 lg:col-span-2">
             <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Taller Costuras</h4>
-            <ul className="space-y-1 text-[10px]">
-              <li><Link href="/costuras/vitacura" className="hover:text-[#cda45e] transition-colors font-semibold text-white/80">Vitacura</Link></li>
-              <li><Link href="/costuras/santa-maria-de-manquehue" className="hover:text-[#cda45e] transition-colors pl-1">Santa María de Manquehue</Link></li>
-              <li><Link href="/costuras/jardin-del-este" className="hover:text-[#cda45e] transition-colors pl-1">Jardín del Este</Link></li>
-              <li><Link href="/costuras/lo-curro" className="hover:text-[#cda45e] transition-colors pl-1">Lo Curro</Link></li>
-              <li><Link href="/costuras/alonso-de-cordova" className="hover:text-[#cda45e] transition-colors pl-1">Alonso de Córdova</Link></li>
-              <li><Link href="/costuras/borde-rio" className="hover:text-[#cda45e] transition-colors pl-1">Borde Río / Nueva Costanera</Link></li>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <ul className="space-y-1 text-[10px]">
+                <li><Link href="/costuras/vitacura" title="Costuras a medida en Vitacura" className="hover:text-[#cda45e] transition-colors font-semibold text-white/80">Vitacura</Link></li>
+                <li><Link href="/costuras/santa-maria-de-manquehue" title="Costuras en Santa María de Manquehue" className="hover:text-[#cda45e] transition-colors">Sta. María</Link></li>
+                <li><Link href="/costuras/jardin-del-este" title="Costuras en Jardín del Este" className="hover:text-[#cda45e] transition-colors">Jardín del Este</Link></li>
+                <li><Link href="/costuras/lo-curro" title="Costuras en Lo Curro" className="hover:text-[#cda45e] transition-colors">Lo Curro</Link></li>
+                <li><Link href="/costuras/alonso-de-cordova" title="Costuras en Alonso de Córdova" className="hover:text-[#cda45e] transition-colors">Alonso Córdova</Link></li>
+                <li><Link href="/costuras/borde-rio" title="Costuras en Borde Río y Nueva Costanera" className="hover:text-[#cda45e] transition-colors">Borde Río</Link></li>
+              </ul>
 
-              <li className="pt-1"><Link href="/costuras/las-condes" className="hover:text-[#cda45e] transition-colors font-semibold text-white/80">Las Condes</Link></li>
-              <li><Link href="/costuras/san-carlos-de-apoquindo" className="hover:text-[#cda45e] transition-colors pl-1">San Carlos de Apoquindo</Link></li>
-              <li><Link href="/costuras/el-golf" className="hover:text-[#cda45e] transition-colors pl-1">El Golf</Link></li>
-              <li><Link href="/costuras/san-damian" className="hover:text-[#cda45e] transition-colors pl-1">San Damián</Link></li>
-              <li><Link href="/costuras/estoril" className="hover:text-[#cda45e] transition-colors pl-1">Estoril / Tabancura</Link></li>
-              <li><Link href="/costuras/los-dominicos" className="hover:text-[#cda45e] transition-colors pl-1">Los Dominicos</Link></li>
+              <ul className="space-y-1 text-[10px]">
+                <li><Link href="/costuras/las-condes" title="Costuras a medida en Las Condes" className="hover:text-[#cda45e] transition-colors font-semibold text-white/80">Las Condes</Link></li>
+                <li><Link href="/costuras/san-carlos-de-apoquindo" title="Costuras en San Carlos de Apoquindo" className="hover:text-[#cda45e] transition-colors">S.C. Apoquindo</Link></li>
+                <li><Link href="/costuras/el-golf" title="Costuras en barrio El Golf" className="hover:text-[#cda45e] transition-colors">El Golf</Link></li>
+                <li><Link href="/costuras/san-damian" title="Costuras en San Damián" className="hover:text-[#cda45e] transition-colors">San Damián</Link></li>
+                <li><Link href="/costuras/estoril" title="Costuras en Estoril y Tabancura" className="hover:text-[#cda45e] transition-colors">Estoril</Link></li>
+                <li><Link href="/costuras/los-dominicos" title="Costuras en Los Dominicos" className="hover:text-[#cda45e] transition-colors">Los Dominicos</Link></li>
+              </ul>
 
-              <li className="pt-1"><Link href="/costuras/lo-barnechea" className="hover:text-[#cda45e] transition-colors font-semibold text-white/80">Lo Barnechea</Link></li>
-              <li><Link href="/costuras/la-dehesa" className="hover:text-[#cda45e] transition-colors pl-1">La Dehesa</Link></li>
-              <li><Link href="/costuras/los-trapenses" className="hover:text-[#cda45e] transition-colors pl-1">Los Trapenses</Link></li>
-              <li><Link href="/costuras/el-huinganal" className="hover:text-[#cda45e] transition-colors pl-1">El Huinganal</Link></li>
-              <li><Link href="/costuras/el-arrayan" className="hover:text-[#cda45e] transition-colors pl-1">El Arrayán</Link></li>
-              <li><Link href="/costuras/golf-de-manquehue" className="hover:text-[#cda45e] transition-colors pl-1">Golf de Manquehue</Link></li>
-              <li><Link href="/costuras/valle-escondido" className="hover:text-[#cda45e] transition-colors pl-1">Valle Escondido</Link></li>
-            </ul>
+              <ul className="space-y-1 text-[10px]">
+                <li><Link href="/costuras/lo-barnechea" title="Costuras a medida en Lo Barnechea" className="hover:text-[#cda45e] transition-colors font-semibold text-white/80">Lo Barnechea</Link></li>
+                <li><Link href="/costuras/la-dehesa" title="Costuras en La Dehesa" className="hover:text-[#cda45e] transition-colors">La Dehesa</Link></li>
+                <li><Link href="/costuras/los-trapenses" title="Costuras en Los Trapenses" className="hover:text-[#cda45e] transition-colors">Los Trapenses</Link></li>
+                <li><Link href="/costuras/el-huinganal" title="Costuras en El Huinganal" className="hover:text-[#cda45e] transition-colors">El Huinganal</Link></li>
+                <li><Link href="/costuras/el-arrayan" title="Costuras en El Arrayán" className="hover:text-[#cda45e] transition-colors">El Arrayán</Link></li>
+                <li><Link href="/costuras/valle-escondido" title="Costuras en Valle Escondido" className="hover:text-[#cda45e] transition-colors">Valle Escondido</Link></li>
+              </ul>
+            </div>
           </div>
         </div>
 

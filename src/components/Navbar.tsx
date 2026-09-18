@@ -17,6 +17,7 @@ export default function Navbar() {
         { href: '/portal-novias', label: 'Portal Novia' },
         { href: '/restauracion', label: 'Restauración' },
         { href: '/sastreria', label: 'Sastrería' },
+        { href: '/faq', label: 'Historia & FAQ' },
         { href: '/portafolio', label: 'Portafolio' },
         { href: '/b2b', label: 'B2B' },
     ];
