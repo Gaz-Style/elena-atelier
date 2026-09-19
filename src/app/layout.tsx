@@ -48,6 +48,8 @@ export const metadata: Metadata = {
   },
 };
 
+import MicrosoftClarity from "@/components/MicrosoftClarity";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -62,6 +64,7 @@ export default function RootLayout({
         <TikTokPixel />
         <GoogleAnalytics />
         <GoogleTagManager />
+        <MicrosoftClarity />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ElenaAtelierSchema) }}
