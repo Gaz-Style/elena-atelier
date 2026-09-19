@@ -293,7 +293,7 @@ function DressGridItem({ vestido, onClick }: { vestido: Vestido, onClick: () => 
 }
 
 export default function PortfolioClient({ data, generalImages, hideFilters = false, forceCategory, layout = 'grid' }: { data: PortfolioData[], generalImages: string[], hideFilters?: boolean, forceCategory?: string, layout?: 'grid' | 'carousel' }) {
-  const [activeCategory, setActiveCategory] = useState<string>(forceCategory || 'fiesta');
+  const [activeCategory, setActiveCategory] = useState<string>(forceCategory || 'novias');
   const [selectedVestido, setSelectedVestido] = useState<Vestido | null>(null);
 
   // Hidden component to handle Next.js searchParams without de-opting the entire page

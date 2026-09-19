@@ -67,18 +67,19 @@ export default function PortfolioPage() {
     console.error("Error reading subdirectories", err);
   }
 
-  // Si hay fotos sueltas en /public/trabajos/, agregarlas a colaboraciones
-  if (generalImages.length > 0) {
-    categoryMap['colaboraciones'] = [
-      ...(categoryMap['colaboraciones'] || []),
-      ...generalImages
-    ];
-  }
-
-  const categoryData: { category: string, images: string[] }[] = Object.keys(categoryMap).map(cat => ({
-    category: cat,
-    images: categoryMap[cat]
-  }));
+  // Filtrar y ordenar explícitamente las 3 categorías principales en orden prioritario: Novias, Fiesta, Colaboraciones
+  const allowedCategories = ['novias', 'fiesta', 'colaboraciones'];
+  
+  const categoryData: { category: string, images: string[] }[] = allowedCategories
+    .map(catKey => {
+      let images: string[] = categoryMap[catKey] || [];
+      // Si es colaboraciones, incluir también imágenes desparramadas
+      if (catKey === 'colaboraciones' && generalImages.length > 0) {
+        images = Array.from(new Set([...images, ...generalImages]));
+      }
+      return { category: catKey, images };
+    })
+    .filter(cat => cat.images.length > 0 || cat.category === 'novias' || cat.category === 'fiesta');
 
   return (
     <div className="min-h-screen bg-brand-charcoal text-white font-sans relative">
