@@ -1,7 +1,6 @@
 'use server';
 
 import { agendar_visita } from '@/lib/agenda';
-import { createCustomer } from '../admin/crm/actions';
 import { revalidatePath } from 'next/cache';
 
 export async function guardarCitaCliente(data: {
@@ -11,25 +10,12 @@ export async function guardarCitaCliente(data: {
     correo: string;
     fecha_hora: string;
     motivo?: string;
-    style_preference?: string;
-    typical_occasion?: string;
 }) {
     try {
-        const fullName = data.apellido ? `${data.nombre} ${data.apellido}`.trim() : data.nombre.trim();
         const firstName = data.nombre.trim();
         const lastName = data.apellido ? data.apellido.trim() : '';
 
-        // 1. Guardar o actualizar cliente en CRM con preferencias de estilo e historial
-        const formDataCustomer = new FormData();
-        formDataCustomer.append('full_name', fullName);
-        formDataCustomer.append('phone', data.celular);
-        formDataCustomer.append('email', data.correo);
-        if (data.style_preference) formDataCustomer.append('style_preference', data.style_preference);
-        if (data.typical_occasion) formDataCustomer.append('typical_occasion', data.typical_occasion);
-        
-        await createCustomer(formDataCustomer).catch(err => console.error('Error auto-creando cliente CRM:', err));
-
-        // 2. Guardar Cita en tabla `agendamientos` + Enviar Correos y WhatsApp
+        // Guardar Cita únicamente en la tabla `agendamientos` respetando el esquema original
         const res = await agendar_visita(
             firstName,
             lastName,
