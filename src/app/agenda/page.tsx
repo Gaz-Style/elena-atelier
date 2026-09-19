@@ -46,8 +46,13 @@ export default function AgendaPage() {
         const fullPhone = cleanDigits ? `+56 9 ${cleanDigits}` : '';
         const fechaHoraCombined = `${selectedDateStr}T${selectedTimeStr.length === 5 ? selectedTimeStr : selectedTimeStr.slice(0, 5)}:00`;
 
+        const nameParts = fullName.trim().split(' ');
+        const nombreOnly = nameParts[0] || fullName.trim();
+        const apellidoOnly = nameParts.slice(1).join(' ') || '';
+
         const res = await guardarCitaCliente({
-            nombre: fullName,
+            nombre: nombreOnly,
+            apellido: apellidoOnly,
             celular: fullPhone,
             correo: email,
             fecha_hora: fechaHoraCombined,
