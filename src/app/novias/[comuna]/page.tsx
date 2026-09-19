@@ -28,11 +28,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const comuna = formatTitle(resolvedParams.comuna);
     
     return {
-        title: `Vestidos de Novia a Medida en ${comuna} | Elena La Costurera`,
-        description: `Catálogo de vestidos de novia confeccionados a medida y upcycling nupcial para clientas de ${comuna}. Agenda tu cita de diseño.`,
+        title: `Vestidos de Novia & Alta Costura en ${comuna} | ELENA`,
+        description: `Diseño de vestidos de novia a medida, alta costura y upcycling nupcial en ${comuna}. Experiencia exclusiva de atelier. Agenda tu cita de diseño.`,
         openGraph: {
-            title: `Vestidos de Novia a Medida en ${comuna}`,
-            description: `Descubre nuestra colección de vestidos de novia exclusivos. Atención especial para ${comuna}.`,
+            title: `Vestidos de Novia & Alta Costura en ${comuna} | ELENA`,
+            description: `Diseño exclusivo de vestidos de novia a medida con atención y pruebas en ${comuna}.`,
         },
     };
 }

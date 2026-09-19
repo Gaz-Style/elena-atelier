@@ -45,8 +45,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const resolvedParams = await params;
     const comuna = formatTitle(resolvedParams.comuna);
 
-    const title = `Arreglos de Ropa y Sastrería a Domicilio en ${comuna} | ELENA`;
-    const description = `Recupera el calce original de tus prendas en ${comuna} sin moverte de tu casa. Expertos en trajes, vestidos y reparaciones técnicas con retiro a domicilio.`;
+    const title = `Costurera & Modista en ${comuna} | Arreglos de Ropa | ELENA`;
+    const description = `Servicio de costurera y modista profesional en ${comuna}. Arreglos de ropa, vestidos, sastrería y calce perfecto con retiro a domicilio. Agenda tu cita en línea.`;
 
     return {
         title,
