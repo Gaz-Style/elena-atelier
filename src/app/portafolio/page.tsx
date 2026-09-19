@@ -10,15 +10,26 @@ export const metadata = {
 };
 
 export default function PortfolioPage() {
-  const baseDirectory = path.join(process.cwd(), 'public', 'trabajos', 'Portafolio');
+  const rootTrabajos = path.join(process.cwd(), 'public', 'trabajos');
+  const baseDirectory = path.join(rootTrabajos, 'Portafolio');
   
-  // 1. Get files directly in /public/trabajos/Portafolio (General / Todos)
+  // 1. Obtener archivos desparramados en /public/trabajos/ y /public/trabajos/Portafolio/
   let generalImages: string[] = [];
   try {
-    const files = fs.readdirSync(baseDirectory, { withFileTypes: true });
-    generalImages = files
+    const rootFiles = fs.readdirSync(rootTrabajos, { withFileTypes: true });
+    const rootLoose = rootFiles
       .filter(dirent => dirent.isFile() && dirent.name.match(/\.(jpg|jpeg|png|gif|webp)$/i))
-      .map(dirent => `/trabajos/Portafolio/${dirent.name}`);
+      .map(dirent => `/trabajos/${dirent.name}`);
+
+    let portafolioLoose: string[] = [];
+    if (fs.existsSync(baseDirectory)) {
+      const portFiles = fs.readdirSync(baseDirectory, { withFileTypes: true });
+      portafolioLoose = portFiles
+        .filter(dirent => dirent.isFile() && dirent.name.match(/\.(jpg|jpeg|png|gif|webp)$/i))
+        .map(dirent => `/trabajos/Portafolio/${dirent.name}`);
+    }
+
+    generalImages = [...rootLoose, ...portafolioLoose];
   } catch (err) {
     console.error("Error reading base directory", err);
   }
@@ -45,20 +56,30 @@ export default function PortfolioPage() {
 
   // 2. Read subdirectories (Colaboraciones, fiesta, novias, etc)
   const categoryData: { category: string, images: string[] }[] = [];
+
+  // Si existen imágenes desparramadas en /public/trabajos, asignarlas a la categoría "colaboraciones"
+  if (generalImages.length > 0) {
+    categoryData.push({
+      category: 'colaboraciones',
+      images: generalImages
+    });
+  }
   
   try {
-    const subDirs = fs.readdirSync(baseDirectory, { withFileTypes: true })
-      .filter(dirent => dirent.isDirectory());
-      
-    for (const dir of subDirs) {
-      const catPath = path.join(baseDirectory, dir.name);
-      const catImages = getAllImagesInDir(catPath, `/trabajos/Portafolio/${dir.name}`);
+    if (fs.existsSync(baseDirectory)) {
+      const subDirs = fs.readdirSync(baseDirectory, { withFileTypes: true })
+        .filter(dirent => dirent.isDirectory());
         
-      if (catImages.length > 0) {
-        categoryData.push({
-          category: dir.name.toLowerCase(),
-          images: catImages
-        });
+      for (const dir of subDirs) {
+        const catPath = path.join(baseDirectory, dir.name);
+        const catImages = getAllImagesInDir(catPath, `/trabajos/Portafolio/${dir.name}`);
+          
+        if (catImages.length > 0) {
+          categoryData.push({
+            category: dir.name.toLowerCase(),
+            images: catImages
+          });
+        }
       }
     }
   } catch (err) {

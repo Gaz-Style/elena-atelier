@@ -497,7 +497,16 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
                   <div key={idx} className="break-inside-avoid relative group overflow-hidden sm:rounded-sm border-b sm:border border-white/10 hover:border-brand-sand/30 transition-all duration-500 mb-1 sm:mb-0">
                     {item.toLowerCase().endsWith('.mp4') ? (
                       <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
-                        <video src={item} controls autoPlay muted loop playsInline className="w-full h-full object-cover" />
+                        <video 
+                          src={item} 
+                          controls 
+                          autoPlay 
+                          muted 
+                          loop 
+                          playsInline 
+                          preload="auto"
+                          className="w-full h-full object-cover transform-gpu transform translate-z-0 backface-hidden" 
+                        />
                       </div>
                     ) : (
                       <Image src={item} alt={`Proceso Taller ${idx + 1}`} width={600} height={800} className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700" />
@@ -522,7 +531,16 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
                   <div key={idx} className="break-inside-avoid relative group overflow-hidden sm:rounded-sm border-b sm:border border-white/10 hover:border-brand-sand/30 transition-all duration-500 mb-1 sm:mb-0">
                     {item.toLowerCase().endsWith('.mp4') ? (
                       <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
-                        <video src={item} controls autoPlay muted loop playsInline className="w-full h-full object-cover" />
+                        <video 
+                          src={item} 
+                          controls 
+                          autoPlay 
+                          muted 
+                          loop 
+                          playsInline 
+                          preload="auto"
+                          className="w-full h-full object-cover transform-gpu transform translate-z-0 backface-hidden" 
+                        />
                       </div>
                     ) : (
                       <Image src={item} alt={`Matrimonio Civil ${idx + 1}`} width={600} height={800} className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700" />
@@ -547,7 +565,16 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
                   <div key={idx} className="break-inside-avoid relative group overflow-hidden sm:rounded-sm border-b sm:border border-white/10 hover:border-brand-sand/30 transition-all duration-500 mb-1 sm:mb-0">
                     {item.toLowerCase().endsWith('.mp4') ? (
                       <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
-                        <video src={item} controls autoPlay muted loop playsInline className="w-full h-full object-cover" />
+                        <video 
+                          src={item} 
+                          controls 
+                          autoPlay 
+                          muted 
+                          loop 
+                          playsInline 
+                          preload="auto"
+                          className="w-full h-full object-cover transform-gpu transform translate-z-0 backface-hidden" 
+                        />
                       </div>
                     ) : (
                       <Image src={item} alt={`Ceremonia Religiosa ${idx + 1}`} width={600} height={800} className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700" />
@@ -572,7 +599,16 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
                   <div key={idx} className="break-inside-avoid relative group overflow-hidden sm:rounded-sm border-b sm:border border-white/10 hover:border-brand-sand/30 transition-all duration-500 mb-1 sm:mb-0">
                     {item.toLowerCase().endsWith('.mp4') ? (
                       <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
-                        <video src={item} controls autoPlay muted loop playsInline className="w-full h-full object-cover" />
+                        <video 
+                          src={item} 
+                          controls 
+                          autoPlay 
+                          muted 
+                          loop 
+                          playsInline 
+                          preload="auto"
+                          className="w-full h-full object-cover transform-gpu transform translate-z-0 backface-hidden" 
+                        />
                       </div>
                     ) : (
                       <Image src={item} alt={`Fiesta y Baile ${idx + 1}`} width={600} height={800} className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700" />
