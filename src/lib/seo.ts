@@ -59,8 +59,8 @@ export const ElenaAtelierSchema = {
                         "@type": "Offer",
                         "itemOffered": {
                             "@type": "Service",
-                            "name": "Producción Boutique & Sastrería B2B",
-                            "description": "Manufactura técnica local de lotes reducidos para marcas de autor y vestuario corporativo ejecutivo."
+                            "name": "Sastrería Ejecutiva B2B & Convenios Corporativos",
+                            "description": "Servicio exclusivo de ajuste y sastrería in-situ en oficinas corporativas para el personal ejecutivo de empresas en Vitacura, Las Condes y Santiago."
                         }
                     }
                 ]
