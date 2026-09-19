@@ -57,6 +57,13 @@ export default function AgendaPage() {
         setIsSubmitting(false);
 
         if (res.success) {
+            if (typeof window !== 'undefined' && (window as any).gtag) {
+                (window as any).gtag('event', 'Schedule', {
+                    event_category: 'Agenda',
+                    event_label: 'Cita Confirmada Atelier',
+                    value: 1
+                });
+            }
             setActiveView('step3');
         } else {
             setErrorMessage(res.error || 'Ocurrió un error al procesar tu cita.');
