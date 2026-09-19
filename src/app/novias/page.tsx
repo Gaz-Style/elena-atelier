@@ -66,6 +66,71 @@ export default function BridalLandingPage() {
                     </div>
                 </section>
 
+                {/* Bridal Gallery Showcase Section */}
+                <section className="py-16 md:py-24 border-t border-white/10 relative z-10">
+                    <div className="text-center max-w-2xl mx-auto mb-14 space-y-3">
+                        <span className="text-brand-sand text-[10px] uppercase tracking-[0.45em] font-semibold block">Colección Atelier Nupcial</span>
+                        <h2 className="font-serif text-4xl md:text-5xl text-white">Moldería & Confección Real</h2>
+                        <p className="text-white/70 text-sm md:text-base font-light">
+                            Una muestra del calce anatómico, caída textil y finas terminaciones trabajadas en nuestro atelier de Vitacura.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="relative aspect-[3/4] border border-white/10 rounded-sm overflow-hidden group shadow-2xl">
+                            <img 
+                                src="/trabajos/novias/Novia_Elegante_1.png" 
+                                alt="Vestido de Novia Alta Costura Elena Atelier" 
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10 opacity-90 group-hover:opacity-75 transition-opacity" />
+                            <div className="absolute bottom-4 left-4 right-4 z-20 space-y-1">
+                                <span className="text-brand-sand text-[9px] uppercase tracking-widest font-bold block">Silueta Clásica</span>
+                                <h3 className="font-serif text-lg text-white font-normal">Seda & Escote Ilusión</h3>
+                            </div>
+                        </div>
+
+                        <div className="relative aspect-[3/4] border border-white/10 rounded-sm overflow-hidden group shadow-2xl">
+                            <img 
+                                src="/trabajos/novias/Novia_Elegante_2.png" 
+                                alt="Vestido de Novia Encaje Francés" 
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10 opacity-90 group-hover:opacity-75 transition-opacity" />
+                            <div className="absolute bottom-4 left-4 right-4 z-20 space-y-1">
+                                <span className="text-brand-sand text-[9px] uppercase tracking-widest font-bold block">Alta Costura</span>
+                                <h3 className="font-serif text-lg text-white font-normal">Encaje Francés Nupcial</h3>
+                            </div>
+                        </div>
+
+                        <div className="relative aspect-[3/4] border border-white/10 rounded-sm overflow-hidden group shadow-2xl">
+                            <img 
+                                src="/trabajos/novias/Novia_Original_Upcycling.jpg" 
+                                alt="Upcycling Nupcial Vestido Heredado" 
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10 opacity-90 group-hover:opacity-75 transition-opacity" />
+                            <div className="absolute bottom-4 left-4 right-4 z-20 space-y-1">
+                                <span className="text-brand-sand text-[9px] uppercase tracking-widest font-bold block">Rediseño Vintage</span>
+                                <h3 className="font-serif text-lg text-white font-normal">Upcycling de Vestido Heredado</h3>
+                            </div>
+                        </div>
+
+                        <div className="relative aspect-[3/4] border border-white/10 rounded-sm overflow-hidden group shadow-2xl">
+                            <img 
+                                src="/trabajos/novias/Novia_Base_Atelier.jpg" 
+                                alt="Pruebas de Calce Taller Tabancura" 
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10 opacity-90 group-hover:opacity-75 transition-opacity" />
+                            <div className="absolute bottom-4 left-4 right-4 z-20 space-y-1">
+                                <span className="text-brand-sand text-[9px] uppercase tracking-widest font-bold block">Pruebas en Taller</span>
+                                <h3 className="font-serif text-lg text-white font-normal">Calce Anatómico 15 Días</h3>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 {/* Slow Fashion / Upcycling Philosophy */}
                 <section id="upcycling" className="py-20 md:py-28 bg-white/[0.03] backdrop-blur-[12px] border border-white/10 rounded-sm p-8 md:p-16 relative z-10 shadow-2xl">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -82,7 +147,7 @@ export default function BridalLandingPage() {
                             </p>
                             <div className="pt-2">
                                 <Link
-                                    href="/appointment"
+                                    href="/agenda"
                                     className="inline-flex items-center gap-2 text-brand-sand text-xs uppercase tracking-widest font-bold hover:text-white transition-colors"
                                 >
                                     Agendar consulta de rediseño <ArrowRight className="w-4 h-4" />
@@ -92,8 +157,8 @@ export default function BridalLandingPage() {
                         <div className="lg:col-span-5">
                             <div className="relative aspect-[3/4] border border-white/10 p-6 flex flex-col justify-end shadow-2xl rounded-sm overflow-hidden group">
                                 <img 
-                                    src="/novia/Novia%20Elegante%201.png" 
-                                    alt="Upcycling Vestido de Novia" 
+                                    src="/trabajos/novias/Novia_Elegante_1.png" 
+                                    alt="Upcycling Vestido de Novia Elena Atelier" 
                                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-10 group-hover:opacity-80 transition-opacity"></div>
