@@ -129,7 +129,7 @@ export default function BridalLandingPage() {
                             </div>
                         </div>
                     </div>
-                </section>            </section>
+                </section>
 
                 {/* Slow Fashion / Upcycling Philosophy */}
                 <section id="upcycling" className="py-20 md:py-28 bg-white/[0.03] backdrop-blur-[12px] border border-white/10 rounded-sm p-8 md:p-16 relative z-10 shadow-2xl">
