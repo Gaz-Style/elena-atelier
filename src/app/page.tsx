@@ -79,7 +79,7 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-stretch">
             {/* CARD A: Alta Costura Personal - DOMINANT, CINEMATIC */}
             <Link 
-              href="/sastreria" 
+              href="/novias" 
               className="group relative flex-[1.4] min-h-[500px] md:min-h-[560px] overflow-hidden rounded-sm flex flex-col justify-end p-8 md:p-12 shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700"
             >
               <Image 
