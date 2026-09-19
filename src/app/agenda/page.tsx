@@ -21,7 +21,8 @@ export default function AgendaPage() {
     const [selectedTimeStr, setSelectedTimeStr] = useState<string>('');
 
     // Estado del formulario oficial de Registro Atelier
-    const [fullName, setFullName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [servicioRequerido, setServicioRequerido] = useState('');
@@ -46,13 +47,9 @@ export default function AgendaPage() {
         const fullPhone = cleanDigits ? `+56 9 ${cleanDigits}` : '';
         const fechaHoraCombined = `${selectedDateStr}T${selectedTimeStr.length === 5 ? selectedTimeStr : selectedTimeStr.slice(0, 5)}:00`;
 
-        const nameParts = fullName.trim().split(' ');
-        const nombreOnly = nameParts[0] || fullName.trim();
-        const apellidoOnly = nameParts.slice(1).join(' ') || '';
-
         const res = await guardarCitaCliente({
-            nombre: nombreOnly,
-            apellido: apellidoOnly,
+            nombre: firstName.trim(),
+            apellido: lastName.trim(),
             celular: fullPhone,
             correo: email,
             fecha_hora: fechaHoraCombined,
@@ -227,16 +224,30 @@ export default function AgendaPage() {
                             {/* Formulario Estilo Oficial de Registro */}
                             <form onSubmit={handleConfirmBooking} className="space-y-6">
                                 <div className="space-y-4">
-                                    <div className="relative group">
-                                        <label className="text-[9px] uppercase tracking-widest font-bold text-brand-sand/70 mb-1 block ml-1">Identidad</label>
-                                        <div className="relative">
-                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-brand-sand transition-colors" />
-                                            <input 
-                                                required type="text" placeholder="Nombre Completo" 
-                                                value={fullName}
-                                                onChange={(e) => setFullName(e.target.value)}
-                                                className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-sm text-white text-xs outline-none focus:border-brand-sand focus:bg-white/10 transition-all placeholder:text-white/20" 
-                                            />
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div className="relative group">
+                                            <label className="text-[9px] uppercase tracking-widest font-bold text-brand-sand/70 mb-1 block ml-1">Nombre</label>
+                                            <div className="relative">
+                                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-brand-sand transition-colors" />
+                                                <input 
+                                                    required type="text" placeholder="Ej: Mario" 
+                                                    value={firstName}
+                                                    onChange={(e) => setFirstName(e.target.value)}
+                                                    className="w-full pl-11 pr-3 py-3.5 bg-white/5 border border-white/10 rounded-sm text-white text-xs outline-none focus:border-brand-sand focus:bg-white/10 transition-all placeholder:text-white/20" 
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="relative group">
+                                            <label className="text-[9px] uppercase tracking-widest font-bold text-brand-sand/70 mb-1 block ml-1">Apellido(s)</label>
+                                            <div className="relative">
+                                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-brand-sand transition-colors" />
+                                                <input 
+                                                    required type="text" placeholder="Ej: Cruz Rojas" 
+                                                    value={lastName}
+                                                    onChange={(e) => setLastName(e.target.value)}
+                                                    className="w-full pl-11 pr-3 py-3.5 bg-white/5 border border-white/10 rounded-sm text-white text-xs outline-none focus:border-brand-sand focus:bg-white/10 transition-all placeholder:text-white/20" 
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
@@ -343,7 +354,7 @@ export default function AgendaPage() {
                                 ¡Reserva Confirmada!
                             </h3>
                             <p className="text-white/80 text-sm leading-relaxed font-light">
-                                Gracias <strong className="text-white font-normal">{fullName}</strong>. Tu cita ha sido agendada con éxito para el <strong className="text-brand-sand font-normal capitalize">{formatFechaLegible(selectedDateStr)} a las {selectedTimeStr} hrs</strong>.
+                                Gracias <strong className="text-white font-normal">{firstName} {lastName}</strong>. Tu cita ha sido agendada con éxito para el <strong className="text-brand-sand font-normal capitalize">{formatFechaLegible(selectedDateStr)} a las {selectedTimeStr} hrs</strong>.
                             </p>
                             <p className="text-white/50 text-xs max-w-sm">
                                 Hemos enviado un correo de confirmación a <span className="text-white/80">{email}</span> y te notificaremos por WhatsApp.
