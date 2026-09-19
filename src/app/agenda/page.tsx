@@ -215,12 +215,12 @@ export default function AgendaPage() {
                                 <span className="text-[10px] uppercase tracking-widest text-brand-sand font-medium">Paso 2 de 2</span>
                             </div>
 
-                            {/* Resumen de cita seleccionada: Jerarquía limpia y elegante */}
-                            <div className="mb-6 p-3.5 bg-white/[0.03] border border-white/10 rounded-sm flex flex-col gap-1">
-                                <span className="text-[9px] uppercase tracking-[0.25em] font-semibold text-brand-sand">Cita Seleccionada</span>
-                                <div className="text-sm md:text-base text-white font-serif tracking-wide flex items-center justify-between">
+                            {/* Resumen de cita seleccionada: Texto y hora limpios sin recuadro */}
+                            <div className="mb-5 space-y-0.5">
+                                <span className="text-[9px] uppercase tracking-[0.25em] font-semibold text-brand-sand block">Cita Seleccionada</span>
+                                <div className="text-base md:text-lg text-white font-medium flex items-center justify-between">
                                     <span>{formatFechaLegible(selectedDateStr)}</span>
-                                    <span className="font-sans font-bold text-brand-sand text-xs bg-brand-sand/10 px-2.5 py-1 rounded-sm border border-brand-sand/20">{selectedTimeStr} hrs</span>
+                                    <span className="font-sans font-bold text-brand-sand">{selectedTimeStr} hrs</span>
                                 </div>
                             </div>
 
