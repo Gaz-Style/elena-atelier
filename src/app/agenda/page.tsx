@@ -327,7 +327,7 @@ export default function AgendaPage() {
                                         </span>
                                     ) : (
                                         <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-white group-hover:text-[#121212] transition-colors duration-[600ms]">
-                                            Unirse al Atelier y Agendar
+                                            Agendar cita en taller
                                             <ArrowRight className="w-4 h-4 flex-shrink-0 transition-transform duration-[600ms] group-hover:translate-x-1" />
                                         </span>
                                     )}
