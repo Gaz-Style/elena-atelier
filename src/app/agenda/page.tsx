@@ -64,6 +64,13 @@ export default function AgendaPage() {
                     value: 1
                 });
             }
+            if (typeof window !== 'undefined' && (window as any).ttq) {
+                (window as any).ttq.track('CompleteRegistration', {
+                    content_name: 'Cita Confirmada Atelier',
+                    value: 1,
+                    currency: 'CLP'
+                });
+            }
             setActiveView('step3');
         } else {
             setErrorMessage(res.error || 'Ocurrió un error al procesar tu cita.');
