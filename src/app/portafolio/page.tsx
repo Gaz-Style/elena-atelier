@@ -10,30 +10,8 @@ export const metadata = {
 };
 
 export default function PortfolioPage() {
-  const rootTrabajos = path.join(process.cwd(), 'public', 'trabajos');
-  const baseDirectory = path.join(rootTrabajos, 'Portafolio');
+  const baseDirectory = path.join(process.cwd(), 'public', 'trabajos');
   
-  // 1. Obtener archivos desparramados en /public/trabajos/ y /public/trabajos/Portafolio/
-  let generalImages: string[] = [];
-  try {
-    const rootFiles = fs.readdirSync(rootTrabajos, { withFileTypes: true });
-    const rootLoose = rootFiles
-      .filter(dirent => dirent.isFile() && dirent.name.match(/\.(jpg|jpeg|png|gif|webp)$/i))
-      .map(dirent => `/trabajos/${dirent.name}`);
-
-    let portafolioLoose: string[] = [];
-    if (fs.existsSync(baseDirectory)) {
-      const portFiles = fs.readdirSync(baseDirectory, { withFileTypes: true });
-      portafolioLoose = portFiles
-        .filter(dirent => dirent.isFile() && dirent.name.match(/\.(jpg|jpeg|png|gif|webp)$/i))
-        .map(dirent => `/trabajos/Portafolio/${dirent.name}`);
-    }
-
-    generalImages = [...rootLoose, ...portafolioLoose];
-  } catch (err) {
-    console.error("Error reading base directory", err);
-  }
-
   // Helper recursivo para obtener todos los archivos de media (imágenes y videos) dentro de una subcarpeta
   const getAllImagesInDir = (dirPath: string, relativePrefix: string): string[] => {
     let results: string[] = [];
@@ -54,35 +32,47 @@ export default function PortfolioPage() {
     return results;
   };
 
-  // 2. Leer subcarpetas dentro de Portafolio y fusionar Colaboraciones
+  // 1. Archivos sueltos directamente en /public/trabajos/ (General / Colaboraciones)
+  let generalImages: string[] = [];
+  try {
+    const rootFiles = fs.readdirSync(baseDirectory, { withFileTypes: true });
+    generalImages = rootFiles
+      .filter(dirent => dirent.isFile() && dirent.name.match(/\.(jpg|jpeg|png|gif|webp|mp4)$/i))
+      .map(dirent => `/trabajos/${dirent.name}`);
+  } catch (err) {
+    console.error("Error reading base directory", err);
+  }
+
+  // 2. Subcarpetas en /public/trabajos/ (fiesta, novias, colaboraciones, graduacion, sastreria)
   const categoryMap: Record<string, string[]> = {};
 
-  // Agregar imágenes de colaboraciones (sueltas y carpetas)
-  if (generalImages.length > 0) {
-    categoryMap['colaboraciones'] = generalImages;
-  }
-  
   try {
-    if (fs.existsSync(baseDirectory)) {
-      const subDirs = fs.readdirSync(baseDirectory, { withFileTypes: true })
-        .filter(dirent => dirent.isDirectory());
+    const subDirs = fs.readdirSync(baseDirectory, { withFileTypes: true })
+      .filter(dirent => dirent.isDirectory());
+      
+    for (const dir of subDirs) {
+      const catKey = dir.name.toLowerCase();
+      const catPath = path.join(baseDirectory, dir.name);
+      const catImages = getAllImagesInDir(catPath, `/trabajos/${dir.name}`);
         
-      for (const dir of subDirs) {
-        const catKey = dir.name.toLowerCase();
-        const catPath = path.join(baseDirectory, dir.name);
-        const catImages = getAllImagesInDir(catPath, `/trabajos/Portafolio/${dir.name}`);
-          
-        if (catImages.length > 0) {
-          if (categoryMap[catKey]) {
-            categoryMap[catKey] = [...categoryMap[catKey], ...catImages];
-          } else {
-            categoryMap[catKey] = catImages;
-          }
+      if (catImages.length > 0) {
+        if (categoryMap[catKey]) {
+          categoryMap[catKey] = [...categoryMap[catKey], ...catImages];
+        } else {
+          categoryMap[catKey] = catImages;
         }
       }
     }
   } catch (err) {
     console.error("Error reading subdirectories", err);
+  }
+
+  // Si hay fotos sueltas en /public/trabajos/, agregarlas a colaboraciones
+  if (generalImages.length > 0) {
+    categoryMap['colaboraciones'] = [
+      ...(categoryMap['colaboraciones'] || []),
+      ...generalImages
+    ];
   }
 
   const categoryData: { category: string, images: string[] }[] = Object.keys(categoryMap).map(cat => ({
