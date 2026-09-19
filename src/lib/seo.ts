@@ -1,68 +1,81 @@
 export const ElenaAtelierSchema = {
     "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "name": "ELENA La Costurera - Alta Costura & Sastrería",
-    "image": "https://elenalacosturera.cl/images/facade.jpg",
-    "@id": "https://elenalacosturera.cl",
-    "url": "https://elenalacosturera.cl",
-    "telephone": "+56937667709",
-    "priceRange": "$$$",
-    "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "Av. Tabancura 1091, Oficina 319",
-        "addressLocality": "Vitacura",
-        "addressRegion": "Santiago",
-        "postalCode": "7630000",
-        "addressCountry": "CL"
-    },
-    "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": -33.3768,
-        "longitude": -70.5284
-    },
-    "openingHoursSpecification": {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday"
-        ],
-        "opens": "10:00",
-        "closes": "19:00"
-    },
-    "sameAs": [
-        "https://instagram.com/elenaatelier.cl"
-    ],
-    "hasOfferCatalog": {
-        "@type": "OfferCatalog",
-        "name": "Servicios de Alta Costura",
-        "itemListElement": [
-            {
-                "@type": "Offer",
-                "itemOffered": {
-                    "@type": "Service",
-                    "name": "Restauración de vestidos de gala en Vitacura",
-                    "description": "Servicio experto de restauración y cirugía textil para vestidos de fiesta y prendas de alta gama en Santiago."
-                }
+    "@graph": [
+        {
+            "@type": ["LocalBusiness", "SewingStore"],
+            "@id": "https://elenalacosturera.cl/#organization",
+            "name": "ELENA La Costurera - Alta Costura & Sastrería",
+            "url": "https://elenalacosturera.cl",
+            "image": "https://elenalacosturera.cl/hero_seamstress_taller.png",
+            "telephone": "+56937667709",
+            "priceRange": "$$$",
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "Av. Tabancura 1091, Oficina 319",
+                "addressLocality": "Vitacura",
+                "addressRegion": "Región Metropolitana",
+                "postalCode": "7650020",
+                "addressCountry": "CL"
             },
-            {
-                "@type": "Offer",
-                "itemOffered": {
-                    "@type": "Service",
-                    "name": "Alta Costura y Diseños a Medida Santiago",
-                    "description": "Confección exclusiva de vestidos de gala y sastrería femenina con trazabilidad digital."
-                }
+            "geo": {
+                "@type": "GeoCoordinates",
+                "latitude": -33.3714288,
+                "longitude": -70.5484838
             },
-            {
-                "@type": "Offer",
-                "itemOffered": {
-                    "@type": "Service",
-                    "name": "Manufactura Ética Small Batch Chile",
-                    "description": "Producción local de lotes pequeños para marcas de lujo y boutiques con enfoque en sostenibilidad."
-                }
+            "founder": {
+                "@id": "https://elenalacosturera.cl/#founder"
+            },
+            "sameAs": [
+                "https://instagram.com/elenaatelier.cl"
+            ],
+            "areaServed": [
+                { "@type": "AdministrativeArea", "name": "Vitacura" },
+                { "@type": "AdministrativeArea", "name": "Las Condes" },
+                { "@type": "AdministrativeArea", "name": "Lo Barnechea" },
+                { "@type": "AdministrativeArea", "name": "La Dehesa" },
+                { "@type": "AdministrativeArea", "name": "Providencia" }
+            ],
+            "hasOfferCatalog": {
+                "@type": "OfferCatalog",
+                "name": "Servicios de Sastrería & Alta Costura",
+                "itemListElement": [
+                    {
+                        "@type": "Offer",
+                        "itemOffered": {
+                            "@type": "Service",
+                            "name": "Arreglos de Ropa & Sastrería a Domicilio",
+                            "description": "Retiro, prueba y entrega de prendas con calce anatómico perfecto en Vitacura, Las Condes y Lo Barnechea."
+                        }
+                    },
+                    {
+                        "@type": "Offer",
+                        "itemOffered": {
+                            "@type": "Service",
+                            "name": "Diseño de Vestidos de Novia & Upcycling Nupcial",
+                            "description": "Vestidos de novia a medida y transformación de prendas de gala bajo experiencia de atelier privado."
+                        }
+                    },
+                    {
+                        "@type": "Offer",
+                        "itemOffered": {
+                            "@type": "Service",
+                            "name": "Producción Boutique & Sastrería B2B",
+                            "description": "Manufactura técnica local de lotes reducidos para marcas de autor y vestuario corporativo ejecutivo."
+                        }
+                    }
+                ]
             }
-        ]
-    }
+        },
+        {
+            "@type": "Person",
+            "@id": "https://elenalacosturera.cl/#founder",
+            "name": "Elena Rojas Bustamante",
+            "jobTitle": "Maestra Costurera & Diseñadora de Alta Costura",
+            "worksFor": {
+                "@id": "https://elenalacosturera.cl/#organization"
+            },
+            "description": "Más de 30 años de experiencia en confección a medida, colaboraciones internacionales en París con la firma SEVALI y proyectos de sastrería técnica en Chile.",
+            "knowsAbout": ["Alta Costura", "Sastrería Masculina", "Upcycling Nupcial", "Modelaje Anatómico", "Confección a Medida"]
+        }
+    ]
 };
