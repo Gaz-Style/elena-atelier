@@ -213,8 +213,8 @@ export default function AgendaPage() {
                                 <span className="text-[10px] uppercase tracking-widest text-brand-sand font-medium">Paso 2 de 2</span>
                             </div>
 
-                            {/* Resumen de cita seleccionada sin recuadro con máxima legibilidad */}
-                            <div className="mb-5 space-y-1 px-1 bg-white/[0.04] p-3 rounded-sm border-l-2 border-brand-sand">
+                            {/* Resumen de cita seleccionada: texto limpio sin contenedor */}
+                            <div className="mb-5 space-y-1">
                                 <p className="text-[10px] text-brand-sand font-bold uppercase tracking-[0.25em]">Cita Seleccionada</p>
                                 <p className="text-base md:text-lg text-white font-medium capitalize font-sans tracking-wide drop-shadow-sm">
                                     {formatFechaLegible(selectedDateStr)} a las <span className="text-brand-sand font-bold">{selectedTimeStr} hrs</span>
@@ -230,7 +230,7 @@ export default function AgendaPage() {
                                             <div className="relative">
                                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-brand-sand transition-colors" />
                                                 <input 
-                                                    required type="text" placeholder="Ej: Mario" 
+                                                    required type="text" placeholder="Ej: Elena" 
                                                     value={firstName}
                                                     onChange={(e) => setFirstName(e.target.value)}
                                                     className="w-full pl-11 pr-3 py-3.5 bg-white/5 border border-white/10 rounded-sm text-white text-xs outline-none focus:border-brand-sand focus:bg-white/10 transition-all placeholder:text-white/20" 
@@ -242,7 +242,7 @@ export default function AgendaPage() {
                                             <div className="relative">
                                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-brand-sand transition-colors" />
                                                 <input 
-                                                    required type="text" placeholder="Ej: Cruz Rojas" 
+                                                    required type="text" placeholder="Ej: Rojas Bustamante" 
                                                     value={lastName}
                                                     onChange={(e) => setLastName(e.target.value)}
                                                     className="w-full pl-11 pr-3 py-3.5 bg-white/5 border border-white/10 rounded-sm text-white text-xs outline-none focus:border-brand-sand focus:bg-white/10 transition-all placeholder:text-white/20" 
