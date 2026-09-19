@@ -164,7 +164,12 @@ export default function PremiumCalendar({ onConfirm, isConfirming = false }: Pre
                             {selectedDayData.availableSlots.map((time: string) => (
                                 <button
                                     key={`avail-${time}`}
-                                    onClick={() => setSelectedTime(time)}
+                                    onClick={() => {
+                                        setSelectedTime(time);
+                                        setTimeout(() => {
+                                            onConfirm(selectedDate, time);
+                                        }, 500);
+                                    }}
                                     className={`
                                         py-2.5 px-3 border text-xs md:text-sm font-bold uppercase tracking-wider transition-all duration-300 rounded-sm cursor-pointer
                                         ${selectedTime === time 
@@ -188,22 +193,14 @@ export default function PremiumCalendar({ onConfirm, isConfirming = false }: Pre
                             ))}
                         </div>
 
-                        <div className="pt-4 border-t border-white/10">
-                            <button 
-                                disabled={!selectedTime || isConfirming}
-                                onClick={() => onConfirm(selectedDate, selectedTime)}
-                                className={`
-                                    w-full flex items-center justify-center gap-3 py-3.5 text-xs font-bold uppercase tracking-[0.2em] transition-all duration-500 rounded-sm
-                                    ${(!selectedTime || isConfirming)
-                                        ? 'bg-white/5 text-white/30 border border-white/10 cursor-not-allowed'
-                                        : 'bg-brand-sand text-[#121212] hover:bg-white hover:text-black shadow-[0_0_30px_rgba(193,127,95,0.4)] cursor-pointer'
-                                    }
-                                `}
-                            >
-                                {isConfirming ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />} 
-                                {isConfirming ? 'Confirmando...' : 'Agendar Cita en Taller'}
-                            </button>
-                        </div>
+                        {/* Auto transition feedback notice */}
+                        {selectedTime && (
+                            <div className="pt-2 border-t border-white/10 text-center animate-in fade-in duration-300">
+                                <p className="text-[11px] text-brand-sand font-medium uppercase tracking-widest flex items-center justify-center gap-2">
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" /> Horario {selectedTime} hrs seleccionado...
+                                </p>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
