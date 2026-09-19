@@ -33,17 +33,17 @@ export default function BridalLandingPage() {
                 <section className="relative min-h-[70vh] flex flex-col justify-center items-center text-center px-4">
                     <div className="space-y-8 max-w-4xl mx-auto">
                         <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block">
-                            Novias 2026-2027 · Confección & Upcycling
+                            Novias 2026-2027 · Confección & Upcycling de Autor
                         </span>
                         <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl leading-tight text-white uppercase tracking-tight">
                             Novias de<br />
                             <span className="italic text-brand-sand font-serif normal-case tracking-normal">Alta Costura</span>
                         </h1>
                         <p className="font-serif italic text-xl md:text-2xl text-white/90 max-w-2xl mx-auto">
-                            "Diseñamos y confeccionamos a medida. Más de 300 novias vestidas en el sector oriente de Santiago."
+                            "Cada vestido es un objeto de devoción. Creaciones concebidas bajo una experiencia íntima de atelier."
                         </p>
                         <p className="text-white/80 text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-light">
-                            En Elena La Costurera, tu vestido de novia es una creación única. Diseñamos desde cero sobre tus medidas físicas exactas o realizamos un Upcycling de lujo transformando vestidos heredados familiares con garantía de calce de 15 días.
+                            En el Atelier de Elena La Costurera, la alta costura nupcial se aborda como una pieza única e irrepetible. Diseñamos desde el lienzo en blanco respetando la anatomía con precisión milimétrica, o transformamos vestidos heredados mediante un proceso de Upcycling que honra la memoria viva de la prenda.
                         </p>
                         
                         <div className="pt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
@@ -52,7 +52,7 @@ export default function BridalLandingPage() {
                                 className="glass-btn group relative inline-flex items-center justify-center gap-3 px-6 py-3.5 md:px-12 md:py-5 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] w-full sm:w-auto"
                             >
                                 <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-white group-hover:text-[#121212] transition-colors duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
-                                    Agendar Cita de Novias
+                                    Agendar Cita en Atelier
                                     <ArrowRight className="w-3.5 h-3.5 transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1" />
                                 </span>
                             </Link>
@@ -79,7 +79,7 @@ export default function BridalLandingPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div className="relative aspect-[3/4] border border-white/10 rounded-sm overflow-hidden group shadow-2xl">
                             <img 
-                                src="/trabajos/novias/Novia_Elegante_1.png" 
+                                src="/trabajos/novias/novia_seda_ilusion.png" 
                                 alt="Vestido de Novia Alta Costura Elena Atelier" 
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                             />
@@ -92,7 +92,7 @@ export default function BridalLandingPage() {
 
                         <div className="relative aspect-[3/4] border border-white/10 rounded-sm overflow-hidden group shadow-2xl">
                             <img 
-                                src="/trabajos/novias/Novia_Elegante_2.png" 
+                                src="/trabajos/novias/novia_encaje_frances.png" 
                                 alt="Vestido de Novia Encaje Francés" 
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                             />
@@ -105,7 +105,7 @@ export default function BridalLandingPage() {
 
                         <div className="relative aspect-[3/4] border border-white/10 rounded-sm overflow-hidden group shadow-2xl">
                             <img 
-                                src="/trabajos/novias/Novia_Original_Upcycling.jpg" 
+                                src="/trabajos/novias/novia_upcycling_redisenio.png" 
                                 alt="Upcycling Nupcial Vestido Heredado" 
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                             />
@@ -118,18 +118,18 @@ export default function BridalLandingPage() {
 
                         <div className="relative aspect-[3/4] border border-white/10 rounded-sm overflow-hidden group shadow-2xl">
                             <img 
-                                src="/trabajos/novias/Novia_Base_Atelier.jpg" 
+                                src="/trabajos/novias/novia_calce_anatomico.png" 
                                 alt="Pruebas de Calce Taller Tabancura" 
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10 opacity-90 group-hover:opacity-75 transition-opacity" />
                             <div className="absolute bottom-4 left-4 right-4 z-20 space-y-1">
-                                <span className="text-brand-sand text-[9px] uppercase tracking-widest font-bold block">Pruebas en Taller</span>
-                                <h3 className="font-serif text-lg text-white font-normal">Calce Anatómico 15 Días</h3>
+                                <span className="text-brand-sand text-[9px] uppercase tracking-widest font-bold block">Pruebas de Autor</span>
+                                <h3 className="font-serif text-lg text-white font-normal">Calce Anatómico Perfecto</h3>
                             </div>
                         </div>
                     </div>
-                </section>
+                </section>            </section>
 
                 {/* Slow Fashion / Upcycling Philosophy */}
                 <section id="upcycling" className="py-20 md:py-28 bg-white/[0.03] backdrop-blur-[12px] border border-white/10 rounded-sm p-8 md:p-16 relative z-10 shadow-2xl">
