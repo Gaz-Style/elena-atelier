@@ -89,7 +89,9 @@ export default function AgendaPage() {
     const formatFechaLegible = (dateStr: string) => {
         if (!dateStr) return '';
         const d = new Date(`${dateStr}T12:00:00`);
-        return d.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
+        const str = d.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
+        // Formatear estilo limpio: "Sábado 26 de septiembre"
+        return str.charAt(0).toUpperCase() + str.slice(1);
     };
 
     return (
@@ -213,12 +215,13 @@ export default function AgendaPage() {
                                 <span className="text-[10px] uppercase tracking-widest text-brand-sand font-medium">Paso 2 de 2</span>
                             </div>
 
-                            {/* Resumen de cita seleccionada: texto limpio sin contenedor */}
-                            <div className="mb-5 space-y-1">
-                                <p className="text-[10px] text-brand-sand font-bold uppercase tracking-[0.25em]">Cita Seleccionada</p>
-                                <p className="text-base md:text-lg text-white font-medium capitalize font-sans tracking-wide drop-shadow-sm">
-                                    {formatFechaLegible(selectedDateStr)} a las <span className="text-brand-sand font-bold">{selectedTimeStr} hrs</span>
-                                </p>
+                            {/* Resumen de cita seleccionada: Jerarquía limpia y elegante */}
+                            <div className="mb-6 p-3.5 bg-white/[0.03] border border-white/10 rounded-sm flex flex-col gap-1">
+                                <span className="text-[9px] uppercase tracking-[0.25em] font-semibold text-brand-sand">Cita Seleccionada</span>
+                                <div className="text-sm md:text-base text-white font-serif tracking-wide flex items-center justify-between">
+                                    <span>{formatFechaLegible(selectedDateStr)}</span>
+                                    <span className="font-sans font-bold text-brand-sand text-xs bg-brand-sand/10 px-2.5 py-1 rounded-sm border border-brand-sand/20">{selectedTimeStr} hrs</span>
+                                </div>
                             </div>
 
                             {/* Formulario Estilo Oficial de Registro */}
@@ -319,16 +322,16 @@ export default function AgendaPage() {
                                 <button 
                                     disabled={isSubmitting}
                                     type="submit" 
-                                    className="w-full glass-btn group relative inline-flex items-center justify-center gap-3 px-6 py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] cursor-pointer disabled:opacity-50"
+                                    className="w-full glass-btn group relative inline-flex items-center justify-center gap-3 px-6 py-4 border border-white/20 text-white font-sans text-xs uppercase tracking-widest font-bold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[400ms] hover:bg-white hover:text-black text-center shadow-lg rounded-sm cursor-pointer disabled:opacity-50"
                                 >
                                     {isSubmitting ? (
                                         <span className="flex items-center gap-2 text-white">
                                             <Loader2 className="w-4 h-4 animate-spin" /> Registrando Cita...
                                         </span>
                                     ) : (
-                                        <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-white group-hover:text-[#121212] transition-colors duration-[600ms]">
+                                        <span className="glass-text relative z-10 flex items-center justify-center gap-3 transition-colors duration-[400ms]">
                                             Agendar cita en taller
-                                            <ArrowRight className="w-4 h-4 flex-shrink-0 transition-transform duration-[600ms] group-hover:translate-x-1" />
+                                            <ArrowRight className="w-4 h-4 flex-shrink-0 transition-transform duration-[400ms] group-hover:translate-x-1" />
                                         </span>
                                     )}
                                 </button>
