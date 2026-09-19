@@ -157,11 +157,8 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
               <div className="flex-1 h-px bg-gradient-to-r from-transparent via-brand-sand to-transparent"></div>
             </div>
 
-            {/* Opciones de Confección en Cuadro Contenedor */}
-            <div className="bg-white/[0.03] border border-white/[0.08] p-5 rounded-sm font-sans space-y-3 relative overflow-hidden">
-              {/* Acento superior decorativo */}
-              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-brand-sand/40 to-transparent"></div>
-              
+            {/* Opciones de Confección: Texto limpio sin recuadro */}
+            <div className="font-sans space-y-2.5">
               <span className="font-semibold text-brand-sand/90 uppercase tracking-[0.2em] text-[10px] sm:text-xs block">Confección a medida en nuestro Atelier de Vitacura</span>
               
               <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
@@ -169,7 +166,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
               </p>
 
               {/* Microcopy inferior de confianza */}
-              <div className="pt-2 text-[11px] sm:text-xs text-brand-sand/80 font-medium flex items-center gap-1.5 border-t border-white/[0.06]">
+              <div className="pt-1 text-[11px] sm:text-xs text-brand-sand/80 font-medium flex items-center gap-1.5">
                 <span className="text-brand-sand/60">✓</span> Incluye moldería exclusiva y pruebas de calce presenciales
               </div>
             </div>

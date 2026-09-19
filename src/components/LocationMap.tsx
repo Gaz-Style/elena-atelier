@@ -8,9 +8,7 @@ type Props = {
 };
 
 export default function LocationMap({ comuna }: Props) {
-  const address = "Tabancura 1091, Oficina 319, Vitacura, Región Metropolitana";
-  const businessName = "ELENA La Costurera - Alta Costura & Sastrería a Medida, Tabancura 1091, Vitacura";
-  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(businessName)}`;
+  const googleMapsUrl = `https://www.google.com/maps/place/ELENA+La+Costurera+-+Alta+Costura+%26+Sastrer%C3%ADa+a+Medida/@-33.3714288,-70.5484838,17z/data=!3m1!4b1!4m6!3m5!1s0x9662cbfdb05a4157:0xa193bb92b512c019!8m2!3d-33.3714288!4d-70.5484838!16s%2Fg%2F11sbj4h2q3`;
   const wazeUrl = `https://waze.com/ul?q=${encodeURIComponent("Tabancura 1091, Vitacura")}&navigate=yes`;
 
   return (

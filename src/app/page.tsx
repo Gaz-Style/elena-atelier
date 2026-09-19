@@ -351,7 +351,7 @@ export default function Home() {
             <div className="pt-8 md:pt-10 space-y-1 font-sans text-center md:text-left text-white/70 font-light text-sm md:text-base leading-relaxed">
               <p className="text-white">Vitacura, Santiago</p>
               <a 
-                href="https://maps.google.com/?q=Av.+Tabancura+1091,+Oficina+319,+Vitacura,+Santiago" 
+                href="https://www.google.com/maps/place/ELENA+La+Costurera+-+Alta+Costura+%26+Sastrer%C3%ADa+a+Medida/@-33.3714288,-70.5484838,17z/data=!3m1!4b1!4m6!3m5!1s0x9662cbfdb05a4157:0xa193bb92b512c019!8m2!3d-33.3714288!4d-70.5484838!16s%2Fg%2F11sbj4h2q3" 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="text-white/60 hover:text-brand-terracotta transition-colors duration-300 inline-flex items-center gap-1.5 justify-center md:justify-start group"
