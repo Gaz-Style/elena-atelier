@@ -40,19 +40,19 @@ export default function BridalLandingPage() {
                             <span className="italic text-brand-sand font-serif normal-case tracking-normal">Alta Costura</span>
                         </h1>
                         <p className="font-serif italic text-xl md:text-2xl text-white/90 max-w-2xl mx-auto">
-                            "Diseñamos y confeccionamos a medida. No vendemos vestidos de stock."
+                            "Diseñamos y confeccionamos a medida. Más de 300 novias vestidas en el sector oriente de Santiago."
                         </p>
                         <p className="text-white/80 text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-light">
-                            En Elena La Costurera, tu vestido de novia es una creación única. Diseñamos de cero sobre tus medidas físicas o transformamos el vestido heredado de tu familia mediante Upcycling de lujo.
+                            En Elena La Costurera, tu vestido de novia es una creación única. Diseñamos desde cero sobre tus medidas físicas exactas o realizamos un Upcycling de lujo transformando vestidos heredados familiares con garantía de calce de 15 días.
                         </p>
                         
                         <div className="pt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
                             <Link
-                                href="/appointment"
+                                href="/agenda"
                                 className="glass-btn group relative inline-flex items-center justify-center gap-3 px-6 py-3.5 md:px-12 md:py-5 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] w-full sm:w-auto"
                             >
                                 <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-white group-hover:text-[#121212] transition-colors duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
-                                    Reservar Primera Cita de Diseño
+                                    Agendar Cita de Novias
                                     <ArrowRight className="w-3.5 h-3.5 transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1" />
                                 </span>
                             </Link>
