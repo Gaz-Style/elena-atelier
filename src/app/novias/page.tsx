@@ -49,18 +49,20 @@ export default function BridalLandingPage() {
                         <div className="pt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
                             <Link
                                 href="/agenda"
-                                className="glass-btn group relative inline-flex items-center justify-center gap-3 px-6 py-3.5 md:px-12 md:py-5 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] w-full sm:w-auto"
+                                className="glass-btn group relative inline-flex items-center justify-center gap-3 px-6 py-3.5 md:px-12 md:py-5 text-white font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] text-center rounded-[1px] w-full sm:w-auto"
                             >
-                                <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-white group-hover:text-[#121212] transition-colors duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
+                                <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-white group-hover:text-[#121212] transition-colors duration-[600ms]">
                                     Agendar Cita en Atelier
-                                    <ArrowRight className="w-3.5 h-3.5 transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1" />
+                                    <ArrowRight className="w-3.5 h-3.5 transition-transform duration-[600ms] group-hover:translate-x-1" />
                                 </span>
                             </Link>
                             <a
                                 href="#upcycling"
-                                className="glass-btn group relative inline-flex items-center justify-center gap-3 px-6 py-3.5 md:px-12 md:py-5 border-[0.5px] border-white/10 border-t-white/20 border-l-white/20 border-b-white/5 border-r-white/5 text-white/80 font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.25em] font-semibold bg-white/[0.02] backdrop-blur-[5px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-white/[0.08] hover:border-white/20 hover:text-white text-center rounded-[1px] w-full sm:w-auto"
+                                className="glass-btn group relative inline-flex items-center justify-center gap-3 px-6 py-3.5 md:px-12 md:py-5 text-white/80 font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.25em] font-semibold bg-white/[0.02] backdrop-blur-[5px] transition-all duration-[600ms] hover:bg-white/[0.08] hover:text-white text-center rounded-[1px] w-full sm:w-auto"
                             >
-                                Conocer Upcycling Nupcial
+                                <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-white group-hover:text-[#121212] transition-colors duration-[600ms]">
+                                    Conocer Upcycling Nupcial
+                                </span>
                             </a>
                         </div>
                     </div>
@@ -157,8 +159,8 @@ export default function BridalLandingPage() {
                         <div className="lg:col-span-5">
                             <div className="relative aspect-[3/4] border border-white/10 p-6 flex flex-col justify-end shadow-2xl rounded-sm overflow-hidden group">
                                 <img 
-                                    src="/trabajos/novias/Novia_Elegante_1.png" 
-                                    alt="Upcycling Vestido de Novia Elena Atelier" 
+                                    src="/trabajos/novias/upcycling_taller_proceso.png" 
+                                    alt="Proceso de Upcycling Nupcial en Elena Atelier" 
                                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-10 group-hover:opacity-80 transition-opacity"></div>
