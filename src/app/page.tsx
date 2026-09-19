@@ -317,9 +317,11 @@ export default function Home() {
           <div className="flex-1 w-full space-y-8">
             <div className="h-[300px] md:h-[500px] w-full rounded-sm overflow-hidden relative shadow-2xl">
               <Image
-                src="/elena-torso.png"
-                alt="Elena La Costurera torso"
+                src="/elena-torso-hd.png"
+                alt="Elena Rojas Bustamante - Elena Atelier"
                 fill
+                priority
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
@@ -328,7 +330,7 @@ export default function Home() {
             {/* Botón entre Dirección e Imagen */}
             <div className="flex justify-center md:justify-start pt-2">
               <Link
-                href="/appointment"
+                href="/agenda"
                 className="glass-btn group relative inline-flex items-center justify-center gap-3 px-6 py-3.5 md:px-12 md:py-5 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:shadow-[0_0_24px_rgba(255,255,255,0.12)] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] w-full md:w-auto max-w-full"
               >
                 <span className="glass-text relative z-10 flex items-center justify-center gap-3 text-white group-hover:text-[#121212] transition-colors duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] text-center">
