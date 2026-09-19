@@ -10,20 +10,40 @@ export const metadata = {
 };
 
 export default function PortfolioPage() {
-  const baseDirectory = path.join(process.cwd(), 'public', 'trabajos');
+  const baseDirectory = path.join(process.cwd(), 'public', 'trabajos', 'Portafolio');
   
-  // 1. Get files directly in /public/trabajos (General / Todos)
+  // 1. Get files directly in /public/trabajos/Portafolio (General / Todos)
   let generalImages: string[] = [];
   try {
     const files = fs.readdirSync(baseDirectory, { withFileTypes: true });
     generalImages = files
       .filter(dirent => dirent.isFile() && dirent.name.match(/\.(jpg|jpeg|png|gif|webp)$/i))
-      .map(dirent => `/trabajos/${dirent.name}`);
+      .map(dirent => `/trabajos/Portafolio/${dirent.name}`);
   } catch (err) {
     console.error("Error reading base directory", err);
   }
 
-  // 2. Read subdirectories (novias, fiesta, etc)
+  // Helper recursivo para obtener todos los archivos de media (imágenes y videos) dentro de una subcarpeta
+  const getAllImagesInDir = (dirPath: string, relativePrefix: string): string[] => {
+    let results: string[] = [];
+    try {
+      const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dirPath, entry.name);
+        const relPath = `${relativePrefix}/${entry.name}`;
+        if (entry.isDirectory()) {
+          results = results.concat(getAllImagesInDir(fullPath, relPath));
+        } else if (entry.isFile() && entry.name.match(/\.(jpg|jpeg|png|gif|webp|mp4)$/i)) {
+          results.push(relPath);
+        }
+      }
+    } catch (e) {
+      console.error("Error scanning subfolder", e);
+    }
+    return results;
+  };
+
+  // 2. Read subdirectories (Colaboraciones, fiesta, novias, etc)
   const categoryData: { category: string, images: string[] }[] = [];
   
   try {
@@ -32,14 +52,11 @@ export default function PortfolioPage() {
       
     for (const dir of subDirs) {
       const catPath = path.join(baseDirectory, dir.name);
-      const catFiles = fs.readdirSync(catPath, { withFileTypes: true });
-      const catImages = catFiles
-        .filter(dirent => dirent.isFile() && dirent.name.match(/\.(jpg|jpeg|png|gif|webp)$/i))
-        .map(dirent => `/trabajos/${dir.name}/${dirent.name}`);
+      const catImages = getAllImagesInDir(catPath, `/trabajos/Portafolio/${dir.name}`);
         
       if (catImages.length > 0) {
         categoryData.push({
-          category: dir.name,
+          category: dir.name.toLowerCase(),
           images: catImages
         });
       }
@@ -57,10 +74,10 @@ export default function PortfolioPage() {
 
       <div className="pt-32 pb-4">
         <div className="text-center mb-8 px-6">
-          <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-4">Archivo Elena</span>
-          <h1 className="font-serif text-5xl md:text-7xl font-bold uppercase tracking-tight text-white mb-6">Portafolio</h1>
+          <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-4">Producciones Editoriales & Colaboraciones de Marca</span>
+          <h1 className="font-serif text-5xl md:text-7xl font-bold uppercase tracking-tight text-white mb-6">Portafolio & Editoriales</h1>
           <p className="font-sans text-white/60 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
-            Una selección inmersiva de nuestros trabajos. Toca las categorías para explorar.
+            Explora nuestras producciones exclusivas, editoriales de moda nupcial y colaboraciones de vestuario con modelos, casas de joyas y fotógrafos de autor.
           </p>
         </div>
 

@@ -344,6 +344,74 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
         <SearchParamHandler />
       </Suspense>
 
+      {/* DESTACADO ESPECIAL: PORTAFOLIO DE HISTORIAS REALES DE NOVIA (DISEÑO ORGANICO EDITORIAL SIN MARCO CUADRADO) */}
+      {(activeCategory === 'novias' || (!forceCategory && activeCategory === 'todos')) && (
+        <div className="max-w-7xl mx-auto px-4 md:px-6 mb-16 pt-4 border-b border-white/10 pb-12">
+          <div className="grid md:grid-cols-2 gap-10 items-center">
+            <div className="space-y-4">
+              <span className="text-[10px] uppercase tracking-[0.35em] font-bold text-brand-sand block">
+                Editorial Nupcial • Colaboración de Marcas & Modelos
+              </span>
+              <h2 className="font-serif text-3xl sm:text-5xl text-white font-normal leading-tight">
+                Trilogía Nupcial: Producción Editorial en Casona Las Condes
+              </h2>
+              <p className="font-sans text-white/70 text-sm sm:text-base leading-relaxed">
+                Lookbook nupcial en colaboración con modelos profesionales, casas de joyería fina y locaciones exclusivas, presentando la versatilidad de 3 vestidos diseñados a medida para Civil, Iglesia y Fiesta.
+              </p>
+              <Link
+                href="/portafolio/novias/sofia-tres-vestidos-matrimonio-las-condes"
+                className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-brand-sand hover:text-white transition-colors pt-2 border-b border-brand-sand/40 pb-1"
+              >
+                Ver Producción Editorial & Ficha de Colaboradores <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+            <div className="relative aspect-[16/9] sm:aspect-[4/3] overflow-hidden rounded-xs border border-white/10">
+              <Image
+                src="/trabajos/novias/historia_sofia_iglesia.png"
+                alt="Historia de Novia Sofía en Elena Atelier"
+                fill
+                className="object-cover hover:scale-105 transition-transform duration-700"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DESTACADO ESPECIAL FIESTA & GALA: HISTORIA DE EXCLUSIVIDAD Y DISEÑO A MEDIDA (DISEÑO ORGANICO SIN MARCO CUADRADO) */}
+      {activeCategory === 'fiesta' && (
+        <div className="max-w-7xl mx-auto px-4 md:px-6 mb-16 pt-4 border-b border-white/10 pb-12">
+          <div className="grid md:grid-cols-2 gap-10 items-center">
+            <div className="space-y-4">
+              <span className="text-[10px] uppercase tracking-[0.35em] font-bold text-brand-sand block">
+                Gala & Fiesta • Garantía de Exclusividad
+              </span>
+              <h2 className="font-serif text-3xl sm:text-5xl text-white font-normal leading-tight">
+                El Temor al Vestido Repetido: Solución a Medida con Elena
+              </h2>
+              <p className="font-sans text-white/70 text-sm sm:text-base leading-relaxed">
+                ¿El nerviosismo de llegar a un evento y ver a otra invitada con tu mismo vestido? En Elena Atelier registramos cada evento y diseñamos piezas únicas en moldería, textura y calce para que brilles con total exclusividad.
+              </p>
+              <a
+                href="https://wa.me/56937667709?text=Hola%20Elena,%20tengo%20un%20evento%20de%20gala/fiesta%20y%20busco%20un%20dise%C3%B1o%20exclusivo%20a%20medida%20sin%20riesgo%20de%20vestido%20repetido."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-brand-sand hover:text-white transition-colors pt-2 border-b border-brand-sand/40 pb-1"
+              >
+                Consultar Cita de Diseño de Gala <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
+            <div className="relative aspect-[16/9] sm:aspect-[4/3] overflow-hidden rounded-xs border border-white/10">
+              <Image
+                src="/trabajos/fiesta/2. Lola Verde Esmeralda.jpg"
+                alt="Vestido de Gala Exclusivo Elena Atelier"
+                fill
+                className="object-cover hover:scale-105 transition-transform duration-700"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Highlights / Stories Filter Bar */}
       {!hideFilters && (
         <div className="border-b border-white/5 pb-4 pt-4 px-4 overflow-x-auto no-scrollbar">
@@ -410,8 +478,115 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
           </div>
         )}
 
-        {/* IF STANDARD GALLERY (OTROS) */}
-        {activeCategory !== 'fiesta' && (
+        {/* IF CATEGORY NOVIAS: GALERÍA NARRATIVA SUBDIVIDIDA POR HITOS DE SCROLL */}
+        {activeCategory === 'novias' && (
+          <div className="space-y-20 pb-16">
+            
+            {/* ETAPA 1: EL PROCESO DE CREACIÓN EN EL ATELIER */}
+            <div className="space-y-4">
+              <div className="py-2 border-b border-white/10 pb-4">
+                <span className="text-[10px] uppercase tracking-[0.35em] text-brand-sand font-bold block mb-1">Fase 01 • Behind The Scenes</span>
+                <h3 className="font-serif text-2xl sm:text-3xl text-white font-normal">El Proceso de Creación & Taller</h3>
+                <p className="font-sans text-white/60 text-xs sm:text-sm max-w-2xl mt-1">
+                  La magia de la moldería anatómica, la lectura corporal y el trabajo minucioso a mano con modistas reales y pruebas de lienzo.
+                </p>
+              </div>
+
+              <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-0 sm:gap-6 space-y-0 sm:space-y-6">
+                {currentImages.filter(img => img.includes('/novias/proceso/')).map((item, idx) => (
+                  <div key={idx} className="break-inside-avoid relative group overflow-hidden sm:rounded-sm border-b sm:border border-white/10 hover:border-brand-sand/30 transition-all duration-500 mb-1 sm:mb-0">
+                    {item.toLowerCase().endsWith('.mp4') ? (
+                      <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
+                        <video src={item} controls autoPlay muted loop playsInline className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <Image src={item} alt={`Proceso Taller ${idx + 1}`} width={600} height={800} className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ETAPA 2: EL MATRIMONIO CIVIL */}
+            <div className="space-y-4">
+              <div className="py-2 border-b border-white/10 pb-4">
+                <span className="text-[10px] uppercase tracking-[0.35em] text-brand-sand font-bold block mb-1">Fase 02 • Intimidad Urbana</span>
+                <h3 className="font-serif text-2xl sm:text-3xl text-white font-normal">El Matrimonio Civil</h3>
+                <p className="font-sans text-white/60 text-xs sm:text-sm max-w-2xl mt-1">
+                  Propuestas contemporáneas, trajes sastre a medida en crepé marfil y capas desprendibles de encaje para recepciones íntimas.
+                </p>
+              </div>
+
+              <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-0 sm:gap-6 space-y-0 sm:space-y-6">
+                {currentImages.filter(img => img.includes('/novias/civil/')).map((item, idx) => (
+                  <div key={idx} className="break-inside-avoid relative group overflow-hidden sm:rounded-sm border-b sm:border border-white/10 hover:border-brand-sand/30 transition-all duration-500 mb-1 sm:mb-0">
+                    {item.toLowerCase().endsWith('.mp4') ? (
+                      <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
+                        <video src={item} controls autoPlay muted loop playsInline className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <Image src={item} alt={`Matrimonio Civil ${idx + 1}`} width={600} height={800} className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ETAPA 3: LA CEREMONIA RELIGIOSA EN LA IGLESIA */}
+            <div className="space-y-4">
+              <div className="py-2 border-b border-white/10 pb-4">
+                <span className="text-[10px] uppercase tracking-[0.35em] text-brand-sand font-bold block mb-1">Fase 03 • Solemnidad & Sacralidad</span>
+                <h3 className="font-serif text-2xl sm:text-3xl text-white font-normal">La Ceremonia Religiosa</h3>
+                <p className="font-sans text-white/60 text-xs sm:text-sm max-w-2xl mt-1">
+                  Vestidos majestuosos en Seda Mikado, escotes trabajados a mano, velos infinitos y colas catedral diseñadas para impactar en la nave central.
+                </p>
+              </div>
+
+              <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-0 sm:gap-6 space-y-0 sm:space-y-6">
+                {currentImages.filter(img => img.includes('/novias/iglesia/')).map((item, idx) => (
+                  <div key={idx} className="break-inside-avoid relative group overflow-hidden sm:rounded-sm border-b sm:border border-white/10 hover:border-brand-sand/30 transition-all duration-500 mb-1 sm:mb-0">
+                    {item.toLowerCase().endsWith('.mp4') ? (
+                      <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
+                        <video src={item} controls autoPlay muted loop playsInline className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <Image src={item} alt={`Ceremonia Religiosa ${idx + 1}`} width={600} height={800} className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ETAPA 4: LA NOCHE DE FIESTA Y BAILE */}
+            <div className="space-y-4">
+              <div className="py-2 border-b border-white/10 pb-4">
+                <span className="text-[10px] uppercase tracking-[0.35em] text-brand-sand font-bold block mb-1">Fase 04 • Libertad & Celebración</span>
+                <h3 className="font-serif text-2xl sm:text-3xl text-white font-normal">La Fiesta & Noche de Baile</h3>
+                <p className="font-sans text-white/60 text-xs sm:text-sm max-w-2xl mt-1">
+                  Soltura absoluta, slip dresses livianos y caídas fluidas para que la novia salte, baile y disfrute sin restricciones hasta el amanecer.
+                </p>
+              </div>
+
+              <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-0 sm:gap-6 space-y-0 sm:space-y-6">
+                {currentImages.filter(img => img.includes('/novias/fiesta/')).map((item, idx) => (
+                  <div key={idx} className="break-inside-avoid relative group overflow-hidden sm:rounded-sm border-b sm:border border-white/10 hover:border-brand-sand/30 transition-all duration-500 mb-1 sm:mb-0">
+                    {item.toLowerCase().endsWith('.mp4') ? (
+                      <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
+                        <video src={item} controls autoPlay muted loop playsInline className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <Image src={item} alt={`Fiesta y Baile ${idx + 1}`} width={600} height={800} className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* IF STANDARD GALLERY (OTROS: TODOS O FIESTA) */}
+        {activeCategory !== 'fiesta' && activeCategory !== 'novias' && (
           <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-0 sm:gap-6 space-y-0 sm:space-y-6">
             {currentImages.map((img, idx) => (
               <div 

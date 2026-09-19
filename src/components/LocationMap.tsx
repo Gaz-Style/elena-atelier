@@ -8,7 +8,7 @@ type Props = {
 };
 
 export default function LocationMap({ comuna }: Props) {
-  const googleMapsUrl = `https://www.google.com/maps/place/ELENA+La+Costurera+-+Alta+Costura+%26+Sastrer%C3%ADa+a+Medida/@-33.3714288,-70.5484838,17z/data=!3m1!4b1!4m6!3m5!1s0x9662cbfdb05a4157:0xa193bb92b512c019!8m2!3d-33.3714288!4d-70.5484838!16s%2Fg%2F11sbj4h2q3`;
+  const googleMapsUrl = "https://www.google.com/maps/place/ELENA+La+Costurera+-+Alta+Costura+%26+Sastrer%C3%ADa+a+Medida/@-33.3827989,-70.534738,676m/data=!3m2!1e3!4b1!4m6!3m5!1s0x9662c940ecdcf0a1:0x2e85754b1695f6fb!8m2!3d-33.3827989!4d-70.534738!16s%2Fg%2F11z7bztdz1?entry=ttu&g_ep=EgoyMDI2MDkxNi4wIKXMDSoASAFQAw%3D%3D";
   const wazeUrl = `https://waze.com/ul?q=${encodeURIComponent("Tabancura 1091, Vitacura")}&navigate=yes`;
 
   return (

@@ -334,7 +334,7 @@ export default function AppointmentPage() {
                         <div className="pt-0 space-y-2 md:pt-6 w-full text-center md:text-left">
                             <p className="text-[10px] uppercase tracking-[0.3em] text-brand-sand/60 text-center md:text-left">UBICACIÓN</p>
                             <a 
-                                href="https://maps.google.com/?q=Av.+Tabancura+1091,+Oficina+319,+Vitacura,+Santiago" 
+                                href="https://www.google.com/maps/place/ELENA+La+Costurera+-+Alta+Costura+%26+Sastrer%C3%ADa+a+Medida/@-33.3827989,-70.534738,676m/data=!3m2!1e3!4b1!4m6!3m5!1s0x9662c940ecdcf0a1:0x2e85754b1695f6fb!8m2!3d-33.3827989!4d-70.534738!16s%2Fg%2F11z7bztdz1?entry=ttu&g_ep=EgoyMDI2MDkxNi4wIKXMDSoASAFQAw%3D%3D" 
                                 target="_blank" 
                                 rel="noopener noreferrer" 
                                 className="text-sm text-white/90 hover:text-brand-terracotta transition-colors duration-300 font-light font-serif text-center md:text-left inline-flex items-center gap-1.5 justify-center md:justify-start group"
