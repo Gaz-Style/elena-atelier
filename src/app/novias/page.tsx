@@ -81,7 +81,7 @@ export default function BridalLandingPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div className="relative aspect-[3/4] border border-white/10 rounded-sm overflow-hidden group shadow-2xl">
                             <img 
-                                src="/trabajos/novias/novia_seda_ilusion.png" 
+                                src="/trabajos/novias/iglesia/Sofi_novia_1.png" 
                                 alt="Vestido de Novia Alta Costura Elena Atelier" 
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                             />
@@ -94,7 +94,7 @@ export default function BridalLandingPage() {
 
                         <div className="relative aspect-[3/4] border border-white/10 rounded-sm overflow-hidden group shadow-2xl">
                             <img 
-                                src="/trabajos/novias/novia_encaje_frances.png" 
+                                src="/trabajos/novias/proceso/novia_encaje_frances.png" 
                                 alt="Vestido de Novia Encaje Francés" 
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                             />
@@ -107,7 +107,7 @@ export default function BridalLandingPage() {
 
                         <div className="relative aspect-[3/4] border border-white/10 rounded-sm overflow-hidden group shadow-2xl">
                             <img 
-                                src="/trabajos/novias/novia_upcycling_redisenio.png" 
+                                src="/trabajos/novias/proceso/novia_upcycling_redisenio.png" 
                                 alt="Upcycling Nupcial Vestido Heredado" 
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                             />
@@ -120,7 +120,7 @@ export default function BridalLandingPage() {
 
                         <div className="relative aspect-[3/4] border border-white/10 rounded-sm overflow-hidden group shadow-2xl">
                             <img 
-                                src="/trabajos/novias/novia_calce_anatomico.png" 
+                                src="/trabajos/novias/proceso/novia_calce_anatomico.png" 
                                 alt="Pruebas de Calce Taller Tabancura" 
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                             />
@@ -159,7 +159,7 @@ export default function BridalLandingPage() {
                         <div className="lg:col-span-5">
                             <div className="relative aspect-[3/4] border border-white/10 p-6 flex flex-col justify-end shadow-2xl rounded-sm overflow-hidden group">
                                 <img 
-                                    src="/trabajos/novias/upcycling_taller_proceso.png" 
+                                    src="/trabajos/novias/proceso/upcycling_taller_proceso.png" 
                                     alt="Proceso de Upcycling Nupcial en Elena Atelier" 
                                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                 />
