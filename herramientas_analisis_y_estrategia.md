@@ -17,6 +17,7 @@ Este documento consolida la arquitectura completa de herramientas de analítica,
 | **Supabase ERP (Analítica Financiera)** | Proyecto: `tdzotbtoaserlrynhxum` | `.env.local` (`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) | 🟢 Conectado | Auditoría de ventas, Ticket Promedio ($64.736 CLP), costo por hora modista y margen. |
 | **Google AI Studio (Gemini API)** | Model: `gemini-2.5-flash` | `.env.local` (`GEMINI_API_KEY`) | 🟢 Conectado | Análisis visual inteligente de fotos de prendas enviadas por clientes para cotizar calce. |
 | **OpenAI / DeepSeek API** | Engine: `sk-84c39df5...` | `.env.local` (`OPENAI_API_KEY`) | 🟢 Conectado | Motor de cualificación y asistente conversacional para canal de atención. |
+| **GEO Share of Model Auditor** | Script Local (DeepSeek & OpenAI) | `scratch_geo_share_of_model.js` | 🟢 Operativo | Medición en tiempo real de la tasa de recomendación por IA en Vitacura, Lo Barnechea, La Dehesa y Las Condes. |
 | **Google Workspace Mail** | `elenaatalier@gmail.com` | `.env.local` (`SMTP_USER`, `SMTP_PASSWORD`) | 🟢 Conectado | Envío automatizado de comprobantes y confirmaciones de citas en el atelier. |
 | **Mercado Pago & Webpay Plus** | Commerce: `597053082620` | `.env.local` (`MP_ACCESS_TOKEN`, `TBK_API_KEY`) | 🟢 Conectado | Procesamiento seguro de abonos (50%) y pagos completos en línea. |
 
@@ -67,7 +68,8 @@ En la raíz del proyecto contamos con scripts automatizados ejecutables mediante
 
 1. **`node scratch_ga_demographics.js`**: Consulta en vivo a GA4 API de usuarios por dispositivo, páginas top y tiempo de permanencia.
 2. **`node scratch_gsc_analytics.js`**: Consulta en vivo a Google Search Console API de estado del sitemap, impresiones y palabras clave.
-3. **`node check_db.js`**: Consulta a la base de datos Supabase ERP para auditoría de servicios y caja.
+3. **`node scratch_geo_share_of_model.js`**: Auditoría automatizada de Cuota de Modelo (Share of Model) consultando a IA la recomendación de Elena Atelier en Vitacura, Lo Barnechea, La Dehesa y Las Condes.
+4. **`node check_db.js`**: Consulta a la base de datos Supabase ERP para auditoría de servicios y caja.
 
 ---
-*Documento actualizado en el repositorio local el 18 de Septiembre de 2026.*
+*Documento actualizado en el repositorio local el 19 de Septiembre de 2026.*
