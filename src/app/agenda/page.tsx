@@ -365,7 +365,7 @@ export default function AgendaPage() {
                             <div className="pt-2">
                                 <button 
                                     onClick={resetBooking}
-                                    className="glass-btn px-8 py-3.5 bg-brand-sand text-brand-charcoal font-sans text-xs uppercase tracking-widest font-bold rounded-sm hover:bg-white transition-colors cursor-pointer"
+                                    className="px-8 py-4 bg-white text-black font-sans text-xs uppercase tracking-widest font-bold rounded-sm hover:bg-brand-sand transition-colors cursor-pointer shadow-lg"
                                 >
                                     Entendido / Volver al Taller
                                 </button>
