@@ -363,7 +363,7 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
             </div>
             <div className="relative aspect-[16/9] sm:aspect-[4/3] overflow-hidden rounded-xs border border-white/10">
               <Image
-                src="/trabajos/novias/historia_sofia_iglesia.png"
+                src="/trabajos/baners y fondos/historia_sofia_iglesia.png"
                 alt="Historia de Novia Sofía en Elena Atelier"
                 fill
                 className="object-cover hover:scale-105 transition-transform duration-700"
