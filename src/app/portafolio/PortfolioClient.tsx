@@ -310,12 +310,8 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
     return null;
   };
 
-  // Build the list of categories
-  const categories: string[] = [];
-  if (generalImages && generalImages.length > 0) {
-    categories.push('todos');
-  }
-  categories.push(...data.map(d => d.category));
+  // Build the list of categories (Clean 3 main tabs: Colaboraciones, Fiesta, Novias)
+  const categories: string[] = Array.from(new Set(data.map(d => d.category)));
 
   // If the default 'fiesta' is not in categories and categories is not empty, fallback to the first one
   useEffect(() => {

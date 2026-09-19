@@ -54,15 +54,12 @@ export default function PortfolioPage() {
     return results;
   };
 
-  // 2. Read subdirectories (Colaboraciones, fiesta, novias, etc)
-  const categoryData: { category: string, images: string[] }[] = [];
+  // 2. Leer subcarpetas dentro de Portafolio y fusionar Colaboraciones
+  const categoryMap: Record<string, string[]> = {};
 
-  // Si existen imágenes desparramadas en /public/trabajos, asignarlas a la categoría "colaboraciones"
+  // Agregar imágenes de colaboraciones (sueltas y carpetas)
   if (generalImages.length > 0) {
-    categoryData.push({
-      category: 'colaboraciones',
-      images: generalImages
-    });
+    categoryMap['colaboraciones'] = generalImages;
   }
   
   try {
@@ -71,20 +68,27 @@ export default function PortfolioPage() {
         .filter(dirent => dirent.isDirectory());
         
       for (const dir of subDirs) {
+        const catKey = dir.name.toLowerCase();
         const catPath = path.join(baseDirectory, dir.name);
         const catImages = getAllImagesInDir(catPath, `/trabajos/Portafolio/${dir.name}`);
           
         if (catImages.length > 0) {
-          categoryData.push({
-            category: dir.name.toLowerCase(),
-            images: catImages
-          });
+          if (categoryMap[catKey]) {
+            categoryMap[catKey] = [...categoryMap[catKey], ...catImages];
+          } else {
+            categoryMap[catKey] = catImages;
+          }
         }
       }
     }
   } catch (err) {
     console.error("Error reading subdirectories", err);
   }
+
+  const categoryData: { category: string, images: string[] }[] = Object.keys(categoryMap).map(cat => ({
+    category: cat,
+    images: categoryMap[cat]
+  }));
 
   return (
     <div className="min-h-screen bg-brand-charcoal text-white font-sans relative">
