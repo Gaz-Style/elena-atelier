@@ -43,7 +43,7 @@ export default function BridalLandingPage() {
                             "Cada vestido es un objeto de devoción. Creaciones concebidas bajo una experiencia íntima de atelier."
                         </p>
                         <p className="text-white/80 text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-light">
-                            En el Atelier de Elena La Costurera, la alta costura nupcial se aborda como una pieza única e irrepetible. Diseñamos desde el lienzo en blanco respetando la anatomía con precisión milimétrica, o transformamos vestidos heredados mediante un proceso de Upcycling que honra la memoria viva de la prenda.
+                            En <strong className="font-normal text-white">Elena Atelier</strong>, la alta costura nupcial se aborda como una pieza única e irrepetible. Diseñamos desde el lienzo en blanco respetando la anatomía con precisión milimétrica, o transformamos vestidos heredados mediante un proceso de Upcycling que honra la memoria viva de la prenda.
                         </p>
                         
                         <div className="pt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
