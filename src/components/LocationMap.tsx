@@ -88,9 +88,9 @@ export default function LocationMap({ comuna }: Props) {
                     });
                   }
                 }}
-                className="w-full border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white rounded-lg py-2.5 sm:py-3 px-4 flex items-center justify-center gap-2.5 transition-all text-xs sm:text-base font-medium shadow-sm hover:scale-[1.01] overflow-hidden"
+                className="w-full border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white rounded-lg py-3 px-4 min-h-[48px] flex items-center justify-center gap-2.5 transition-all text-xs sm:text-base font-medium shadow-sm hover:scale-[1.01] overflow-hidden"
               >
-                <img src="/logos/Diseño%20sin%20título%20(1).png" alt="Google Maps" className="w-6 h-6 sm:w-7 sm:h-7 object-contain shrink-0 scale-[1.3]" />
+                <img src="/logos/Diseño%20sin%20título%20(1).png" alt="Google Maps" width={28} height={28} className="w-6 h-6 sm:w-7 sm:h-7 object-contain shrink-0 scale-[1.3]" />
                 <span>Google Maps</span>
               </a>
 
@@ -107,9 +107,9 @@ export default function LocationMap({ comuna }: Props) {
                     });
                   }
                 }}
-                className="w-full border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white rounded-lg py-2.5 sm:py-3 px-4 flex items-center justify-center gap-2.5 transition-all text-xs sm:text-base font-medium shadow-sm hover:scale-[1.01] overflow-hidden"
+                className="w-full border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white rounded-lg py-3 px-4 min-h-[48px] flex items-center justify-center gap-2.5 transition-all text-xs sm:text-base font-medium shadow-sm hover:scale-[1.01] overflow-hidden"
               >
-                <img src="/logos/png-transparent-waze-gps-navigation-systems-app-store-ipa-waze-smiley-android-traffic-thumbnail%20(1).png" alt="Waze" className="w-6 h-6 sm:w-7 sm:h-7 object-contain shrink-0 scale-[1.3]" />
+                <img src="/logos/png-transparent-waze-gps-navigation-systems-app-store-ipa-waze-smiley-android-traffic-thumbnail%20(1).png" alt="Waze" width={28} height={28} className="w-6 h-6 sm:w-7 sm:h-7 object-contain shrink-0 scale-[1.3]" />
                 <span>Waze</span>
               </a>
             </div>

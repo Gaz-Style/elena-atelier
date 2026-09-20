@@ -112,7 +112,7 @@ export default function ReviewPage() {
 
             {/* Header / Brand Logo */}
             <header className="w-full max-w-[560px] mx-auto pt-8 pb-4 text-center z-10 flex flex-col items-center">
-                <img src="/logotipo.png" alt="Elena La Costurera Logo" className="h-16 w-auto object-contain invert" />
+                <img src="/logotipo.png" alt="Elena La Costurera Logo" width={200} height={64} className="h-16 w-auto object-contain invert" />
                 <p className="text-[10px] uppercase tracking-[0.3em] text-white/40 mt-4">Alta Costura & Sastrería de Autor</p>
             </header>
 
