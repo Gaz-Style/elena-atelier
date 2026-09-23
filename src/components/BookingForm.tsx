@@ -458,7 +458,7 @@ export default function BookingForm() {
                     <h2 className="font-serif text-xl md:text-2xl mb-4 tracking-wide text-white/95">¡Todo Listo!</h2>
                     <p className="text-white/60 mb-8 text-sm leading-relaxed">
                         Gracias {formData.name.split(' ')[0]}. Hemos recibido tu interés en {formData.serviceType}. <br />
-                        Te hablaremos por WhatsApp muy pronto para coordinar tu visita al taller en Tabancura 1091.
+                        Te hablaremos por WhatsApp muy pronto para coordinar tu visita al taller en Tabancura 1091, Oficina 319.
                     </p>
                     <button
                         onClick={() => setStep(1)}

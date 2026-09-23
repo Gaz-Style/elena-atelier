@@ -22,7 +22,8 @@ import {
     X,
     LogOut,
     Mail,
-    MessageSquare
+    MessageSquare,
+    Monitor
 } from 'lucide-react';
 import { logoutAction } from '@/app/admin/login/actions';
 import { clsx, type ClassValue } from 'clsx';
@@ -39,6 +40,7 @@ export const sidebarSections = [
             { name: 'Punto de Venta', href: '/admin/pos', icon: ShoppingBag },
             { name: 'Caja Diaria', href: '/admin/caja', icon: Wallet },
             { name: 'Planilla Ventas', href: '/admin/sales', icon: DollarSign },
+            { name: 'Alta Costura', href: '/admin/novias', icon: Scissors },
         ]
     },
     {
@@ -48,6 +50,7 @@ export const sidebarSections = [
             { name: 'Tablero Producción', href: '/admin/production-board', icon: LayoutDashboard },
             { name: 'Planificador Semanal', href: '/admin/planificador', icon: Calendar },
             { name: 'Seguimiento Taller', href: '/admin/planificador/seguimiento', icon: Activity },
+            { name: 'Monitor Taller', href: '/admin/taller-monitor', icon: Monitor },
             { name: 'Inventario & Mat.', href: '/admin/inventory', icon: ShoppingBag },
         ]
     },
@@ -58,7 +61,6 @@ export const sidebarSections = [
             { name: 'CRM & WhatsApp', href: '/admin/crm', icon: Users },
             { name: 'Central de Correos', href: '/admin/crm/correo-central', icon: Mail },
             { name: 'Agenda & Citas', href: '/admin/agenda', icon: Calendar },
-            { name: 'Alta Costura', href: '/admin/novias', icon: Scissors },
         ]
     },
     {

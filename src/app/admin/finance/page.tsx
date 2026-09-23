@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { TrendingUp, Receipt, DollarSign, Settings, Save, Loader2, CheckCircle2, Building2, Plus, Calendar, Hash, Tag, FileText, History, User, Trash2, Calculator, Info } from 'lucide-react';
+import { TrendingUp, Receipt, DollarSign, Settings, Save, Loader2, CheckCircle2, Building2, Plus, Calendar, Hash, Tag, FileText, History, User, Trash2, Calculator, Info, Activity } from 'lucide-react';
 import { getCostSettings, saveCostSettings, getExpenses, getFixedCosts, registerPurchaseDocument, getRecentDocuments, deletePurchaseDocument, calculateSuggestedRate, getSalesMetrics } from './actions';
 import { getInventoryItems } from '../inventory/actions';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -176,6 +176,16 @@ export default function FinanceDashboard() {
                     <div>
                         <h1 className="font-serif text-5xl text-foreground leading-none">Dashboard Financiero</h1>
                         <p className="text-muted-foreground mt-2 italic font-serif text-lg">"Arquitectura de Clase Mundial para Elena Atelier"</p>
+                    </div>
+                    <div className="flex gap-4">
+                        <Link href="/admin/statistics/intake" className="bg-secondary text-secondary-foreground hover:bg-secondary/80 px-6 py-3 text-[10px] uppercase font-bold tracking-widest flex items-center gap-2 rounded-sm shadow-sm transition-all border border-border">
+                            <TrendingUp className="w-4 h-4" />
+                            Ver Flujo Comercial
+                        </Link>
+                        <Link href="/admin/statistics/performance" className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 text-[10px] uppercase font-bold tracking-widest flex items-center gap-2 rounded-sm shadow-sm transition-all">
+                            <Activity className="w-4 h-4" />
+                            Ver Proyecciones de Taller
+                        </Link>
                     </div>
                 </header>
 

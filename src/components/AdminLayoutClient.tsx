@@ -26,7 +26,8 @@ const moduleNames: Record<string, string> = {
   '/admin/hr': 'Recursos Humanos',
   '/admin/quotes': 'Presupuestos',
   '/admin/production-board': 'Live Board',
-  '/admin/planificador': 'Planificador'
+  '/admin/planificador': 'Planificador',
+  '/admin/taller-monitor': 'Monitor Taller'
 };
 
 function cn(...inputs: ClassValue[]) {
@@ -39,7 +40,8 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const isPlanificador = pathname?.startsWith('/admin/planificador');
   const isPOS = pathname === '/admin/pos';
-  const hideHeader = isPlanificador || isPOS;
+  const isMonitor = pathname?.startsWith('/admin/taller-monitor');
+  const hideHeader = isPlanificador || isPOS || isMonitor;
 
   useEffect(() => {
     // Add light background to body for admin pages to prevent dark background leakage

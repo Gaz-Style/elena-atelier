@@ -91,7 +91,7 @@ export default function DigitalPassport({ data }: { data: PassportProps }) {
                 {/* Location Badge */}
                 <div className="pt-12 text-center text-[10px] text-white/40 uppercase tracking-widest leading-loose">
                     Confeccionado éticamente en <br />
-                    <span className="text-brand-sand font-semibold">Av. Tabancura 1091, Vitacura</span>
+                    <span className="text-brand-sand font-semibold">Av. Tabancura 1091, Of. 319, Vitacura</span>
                 </div>
             </div>
         </div>
