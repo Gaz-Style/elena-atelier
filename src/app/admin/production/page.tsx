@@ -1256,9 +1256,18 @@ export default function ProductionPage() {
                                                             {order.estimated_hours || 0} hrs
                                                         </td>
                                                         <td className="py-4 px-2 text-right">
-                                                            <span className="inline-flex items-center gap-1 bg-green-50 border border-green-150 text-green-700 py-1 px-2.5 rounded-full font-bold uppercase tracking-wider text-[8px]">
-                                                                <CheckCircle className="w-3 h-3" /> Entregado
-                                                            </span>
+                                                            <select
+                                                                value={order.status}
+                                                                onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                                                                className="text-[9px] uppercase tracking-wider font-bold bg-green-50 border border-green-200 text-green-700 rounded-full px-2.5 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-brand-terracotta"
+                                                            >
+                                                                <option value="delivered">✔ Entregado</option>
+                                                                <optgroup label="Revertir a Tablero Activo:">
+                                                                    {stages.map(s => (
+                                                                        <option key={s.id} value={s.id}>↩ Mover a: {s.label}</option>
+                                                                    ))}
+                                                                </optgroup>
+                                                            </select>
                                                         </td>
                                                     </tr>
                                                 ))}
