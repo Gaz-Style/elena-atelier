@@ -7,7 +7,6 @@ import {
   Activity, ArrowRight, BarChart3, Clock, PieChart, ShieldAlert
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Lightbulb, Info } from 'lucide-react';
 
 export default function PerformanceDashboard() {
