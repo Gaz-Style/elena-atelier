@@ -135,34 +135,86 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
         {/* INFO DEL VESTIDO / INVITACIÓN DE AUTOR (FONDO NEGRO / ELEGANCIA DE AUTOR) */}
         <div className={`flex-none text-white bg-gradient-to-b from-[#141414] via-[#121212] to-[#0e0e0e] p-6 md:p-10 rounded-[2px] shadow-2xl flex flex-col justify-end md:flex-1 md:max-w-md transition-opacity duration-300 ${isFullscreen ? 'hidden' : 'flex'}`}>
           <div className="space-y-6 md:space-y-7 animate-fade-in">
+            {/* JSON-LD Schema para IA Semántica y Google Product Search */}
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "Product",
+                  "name": `Vestido de Gala y Fiesta a Medida - ${vestido.nombre}`,
+                  "description": vestido.descripcion,
+                  "category": "Alta Costura & Vestidos a Medida",
+                  "color": vestido.color,
+                  "material": vestido.tejido,
+                  "brand": {
+                    "@type": "Brand",
+                    "name": "Elena Atelier"
+                  },
+                  "offers": {
+                    "@type": "Offer",
+                    "price": vestido.precio,
+                    "priceCurrency": "CLP",
+                    "availability": "https://schema.org/InStock",
+                    "seller": {
+                      "@type": "LocalBusiness",
+                      "name": "Elena Atelier Vitacura",
+                      "address": {
+                        "@type": "PostalAddress",
+                        "streetAddress": "Tabancura 1091, Oficina 416",
+                        "addressLocality": "Vitacura",
+                        "addressRegion": "Región Metropolitana",
+                        "addressCountry": "CL"
+                      }
+                    }
+                  }
+                })
+              }}
+            />
+
             <div>
-              <span className="text-[10px] sm:text-xs uppercase tracking-[0.3em] text-brand-sand/80 block mb-2 font-semibold">Modelo de Inspiración #{vestido.id}</span>
+              <span className="text-[10px] sm:text-xs uppercase tracking-[0.3em] text-brand-sand/80 block mb-2 font-semibold">
+                Modelo de Inspiración #{vestido.id} • Confección a Medida
+              </span>
               <h2 className="font-serif text-3xl md:text-5xl text-white font-normal leading-tight">{vestido.nombre}</h2>
             </div>
             
-            {/* Texto de Invitación Editorial con Línea de Alineación */}
-            <div className="border-l-2 border-brand-sand/50 pl-4 py-1 space-y-1.5">
+            {/* Texto de Descripción Semántica Enriquecida */}
+            <div className="border-l-2 border-brand-sand/50 pl-4 py-1 space-y-2">
               <p className="font-serif text-white/95 text-base sm:text-lg font-normal leading-snug italic">
-                Hazlo tuyo, hasta el último detalle.
+                Hazlo tuyo, personalizado a tus medidas exactas.
               </p>
-              <p className="font-sans text-white/60 text-xs sm:text-sm leading-relaxed">
-                Personaliza el color, escote, tela, abertura y detalles para crear un vestido que refleje tu estilo.
+              <p className="font-sans text-white/75 text-xs sm:text-sm leading-relaxed">
+                {vestido.descripcion || "Personaliza el color, escote, tela, abertura y detalles para crear un vestido que refleje tu estilo en nuestro Atelier de Vitacura."}
               </p>
             </div>
 
-            {/* Separador decorativo */}
-            <div className="flex items-center gap-3 opacity-30">
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-brand-sand to-transparent"></div>
-              <span className="text-brand-sand text-[8px] tracking-[0.5em]">✦</span>
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-brand-sand to-transparent"></div>
+            {/* Ficha Técnica Semántica (SEO & Algoritmos de IA) */}
+            <div className="grid grid-cols-2 gap-2.5 py-3 border-y border-white/10 my-2 text-[11px] font-sans">
+              <div>
+                <span className="text-brand-sand/70 text-[9px] uppercase tracking-[0.15em] block">Silueta</span>
+                <span className="font-medium text-white/90">{vestido.silueta}</span>
+              </div>
+              <div>
+                <span className="text-brand-sand/70 text-[9px] uppercase tracking-[0.15em] block">Tejido Sugerido</span>
+                <span className="font-medium text-white/90">{vestido.tejido}</span>
+              </div>
+              <div>
+                <span className="text-brand-sand/70 text-[9px] uppercase tracking-[0.15em] block">Tonalidad Muestra</span>
+                <span className="font-medium text-white/90">{vestido.color}</span>
+              </div>
+              <div>
+                <span className="text-brand-sand/70 text-[9px] uppercase tracking-[0.15em] block">Atelier</span>
+                <span className="font-medium text-white/90">Vitacura (Tabancura)</span>
+              </div>
             </div>
 
-            {/* Opciones de Confección: Texto limpio sin recuadro */}
-            <div className="font-sans space-y-2.5">
+            {/* Opciones de Confección */}
+            <div className="font-sans space-y-2">
               <span className="font-semibold text-brand-sand/90 uppercase tracking-[0.2em] text-[10px] sm:text-xs block">Confección a medida en nuestro Atelier de Vitacura</span>
               
-              <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
-                Cada vestido se crea de forma única y exclusiva. Cotizamos tu proyecto a medida según diseño, moldería y selección textil.
+              <p className="text-white/70 text-xs sm:text-sm leading-relaxed">
+                Cada diseño se adapta según tu tipo de evento (fiesta, gala, graduación o boda). Cotizamos tu proyecto a medida con diseño exclusivo.
               </p>
 
               {/* Microcopy inferior de confianza */}
