@@ -23,11 +23,25 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "ELENA La Costurera | Alta Costura & Confección a Medida",
-  description: "Costurera y atelier en Santiago especializada en vestidos de novia, alta costura, confección a medida, arreglos y reparación de prendas con terminaciones de excelencia.",
+  metadataBase: new URL("https://elenalacosturera.cl"),
+  title: "ELENA La Costurera | Atelier de Alta Costura & Confección a Medida en Vitacura",
+  description: "Atelier exclusivo de Alta Costura y arreglos de ropa fina ubicado en Av. Tabancura 1091 (Oficina 319), Vitacura, Santiago. Especialistas en vestidos de novia, gala, graduaciones y sastrería a medida con atención presencial y envíos.",
+  keywords: [
+    "alta costura vitacura",
+    "costurera lo barnechea",
+    "arreglos de ropa las condes",
+    "atelier vestidos de novia santiago",
+    "vestidos de gala a medida",
+    "vestidos de graduacion vitacura",
+    "sastreria fina santiago",
+    "compostura de ropa la dehesa",
+    "upcycling nupcial chile",
+    "elena la costurera tabancura"
+  ],
+  authors: [{ name: "Elena Rojas Bustamante" }],
   openGraph: {
-    title: "ELENA La Costurera | Alta Costura & Confección a Medida",
-    description: "Costurera y atelier en Santiago especializada en vestidos de novia, alta costura, confección a medida, arreglos y reparación de prendas con terminaciones de excelencia.",
+    title: "ELENA La Costurera | Atelier de Alta Costura en Vitacura, Santiago",
+    description: "Atelier de Alta Costura y arreglos de ropa fina en Av. Tabancura 1091, Vitacura. Especialistas en vestidos de novia, gala, graduación y sastrería a medida.",
     url: "https://elenalacosturera.cl",
     siteName: "ELENA La Costurera",
     images: [
@@ -35,6 +49,7 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
+        alt: "ELENA La Costurera Atelier Vitacura",
       },
     ],
     locale: "es_CL",
@@ -42,8 +57,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ELENA La Costurera | Alta Costura & Confección a Medida",
-    description: "Costurera y atelier en Santiago especializada en vestidos de novia, alta costura, confección a medida, arreglos y reparación de prendas con terminaciones de excelencia.",
+    title: "ELENA La Costurera | Atelier de Alta Costura en Vitacura",
+    description: "Atelier de Alta Costura y arreglos de ropa fina en Av. Tabancura 1091, Vitacura, Santiago. Vestidos de novia, gala y sastrería.",
     images: ["/og-image.jpg"],
   },
 };

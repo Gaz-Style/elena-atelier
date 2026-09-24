@@ -13,6 +13,16 @@ Elena Atelier rechaza de forma explícita el modelo prêt-à-porter, la importac
 * **Las Manos de Elena (Garantía de Oficio):** El sustento de nuestra autoridad. La trayectoria de la fundadora Elena Rojas Bustamante (diseñadora técnica con experiencia internacional en París, Nueva York y colaboraciones con marcas de vanguardia como SEVALI y Levi's) garantiza que aspectos críticos como la caída natural, costuras invisibles y sisas perfectas tengan calidad de nivel mundial.
 * **Filosofía "Anti-Poliéster":** Uso prioritario de tejidos e hilados nobles (sedas, encajes finos, tul textil), educando a la clienta sobre la diferencia táctil y estructural entre el plástico importado y la confección manual local.
 
+### 1.4 Visibilización del Oficio: La Comunidad de Costureras & Trazabilidad
+Elena Atelier concibe la alta costura como un acto de justicia y revalorización artesanal. Frente a la invisibilización histórica de la mano de obra textil en la industria de la moda, nuestra marca establece tres pilares fundamentales de compromiso ético y reconocimiento:
+
+* **Etiqueta de Trazabilidad con Historia & Código QR:** Cada pieza confeccionada en el atelier incluye una etiqueta física y un código QR (Pasaporte Digital de Prenda) que permite a la clienta conocer la historia viva de su vestido:
+  * **Nombre y rostro de la costurera/artesana** que modeló, cortó y ensambló la pieza.
+  * **Horas de dedicación manual** empleadas en mesa y máquina.
+  * **Origen y trazabilidad de los materiales** (sedas nobles o prendas patrimoniales rescatadas mediante Upcycling).
+* **Crédito y Reconocimiento en Desfiles y Eventos:** En toda pasarela, desfile de moda, presentación de colección, prensa o evento público, la autoría del trabajo no se atribuye de forma individualista, sino que se nombra y celebra explícitamente a **"Elena La Costurera y su Comunidad de Costureras"**, destacando el valor colectivo de su arte y oficio.
+* **Dignificación y Comercio Justo:** Visibilizar que detrás del calce perfecto existe un talento profesional remunerado éticamente, educando a nuestras clientas e industria sobre el respeto al oficio sastrero.
+
 ---
 
 ## 💰 Parte 2: Arquitectura Tarifaria y Ecuación de "Lujo Accesible"
