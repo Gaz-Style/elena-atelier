@@ -270,11 +270,8 @@ function DressGridItem({ vestido, onClick }: { vestido: Vestido, onClick: () => 
         )}
       </div>
       
-      {/* Catalog Info Overlay */}
-      <div 
-        onClick={handleCardClick}
-        className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-85 group-hover:opacity-75 transition-opacity duration-700 cursor-pointer pointer-events-auto" 
-      />
+      {/* Catalog Info Overlay (pointer-events-none allows native horizontal swipe to see back photo) */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent opacity-85 group-hover:opacity-75 transition-opacity duration-700 pointer-events-none" />
       
       <div className="absolute inset-0 z-10 flex flex-col justify-end p-5 md:p-7 space-y-2 pointer-events-none">
         <div onClick={handleCardClick} className="cursor-pointer pointer-events-auto">
