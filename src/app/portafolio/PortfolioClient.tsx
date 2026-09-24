@@ -135,86 +135,34 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
         {/* INFO DEL VESTIDO / INVITACIÓN DE AUTOR (FONDO NEGRO / ELEGANCIA DE AUTOR) */}
         <div className={`flex-none text-white bg-gradient-to-b from-[#141414] via-[#121212] to-[#0e0e0e] p-6 md:p-10 rounded-[2px] shadow-2xl flex flex-col justify-end md:flex-1 md:max-w-md transition-opacity duration-300 ${isFullscreen ? 'hidden' : 'flex'}`}>
           <div className="space-y-6 md:space-y-7 animate-fade-in">
-            {/* JSON-LD Schema para IA Semántica y Google Product Search */}
-            <script
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{
-                __html: JSON.stringify({
-                  "@context": "https://schema.org",
-                  "@type": "Product",
-                  "name": `Vestido de Gala y Fiesta a Medida - ${vestido.nombre}`,
-                  "description": vestido.descripcion,
-                  "category": "Alta Costura & Vestidos a Medida",
-                  "color": vestido.color,
-                  "material": vestido.tejido,
-                  "brand": {
-                    "@type": "Brand",
-                    "name": "Elena Atelier"
-                  },
-                  "offers": {
-                    "@type": "Offer",
-                    "price": vestido.precio,
-                    "priceCurrency": "CLP",
-                    "availability": "https://schema.org/InStock",
-                    "seller": {
-                      "@type": "LocalBusiness",
-                      "name": "Elena Atelier Vitacura",
-                      "address": {
-                        "@type": "PostalAddress",
-                        "streetAddress": "Tabancura 1091, Oficina 416",
-                        "addressLocality": "Vitacura",
-                        "addressRegion": "Región Metropolitana",
-                        "addressCountry": "CL"
-                      }
-                    }
-                  }
-                })
-              }}
-            />
-
             <div>
-              <span className="text-[10px] sm:text-xs uppercase tracking-[0.3em] text-brand-sand/80 block mb-2 font-semibold">
-                Modelo de Inspiración #{vestido.id} • Confección a Medida
-              </span>
+              <span className="text-[10px] sm:text-xs uppercase tracking-[0.3em] text-brand-sand/80 block mb-2 font-semibold">Modelo de Inspiración #{vestido.id}</span>
               <h2 className="font-serif text-3xl md:text-5xl text-white font-normal leading-tight">{vestido.nombre}</h2>
             </div>
             
-            {/* Texto de Descripción Semántica Enriquecida */}
-            <div className="border-l-2 border-brand-sand/50 pl-4 py-1 space-y-2">
+            {/* Texto de Invitación Editorial con Línea de Alineación */}
+            <div className="border-l-2 border-brand-sand/50 pl-4 py-1 space-y-1.5">
               <p className="font-serif text-white/95 text-base sm:text-lg font-normal leading-snug italic">
-                Hazlo tuyo, personalizado a tus medidas exactas.
+                Hazlo tuyo, hasta el último detalle.
               </p>
-              <p className="font-sans text-white/75 text-xs sm:text-sm leading-relaxed">
-                {vestido.descripcion || "Personaliza el color, escote, tela, abertura y detalles para crear un vestido que refleje tu estilo en nuestro Atelier de Vitacura."}
+              <p className="font-sans text-white/60 text-xs sm:text-sm leading-relaxed">
+                Personaliza el color, escote, tela, abertura y detalles para crear un vestido que refleje tu estilo.
               </p>
             </div>
 
-            {/* Ficha Técnica Semántica (SEO & Algoritmos de IA) */}
-            <div className="grid grid-cols-2 gap-2.5 py-3 border-y border-white/10 my-2 text-[11px] font-sans">
-              <div>
-                <span className="text-brand-sand/70 text-[9px] uppercase tracking-[0.15em] block">Silueta</span>
-                <span className="font-medium text-white/90">{vestido.silueta}</span>
-              </div>
-              <div>
-                <span className="text-brand-sand/70 text-[9px] uppercase tracking-[0.15em] block">Tejido Sugerido</span>
-                <span className="font-medium text-white/90">{vestido.tejido}</span>
-              </div>
-              <div>
-                <span className="text-brand-sand/70 text-[9px] uppercase tracking-[0.15em] block">Tonalidad Muestra</span>
-                <span className="font-medium text-white/90">{vestido.color}</span>
-              </div>
-              <div>
-                <span className="text-brand-sand/70 text-[9px] uppercase tracking-[0.15em] block">Atelier</span>
-                <span className="font-medium text-white/90">Vitacura (Tabancura)</span>
-              </div>
+            {/* Separador decorativo */}
+            <div className="flex items-center gap-3 opacity-30">
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-brand-sand to-transparent"></div>
+              <span className="text-brand-sand text-[8px] tracking-[0.5em]">✦</span>
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-brand-sand to-transparent"></div>
             </div>
 
-            {/* Opciones de Confección */}
-            <div className="font-sans space-y-2">
+            {/* Opciones de Confección: Texto limpio sin recuadro */}
+            <div className="font-sans space-y-2.5">
               <span className="font-semibold text-brand-sand/90 uppercase tracking-[0.2em] text-[10px] sm:text-xs block">Confección a medida en nuestro Atelier de Vitacura</span>
               
-              <p className="text-white/70 text-xs sm:text-sm leading-relaxed">
-                Cada diseño se adapta según tu tipo de evento (fiesta, gala, graduación o boda). Cotizamos tu proyecto a medida con diseño exclusivo.
+              <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
+                Cada vestido se crea de forma única y exclusiva. Cotizamos tu proyecto a medida según diseño, moldería y selección textil.
               </p>
 
               {/* Microcopy inferior de confianza */}
@@ -240,7 +188,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
                 className="glass-btn group relative inline-flex items-center justify-center w-full py-4 sm:py-5 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-sm sm:text-base uppercase tracking-[0.2em] font-bold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:text-[#121212] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] cursor-pointer gap-2.5"
               >
                 <span className="glass-text relative z-10 flex items-center justify-center gap-2.5 whitespace-nowrap !text-sm sm:!text-base">
-                  Diseñar mi Vestido
+                  Diseñar con Elena
                   <svg className="glass-arrow w-4 h-4 fill-current opacity-90 group-hover:opacity-100" viewBox="0 0 24 24">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                   </svg>
@@ -351,7 +299,7 @@ function DressGridItem({ vestido, onClick }: { vestido: Vestido, onClick: () => 
             }}
             className="sm:hidden inline-flex items-center justify-center gap-2 border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[11px] uppercase tracking-[0.2em] font-bold bg-white/[0.08] backdrop-blur-[10px] px-4 py-3.5 transition-all duration-[400ms] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] rounded-[1px] w-full text-center whitespace-nowrap shadow-lg cursor-pointer"
           >
-            Diseñar mi Vestido
+            Diseñar con Elena
             <svg className="w-3.5 h-3.5 fill-current flex-shrink-0" viewBox="0 0 24 24">
               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
             </svg>
@@ -400,31 +348,19 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
   // Build the list of categories (Clean 3 main tabs: Colaboraciones, Fiesta, Novias)
   const categories: string[] = Array.from(new Set(data.map(d => d.category)));
 
-  // If forceCategory is passed (e.g. 'novias' or 'fiesta'), ensure activeCategory matches it case-insensitively
+  // If the default 'fiesta' is not in categories and categories is not empty, fallback to the first one
   useEffect(() => {
-    if (forceCategory) {
-      const matched = categories.find(c => c.toLowerCase() === forceCategory.toLowerCase());
-      if (matched) {
-        setActiveCategory(matched);
-      } else {
-        setActiveCategory(forceCategory);
-      }
-      return;
+    if (categories.length > 0 && !categories.includes(activeCategory)) {
+      setActiveCategory(categories[0]);
     }
-    if (categories.length > 0) {
-      const exists = categories.some(c => c.toLowerCase() === activeCategory.toLowerCase());
-      if (!exists) {
-        setActiveCategory(categories[0]);
-      }
-    }
-  }, [categories, activeCategory, forceCategory]);
+  }, [categories, activeCategory]);
 
   // Get images for current active category (only for non-catalog folders)
   let currentImages: string[] = [];
-  if (activeCategory.toLowerCase() === 'todos') {
+  if (activeCategory === 'todos') {
     currentImages = generalImages;
-  } else if (activeCategory.toLowerCase() !== 'fiesta') {
-    const catData = data.find(d => d.category.toLowerCase() === activeCategory.toLowerCase());
+  } else if (activeCategory !== 'fiesta') {
+    const catData = data.find(d => d.category === activeCategory);
     if (catData) currentImages = catData.images;
   }
 
@@ -440,7 +376,7 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
       </Suspense>
 
       {/* DESTACADO ESPECIAL: PORTAFOLIO DE HISTORIAS REALES DE NOVIA (DISEÑO ORGANICO EDITORIAL SIN MARCO CUADRADO) */}
-      {(activeCategory.toLowerCase() === 'novias' || (!forceCategory && activeCategory.toLowerCase() === 'todos')) && (
+      {(activeCategory === 'novias' || (!forceCategory && activeCategory === 'todos')) && (
         <div className="max-w-7xl mx-auto px-4 md:px-6 mb-16 pt-4 border-b border-white/10 pb-12">
           <div className="grid md:grid-cols-2 gap-10 items-center">
             <div className="space-y-4">
@@ -473,7 +409,7 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
       )}
 
       {/* DESTACADO ESPECIAL FIESTA & GALA: VISIBLE EN DESKTOP, OCULTO EN MÓVIL PARA QUE CLARA CELESTE CAIGA ARRIBA DEL PLIEGUE */}
-      {activeCategory.toLowerCase() === 'fiesta' && (
+      {activeCategory === 'fiesta' && (
         <div className="hidden md:block max-w-7xl mx-auto px-4 md:px-6 mb-16 pt-4 border-b border-white/10 pb-12">
           <div className="grid md:grid-cols-2 gap-10 items-center">
             <div className="space-y-4">
@@ -519,19 +455,19 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
               >
                 <div 
                   className={`w-16 h-16 md:w-20 md:h-20 rounded-full border-2 p-1 flex items-center justify-center transition-all duration-300 ${
-                    activeCategory.toLowerCase() === cat.toLowerCase()
+                    activeCategory === cat 
                       ? 'border-brand-sand bg-brand-sand/10' 
                       : 'border-white/20 group-hover:border-white/50'
                   }`}
                 >
                   <div className="w-full h-full rounded-full bg-white/5 flex items-center justify-center overflow-hidden relative">
-                    <span className={`font-serif text-xl ${activeCategory.toLowerCase() === cat.toLowerCase() ? 'text-brand-sand' : 'text-white'}`}>
+                    <span className={`font-serif text-xl ${activeCategory === cat ? 'text-brand-sand' : 'text-white'}`}>
                       {cat.charAt(0).toUpperCase()}
                     </span>
                   </div>
                 </div>
                 <span className={`text-[10px] uppercase tracking-widest font-semibold transition-colors duration-300 ${
-                  activeCategory.toLowerCase() === cat.toLowerCase() ? 'text-brand-sand' : 'text-white/60'
+                  activeCategory === cat ? 'text-brand-sand' : 'text-white/60'
                 }`}>
                   {formatName(cat)}
                 </span>
@@ -545,7 +481,7 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
       <div className="max-w-7xl mx-auto px-0 md:px-6 mt-8">
         
         {/* IF E-COMMERCE CATALOG (FIESTA) */}
-        {activeCategory.toLowerCase() === 'fiesta' && layout === 'grid' && (
+        {activeCategory === 'fiesta' && layout === 'grid' && (
           <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-0 sm:gap-6 space-y-0 sm:space-y-6">
             {vestidosFiesta.map((vestido) => (
               <DressGridItem 

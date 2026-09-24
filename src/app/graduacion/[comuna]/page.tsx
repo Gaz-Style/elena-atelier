@@ -41,13 +41,33 @@ export default async function GraduationCommunePage({ params }: Props) {
     const resolvedParams = await params;
     const comuna = formatTitle(resolvedParams.comuna);
     
-    // Fetch images like the Portfolio page does
+    // Helper recursivo para obtener todos los archivos de media dentro de subcarpetas
+    const getAllImagesInDir = (dirPath: string, relativePrefix: string): string[] => {
+        let results: string[] = [];
+        try {
+            const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path.join(dirPath, entry.name);
+                const relPath = `${relativePrefix}/${entry.name}`;
+                if (entry.isDirectory()) {
+                    results = results.concat(getAllImagesInDir(fullPath, relPath));
+                } else if (entry.isFile() && entry.name.match(/\.(jpg|jpeg|png|gif|webp|mp4)$/i)) {
+                    results.push(relPath);
+                }
+            }
+        } catch (e) {
+            console.error("Error scanning subfolder", e);
+        }
+        return results;
+    };
+
+    // Fetch images recursively
     const baseDirectory = path.join(process.cwd(), 'public', 'trabajos');
     let generalImages: string[] = [];
     try {
         const files = fs.readdirSync(baseDirectory, { withFileTypes: true });
         generalImages = files
-            .filter(dirent => dirent.isFile() && dirent.name.match(/\.(jpg|jpeg|png|gif|webp)$/i))
+            .filter(dirent => dirent.isFile() && dirent.name.match(/\.(jpg|jpeg|png|gif|webp|mp4)$/i))
             .map(dirent => `/trabajos/${dirent.name}`);
     } catch (err) {
         console.error("Error reading base directory", err);
@@ -60,14 +80,11 @@ export default async function GraduationCommunePage({ params }: Props) {
             
         for (const dir of subDirs) {
             const catPath = path.join(baseDirectory, dir.name);
-            const catFiles = fs.readdirSync(catPath, { withFileTypes: true });
-            const catImages = catFiles
-                .filter(dirent => dirent.isFile() && dirent.name.match(/\.(jpg|jpeg|png|gif|webp)$/i))
-                .map(dirent => `/trabajos/${dir.name}/${dirent.name}`);
+            const catImages = getAllImagesInDir(catPath, `/trabajos/${dir.name}`);
                 
             if (catImages.length > 0) {
                 categoryData.push({
-                    category: dir.name,
+                    category: dir.name.toLowerCase(),
                     images: catImages
                 });
             }

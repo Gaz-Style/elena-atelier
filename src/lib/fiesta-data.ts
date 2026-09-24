@@ -139,7 +139,18 @@ export const vestidosFiesta: Vestido[] = [
     imagenEspalda: `${BASE}/3. Tomasa Azul Marino Espalda.jpg`,
     precio: 450000,
   },
-
+  {
+    id: 4,
+    nombre: 'Rebecca',
+    color: 'Verde Sage',
+    colorCategoria: 'Verde',
+    silueta: 'Princesa',
+    tejido: 'Tul',
+    descripcion: 'Vestido estilo princesa color verde sage, corsé transparente con delicadas varillas visibles, escote corazón, falda multicapa de tul suave con mucho volumen y efecto etéreo.',
+    imagenFrente: `${BASE}/4. Rebecca Verde Sage.jpg`,
+    imagenEspalda: `${BASE}/4. Rebecca Verde Sage Espalda.jpg`,
+    precio: 450000,
+  },
   {
     id: 5,
     nombre: 'Camila',
