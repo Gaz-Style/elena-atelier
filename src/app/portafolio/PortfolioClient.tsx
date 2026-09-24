@@ -556,7 +556,7 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
                     </p>
                   </div>
 
-                  {/* VISTA MÓVIL Y DESKTOP: IMÁGENES NATURALES SIN MARCOS NEGROS ABAJO Y SIN CORTE DE ENCUADRE */}
+                  {/* GALERÍA NOVIAS: FOTOS PURAS Y LIMPIAS; TÍTULOS Y BOTÓN DE ACCIÓN SOLO EN VIDEOS */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                     {items.map((item, idx) => {
                       const isVideo = item.toLowerCase().endsWith('.mp4');
@@ -573,9 +573,31 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
                                 preload="auto"
                                 className="w-full h-full object-cover transform-gpu" 
                               />
+
+                              {/* Gradient Overlay & CTA Button sobre Video */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-5 space-y-3 pointer-events-none">
+                                <div className="pointer-events-auto">
+                                  <span className="text-brand-sand text-[9px] uppercase tracking-[0.25em] font-bold block">
+                                    {section.fase}
+                                  </span>
+                                  <h3 className="font-serif text-xl sm:text-2xl text-white leading-tight">
+                                    {section.titulo}
+                                  </h3>
+                                </div>
+                                <div className="pointer-events-auto">
+                                  <a
+                                    href="https://wa.me/56937667709?text=Hola%20Elena,%20estoy%20viendo%20el%20video%20del%20proceso%20de%20novias%20y%20me%20gustar%C3%ADa%20cotizar%20un%20dise%C3%B1o%20a%20medida."
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center gap-2 border border-white/20 border-t-white/40 text-white font-sans text-[11px] uppercase tracking-[0.2em] font-bold bg-white/[0.12] backdrop-blur-[12px] px-4 py-3 rounded-[1px] hover:bg-[#f5f2eb]/90 hover:text-[#121212] transition-all w-full text-center shadow-lg"
+                                  >
+                                    Diseñar mi vestido 💬
+                                  </a>
+                                </div>
+                              </div>
                             </div>
                           ) : (
-                            <div className="relative w-full">
+                            <div className="relative w-full overflow-hidden">
                               <Image 
                                 src={item} 
                                 alt={`${section.titulo} ${idx + 1}`} 
@@ -585,18 +607,6 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
                               />
                             </div>
                           )}
-
-                          {/* Gradient Overlay & Button */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4 pointer-events-none">
-                            <a
-                              href="https://wa.me/56937667709?text=Hola%20Elena,%20estoy%20viendo%20el%20portafolio%20de%20novias%20y%20me%20gustar%C3%ADa%20cotizar%20un%20dise%C3%B1o%20a%20medida."
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="pointer-events-auto inline-flex items-center justify-center gap-2 border border-white/20 border-t-white/40 text-white font-sans text-[11px] uppercase tracking-[0.2em] font-bold bg-white/[0.12] backdrop-blur-[12px] px-4 py-3 rounded-[1px] hover:bg-[#f5f2eb]/90 hover:text-[#121212] transition-all w-full text-center shadow-lg"
-                            >
-                              Diseñar mi vestido 💬
-                            </a>
-                          </div>
                         </div>
                       );
                     })}
