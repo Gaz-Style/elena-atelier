@@ -4,6 +4,7 @@ import path from 'path';
 import Navbar from '@/components/Navbar';
 import BackLink from '@/components/BackLink';
 import Link from 'next/link';
+import PortfolioClient from '@/app/portafolio/PortfolioClient';
 
 function formatTitle(slug: string) {
     if (slug === 'lo-barnechea') return 'Lo Barnechea';
