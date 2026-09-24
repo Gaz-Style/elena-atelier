@@ -1869,7 +1869,7 @@ export async function updateMilestoneDateAction(
         let dateIso = toSantiagoISO(newDateStr, timePart);
         let agendaEventId = milestone.agenda_event_id;
 
-        // 3. Sync with agendamientos (agenda)
+        // 3. Sync with agendamientos (agenda) quietly to reserve the slot without notifying
         if (agendaEventId) {
             // Update existing agenda event
             const { error: updateError } = await supabase
@@ -1888,7 +1888,7 @@ export async function updateMilestoneDateAction(
                 throw new Error('No se pudo guardar en la agenda: ' + updateError.message);
             }
         } else {
-            // Insert new agenda event
+            // Insert new agenda event quietly
             const fullName = project.customers?.full_name || 'Novia';
             const nameParts = fullName.trim().split(/\s+/);
             const nombre = nameParts[0] || 'Novia';
@@ -1902,7 +1902,7 @@ export async function updateMilestoneDateAction(
                     celular: project.customers?.phone || '',
                     correo: project.customers?.email || '',
                     fecha_hora: dateIso,
-                    origen: 'admin',
+                    origen: 'admin_silencioso',
                     tipo_evento: 'cita_cliente',
                     estado: 'confirmado',
                     notas: `Prueba coordinada: ${milestone.title}`
