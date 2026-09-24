@@ -408,9 +408,9 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
         </div>
       )}
 
-      {/* DESTACADO ESPECIAL FIESTA & GALA: HISTORIA DE EXCLUSIVIDAD Y DISEÑO A MEDIDA (DISEÑO ORGANICO SIN MARCO CUADRADO) */}
+      {/* DESTACADO ESPECIAL FIESTA & GALA: VISIBLE EN DESKTOP, OCULTO EN MÓVIL PARA QUE CLARA CELESTE CAIGA ARRIBA DEL PLIEGUE */}
       {activeCategory === 'fiesta' && (
-        <div className="max-w-7xl mx-auto px-4 md:px-6 mb-16 pt-4 border-b border-white/10 pb-12">
+        <div className="hidden md:block max-w-7xl mx-auto px-4 md:px-6 mb-16 pt-4 border-b border-white/10 pb-12">
           <div className="grid md:grid-cols-2 gap-10 items-center">
             <div className="space-y-4">
               <span className="text-[10px] uppercase tracking-[0.35em] font-bold text-brand-sand block">
