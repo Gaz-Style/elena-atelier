@@ -375,9 +375,9 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
         <SearchParamHandler />
       </Suspense>
 
-      {/* DESTACADO ESPECIAL: PORTAFOLIO DE HISTORIAS REALES DE NOVIA (DISEÑO ORGANICO EDITORIAL SIN MARCO CUADRADO) */}
+      {/* DESTACADO ESPECIAL: PORTAFOLIO DE HISTORIAS REALES DE NOVIA (OCULTO EN MÓVIL PARA IMPACTO VISUAL DIRECTO ABOVE THE FOLD) */}
       {(activeCategory === 'novias' || (!forceCategory && activeCategory === 'todos')) && (
-        <div className="max-w-7xl mx-auto px-4 md:px-6 mb-16 pt-4 border-b border-white/10 pb-12">
+        <div className="hidden md:block max-w-7xl mx-auto px-4 md:px-6 mb-16 pt-4 border-b border-white/10 pb-12">
           <div className="grid md:grid-cols-2 gap-10 items-center">
             <div className="space-y-4">
               <span className="text-[10px] uppercase tracking-[0.35em] font-bold text-brand-sand block">
@@ -509,145 +509,129 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
           </div>
         )}
 
-        {/* IF CATEGORY NOVIAS: GALERÍA NARRATIVA SUBDIVIDIDA POR HITOS DE SCROLL */}
+        {/* IF CATEGORY NOVIAS: GALERÍA NARRATIVA (CARRUSEL SWIPE EN MÓVIL, GRID EN DESKTOP) */}
         {activeCategory === 'novias' && (
-          <div className="space-y-20 pb-16">
+          <div className="space-y-12 sm:space-y-20 pb-16">
             
-            {/* ETAPA 1: EL PROCESO DE CREACIÓN EN EL ATELIER */}
-            <div className="space-y-4">
-              <div className="py-2 border-b border-white/10 pb-4">
-                <span className="text-[10px] uppercase tracking-[0.35em] text-brand-sand font-bold block mb-1">Fase 01 • Behind The Scenes</span>
-                <h3 className="font-serif text-2xl sm:text-3xl text-white font-normal">El Proceso de Creación & Taller</h3>
-                <p className="font-sans text-white/60 text-xs sm:text-sm max-w-2xl mt-1">
-                  La magia de la moldería anatómica, la lectura corporal y el trabajo minucioso a mano con modistas reales y pruebas de lienzo.
-                </p>
-              </div>
+            {[
+              {
+                fase: 'Fase 01 • Behind The Scenes',
+                titulo: 'El Proceso de Creación & Taller',
+                desc: 'Moldería anatómica, lectura corporal y trabajo minucioso a mano.',
+                filterKey: '/novias/proceso/'
+              },
+              {
+                fase: 'Fase 02 • Intimidad Urbana',
+                titulo: 'El Matrimonio Civil',
+                desc: 'Trajes sastre a medida en crepé marfil y capas desprendibles de encaje.',
+                filterKey: '/novias/civil/'
+              },
+              {
+                fase: 'Fase 03 • Solemnidad & Sacralidad',
+                titulo: 'La Ceremonia Religiosa',
+                desc: 'Seda Mikado, escotes de autor, velos infinitos y colas catedral.',
+                filterKey: '/novias/iglesia/'
+              },
+              {
+                fase: 'Fase 04 • Libertad & Celebración',
+                titulo: 'La Fiesta & Noche de Baile',
+                desc: 'Slip dresses livianos y caídas fluidas para bailar hasta el amanecer.',
+                filterKey: '/novias/fiesta/'
+              }
+            ].map((section, sIdx) => {
+              const items = currentImages.filter(img => img.includes(section.filterKey));
+              if (items.length === 0) return null;
 
-              <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-0 sm:gap-6 space-y-0 sm:space-y-6">
-                {currentImages.filter(img => img.includes('/novias/proceso/')).map((item, idx) => (
-                  <div key={idx} className="break-inside-avoid relative group overflow-hidden sm:rounded-sm border-b sm:border border-white/10 hover:border-brand-sand/30 transition-all duration-500 mb-1 sm:mb-0">
-                    {item.toLowerCase().endsWith('.mp4') ? (
-                      <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
-                        <video 
-                          src={item} 
-                          controls 
-                          autoPlay 
-                          muted 
-                          loop 
-                          playsInline 
-                          preload="auto"
-                          className="w-full h-full object-cover transform-gpu transform translate-z-0 backface-hidden" 
-                        />
-                      </div>
-                    ) : (
-                      <Image src={item} alt={`Proceso Taller ${idx + 1}`} width={600} height={800} className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700" />
-                    )}
+              return (
+                <div key={sIdx} className="space-y-4">
+                  <div className="py-2 border-b border-white/10 pb-3 px-4 sm:px-0">
+                    <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.35em] text-brand-sand font-bold block mb-1">
+                      {section.fase}
+                    </span>
+                    <h3 className="font-serif text-xl sm:text-3xl text-white font-normal">
+                      {section.titulo}
+                    </h3>
+                    <p className="font-sans text-white/60 text-xs sm:text-sm max-w-2xl mt-1">
+                      {section.desc}
+                    </p>
                   </div>
-                ))}
-              </div>
-            </div>
 
-            {/* ETAPA 2: EL MATRIMONIO CIVIL */}
-            <div className="space-y-4">
-              <div className="py-2 border-b border-white/10 pb-4">
-                <span className="text-[10px] uppercase tracking-[0.35em] text-brand-sand font-bold block mb-1">Fase 02 • Intimidad Urbana</span>
-                <h3 className="font-serif text-2xl sm:text-3xl text-white font-normal">El Matrimonio Civil</h3>
-                <p className="font-sans text-white/60 text-xs sm:text-sm max-w-2xl mt-1">
-                  Propuestas contemporáneas, trajes sastre a medida en crepé marfil y capas desprendibles de encaje para recepciones íntimas.
-                </p>
-              </div>
+                  {/* VISTA MÓVIL: CARRUSEL SWIPE HORIZONTAL (CON BOTÓN FLOTANTE SOBRE EL VIDEO/IMAGEN) */}
+                  <div className="sm:hidden w-full overflow-x-auto no-scrollbar snap-x snap-mandatory flex gap-3 px-4">
+                    {items.map((item, idx) => (
+                      <div key={idx} className="w-[85vw] max-w-[340px] flex-none snap-center relative rounded-xs overflow-hidden border border-white/15 bg-black/40 shadow-xl group">
+                        {item.toLowerCase().endsWith('.mp4') ? (
+                          <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
+                            <video 
+                              src={item} 
+                              controls 
+                              autoPlay 
+                              muted 
+                              loop 
+                              playsInline 
+                              preload="auto"
+                              className="w-full h-full object-cover transform-gpu transform translate-z-0 backface-hidden" 
+                            />
+                          </div>
+                        ) : (
+                          <div className="relative aspect-[3/4] w-full">
+                            <Image 
+                              src={item} 
+                              alt={`${section.titulo} ${idx + 1}`} 
+                              fill 
+                              className="object-cover" 
+                            />
+                          </div>
+                        )}
 
-              <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-0 sm:gap-6 space-y-0 sm:space-y-6">
-                {currentImages.filter(img => img.includes('/novias/civil/')).map((item, idx) => (
-                  <div key={idx} className="break-inside-avoid relative group overflow-hidden sm:rounded-sm border-b sm:border border-white/10 hover:border-brand-sand/30 transition-all duration-500 mb-1 sm:mb-0">
-                    {item.toLowerCase().endsWith('.mp4') ? (
-                      <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
-                        <video 
-                          src={item} 
-                          controls 
-                          autoPlay 
-                          muted 
-                          loop 
-                          playsInline 
-                          preload="auto"
-                          className="w-full h-full object-cover transform-gpu transform translate-z-0 backface-hidden" 
-                        />
+                        {/* BOTÓN FLOTANTE SOBRE EL VIDEO/FOTO EN MÓVIL */}
+                        <div className="absolute bottom-4 left-4 right-4 z-20">
+                          <a
+                            href="https://wa.me/56937667709?text=Hola%20Elena,%20estoy%20viendo%20el%20portafolio%20de%20novias%20y%20me%20gustar%C3%ADa%20cotizar%20un%20dise%C3%B1o%20a%20medida."
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full inline-flex items-center justify-center gap-2 border border-white/20 border-t-white/40 text-white font-sans text-[11px] uppercase tracking-[0.2em] font-bold bg-white/[0.12] backdrop-blur-[12px] px-4 py-3 rounded-[1px] hover:bg-[#f5f2eb]/90 hover:text-[#121212] transition-all shadow-xl cursor-pointer"
+                          >
+                            Diseñar con Elena 💬
+                          </a>
+                        </div>
                       </div>
-                    ) : (
-                      <Image src={item} alt={`Matrimonio Civil ${idx + 1}`} width={600} height={800} className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700" />
-                    )}
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
 
-            {/* ETAPA 3: LA CEREMONIA RELIGIOSA EN LA IGLESIA */}
-            <div className="space-y-4">
-              <div className="py-2 border-b border-white/10 pb-4">
-                <span className="text-[10px] uppercase tracking-[0.35em] text-brand-sand font-bold block mb-1">Fase 03 • Solemnidad & Sacralidad</span>
-                <h3 className="font-serif text-2xl sm:text-3xl text-white font-normal">La Ceremonia Religiosa</h3>
-                <p className="font-sans text-white/60 text-xs sm:text-sm max-w-2xl mt-1">
-                  Vestidos majestuosos en Seda Mikado, escotes trabajados a mano, velos infinitos y colas catedral diseñadas para impactar en la nave central.
-                </p>
-              </div>
-
-              <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-0 sm:gap-6 space-y-0 sm:space-y-6">
-                {currentImages.filter(img => img.includes('/novias/iglesia/')).map((item, idx) => (
-                  <div key={idx} className="break-inside-avoid relative group overflow-hidden sm:rounded-sm border-b sm:border border-white/10 hover:border-brand-sand/30 transition-all duration-500 mb-1 sm:mb-0">
-                    {item.toLowerCase().endsWith('.mp4') ? (
-                      <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
-                        <video 
-                          src={item} 
-                          controls 
-                          autoPlay 
-                          muted 
-                          loop 
-                          playsInline 
-                          preload="auto"
-                          className="w-full h-full object-cover transform-gpu transform translate-z-0 backface-hidden" 
-                        />
+                  {/* VISTA DESKTOP: GRID TRADICIONAL */}
+                  <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {items.map((item, idx) => (
+                      <div key={idx} className="relative group overflow-hidden rounded-sm border border-white/10 hover:border-brand-sand/30 transition-all duration-500">
+                        {item.toLowerCase().endsWith('.mp4') ? (
+                          <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
+                            <video 
+                              src={item} 
+                              controls 
+                              autoPlay 
+                              muted 
+                              loop 
+                              playsInline 
+                              preload="auto"
+                              className="w-full h-full object-cover transform-gpu transform translate-z-0 backface-hidden" 
+                            />
+                          </div>
+                        ) : (
+                          <div className="relative aspect-[3/4] w-full overflow-hidden">
+                            <Image 
+                              src={item} 
+                              alt={`${section.titulo} ${idx + 1}`} 
+                              fill 
+                              className="object-cover group-hover:scale-105 transition-transform duration-700" 
+                            />
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <Image src={item} alt={`Ceremonia Religiosa ${idx + 1}`} width={600} height={800} className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700" />
-                    )}
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* ETAPA 4: LA NOCHE DE FIESTA Y BAILE */}
-            <div className="space-y-4">
-              <div className="py-2 border-b border-white/10 pb-4">
-                <span className="text-[10px] uppercase tracking-[0.35em] text-brand-sand font-bold block mb-1">Fase 04 • Libertad & Celebración</span>
-                <h3 className="font-serif text-2xl sm:text-3xl text-white font-normal">La Fiesta & Noche de Baile</h3>
-                <p className="font-sans text-white/60 text-xs sm:text-sm max-w-2xl mt-1">
-                  Soltura absoluta, slip dresses livianos y caídas fluidas para que la novia salte, baile y disfrute sin restricciones hasta el amanecer.
-                </p>
-              </div>
-
-              <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-0 sm:gap-6 space-y-0 sm:space-y-6">
-                {currentImages.filter(img => img.includes('/novias/fiesta/')).map((item, idx) => (
-                  <div key={idx} className="break-inside-avoid relative group overflow-hidden sm:rounded-sm border-b sm:border border-white/10 hover:border-brand-sand/30 transition-all duration-500 mb-1 sm:mb-0">
-                    {item.toLowerCase().endsWith('.mp4') ? (
-                      <div className="relative aspect-[9/16] w-full bg-black overflow-hidden">
-                        <video 
-                          src={item} 
-                          controls 
-                          autoPlay 
-                          muted 
-                          loop 
-                          playsInline 
-                          preload="auto"
-                          className="w-full h-full object-cover transform-gpu transform translate-z-0 backface-hidden" 
-                        />
-                      </div>
-                    ) : (
-                      <Image src={item} alt={`Fiesta y Baile ${idx + 1}`} width={600} height={800} className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              );
+            })}
 
           </div>
         )}

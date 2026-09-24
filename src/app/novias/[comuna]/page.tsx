@@ -106,32 +106,33 @@ export default async function BridalCommunePage({ params }: Props) {
             <Navbar />
             <BackLink />
             
-            {/* Título SEO & CTA superior above the fold */}
-            <div className="pt-28 pb-6 px-6 max-w-4xl mx-auto text-center space-y-6">
-                <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block">Colección Nupcial 2026-2027</span>
-                <h1 className="font-serif text-3xl sm:text-5xl font-bold uppercase tracking-tight text-white">
+            {/* Header SEO compacto (En móvil va directo a lo visual) */}
+            <div className="pt-24 pb-2 px-4 max-w-4xl mx-auto text-center">
+                <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-1">Colección Nupcial</span>
+                <h1 className="font-serif text-2xl sm:text-4xl md:text-5xl font-bold uppercase tracking-tight text-white mb-2">
                     Vestidos de Novia en {comuna}
                 </h1>
-                <p className="text-white/70 text-xs sm:text-sm font-light max-w-xl mx-auto leading-relaxed">
-                    Diseño a medida, moldería anatómica y pruebas presenciales en nuestro Atelier de Vitacura para novias de {comuna}.
-                </p>
-
-                {/* BOTONES DE LLAMADO A LA ACCIÓN VISIBLES ARRIBA DEL PLIEGUE */}
-                <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-2">
-                    <a
-                        href={whatsappUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 bg-brand-sand text-black font-sans font-bold text-xs uppercase tracking-[0.2em] rounded-[1px] hover:bg-white transition-all shadow-lg text-center cursor-pointer"
-                    >
-                        Diseñar con Elena 💬
-                    </a>
-                    <Link
-                        href="/agenda"
-                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 border border-white/20 text-white font-sans font-semibold text-xs uppercase tracking-[0.2em] rounded-[1px] hover:bg-white/10 transition-all text-center"
-                    >
-                        Agendar Cita Presencial
-                    </Link>
+                {/* Texto descriptivo y botones solo visibles en escritorio para no bloquear la imagen en celular */}
+                <div className="hidden md:block space-y-4 pt-2">
+                    <p className="text-white/70 text-xs sm:text-sm font-light max-w-xl mx-auto leading-relaxed">
+                        Diseño a medida, moldería anatómica y pruebas presenciales en nuestro Atelier de Vitacura para novias de {comuna}.
+                    </p>
+                    <div className="flex justify-center items-center gap-3 pt-2">
+                        <a
+                            href={whatsappUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-brand-sand text-black font-sans font-bold text-xs uppercase tracking-[0.2em] rounded-[1px] hover:bg-white transition-all shadow-lg text-center cursor-pointer"
+                        >
+                            Diseñar con Elena 💬
+                        </a>
+                        <Link
+                            href="/agenda"
+                            className="inline-flex items-center justify-center gap-2.5 px-6 py-3 border border-white/20 text-white font-sans font-semibold text-xs uppercase tracking-[0.2em] rounded-[1px] hover:bg-white/10 transition-all text-center"
+                        >
+                            Agendar Cita Presencial
+                        </Link>
+                    </div>
                 </div>
             </div>
 
