@@ -80,7 +80,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
   }, [onClose, prev, next]);
 
   const getWhatsAppLink = () => {
-    const text = `Hola Elena, me encantó el modelo "${vestido.nombre}" y me gustaría agendar una cita para diseñar mi propia versión a medida.`;
+    const text = `Hola Elena, me encantó uno de tus vestidos me gustaría cotizar la confección a medida de un diseño para mi.`;
     return `https://wa.me/56937667709?text=${encodeURIComponent(text)}`;
   };
 
@@ -220,7 +220,7 @@ function DressGridItem({ vestido, onClick }: { vestido: Vestido, onClick: () => 
   };
 
   const getWhatsAppLink = () => {
-    const text = `Hola Elena, me encantó el modelo "${vestido.nombre}" (${vestido.color}) y me gustaría cotizar su confección a medida en el Atelier de Vitacura.`;
+    const text = `Hola Elena, me encantó uno de tus vestidos me gustaría cotizar la confección a medida de un diseño para mi.`;
     return `https://wa.me/56937667709?text=${encodeURIComponent(text)}`;
   };
 
