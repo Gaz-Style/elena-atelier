@@ -539,8 +539,17 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
                 filterKey: '/novias/fiesta/'
               }
             ].map((section, sIdx) => {
-              const items = currentImages.filter(img => img.includes(section.filterKey));
-              if (items.length === 0) return null;
+              const rawItems = currentImages.filter(img => img.includes(section.filterKey));
+              if (rawItems.length === 0) return null;
+
+              // ORDENAR: Los videos (.mp4) van SIEMPRE PRIMERO para ser lo primero que aparece en móvil
+              const items = [...rawItems].sort((a, b) => {
+                const aIsVid = a.toLowerCase().endsWith('.mp4');
+                const bIsVid = b.toLowerCase().endsWith('.mp4');
+                if (aIsVid && !bIsVid) return -1;
+                if (!aIsVid && bIsVid) return 1;
+                return 0;
+              });
 
               return (
                 <div key={sIdx} className="space-y-4">
@@ -556,7 +565,7 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
                     </p>
                   </div>
 
-                  {/* GALERÍA NOVIAS: FOTOS PURAS Y LIMPIAS; TÍTULOS Y BOTÓN DE ACCIÓN SOLO EN VIDEOS */}
+                  {/* GALERÍA NOVIAS: EL VIDEO VA PRIMERO CON AUTOPLAY AUTOMÁTICO, OVERLAY Y BOTÓN CTA */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                     {items.map((item, idx) => {
                       const isVideo = item.toLowerCase().endsWith('.mp4');
