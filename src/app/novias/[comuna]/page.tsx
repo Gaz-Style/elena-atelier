@@ -1,7 +1,9 @@
 import { Metadata } from 'next';
 import fs from 'fs';
 import path from 'path';
-import PortfolioClient from '@/app/portafolio/PortfolioClient';
+import Navbar from '@/components/Navbar';
+import BackLink from '@/components/BackLink';
+import Link from 'next/link';
 
 function formatTitle(slug: string) {
     if (slug === 'lo-barnechea') return 'Lo Barnechea';
@@ -93,16 +95,42 @@ export default async function BridalCommunePage({ params }: Props) {
         console.error("Error reading subdirectories", err);
     }
     
+    const whatsappMessage = encodeURIComponent(
+        `Hola Elena, estoy en la sección de vestidos de novia de ${comuna} y me gustaría cotizar / agendar una cita para diseñar mi vestido de novia a medida.`
+    );
+    const whatsappUrl = `https://wa.me/56937667709?text=${whatsappMessage}`;
+
     return (
         <div className="min-h-screen bg-brand-charcoal text-white font-sans selection:bg-[#cda45e] selection:text-black">
+            <Navbar />
+            <BackLink />
             
-            {/* Título SEO */}
-            <div className="pt-20 pb-4">
-                <div className="text-center px-6 mb-4">
-                    <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-2">Colección Nupcial</span>
-                    <h1 className="font-serif text-3xl md:text-5xl font-bold uppercase tracking-tight text-white mb-2">
-                        Vestidos de Novia en {comuna}
-                    </h1>
+            {/* Título SEO & CTA superior above the fold */}
+            <div className="pt-28 pb-6 px-6 max-w-4xl mx-auto text-center space-y-6">
+                <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block">Colección Nupcial 2026-2027</span>
+                <h1 className="font-serif text-3xl sm:text-5xl font-bold uppercase tracking-tight text-white">
+                    Vestidos de Novia en {comuna}
+                </h1>
+                <p className="text-white/70 text-xs sm:text-sm font-light max-w-xl mx-auto leading-relaxed">
+                    Diseño a medida, moldería anatómica y pruebas presenciales en nuestro Atelier de Vitacura para novias de {comuna}.
+                </p>
+
+                {/* BOTONES DE LLAMADO A LA ACCIÓN VISIBLES ARRIBA DEL PLIEGUE */}
+                <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-2">
+                    <a
+                        href={whatsappUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 bg-brand-sand text-black font-sans font-bold text-xs uppercase tracking-[0.2em] rounded-[1px] hover:bg-white transition-all shadow-lg text-center cursor-pointer"
+                    >
+                        Diseñar con Elena 💬
+                    </a>
+                    <Link
+                        href="/agenda"
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 border border-white/20 text-white font-sans font-semibold text-xs uppercase tracking-[0.2em] rounded-[1px] hover:bg-white/10 transition-all text-center"
+                    >
+                        Agendar Cita Presencial
+                    </Link>
                 </div>
             </div>
 
