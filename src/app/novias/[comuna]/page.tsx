@@ -124,7 +124,7 @@ export default async function BridalCommunePage({ params }: Props) {
                             rel="noopener noreferrer"
                             className="inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-brand-sand text-black font-sans font-bold text-xs uppercase tracking-[0.2em] rounded-[1px] hover:bg-white transition-all shadow-lg text-center cursor-pointer"
                         >
-                            Diseñar con Elena 💬
+                            Diseñar mi vestido 💬
                         </a>
                         <Link
                             href="/agenda"
