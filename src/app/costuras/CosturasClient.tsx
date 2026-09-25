@@ -62,7 +62,7 @@ const serviciosPrenda = [
 
 const logistica = [
     { nombre: "Retiro y entrega a domicilio (ida y vuelta)", precio: "$10.000", nota: "Sector Oriente: Vitacura, Las Condes, Lo Barnechea, La Dehesa, Los Trapenses" },
-    { nombre: "Visita de costurera a domicilio (incluye retiro y entrega)", precio: "$12.000", nota: "Toma de medidas y evaluación presencial en hogar." },
+    { nombre: "Visita de costurera a domicilio", precio: "$20.000", nota: "Toma de medidas y evaluación presencial. Descontable si el arreglo supera $40.000" },
 ];
 
 export default function CosturasClient() {
@@ -200,7 +200,7 @@ export default function CosturasClient() {
                                     </div>
                                     <div>
                                         <div className="text-[10px] text-[#E29D7A] uppercase tracking-widest font-bold mb-0.5">Visita de Costurera + Retiro y Entrega de Prendas</div>
-                                        <div className="text-sm sm:text-base text-white font-medium">Servicio Completo a Domicilio por <strong className="text-lg sm:text-xl text-[#C17F5F] ml-1">$12.000</strong></div>
+                                        <div className="text-sm sm:text-base text-white font-medium">Servicio Completo a Domicilio por <strong className="text-lg sm:text-xl text-[#C17F5F] ml-1">$9.990</strong></div>
                                     </div>
                                 </div>
                             </div>
