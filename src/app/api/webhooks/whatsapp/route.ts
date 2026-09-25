@@ -144,64 +144,26 @@ export async function POST(req: Request) {
                         .update({ last_interaction: new Date().toISOString() })
                         .eq('id', chatData.id);
 
-                    // 4. Trigger Auto-Reply if session is 'bot' and content is text (Smart filter)
+                    // 4. Trigger AI Processing Task if session is 'bot'
                     if (chatData.session_status === 'bot' && content) {
                         try {
-                            // Check if this chat already has message history
-                            const { count: msgCount } = await supabase
-                                .from('crm_whatsapp_messages')
-                                .select('id', { count: 'exact', head: true })
-                                .eq('chat_id', chatData.id);
-
-                            // Only send initial welcome auto-reply on new first-time contact
-                            if ((msgCount || 0) <= 1) {
-                                const botReply = "¡Hola! Gracias por comunicarte con Elena Atelier ✨.\n\nEste es un número de notificaciones automáticas. Para recibir atención personalizada, cotizaciones o agendar tu visita al taller, por favor escríbele directamente a Elena a su WhatsApp personal haciendo clic aquí:\n👉 https://wa.me/56937667709\n\n¡Un abrazo, te esperamos!";
-                                
-                                // Save bot reply to DB
-                                await supabase.from('crm_whatsapp_messages').insert([{
-                                    chat_id: chatData.id,
-                                    sender_type: 'bot',
-                                    message_type: 'text',
-                                    content: botReply
-                                }]);
-
-                                // Escalar a humano para no hacer loop si siguen respondiendo
-                                await supabase.from('crm_whatsapp_chats')
-                                    .update({ session_status: 'human' })
-                                    .eq('id', chatData.id);
-                                    
-                                // Call WhatsApp Cloud API to send botReply back to the user
-                                const token = process.env.WHATSAPP_API_TOKEN;
-                                const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-                                
-                                if (token && phoneId) {
-                                    const fbResponse = await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
-                                        method: 'POST',
-                                        headers: {
-                                            'Authorization': `Bearer ${token}`,
-                                            'Content-Type': 'application/json',
-                                        },
-                                        body: JSON.stringify({
-                                            messaging_product: 'whatsapp',
-                                            to: phoneNumber,
-                                            type: 'text',
-                                            text: { body: botReply }
-                                        })
-                                    });
-                                    
-                                    if (!fbResponse.ok) {
-                                        const errorData = await fbResponse.json();
-                                        console.error('Error sending WhatsApp message:', JSON.stringify(errorData, null, 2));
+                            // Encolar tarea asíncrona para que la procese el worker de IA
+                            await supabase
+                                .from('ai_agent_tasks')
+                                .insert([{
+                                    agent_role: 'whatsapp_closer',
+                                    status: 'pending',
+                                    payload: {
+                                        chat_id: chatData.id,
+                                        phone_number: phoneNumber,
+                                        content: content,
+                                        message_type: messageType,
+                                        media_url: mediaUrl,
+                                        message_id: messageId
                                     }
-                                }
-                            } else {
-                                // Conversation already has history - do not spam auto-reply
-                                await supabase.from('crm_whatsapp_chats')
-                                    .update({ session_status: 'human' })
-                                    .eq('id', chatData.id);
-                            }
+                                }]);
                         } catch (botErr) {
-                            console.error('Error en auto-reply WhatsApp:', botErr);
+                            console.error('Error encolando tarea de IA:', botErr);
                         }
                     }
                 }
