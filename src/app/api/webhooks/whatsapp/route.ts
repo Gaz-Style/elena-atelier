@@ -171,9 +171,10 @@ export async function POST(req: Request) {
                             const protocol = host.includes('localhost') ? 'http' : 'https';
                             const cronSecret = process.env.CRON_SECRET || 'antigravity-secret';
 
-                            fetch(`${protocol}://${host}/api/cron/ai-worker`, {
+                            fetch(`${protocol}://${host}/api/orchestrator`, {
+                                method: 'POST',
                                 headers: { 'Authorization': `Bearer ${cronSecret}` }
-                            }).catch(e => console.error('Error disparando ai-worker:', e));
+                            }).catch(e => console.error('Error disparando orchestrator:', e));
 
                         } catch (botErr) {
                             console.error('Error encolando tarea de IA:', botErr);
