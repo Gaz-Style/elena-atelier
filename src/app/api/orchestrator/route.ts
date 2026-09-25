@@ -85,6 +85,44 @@ export async function POST(req: Request) {
                                 }]);
                         }
 
+                        // Enviar la respuesta directamente a Meta WhatsApp Cloud API si tenemos el número de teléfono
+                        const recipientPhone = task.payload.phone_number;
+                        const token = process.env.WHATSAPP_API_TOKEN;
+                        const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+                        if (recipientPhone && token && phoneId) {
+                            try {
+                                const waRes = await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`,
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        messaging_product: 'whatsapp',
+                                        to: recipientPhone,
+                                        type: 'text',
+                                        text: { body: aiReply }
+                                    })
+                                });
+
+                                const waResData = await waRes.json();
+                                if (!waRes.ok) {
+                                    console.error('Error enviando mensaje a WhatsApp Meta API:', waResData);
+                                } else {
+                                    console.log('Mensaje enviado exitosamente a WhatsApp Meta API:', waResData);
+                                }
+                            } catch (waErr) {
+                                console.error('Excepción al enviar a WhatsApp Meta API:', waErr);
+                            }
+                        } else {
+                            console.warn('Faltan credenciales o teléfono para enviar mensaje a Meta API:', {
+                                hasPhone: !!recipientPhone,
+                                hasToken: !!token,
+                                hasPhoneId: !!phoneId
+                            });
+                        }
+
                         resultPayload = { 
                             action: 'reply', 
                             message: aiReply,
