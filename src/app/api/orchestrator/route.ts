@@ -49,7 +49,7 @@ export async function POST(req: Request) {
 
                 switch (task.agent_role) {
                     case 'whatsapp_closer':
-                        const deepseekKey = process.env.DEEPSEEK_API_KEY;
+                        const deepseekKey = process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY;
                         if (!deepseekKey) throw new Error("DeepSeek API Key not found");
                         
                         const userMessage = task.payload.content || "Hola";
