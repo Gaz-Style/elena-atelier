@@ -165,6 +165,16 @@ export async function POST(req: Request) {
                                         message_id: messageId
                                     }
                                 }]);
+
+                            // Disparar worker de IA inmediatamente (Non-blocking)
+                            const host = req.headers.get('host') || 'www.elenalacosturera.cl';
+                            const protocol = host.includes('localhost') ? 'http' : 'https';
+                            const cronSecret = process.env.CRON_SECRET || 'antigravity-secret';
+
+                            fetch(`${protocol}://${host}/api/cron/ai-worker`, {
+                                headers: { 'Authorization': `Bearer ${cronSecret}` }
+                            }).catch(e => console.error('Error disparando ai-worker:', e));
+
                         } catch (botErr) {
                             console.error('Error encolando tarea de IA:', botErr);
                         }
