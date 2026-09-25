@@ -53,7 +53,33 @@ export async function POST(req: Request) {
                         if (!deepseekKey) throw new Error("DeepSeek API Key not found");
                         
                         const userMessage = task.payload.content || "Hola";
-                        
+
+                        // Obtener historial reciente del chat (últimos 6 mensajes) para darle contexto completo a la IA
+                        let conversationHistory: any[] = [];
+                        if (task.payload.chat_id) {
+                            const { data: pastMsgs } = await supabase
+                                .from('crm_whatsapp_messages')
+                                .select('sender_type, content')
+                                .eq('chat_id', task.payload.chat_id)
+                                .order('created_at', { ascending: false })
+                                .limit(6);
+                            
+                            if (pastMsgs && pastMsgs.length > 0) {
+                                // Invertir para orden cronológico
+                                conversationHistory = pastMsgs.reverse().map(m => ({
+                                    role: m.sender_type === 'customer' ? 'user' : 'assistant',
+                                    content: m.content || ''
+                                }));
+                            }
+                        }
+
+                        // Si por alguna razón el historial no trajo el último mensaje de la tarea, asegurarlo
+                        if (conversationHistory.length === 0 || conversationHistory[conversationHistory.length - 1].content !== userMessage) {
+                            conversationHistory.push({ role: 'user', content: userMessage });
+                        }
+
+                        const systemPrompt = "Eres Elena, una Inteligencia Artificial que encarna la personalidad de Elena La Costurera, experta en alta costura y upcycling de autor en Santiago de Chile. Hablas de forma cercana, directa, cordial y profesional. Tu objetivo es asesorar con calidez, clasificar el tipo de servicio (arreglos, confección a medida o remodelación) e invitar al cliente a agendar una cita o visita al taller. NUNCA des precios fijos definitivos sin evaluar la prenda, solo rangos orientativos o invitación a agendar.";
+
                         const response = await fetch("https://api.deepseek.com/chat/completions", {
                             method: "POST",
                             headers: {
@@ -63,10 +89,10 @@ export async function POST(req: Request) {
                             body: JSON.stringify({
                                 model: "deepseek-chat",
                                 messages: [
-                                    { role: "system", content: "Eres Elena, una Inteligencia Artificial que encarna la personalidad de Elena La Costurera, experta en alta costura y upcycling de autor. Hablas de forma corta, directa y 'buena onda'. Tu objetivo es clasificar el servicio e invitar al cliente a agendar una visita al taller." },
-                                    { role: "user", content: userMessage }
+                                    { role: "system", content: systemPrompt },
+                                    ...conversationHistory
                                 ],
-                                max_tokens: 150
+                                max_tokens: 200
                             })
                         });
 
