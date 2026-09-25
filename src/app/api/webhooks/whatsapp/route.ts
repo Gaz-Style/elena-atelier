@@ -37,6 +37,11 @@ export async function POST(req: Request) {
         for (const entry of body.entry) {
             for (const change of entry.changes) {
                 const value = change.value;
+                // Ignorar eventos de estado (read, delivered, sent) para evitar duplicados y respuestas no deseadas
+                if (value && value.statuses) {
+                    continue;
+                }
+
                 if (value && value.messages && value.messages.length > 0) {
                     const message = value.messages[0];
                     const contact = value.contacts?.[0];
@@ -150,31 +155,43 @@ export async function POST(req: Request) {
                     // 4. Trigger AI Processing Task if session is 'bot'
                     if (chatData.session_status === 'bot' && content) {
                         try {
-                            // Encolar tarea asíncrona para que la procese el worker de IA
-                            await supabase
+                            // Cancelar o ignorar si ya hay una tarea 'pending' o 'processing' para este chat para evitar ráfagas duplicadas
+                            const { data: existingTasks } = await supabase
                                 .from('ai_agent_tasks')
-                                .insert([{
-                                    agent_role: 'whatsapp_closer',
-                                    status: 'pending',
-                                    payload: {
-                                        chat_id: chatData.id,
-                                        phone_number: phoneNumber,
-                                        content: content,
-                                        message_type: messageType,
-                                        media_url: mediaUrl,
-                                        message_id: messageId
-                                    }
-                                }]);
+                                .select('id')
+                                .eq('agent_role', 'whatsapp_closer')
+                                .in('status', ['pending', 'processing'])
+                                .filter('payload->>chat_id', 'eq', chatData.id);
 
-                            // Disparar worker de IA inmediatamente (Non-blocking)
-                            const host = req.headers.get('host') || 'www.elenalacosturera.cl';
-                            const protocol = host.includes('localhost') ? 'http' : 'https';
-                            const cronSecret = process.env.CRON_SECRET || 'antigravity-secret';
+                            if (existingTasks && existingTasks.length > 0) {
+                                console.log(`Ya existe una tarea activa para el chat ${chatData.id}. Omitiendo encolamiento duplicado.`);
+                            } else {
+                                // Encolar tarea asíncrona para que la procese el worker de IA
+                                await supabase
+                                    .from('ai_agent_tasks')
+                                    .insert([{
+                                        agent_role: 'whatsapp_closer',
+                                        status: 'pending',
+                                        payload: {
+                                            chat_id: chatData.id,
+                                            phone_number: phoneNumber,
+                                            content: content,
+                                            message_type: messageType,
+                                            media_url: mediaUrl,
+                                            message_id: messageId
+                                        }
+                                    }]);
 
-                            fetch(`${protocol}://${host}/api/orchestrator`, {
-                                method: 'POST',
-                                headers: { 'Authorization': `Bearer ${cronSecret}` }
-                            }).catch(e => console.error('Error disparando orchestrator:', e));
+                                // Disparar worker de IA inmediatamente (Non-blocking)
+                                const host = req.headers.get('host') || 'www.elenalacosturera.cl';
+                                const protocol = host.includes('localhost') ? 'http' : 'https';
+                                const cronSecret = process.env.CRON_SECRET || 'antigravity-secret';
+
+                                fetch(`${protocol}://${host}/api/orchestrator`, {
+                                    method: 'POST',
+                                    headers: { 'Authorization': `Bearer ${cronSecret}` }
+                                }).catch(e => console.error('Error disparando orchestrator:', e));
+                            }
 
                         } catch (botErr) {
                             console.error('Error encolando tarea de IA:', botErr);
