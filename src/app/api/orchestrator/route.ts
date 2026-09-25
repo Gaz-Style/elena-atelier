@@ -54,6 +54,30 @@ export async function POST(req: Request) {
                         
                         const userMessage = task.payload.content || "Hola";
 
+                        // Verificación de seguridad: comprobar si el chat sigue con el bot activo ('bot')
+                        if (task.payload.chat_id) {
+                            const { data: currentChat } = await supabase
+                                .from('crm_whatsapp_chats')
+                                .select('session_status, phone_number')
+                                .eq('id', task.payload.chat_id)
+                                .single();
+
+                            if (currentChat && currentChat.session_status !== 'bot') {
+                                console.log(`Chat ${task.payload.chat_id} está en modo humano (${currentChat.session_status}). Omitiendo respuesta automática.`);
+                                // Marcar tarea como completada sin responder
+                                await supabase
+                                    .from('ai_agent_tasks')
+                                    .update({
+                                        status: 'completed',
+                                        result: { action: 'skipped', reason: 'human_takeover' },
+                                        processed_at: new Date().toISOString()
+                                    })
+                                    .eq('id', task.id);
+                                results.push({ id: task.id, status: 'skipped', reason: 'human_takeover' });
+                                continue;
+                            }
+                        }
+
                         // Obtener historial reciente del chat (últimos 6 mensajes) para darle contexto completo a la IA
                         let conversationHistory: any[] = [];
                         if (task.payload.chat_id) {
