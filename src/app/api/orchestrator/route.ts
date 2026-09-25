@@ -86,7 +86,20 @@ export async function POST(req: Request) {
                         }
 
                         // Enviar la respuesta directamente a Meta WhatsApp Cloud API si tenemos el número de teléfono
-                        const recipientPhone = task.payload.phone_number;
+                        let recipientPhone = task.payload.phone_number;
+                        
+                        // Si no vino phone_number en el payload pero hay chat_id, lo buscamos en la base de datos
+                        if (!recipientPhone && task.payload.chat_id) {
+                            const { data: chatData } = await supabase
+                                .from('crm_whatsapp_chats')
+                                .select('phone_number')
+                                .eq('id', task.payload.chat_id)
+                                .single();
+                            if (chatData?.phone_number) {
+                                recipientPhone = chatData.phone_number;
+                            }
+                        }
+
                         const token = process.env.WHATSAPP_API_TOKEN;
                         const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
