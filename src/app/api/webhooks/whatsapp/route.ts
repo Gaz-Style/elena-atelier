@@ -185,6 +185,7 @@ export async function POST(req: Request) {
                                     .insert([{
                                         agent_role: 'whatsapp_closer',
                                         status: 'pending',
+                                        error_log: (process.env.QSTASH_TOKEN ? 'HAS_TOKEN' : 'NO_TOKEN') + ' | URL: ' + (process.env.QSTASH_URL || 'empty'),
                                         payload: {
                                             chat_id: chatData.id,
                                             phone_number: phoneNumber,
