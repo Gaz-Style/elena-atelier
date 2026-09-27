@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { consultar_disponibilidad, agendar_visita } from '@/lib/agenda';
-import { processDirectWhatsAppMessage } from '@/lib/whatsapp/deepseek-agent';
+import { processAITasks } from '@/app/api/orchestrator/route';
+import { Client as QStashClient } from '@upstash/qstash';
+
+const qstashClient = new QStashClient({ token: process.env.QSTASH_TOKEN || 'dummy' });
 
 export const maxDuration = 60; // Max execution time for Vercel Hobby plan
 
@@ -157,12 +160,64 @@ export async function POST(req: Request) {
 
                     // 4. Trigger AI Processing Task if session is 'bot'
                     if (chatData.session_status === 'bot' && content) {
-                            // Call DeepSeek inline, skipping the ai_agent_tasks queue entirely for max speed
-                            try {
-                                await processDirectWhatsAppMessage(chatData.id, phoneNumber, content);
-                            } catch (botErr) {
-                                console.error('Error disparando agente DeepSeek:', botErr);
-                            }
+                        try {
+                            // Auto-limpiar tareas atascadas (>3 min) para este chat antes de verificar debounce
+                            const threeMinAgo = new Date(Date.now() - 3 * 60 * 1000).toISOString();
+                            await supabase
+                                .from('ai_agent_tasks')
+                                .update({ status: 'failed', error_log: 'Auto-limpieza: tarea excedió 3min timeout', processed_at: new Date().toISOString() })
+                                .eq('agent_role', 'whatsapp_closer')
+                                .in('status', ['pending', 'processing'])
+                                .filter('payload->>chat_id', 'eq', chatData.id)
+                                .lt('created_at', threeMinAgo);
+
+                            // Verificar si hay tareas recientes activas para evitar ráfagas duplicadas
+                            const { data: existingTasks } = await supabase
+                                .from('ai_agent_tasks')
+                                .select('id')
+                                .eq('agent_role', 'whatsapp_closer')
+                                .in('status', ['pending', 'processing'])
+                                .filter('payload->>chat_id', 'eq', chatData.id);
+
+                            if (existingTasks && existingTasks.length > 0) {
+                                console.log(`Ya existe una tarea activa para el chat ${chatData.id}. Omitiendo encolamiento duplicado.`);
+                            } else {
+                                // Encolar tarea asíncrona para que la procese el worker de IA
+                                await supabase
+                                    .from('ai_agent_tasks')
+                                    .insert([{
+                                        agent_role: 'whatsapp_closer',
+                                        status: 'pending',
+                                        payload: {
+                                            chat_id: chatData.id,
+                                            phone_number: phoneNumber,
+                                            content: content,
+                                            message_type: messageType,
+                                            media_url: mediaUrl,
+                                            message_id: messageId
+                                        }
+                                    }]);
+
+                                // Utilizar QStash para disparar el Orquestador en una transacción HTTP completamente separada
+                                try {
+                                    if (process.env.QSTASH_TOKEN && process.env.QSTASH_TOKEN !== 'dummy') {
+                                        await qstashClient.publishJSON({
+                                            url: "https://www.elenalacosturera.cl/api/orchestrator",
+                                            headers: {
+                                                Authorization: `Bearer ${process.env.CRON_SECRET || 'antigravity-secret'}`
+                                            }
+                                        });
+                                        console.log(`[QStash] Ping enviado al orquestador para la nueva tarea.`);
+                                    } else {
+                                        console.warn("QSTASH_TOKEN no está configurado en .env.local. No se disparó el orquestador.");
+                                    }
+                                } catch (e) {
+                                    console.error('Error disparando QStash:', e);
+                                }
+
+                        } catch (botErr) {
+                            console.error('Error encolando tarea de IA:', botErr);
+                        }
                     }
                 }
             }
