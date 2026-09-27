@@ -209,14 +209,14 @@ export async function POST(req: Request) {
                                                 'Content-Type': 'application/json',
                                                 'Upstash-Forward-Authorization': `Bearer ${process.env.CRON_SECRET || 'antigravity-secret'}`
                                             },
-                                            body: JSON.stringify({ task_id: newTask.id })
+                                            body: JSON.stringify({ ping: 'webhook' })
                                         });
 
                                         if (!res.ok) {
                                             const errorText = await res.text();
                                             console.error(`[QStash Error] Fallo al publicar: ${res.status} - ${errorText}`);
                                         } else {
-                                            console.log(`[QStash] Ping exitoso al orquestador para tarea ${newTask.id}`);
+                                            console.log(`[QStash] Ping exitoso al orquestador.`);
                                         }
                                     } else {
                                         console.warn("QSTASH_TOKEN no está configurado en .env.local.");
