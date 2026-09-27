@@ -214,6 +214,7 @@ export async function POST(req: Request) {
                                 } catch (e) {
                                     console.error('Error disparando QStash:', e);
                                 }
+                            }
 
                         } catch (botErr) {
                             console.error('Error encolando tarea de IA:', botErr);
