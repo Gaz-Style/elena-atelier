@@ -245,7 +245,6 @@ REGLAS DE ORO OBLIGATORIAS:
                 results.push({ id: task.id, status: 'failed', error: err.message });
             }
         }
-    }
 
     return results;
 }
