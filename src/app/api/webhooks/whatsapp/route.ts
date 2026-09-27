@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { consultar_disponibilidad, agendar_visita } from '@/lib/agenda';
 import { POST as orchestratorPOST } from '@/app/api/orchestrator/route';
@@ -195,18 +195,20 @@ export async function POST(req: Request) {
                                         }
                                     }]);
 
-                                // Ejecutar worker de IA directamente en memoria para evitar el bloqueo de loopback de Vercel
+                                // Ejecutar worker de IA en segundo plano usando next/server after()
                                 const cronSecret = process.env.CRON_SECRET || 'antigravity-secret';
-                                try {
-                                    // Crear un Request falso para pasar la autenticación
-                                    const mockReq = new Request('https://localhost/api/orchestrator', {
-                                        method: 'POST',
-                                        headers: { 'Authorization': `Bearer ${cronSecret}` }
-                                    });
-                                    await orchestratorPOST(mockReq);
-                                } catch (e) {
-                                    console.error('Error disparando orchestrator inline:', e);
-                                }
+                                
+                                after(async () => {
+                                    try {
+                                        const mockReq = new Request('https://localhost/api/orchestrator', {
+                                            method: 'POST',
+                                            headers: { 'Authorization': `Bearer ${cronSecret}` }
+                                        });
+                                        await orchestratorPOST(mockReq);
+                                    } catch (e) {
+                                        console.error('Error disparando orchestrator inline:', e);
+                                    }
+                                });
                             }
 
                         } catch (botErr) {
