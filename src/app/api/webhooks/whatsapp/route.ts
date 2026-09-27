@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { waitUntil } from '@vercel/functions';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { consultar_disponibilidad, agendar_visita } from '@/lib/agenda';
 import { processAITasks } from '@/app/api/orchestrator/route';
@@ -181,7 +180,7 @@ export async function POST(req: Request) {
                                 console.log(`Ya existe una tarea activa para el chat ${chatData.id}. Omitiendo encolamiento duplicado.`);
                             } else {
                                 // Encolar tarea asíncrona para que la procese el worker de IA
-                                await supabase
+                                const { data: newTask, error: insertError } = await supabase
                                     .from('ai_agent_tasks')
                                     .insert([{
                                         agent_role: 'whatsapp_closer',
@@ -194,23 +193,22 @@ export async function POST(req: Request) {
                                             media_url: mediaUrl,
                                             message_id: messageId
                                         }
-                                    }]);
+                                    }])
+                                    .select('id')
+                                    .single();
 
-                                // Ejecutar worker de IA en segundo plano usando Vercel waitUntil()
-                                // Esto permite devolver 200 OK a Meta inmediatamente y procesar la IA en background sin que Vercel mate el proceso.
-                                waitUntil(
-                                    (async () => {
-                                        try {
-                                            const adminSupabase = createAdminClient(
-                                                process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                                                process.env.SUPABASE_SERVICE_ROLE_KEY!
-                                            );
-                                            await processAITasks(adminSupabase);
-                                        } catch (e) {
-                                            console.error('Error disparando orchestrator waitUntil:', e);
-                                        }
-                                    })()
-                                );
+                                if (newTask) {
+                                    // Ejecutar IA síncronamente SÓLO para esta tarea (Toma ~5s, evitando el límite de 15s de Meta/Vercel)
+                                    try {
+                                        const adminSupabase = createAdminClient(
+                                            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                                            process.env.SUPABASE_SERVICE_ROLE_KEY!
+                                        );
+                                        await processAITasks(adminSupabase, [newTask.id]);
+                                    } catch (e) {
+                                        console.error('Error disparando orchestrator inline:', e);
+                                    }
+                                }
                             }
 
                         } catch (botErr) {

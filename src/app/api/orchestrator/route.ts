@@ -24,14 +24,21 @@ export async function POST(req: Request) {
     }
 }
 
-export async function processAITasks(supabase: any) {
+export async function processAITasks(supabase: any, specificTaskIds?: string[]) {
     // 1. Fetch pending tasks from the queue (FIFO)
-    const { data: tasks, error: fetchError } = await supabase
+    let query = supabase
         .from('ai_agent_tasks')
         .select('*')
         .eq('status', 'pending')
-        .order('created_at', { ascending: true })
-        .limit(5);
+        .order('created_at', { ascending: true });
+
+    if (specificTaskIds && specificTaskIds.length > 0) {
+        query = query.in('id', specificTaskIds);
+    } else {
+        query = query.limit(5); // Solo limitar a 5 si es un barrido general
+    }
+
+    const { data: tasks, error: fetchError } = await query;
 
     if (fetchError) {
         console.error('Error fetching tasks:', fetchError);
