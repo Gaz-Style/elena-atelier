@@ -78,11 +78,11 @@ REGLAS DE ORO OBLIGATORIAS:
             }]);
 
         // Enviar a la API de WhatsApp de Meta
-        const metaToken = process.env.WHATSAPP_ACCESS_TOKEN;
+        const metaToken = process.env.WHATSAPP_API_TOKEN;
         const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
         
         if (metaToken && phoneId) {
-            await fetch(`https://graph.facebook.com/v17.0/${phoneId}/messages`, {
+            await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${metaToken}`,
