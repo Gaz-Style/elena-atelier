@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { consultar_disponibilidad, agendar_visita } from '@/lib/agenda';
 
+export const maxDuration = 60; // Max execution time for Vercel Hobby plan
+
 const WHATSAPP_VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'elena_atelier_secret';
 
 // Handle webhook verification (GET request from Meta)
