@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { consultar_disponibilidad, agendar_visita } from '@/lib/agenda';
+import { POST as orchestratorPOST } from '@/app/api/orchestrator/route';
 
 export const maxDuration = 60; // Max execution time for Vercel Hobby plan
 
@@ -194,18 +195,17 @@ export async function POST(req: Request) {
                                         }
                                     }]);
 
-                                // Disparar worker de IA inmediatamente
-                                const host = req.headers.get('host') || 'www.elenalacosturera.cl';
-                                const protocol = host.includes('localhost') ? 'http' : 'https';
+                                // Ejecutar worker de IA directamente en memoria para evitar el bloqueo de loopback de Vercel
                                 const cronSecret = process.env.CRON_SECRET || 'antigravity-secret';
-
                                 try {
-                                    await fetch(`${protocol}://${host}/api/orchestrator`, {
+                                    // Crear un Request falso para pasar la autenticación
+                                    const mockReq = new Request('https://localhost/api/orchestrator', {
                                         method: 'POST',
                                         headers: { 'Authorization': `Bearer ${cronSecret}` }
                                     });
+                                    await orchestratorPOST(mockReq);
                                 } catch (e) {
-                                    console.error('Error disparando orchestrator:', e);
+                                    console.error('Error disparando orchestrator inline:', e);
                                 }
                             }
 
