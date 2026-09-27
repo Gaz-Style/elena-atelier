@@ -180,7 +180,7 @@ export async function POST(req: Request) {
                                 console.log(`Ya existe una tarea activa para el chat ${chatData.id}. Omitiendo encolamiento duplicado.`);
                             } else {
                                 // Encolar tarea asíncrona para que la procese el worker de IA
-                                await supabase
+                                const { data: newTask, error: insertError } = await supabase
                                     .from('ai_agent_tasks')
                                     .insert([{
                                         agent_role: 'whatsapp_closer',
@@ -193,7 +193,12 @@ export async function POST(req: Request) {
                                             media_url: mediaUrl,
                                             message_id: messageId
                                         }
-                                    }]);
+                                    }]).select().single();
+
+                                if (insertError || !newTask) {
+                                    console.error('Error inserting task:', insertError);
+                                    return NextResponse.json({ status: 'success' }, { status: 200 }); // Retornamos OK a Meta para evitar reintentos
+                                }
 
                                 // Utilizar QStash para disparar el Orquestador usando fetch nativo
                                 try {
@@ -215,14 +220,17 @@ export async function POST(req: Request) {
                                         if (!res.ok) {
                                             const errorText = await res.text();
                                             console.error(`[QStash Error] Fallo al publicar: ${res.status} - ${errorText}`);
+                                            await supabase.from('ai_agent_tasks').update({ error_log: `QStash Error: ${res.status} - ${errorText}` }).eq('id', newTask.id);
                                         } else {
                                             console.log(`[QStash] Ping exitoso al orquestador.`);
                                         }
                                     } else {
                                         console.warn("QSTASH_TOKEN no está configurado en .env.local.");
+                                        await supabase.from('ai_agent_tasks').update({ error_log: `QSTASH_TOKEN missing in Vercel env vars` }).eq('id', newTask.id);
                                     }
-                                } catch (e) {
+                                } catch (e: any) {
                                     console.error('Error de red disparando QStash:', e);
+                                    await supabase.from('ai_agent_tasks').update({ error_log: `Fetch Exception: ${e.message}` }).eq('id', newTask.id);
                                 }
                             }
 
