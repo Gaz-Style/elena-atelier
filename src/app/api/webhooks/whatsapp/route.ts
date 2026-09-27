@@ -1,4 +1,5 @@
-import { NextResponse, after } from 'next/server';
+import { NextResponse } from 'next/server';
+import { waitUntil } from '@vercel/functions';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { consultar_disponibilidad, agendar_visita } from '@/lib/agenda';
 import { processAITasks } from '@/app/api/orchestrator/route';
@@ -195,19 +196,21 @@ export async function POST(req: Request) {
                                         }
                                     }]);
 
-                                // Ejecutar worker de IA en segundo plano usando next/server after()
-                                // Esto permite devolver 200 OK a Meta inmediatamente y procesar la IA en background.
-                                after(async () => {
-                                    try {
-                                        const adminSupabase = createAdminClient(
-                                            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-                                            process.env.SUPABASE_SERVICE_ROLE_KEY!
-                                        );
-                                        await processAITasks(adminSupabase);
-                                    } catch (e) {
-                                        console.error('Error disparando orchestrator inline:', e);
-                                    }
-                                });
+                                // Ejecutar worker de IA en segundo plano usando Vercel waitUntil()
+                                // Esto permite devolver 200 OK a Meta inmediatamente y procesar la IA en background sin que Vercel mate el proceso.
+                                waitUntil(
+                                    (async () => {
+                                        try {
+                                            const adminSupabase = createAdminClient(
+                                                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                                                process.env.SUPABASE_SERVICE_ROLE_KEY!
+                                            );
+                                            await processAITasks(adminSupabase);
+                                        } catch (e) {
+                                            console.error('Error disparando orchestrator waitUntil:', e);
+                                        }
+                                    })()
+                                );
                             }
 
                         } catch (botErr) {
