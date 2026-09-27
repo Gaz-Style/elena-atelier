@@ -1,7 +1,7 @@
 import { NextResponse, after } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { consultar_disponibilidad, agendar_visita } from '@/lib/agenda';
-import { POST as orchestratorPOST } from '@/app/api/orchestrator/route';
+import { processAITasks } from '@/app/api/orchestrator/route';
 
 export const maxDuration = 60; // Max execution time for Vercel Hobby plan
 
@@ -196,15 +196,13 @@ export async function POST(req: Request) {
                                     }]);
 
                                 // Ejecutar worker de IA en segundo plano usando next/server after()
-                                const cronSecret = process.env.CRON_SECRET || 'antigravity-secret';
-                                
                                 after(async () => {
                                     try {
-                                        const mockReq = new Request('https://localhost/api/orchestrator', {
-                                            method: 'POST',
-                                            headers: { 'Authorization': `Bearer ${cronSecret}` }
-                                        });
-                                        await orchestratorPOST(mockReq);
+                                        const adminSupabase = createAdminClient(
+                                            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                                            process.env.SUPABASE_SERVICE_ROLE_KEY!
+                                        );
+                                        await processAITasks(adminSupabase);
                                     } catch (e) {
                                         console.error('Error disparando orchestrator inline:', e);
                                     }

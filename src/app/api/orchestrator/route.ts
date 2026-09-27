@@ -16,36 +16,45 @@ export async function POST(req: Request) {
             process.env.SUPABASE_SERVICE_ROLE_KEY!
         );
 
-        // 1. Fetch pending tasks from the queue (FIFO)
-        const { data: tasks, error: fetchError } = await supabase
-            .from('ai_agent_tasks')
-            .select('*')
-            .eq('status', 'pending')
-            .order('created_at', { ascending: true })
-            .limit(5);
+        const results = await processAITasks(supabase);
+        return NextResponse.json({ message: 'Processed tasks', results });
+    } catch (error: any) {
+        console.error('Orchestrator error:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
 
-        if (fetchError) {
-            console.error('Error fetching tasks:', fetchError);
-            return NextResponse.json({ error: fetchError.message }, { status: 500 });
-        }
+export async function processAITasks(supabase: any) {
+    // 1. Fetch pending tasks from the queue (FIFO)
+    const { data: tasks, error: fetchError } = await supabase
+        .from('ai_agent_tasks')
+        .select('*')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true })
+        .limit(5);
 
-        if (!tasks || tasks.length === 0) {
-            return NextResponse.json({ message: 'No pending tasks' });
-        }
+    if (fetchError) {
+        console.error('Error fetching tasks:', fetchError);
+        throw new Error(fetchError.message);
+    }
 
-        // 2. Mark tasks as processing
-        const taskIds = tasks.map(t => t.id);
-        await supabase
-            .from('ai_agent_tasks')
-            .update({ status: 'processing' })
-            .in('id', taskIds);
+    if (!tasks || tasks.length === 0) {
+        return [];
+    }
 
-        const results = [];
+    // 2. Mark tasks as processing
+    const taskIds = tasks.map((t: any) => t.id);
+    await supabase
+        .from('ai_agent_tasks')
+        .update({ status: 'processing' })
+        .in('id', taskIds);
 
-        // 3. Process each task based on agent_role
-        for (const task of tasks) {
-            try {
-                let resultPayload = null;
+    const results = [];
+
+    // 3. Process each task based on agent_role
+    for (const task of tasks) {
+        try {
+            let resultPayload = null;
 
                 switch (task.agent_role) {
                     case 'whatsapp_closer':
@@ -236,10 +245,7 @@ REGLAS DE ORO OBLIGATORIAS:
                 results.push({ id: task.id, status: 'failed', error: err.message });
             }
         }
-
-        return NextResponse.json({ message: 'Processed tasks', results });
-    } catch (error: any) {
-        console.error('Orchestrator error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    return results;
 }
