@@ -155,7 +155,17 @@ export async function POST(req: Request) {
                     // 4. Trigger AI Processing Task if session is 'bot'
                     if (chatData.session_status === 'bot' && content) {
                         try {
-                            // Cancelar o ignorar si ya hay una tarea 'pending' o 'processing' para este chat para evitar ráfagas duplicadas
+                            // Auto-limpiar tareas atascadas (>3 min) para este chat antes de verificar debounce
+                            const threeMinAgo = new Date(Date.now() - 3 * 60 * 1000).toISOString();
+                            await supabase
+                                .from('ai_agent_tasks')
+                                .update({ status: 'failed', error_log: 'Auto-limpieza: tarea excedió 3min timeout', processed_at: new Date().toISOString() })
+                                .eq('agent_role', 'whatsapp_closer')
+                                .in('status', ['pending', 'processing'])
+                                .filter('payload->>chat_id', 'eq', chatData.id)
+                                .lt('created_at', threeMinAgo);
+
+                            // Verificar si hay tareas recientes activas para evitar ráfagas duplicadas
                             const { data: existingTasks } = await supabase
                                 .from('ai_agent_tasks')
                                 .select('id')
