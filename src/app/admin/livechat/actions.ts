@@ -229,36 +229,6 @@ export async function sendWhatsAppTemplateAction(chatId: string, templateName: s
         return { success: false, error: `Error de red al enviar a cliente: ${e.message}` };
     }
 
-    // 3. Send payment alerts to owners/managers (non-blocking - doesn't affect success)
-    if (templateName === 'confirmacion_pago_cliente') {
-        const ownerNums = ['56984021940', '56937667709'];
-        for (const ownerNum of ownerNums) {
-            fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    messaging_product: 'whatsapp',
-                    to: ownerNum,
-                    type: 'template',
-                    template: {
-                        name: 'alerta_pago_recibido',
-                        language: { code: 'en' },
-                        components: [{
-                            type: 'body',
-                            parameters: params.map(p => ({ type: 'text', text: p }))
-                        }]
-                    }
-                })
-            })
-            .then(r => r.json())
-            .then(d => console.log(`WhatsApp encargado (${ownerNum}):`, d))
-            .catch(err => console.error(`Error WhatsApp encargado (${ownerNum}):`, err));
-        }
-    }
-
     // 4. Record message in DB (non-blocking)
     let readableContent = '';
     if (templateName === 'confirmacion_pago_cliente') {
