@@ -192,15 +192,19 @@ export async function POST(req: Request) {
                                         }
                                     }]);
 
-                                // Disparar worker de IA inmediatamente (Non-blocking)
+                                // Disparar worker de IA inmediatamente
                                 const host = req.headers.get('host') || 'www.elenalacosturera.cl';
                                 const protocol = host.includes('localhost') ? 'http' : 'https';
                                 const cronSecret = process.env.CRON_SECRET || 'antigravity-secret';
 
-                                fetch(`${protocol}://${host}/api/orchestrator`, {
-                                    method: 'POST',
-                                    headers: { 'Authorization': `Bearer ${cronSecret}` }
-                                }).catch(e => console.error('Error disparando orchestrator:', e));
+                                try {
+                                    await fetch(`${protocol}://${host}/api/orchestrator`, {
+                                        method: 'POST',
+                                        headers: { 'Authorization': `Bearer ${cronSecret}` }
+                                    });
+                                } catch (e) {
+                                    console.error('Error disparando orchestrator:', e);
+                                }
                             }
 
                         } catch (botErr) {
