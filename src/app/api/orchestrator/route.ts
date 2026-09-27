@@ -99,7 +99,7 @@ export async function processAITasks(supabase: any) {
                             
                             if (pastMsgs && pastMsgs.length > 0) {
                                 // Invertir para orden cronológico
-                                conversationHistory = pastMsgs.reverse().map(m => ({
+                                conversationHistory = pastMsgs.reverse().map((m: any) => ({
                                     role: m.sender_type === 'customer' ? 'user' : 'assistant',
                                     content: m.content || ''
                                 }));
