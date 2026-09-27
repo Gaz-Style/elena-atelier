@@ -2,12 +2,6 @@ import { NextResponse } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { consultar_disponibilidad, agendar_visita } from '@/lib/agenda';
 import { processAITasks } from '@/app/api/orchestrator/route';
-import { Client as QStashClient } from '@upstash/qstash';
-
-const qstashClient = new QStashClient({ 
-    token: process.env.QSTASH_TOKEN || 'dummy',
-    baseUrl: process.env.QSTASH_URL 
-});
 
 export const maxDuration = 60; // Max execution time for Vercel Hobby plan
 
@@ -201,21 +195,34 @@ export async function POST(req: Request) {
                                         }
                                     }]);
 
-                                // Utilizar QStash para disparar el Orquestador en una transacción HTTP completamente separada
+                                // Utilizar QStash para disparar el Orquestador usando fetch nativo
                                 try {
-                                    if (process.env.QSTASH_TOKEN && process.env.QSTASH_TOKEN !== 'dummy') {
-                                        await qstashClient.publishJSON({
-                                            url: "https://www.elenalacosturera.cl/api/orchestrator",
+                                    if (process.env.QSTASH_TOKEN) {
+                                        const qstashUrl = process.env.QSTASH_URL || 'https://qstash.upstash.io';
+                                        // Limpiar la URL base por si tiene un slash final
+                                        const baseUrl = qstashUrl.endsWith('/') ? qstashUrl.slice(0, -1) : qstashUrl;
+                                        
+                                        const res = await fetch(`${baseUrl}/v2/publish/https://www.elenalacosturera.cl/api/orchestrator`, {
+                                            method: 'POST',
                                             headers: {
-                                                Authorization: `Bearer ${process.env.CRON_SECRET || 'antigravity-secret'}`
-                                            }
+                                                'Authorization': `Bearer ${process.env.QSTASH_TOKEN}`,
+                                                'Content-Type': 'application/json',
+                                                'Upstash-Forward-Authorization': `Bearer ${process.env.CRON_SECRET || 'antigravity-secret'}`
+                                            },
+                                            body: JSON.stringify({ task_id: newTask.id })
                                         });
-                                        console.log(`[QStash] Ping enviado al orquestador para la nueva tarea.`);
+
+                                        if (!res.ok) {
+                                            const errorText = await res.text();
+                                            console.error(`[QStash Error] Fallo al publicar: ${res.status} - ${errorText}`);
+                                        } else {
+                                            console.log(`[QStash] Ping exitoso al orquestador para tarea ${newTask.id}`);
+                                        }
                                     } else {
-                                        console.warn("QSTASH_TOKEN no está configurado en .env.local. No se disparó el orquestador.");
+                                        console.warn("QSTASH_TOKEN no está configurado en .env.local.");
                                     }
                                 } catch (e) {
-                                    console.error('Error disparando QStash:', e);
+                                    console.error('Error de red disparando QStash:', e);
                                 }
                             }
 
