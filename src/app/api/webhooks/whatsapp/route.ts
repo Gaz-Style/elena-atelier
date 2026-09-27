@@ -4,7 +4,10 @@ import { consultar_disponibilidad, agendar_visita } from '@/lib/agenda';
 import { processAITasks } from '@/app/api/orchestrator/route';
 import { Client as QStashClient } from '@upstash/qstash';
 
-const qstashClient = new QStashClient({ token: process.env.QSTASH_TOKEN || 'dummy' });
+const qstashClient = new QStashClient({ 
+    token: process.env.QSTASH_TOKEN || 'dummy',
+    baseUrl: process.env.QSTASH_URL 
+});
 
 export const maxDuration = 60; // Max execution time for Vercel Hobby plan
 
