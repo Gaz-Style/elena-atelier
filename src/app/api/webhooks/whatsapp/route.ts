@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { consultar_disponibilidad, agendar_visita } from '@/lib/agenda';
 import { processAITasks } from '@/app/api/orchestrator/route';
-import { waitUntil } from '@vercel/functions';
 
 export const maxDuration = 60; // Max execution time for Vercel Hobby plan
 
@@ -201,19 +200,38 @@ export async function POST(req: Request) {
                                     return NextResponse.json({ status: 'success' }, { status: 200 }); // Retornamos OK a Meta para evitar reintentos
                                 }
 
-                                // Vercel Native Background Task: usamos waitUntil para que Vercel NO congele la función
-                                // hasta que termine el Orquestador, pero le devolvemos el 200 OK a WhatsApp inmediatamente.
-                                waitUntil(
-                                    (async () => {
-                                        console.log(`[Webhook] Ejecutando Orquestador vía waitUntil para tarea: ${newTask.id}`);
-                                        try {
-                                            await processAITasks(supabase);
-                                        } catch (err: any) {
-                                            console.error('Error en processAITasks (waitUntil):', err);
-                                            await supabase.from('ai_agent_tasks').update({ error_log: `waitUntil exception: ${err.message}` }).eq('id', newTask.id);
+                                // Utilizar QStash para disparar el Orquestador usando fetch nativo
+                                try {
+                                    if (process.env.QSTASH_TOKEN) {
+                                        const qstashUrl = process.env.QSTASH_URL || 'https://qstash.upstash.io';
+                                        // Limpiar la URL base por si tiene un slash final
+                                        const baseUrl = qstashUrl.endsWith('/') ? qstashUrl.slice(0, -1) : qstashUrl;
+                                        
+                                        const res = await fetch(`${baseUrl}/v2/publish/https://www.elenalacosturera.cl/api/orchestrator`, {
+                                            method: 'POST',
+                                            headers: {
+                                                'Authorization': `Bearer ${process.env.QSTASH_TOKEN}`,
+                                                'Content-Type': 'application/json',
+                                                'Upstash-Forward-Authorization': `Bearer ${process.env.CRON_SECRET || 'antigravity-secret'}`
+                                            },
+                                            body: JSON.stringify({ ping: 'webhook' })
+                                        });
+
+                                        if (!res.ok) {
+                                            const errorText = await res.text();
+                                            console.error(`[QStash Error] Fallo al publicar: ${res.status} - ${errorText}`);
+                                            await supabase.from('ai_agent_tasks').update({ error_log: `QStash Error: ${res.status} - ${errorText}` }).eq('id', newTask.id);
+                                        } else {
+                                            console.log(`[QStash] Ping exitoso al orquestador.`);
                                         }
-                                    })()
-                                );
+                                    } else {
+                                        console.warn("QSTASH_TOKEN no está configurado en .env.local.");
+                                        await supabase.from('ai_agent_tasks').update({ error_log: `QSTASH_TOKEN missing in Vercel env vars` }).eq('id', newTask.id);
+                                    }
+                                } catch (e: any) {
+                                    console.error('Error de red disparando QStash:', e);
+                                    await supabase.from('ai_agent_tasks').update({ error_log: `Fetch Exception: ${e.message}` }).eq('id', newTask.id);
+                                }
                             }
 
                         } catch (botErr) {
