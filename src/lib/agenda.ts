@@ -63,6 +63,8 @@ export async function consultar_disponibilidad(fecha_inicial: string) {
                 const endHour = parseInt(configDia.hora_fin.split(':')[0]);
 
                 for (let h = startHour; h < endHour; h++) {
+                    if (h === 13) continue; // PROHIBIDO: 13:00 es hora de colación
+
                     const horaStr = h.toString().padStart(2, '0');
                     const bloqueISO = toSantiagoISO(fechaStr, `${horaStr}:00:00`);
                     
@@ -517,6 +519,10 @@ export async function agendar_visita(nombre: string, apellido: string, celular: 
         const requestedHour = dateObj.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' });
         if (requestedHour < config.hora_inicio || requestedHour > config.hora_fin) {
             return `El horario de atención para los ${dateObj.toLocaleDateString('es-CL', { weekday: 'long' })} es de ${config.hora_inicio} a ${config.hora_fin}.`;
+        }
+        
+        if (requestedHour.startsWith('13:')) {
+            return "Las 13:00 está reservado para colación del taller. Por favor escoge otra hora.";
         }
 
         // Verificar de nuevo que no esté ocupada
