@@ -4,6 +4,7 @@ import { consultar_disponibilidad, agendar_visita } from '@/lib/agenda';
 import { processAITasks } from '@/app/api/orchestrator/route';
 
 export const maxDuration = 60; // Max execution time for Vercel Hobby plan
+export const dynamic = 'force-dynamic'; // Prevent Next.js from aggressive caching
 
 const WHATSAPP_VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'elena_atelier_secret';
 
