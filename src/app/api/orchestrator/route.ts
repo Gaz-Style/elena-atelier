@@ -190,6 +190,7 @@ ${visualContext}`;
                         // PRIMERA LLAMADA A DEEPSEEK (CON TOOLS)
                         let aiReply = "Disculpe, en este momento el atelier está con alta demanda. Un asesor humano le atenderá a la brevedad.";
                         let isHandoffTriggered = false;
+                        let isScheduledTask = false;
                         let handoffUrgency = 'normal';
                         let handoffMotivo = 'El cliente solicitó atención personalizada.';
 
@@ -216,6 +217,7 @@ ${visualContext}`;
                                     handoffMotivo = funcArgs.motivo || 'Atención humana requerida.';
                                     toolResult = await executeAtelierTool(funcName, funcArgs, { celular: recipientPhone });
                                 } else if (funcName === 'programar_seguimiento_automatico') {
+                                    isScheduledTask = true;
                                     let delayMinutes = funcArgs.minutos || 5;
                                     const motivo = funcArgs.motivo || 'Seguimiento general';
                                     
@@ -289,7 +291,7 @@ ${visualContext}`;
                             const handoffRegexUser = /humano|persona|asesor|elena|reclamo|problema|inconveniente|queja|devolución|datos bancarios|transferencia/i;
                             const handoffRegexBot = /elena directamente|conectar.*elena|hablar.*persona|asesora humana|transferir|un momento.*por favor|inconveniente|problema/i;
                             
-                            if (!isHandoffTriggered && (handoffRegexUser.test(userMessage) || handoffRegexBot.test(aiReply))) {
+                            if (!isHandoffTriggered && !isScheduledTask && (handoffRegexUser.test(userMessage) || handoffRegexBot.test(aiReply))) {
                                 isHandoffTriggered = true;
                                 handoffUrgency = /reclamo|problema|inconveniente|queja|devolución/i.test(userMessage) ? 'alta' : 'normal';
                                 handoffMotivo = 'Detectado por filtro de seguridad (Regex).';
