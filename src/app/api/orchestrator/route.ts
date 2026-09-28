@@ -181,6 +181,8 @@ ${visualContext}`;
                         // PRIMERA LLAMADA A DEEPSEEK (CON TOOLS)
                         let aiReply = "Disculpe, en este momento el atelier está con alta demanda. Un asesor humano le atenderá a la brevedad.";
                         let isHandoffTriggered = false;
+                        let handoffUrgency = 'normal';
+                        let handoffMotivo = 'El cliente solicitó atención personalizada.';
 
                         try {
                             const dsResponse = await generateDeepSeekCompletion({
@@ -197,6 +199,12 @@ ${visualContext}`;
                                 const toolCall = dsResponse.toolCalls[0];
                                 const funcName = toolCall.function.name;
                                 const funcArgs = JSON.parse(toolCall.function.arguments);
+                                
+                                if (funcName === 'solicitar_asistencia_humana') {
+                                    isHandoffTriggered = true;
+                                    handoffUrgency = funcArgs.urgencia || 'normal';
+                                    handoffMotivo = funcArgs.motivo || 'Atención humana requerida.';
+                                }
                                 
                                 const toolResult = await executeAtelierTool(funcName, funcArgs, { celular: recipientPhone });
                                 
@@ -215,12 +223,14 @@ ${visualContext}`;
                                 aiReply = dsResponse.content || aiReply;
                             }
                             
-                            // Evaluar Handoff Automático
+                            // Evaluar Handoff Automático (Backup por Regex)
                             const handoffRegexUser = /humano|persona|asesor|elena|reclamo|problema|inconveniente|queja|devolución|datos bancarios|transferencia/i;
                             const handoffRegexBot = /elena directamente|conectar.*elena|hablar.*persona|asesora humana|transferir|un momento.*por favor|inconveniente|problema/i;
                             
-                            if (handoffRegexUser.test(userMessage) || handoffRegexBot.test(aiReply)) {
+                            if (!isHandoffTriggered && (handoffRegexUser.test(userMessage) || handoffRegexBot.test(aiReply))) {
                                 isHandoffTriggered = true;
+                                handoffUrgency = /reclamo|problema|inconveniente|queja|devolución/i.test(userMessage) ? 'alta' : 'normal';
+                                handoffMotivo = 'Detectado por filtro de seguridad (Regex).';
                                 aiReply = "Entendido. Para atenderte de forma más personalizada, te voy a transferir directamente con nuestro equipo. Un momento por favor.";
                             }
 
@@ -276,6 +286,12 @@ ${visualContext}`;
                                     // Si hubo handoff, notificar al admin
                                     if (isHandoffTriggered) {
                                         const adminPhones = ['56984021940', '56937667709'];
+                                        
+                                        let iconoAlerta = handoffUrgency === 'alta' ? '🚨' : '⚠️';
+                                        let tituloAlerta = handoffUrgency === 'alta' ? '*URGENCIA: RECLAMO O PROBLEMA*' : '*Atención Humana Requerida*';
+                                        
+                                        const adminMessage = `${iconoAlerta} ${tituloAlerta}\n\nEl cliente (${recipientPhone}) ha sido transferido a un humano.\n\n*Motivo de la IA:* ${handoffMotivo}\n\n👉 Responder aquí: https://elenalacosturera.cl/admin/livechat`;
+                                        
                                         for (const adminPhone of adminPhones) {
                                             await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
                                                 method: 'POST',
@@ -287,7 +303,7 @@ ${visualContext}`;
                                                     messaging_product: 'whatsapp',
                                                     to: adminPhone,
                                                     type: 'text',
-                                                    text: { body: `🚨 *Atención Humana Requerida*\n\nEl cliente (${recipientPhone}) ha solicitado hablar con una persona.\n\n👉 Responder aquí: https://elenalacosturera.cl/admin/livechat` }
+                                                    text: { body: adminMessage }
                                                 })
                                             });
                                         }

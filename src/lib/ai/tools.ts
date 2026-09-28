@@ -76,6 +76,30 @@ export const ATELIER_TOOLS = [
             strict: true,
         },
     },
+    {
+        type: 'function',
+        function: {
+            name: 'solicitar_asistencia_humana',
+            description: 'Utilizar esta herramienta INMEDIATAMENTE si el cliente tiene un reclamo, problema, pide hablar con un humano/Elena, solicita servicios complejos como alta costura/novias, o hace preguntas que no puedes responder.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    motivo: {
+                        type: 'string',
+                        description: 'Breve resumen de por qué se requiere intervención humana (ej: Reclamo por cierre malo, Cliente pide hablar con Elena).',
+                    },
+                    urgencia: {
+                        type: 'string',
+                        enum: ['normal', 'alta'],
+                        description: 'Nivel de urgencia. Alta para reclamos o molestias. Normal para dudas o servicios complejos.',
+                    },
+                },
+                required: ['motivo', 'urgencia'],
+                additionalProperties: false,
+            },
+            strict: true,
+        },
+    },
 ];
 
 /**
@@ -84,6 +108,9 @@ export const ATELIER_TOOLS = [
 export async function executeAtelierTool(name: string, args: any, extraData?: any) {
     console.log(`Ejecutando herramienta ${name} con argumentos:`, args);
     try {
+        if (name === 'solicitar_asistencia_humana') {
+            return JSON.stringify({ status: 'handoff_triggered', action: 'Transfiere el chat cordialmente indicando que un asesor tomará el caso.' });
+        }
         if (name === 'consultar_disponibilidad') {
             const resultado = await consultar_disponibilidad(args.fecha);
             return JSON.stringify({ status: 'success', disponibilidad: resultado });
