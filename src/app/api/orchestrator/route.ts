@@ -209,10 +209,12 @@ ${visualContext}`;
                                 const funcName = toolCall.function.name;
                                 const funcArgs = JSON.parse(toolCall.function.arguments);
                                 
+                                let toolResult;
                                 if (funcName === 'solicitar_asistencia_humana') {
                                     isHandoffTriggered = true;
                                     handoffUrgency = funcArgs.urgencia || 'normal';
                                     handoffMotivo = funcArgs.motivo || 'Atención humana requerida.';
+                                    toolResult = await executeAtelierTool(funcName, funcArgs, { celular: recipientPhone });
                                 } else if (funcName === 'programar_seguimiento_automatico') {
                                     const delayMinutes = funcArgs.minutos || 5;
                                     const motivo = funcArgs.motivo || 'Seguimiento general';
