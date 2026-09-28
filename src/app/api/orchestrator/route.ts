@@ -145,23 +145,34 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                            visualContext = `\n[SISTEMA]: El usuario envió una imagen, pero aún no puedo analizarla. Dile que recibiste la foto y pídele que la traiga al taller.\n`;
                         }
 
+                        // Obtener fecha actual en Santiago
+                        const now = new Date();
+                        const santiagoTime = new Intl.DateTimeFormat('es-CL', {
+                            timeZone: 'America/Santiago',
+                            dateStyle: 'full',
+                            timeStyle: 'short'
+                        }).format(now);
+                        const currentDateISO = now.toISOString().split('T')[0];
+
                         const systemPrompt = `Eres Elena, la Asistente Virtual Inteligente de "Elena La Costurera" (Atelier de Alta Costura y Upcycling en Santiago de Chile).
 Tratamiento: Cercano y profesional (Tuteo). NUNCA trates de Usted.
 
+FECHA ACTUAL: Hoy es ${santiagoTime}. Usa la herramienta "consultar_disponibilidad" pasando la fecha de hoy (${currentDateISO}) o la de los próximos días cuando te pidan agendar. ¡NUNCA sugieras fechas u horas sin haber consultado la herramienta primero!
+
 REGLAS DE ORO OBLIGATORIAS:
 1. BREVEDAD ABSOLUTA: Responde en MÁXIMO 2 o 3 líneas por mensaje. Prohibido escribir textos largos.
-2. PREGUNTA GUÍA: Termina tus respuestas con una pregunta cerrada para guiar al cliente hacia el agendamiento, EXCEPTO cuando la cita ya se haya agendado o el cliente se esté despidiendo. En esos casos, solo despídete amablemente sin hacer más preguntas.
-3. VOCABULARIO CHILENO: Prohibido decir "bastilla" (usa "basta"), "cremallera" (usa "cierre"), "playera" (usa "polera"). Usa lenguaje natural de Chile.
+2. PREGUNTA GUÍA: Termina tus respuestas con una pregunta cerrada para guiar al cliente hacia el agendamiento, EXCEPTO cuando la cita ya se haya agendado o el cliente se esté despidiendo.
+3. VOCABULARIO CHILENO: Prohibido decir "bastilla" (usa "basta"), "cremallera" (usa "cierre"). Usa lenguaje natural de Chile.
 4. PRECIOS Y AGENDAMIENTO: Usa el catálogo adjunto. Siempre da precios referenciales con la palabra "desde". Despacho a domicilio en sector oriente cuesta $10.000.
-5. TOMA DE DATOS: Si el cliente acepta agendar, usa la herramienta. NO pidas el celular, el sistema ya lo tiene capturado.
-6. DERIVACIÓN: Si el cliente muestra confusión o pide un humano, sé amable y avísale que un asesor tomará su caso.
+5. TOMA DE DATOS Y AGENDA: OBLIGATORIO usar 'consultar_disponibilidad' antes de ofrecer días/horas. Si el cliente acepta un horario, usa 'agendar_visita'. NO pidas el celular, el sistema ya lo tiene.
+6. DERIVACIÓN: Si el cliente muestra confusión, enojo, pide hablar con un humano o menciona la palabra "problema", dile que le transferirás con un asesor de inmediato.
 
 ACCIONES PROHIBIDAS (NUNCA LAS HAGAS):
 - NUNCA escribas datos bancarios, números de cuenta ni RUT en el chat.
 - NUNCA envíes links de pago. Los pagos se gestionan por correo desde el taller.
 - NUNCA borres datos de clientes. Si piden borrar sus datos, di que un asesor gestionará la solicitud.
 - NUNCA des un precio final exacto. Siempre usa "desde $X" y deriva al taller.
-- NUNCA agendes confección de novias o alta costura sin derivar al equipo humano primero.
+- NUNCA inventes fechas u horas que no hayas verificado con la herramienta.
 
 CATÁLOGO VIGENTE (USAR COMO REFERENCIA):
 ${catalogContext}
@@ -205,8 +216,12 @@ ${visualContext}`;
                             }
                             
                             // Evaluar Handoff Automático
-                            if (/elena directamente|conectar.*elena|hablar.*persona|asesora humana|transferir|un momento.*por favor|inconveniente|problema|queja|metros de tela|cuenta|transferencia|datos bancarios|despacho|retiro/i.test(aiReply)) {
+                            const handoffRegexUser = /humano|persona|asesor|elena|reclamo|problema|inconveniente|queja|devolución|datos bancarios|transferencia/i;
+                            const handoffRegexBot = /elena directamente|conectar.*elena|hablar.*persona|asesora humana|transferir|un momento.*por favor|inconveniente|problema/i;
+                            
+                            if (handoffRegexUser.test(userMessage) || handoffRegexBot.test(aiReply)) {
                                 isHandoffTriggered = true;
+                                aiReply = "Entendido. Para atenderte de forma más personalizada, te voy a transferir directamente con nuestro equipo. Un momento por favor.";
                             }
 
                         } catch (error) {
