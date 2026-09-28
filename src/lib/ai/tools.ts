@@ -80,18 +80,18 @@ export const ATELIER_TOOLS = [
         type: 'function',
         function: {
             name: 'solicitar_asistencia_humana',
-            description: 'Utilizar esta herramienta INMEDIATAMENTE si el cliente tiene un reclamo, problema, pide hablar con un humano/Elena, solicita servicios complejos como alta costura/novias, o hace preguntas que no puedes responder.',
+            description: 'Utilizar esta herramienta INMEDIATAMENTE si el cliente tiene un reclamo, pide hablar con un humano, solicita alta costura, o pide que le contactemos/hablemos más tarde (ej. "escríbeme en 5 min").',
             parameters: {
                 type: 'object',
                 properties: {
                     motivo: {
                         type: 'string',
-                        description: 'Breve resumen de por qué se requiere intervención humana (ej: Reclamo por cierre malo, Cliente pide hablar con Elena).',
+                        description: 'Breve resumen de por qué se requiere intervención humana (ej: Reclamo por cierre malo, Cliente pide que lo contactemos en 5 minutos).',
                     },
                     urgencia: {
                         type: 'string',
                         enum: ['normal', 'alta'],
-                        description: 'Nivel de urgencia. Alta para reclamos o molestias. Normal para dudas o servicios complejos.',
+                        description: 'Nivel de urgencia. Alta para reclamos. Normal para contactar más tarde o dudas.',
                     },
                 },
                 required: ['motivo', 'urgencia'],
