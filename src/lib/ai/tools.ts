@@ -100,6 +100,29 @@ export const ATELIER_TOOLS = [
             strict: true,
         },
     },
+    {
+        type: 'function',
+        function: {
+            name: 'programar_seguimiento_automatico',
+            description: 'Utilizar cuando el cliente te pida que le hables o contactes más tarde en un tiempo determinado (ej: "escríbeme en 5 min", "háblame en 2 horas").',
+            parameters: {
+                type: 'object',
+                properties: {
+                    minutos: {
+                        type: 'number',
+                        description: 'Cantidad de minutos a esperar antes de enviar el recordatorio. (Ej: 5 para 5 min, 60 para 1 hora, 1440 para mañana).',
+                    },
+                    motivo: {
+                        type: 'string',
+                        description: 'Contexto interno para recordar de qué estabas hablando con el cliente.',
+                    },
+                },
+                required: ['minutos', 'motivo'],
+                additionalProperties: false,
+            },
+            strict: true,
+        },
+    },
 ];
 
 /**

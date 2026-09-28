@@ -18,6 +18,14 @@ export async function POST(req: Request) {
             process.env.SUPABASE_SERVICE_ROLE_KEY!
         );
 
+        let body: any = {};
+        try { body = await req.json(); } catch(e) {}
+
+        // Si QStash envía un task_id programado, lo pasamos a pending para que sea procesado
+        if (body.scheduled_task_id) {
+            await supabase.from('ai_agent_tasks').update({ status: 'pending' }).eq('id', body.scheduled_task_id);
+        }
+
         const results = await processAITasks(supabase);
         return NextResponse.json({ message: 'Processed tasks', results });
     } catch (error: any) {
@@ -165,7 +173,8 @@ REGLAS DE ORO OBLIGATORIAS:
 3. VOCABULARIO CHILENO: Prohibido decir "bastilla" (usa "basta"), "cremallera" (usa "cierre"). Usa lenguaje natural de Chile.
 4. PRECIOS Y AGENDAMIENTO: Usa el catálogo adjunto. Siempre da precios referenciales con la palabra "desde". Despacho a domicilio en sector oriente cuesta $10.000.
 5. TOMA DE DATOS Y AGENDA: OBLIGATORIO usar 'consultar_disponibilidad' antes de ofrecer días/horas. Ofrece por defecto para hoy o mañana. Si el cliente acepta un horario, usa 'agendar_visita'. NO pidas el celular, el sistema ya lo tiene.
-6. DERIVACIÓN Y CONTACTO POSTERIOR: Si el cliente muestra confusión, enojo, pide un humano, o pide que le escribas más tarde (ej. "escríbeme en 5 min"), dile amablemente "¡Claro, no hay problema! Dejaré el recordatorio para contactarte." y OBLIGATORIO usa de inmediato la herramienta 'solicitar_asistencia_humana'.
+6. DERIVACIÓN: Si el cliente muestra confusión, enojo, pide hablar con un humano o menciona la palabra "problema", usa la herramienta 'solicitar_asistencia_humana'.
+7. CONTACTO POSTERIOR (RECORDATORIO): Si el cliente pide que le escribas más tarde (ej. "escríbeme en 5 min", "hablamos en 2 horas"), dile amablemente "¡Claro, no hay problema! Te escribo en un ratito." y OBLIGATORIO usa de inmediato la herramienta 'programar_seguimiento_automatico' indicando los minutos.
 
 ACCIONES PROHIBIDAS (NUNCA LAS HAGAS):
 - NUNCA escribas datos bancarios, números de cuenta ni RUT en el chat.
@@ -204,9 +213,43 @@ ${visualContext}`;
                                     isHandoffTriggered = true;
                                     handoffUrgency = funcArgs.urgencia || 'normal';
                                     handoffMotivo = funcArgs.motivo || 'Atención humana requerida.';
+                                } else if (funcName === 'programar_seguimiento_automatico') {
+                                    const delayMinutes = funcArgs.minutos || 5;
+                                    const motivo = funcArgs.motivo || 'Seguimiento general';
+                                    
+                                    // 1. Insertar tarea dormida
+                                    const { data: newTask } = await supabase.from('ai_agent_tasks').insert([{
+                                        agent_role: 'whatsapp_closer',
+                                        status: 'scheduled',
+                                        error_log: 'Programado por IA',
+                                        payload: {
+                                            chat_id: task.payload.chat_id,
+                                            phone_number: recipientPhone,
+                                            content: `[SISTEMA - RECORDATORIO AUTOMÁTICO] Acaban de pasar los ${delayMinutes} minutos que el cliente te pidió esperar. Retoma la conversación amigablemente de forma proactiva. Motivo: ${motivo}`,
+                                            message_type: 'text'
+                                        }
+                                    }]).select().single();
+
+                                    // 2. Programar el disparador en QStash
+                                    if (newTask && process.env.QSTASH_TOKEN) {
+                                        const qstashUrl = process.env.QSTASH_URL || 'https://qstash.upstash.io';
+                                        const baseUrl = qstashUrl.endsWith('/') ? qstashUrl.slice(0, -1) : qstashUrl;
+                                        await fetch(`${baseUrl}/v2/publish/https://www.elenalacosturera.cl/api/orchestrator`, {
+                                            method: 'POST',
+                                            headers: {
+                                                'Authorization': `Bearer ${process.env.QSTASH_TOKEN}`,
+                                                'Content-Type': 'application/json',
+                                                'Upstash-Forward-Authorization': `Bearer ${process.env.CRON_SECRET || 'antigravity-secret'}`,
+                                                'Upstash-Delay': `${delayMinutes}m`
+                                            },
+                                            body: JSON.stringify({ scheduled_task_id: newTask.id })
+                                        });
+                                    }
+                                    
+                                    toolResult = JSON.stringify({ status: 'scheduled', message: `Recordatorio configurado para en ${delayMinutes} minutos.` });
+                                } else {
+                                    toolResult = await executeAtelierTool(funcName, funcArgs, { celular: recipientPhone });
                                 }
-                                
-                                const toolResult = await executeAtelierTool(funcName, funcArgs, { celular: recipientPhone });
                                 
                                 // SEGUNDA LLAMADA (Para que DeepSeek responda tras ejecutar)
                                 const dsResponse2 = await generateDeepSeekCompletion({
