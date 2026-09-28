@@ -9,13 +9,13 @@ import TrackedLink from '@/components/TrackedLink';
 import LocationMap from '@/components/LocationMap';
 
 function getWhatsAppB2BUrl() {
-    const phone = "56937667709";
+    const phone = "56972812907";
     const text = `Hola Elena Atelier. Me interesa gestionar un convenio corporativo de sastrería a domicilio para nuestra empresa en el sector oriente. Me gustaría coordinar una reunión.`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 }
 
 function getWhatsAppServiceUrl(serviceType: 'sastre' | 'costurera') {
-    const phone = "56937667709";
+    const phone = "56972812907";
     const text = `Hola Elena Atelier. Me interesa agendar el servicio de ${serviceType === 'sastre' ? 'Sastre a Domicilio' : 'Costurera a Domicilio'} en mi oficina.`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 }

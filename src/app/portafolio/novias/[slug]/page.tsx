@@ -30,7 +30,7 @@ export default async function HistoriaNoviaPage({ params }: { params: Promise<{ 
   const whatsappMessage = encodeURIComponent(
     `Hola Elena, leí la historia de ${historia.novia} en su portafolio y me gustaría agendar una cita para diseñar la propuesta integral de mi matrimonio (Civil, Iglesia, Fiesta y Madrinas).`
   );
-  const whatsappUrl = `https://wa.me/56937667709?text=${whatsappMessage}`;
+  const whatsappUrl = `https://wa.me/56972812907?text=${whatsappMessage}`;
 
   return (
     <div className="min-h-screen bg-[#0d0d0d] text-white font-sans selection:bg-brand-sand selection:text-black">

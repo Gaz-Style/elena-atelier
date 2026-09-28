@@ -168,7 +168,7 @@ function InscripcionContent() {
         const text = encodeURIComponent(
             `¡Hola Elena! Soy ${form.full_name}.\n\nQuiero confirmar mi inscripción y realizar el pago del curso "${selectedCourse?.name}" por ${selectedCourse ? formatCLP(selectedCourse.price) : ''}.\n\nMi email: ${form.email}\nTeléfono: ${form.phone}\nNivel: ${LEVELS.find(l => l.value === form.current_level)?.label}\n\n¡Gracias!`
         );
-        window.open(`https://wa.me/${process.env.NEXT_PUBLIC_ELENA_WHATSAPP || '56912345678'}?text=${text}`, '_blank');
+        window.open(`https://wa.me/${process.env.NEXT_PUBLIC_ELENA_WHATSAPP || '56972812907'}?text=${text}`, '_blank');
     };
 
     return (

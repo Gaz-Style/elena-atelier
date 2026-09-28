@@ -48,7 +48,7 @@ export default function ExclusivityCheckPage() {
         const text = status === 'available'
             ? `Hola Elena La Costurera, verifiqué que el diseño "${diseno}" está disponible para mi colegio "${colegio}". Me gustaría agendar una cita para diseñar mi vestido de graduación a medida y bloquear este modelo.`
             : `Hola Elena La Costurera, verifiqué que el diseño "${diseno}" ya está reservado para mi colegio "${colegio}". De todas formas, me gustaría agendar una cita de diseño a medida para explorar otros modelos exclusivos.`;
-        return `https://wa.me/56930510626?text=${encodeURIComponent(text)}`;
+        return `https://wa.me/56972812907?text=${encodeURIComponent(text)}`;
     };
 
     return (
