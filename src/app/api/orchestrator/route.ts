@@ -174,7 +174,7 @@ REGLAS DE ORO OBLIGATORIAS:
 4. PRECIOS Y AGENDAMIENTO: Usa el catálogo adjunto. Siempre da precios referenciales con la palabra "desde". Despacho a domicilio en sector oriente cuesta $10.000.
 5. TOMA DE DATOS Y AGENDA: OBLIGATORIO usar 'consultar_disponibilidad' antes de ofrecer días/horas. Ofrece por defecto para hoy o mañana. Si el cliente acepta un horario, usa 'agendar_visita'. NO pidas el celular, el sistema ya lo tiene.
 6. DERIVACIÓN: Si el cliente muestra confusión, enojo, pide hablar con un humano o menciona la palabra "problema", usa la herramienta 'solicitar_asistencia_humana'.
-7. CONTACTO POSTERIOR (RECORDATORIO): Si el cliente pide que le escribas más tarde (ej. "escríbeme en 5 min", "hablamos en 2 horas"), dile amablemente "¡Claro, no hay problema! Te escribo en un ratito." y OBLIGATORIO usa de inmediato la herramienta 'programar_seguimiento_automatico' indicando los minutos.
+7. CONTACTO POSTERIOR (RECORDATORIO): Si el cliente pide que le escribas más tarde (ej. "escríbeme en 5 min", "hablamos en 2 horas"), dile amablemente "¡Claro, no hay problema! Te escribo en un ratito." y OBLIGATORIO usa de inmediato la herramienta 'programar_seguimiento_automatico' indicando los minutos. OJO: El horario hábil del bot es de 09:00 a 21:00. Si te pide que le hables a una hora fuera de ese rango, indícale amablemente que le escribirás "mañana a primera hora".
 
 ACCIONES PROHIBIDAS (NUNCA LAS HAGAS):
 - NUNCA escribas datos bancarios, números de cuenta ni RUT en el chat.
@@ -216,8 +216,25 @@ ${visualContext}`;
                                     handoffMotivo = funcArgs.motivo || 'Atención humana requerida.';
                                     toolResult = await executeAtelierTool(funcName, funcArgs, { celular: recipientPhone });
                                 } else if (funcName === 'programar_seguimiento_automatico') {
-                                    const delayMinutes = funcArgs.minutos || 5;
+                                    let delayMinutes = funcArgs.minutos || 5;
                                     const motivo = funcArgs.motivo || 'Seguimiento general';
+                                    
+                                    // Validar horario de respeto (09:00 a 21:00) en Chile
+                                    const nowInStgo = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Santiago", hour12: false }));
+                                    const targetDateObj = new Date(nowInStgo.getTime() + delayMinutes * 60000);
+                                    const targetHour = targetDateObj.getHours();
+
+                                    if (targetHour < 9 || targetHour >= 21) {
+                                        const next9AM = new Date(targetDateObj);
+                                        if (targetHour >= 21) {
+                                            next9AM.setDate(next9AM.getDate() + 1);
+                                        }
+                                        next9AM.setHours(9, Math.floor(Math.random() * 30), 0, 0); // 09:00 - 09:30 random
+                                        
+                                        const diffMs = next9AM.getTime() - nowInStgo.getTime();
+                                        delayMinutes = Math.floor(diffMs / 60000);
+                                        if (delayMinutes < 1) delayMinutes = 1;
+                                    }
                                     
                                     // 1. Insertar tarea dormida
                                     const { data: newTask } = await supabase.from('ai_agent_tasks').insert([{
@@ -227,7 +244,7 @@ ${visualContext}`;
                                         payload: {
                                             chat_id: task.payload.chat_id,
                                             phone_number: recipientPhone,
-                                            content: `[SISTEMA - RECORDATORIO AUTOMÁTICO] Acaban de pasar los ${delayMinutes} minutos que el cliente te pidió esperar. Retoma la conversación amigablemente de forma proactiva. Motivo: ${motivo}`,
+                                            content: `[SISTEMA - RECORDATORIO AUTOMÁTICO] Acaban de pasar los minutos que el cliente pidió esperar. Retoma la conversación amigablemente de forma proactiva. Motivo: ${motivo}`,
                                             message_type: 'text'
                                         }
                                     }]).select().single();
