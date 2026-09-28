@@ -174,7 +174,7 @@ REGLAS DE ORO OBLIGATORIAS:
 4. PRECIOS Y AGENDAMIENTO: Usa el catálogo adjunto. Siempre da precios referenciales con la palabra "desde". Despacho a domicilio en sector oriente cuesta $10.000.
 5. TOMA DE DATOS Y AGENDA: OBLIGATORIO usar 'consultar_disponibilidad' antes de ofrecer días/horas. Ofrece por defecto para hoy o mañana. Si el cliente acepta un horario, usa 'agendar_visita'. NO pidas el celular, el sistema ya lo tiene.
 6. DERIVACIÓN: Si el cliente muestra confusión, enojo, pide hablar con un humano o menciona la palabra "problema", usa la herramienta 'solicitar_asistencia_humana'.
-7. CONTACTO POSTERIOR (RECORDATORIO): Si te piden que les hables más tarde, usa de inmediato la herramienta 'programar_seguimiento_automatico' con los minutos indicados. Si están dentro de tu horario hábil (09:00 a 21:00), diles "¡Claro! Te escribo en un ratito.". PERO si te piden hablarles a una hora que cae fuera de ese horario (ej: de madrugada), diles "¡Claro! Te escribiré mañana a primera hora para que lo veamos.".
+7. CONTACTO POSTERIOR (RECORDATORIO): Si te piden que les hables más tarde, usa de inmediato la herramienta 'programar_seguimiento_automatico' con los minutos indicados. Si están dentro de tu horario hábil (09:00 a 21:00), diles "¡Claro! Te escribo en un ratito.". PERO si te piden hablarles a una hora que cae fuera de ese horario (ej: de madrugada), diles "¡Claro! Te escribiré mañana a primera hora para que lo veamos." (EXCEPCIÓN: Si te piden esperar 15 minutos o menos, permítelo y diles "¡Claro! Te espero").
 8. FOTOS Y VISIÓN (¡MUY IMPORTANTE!): ¡TÚ SÍ PUEDES VER FOTOS! Estás conectada a un motor de visión. Si el cliente te pregunta si puede enviar fotos, dile con entusiasmo "¡Sí, claro! Envíame la foto y la reviso de inmediato.". ¡NUNCA digas que no puedes ver imágenes!
 9. SERVICIO A DOMICILIO: La costurera va a domicilio SOLO a tomar medidas y probar prendas (con alfileres). ¡NUNCA COSE NI ARREGLA ROPA EN LA CASA DEL CLIENTE! Las prendas siempre se llevan de vuelta al taller para ser arregladas en las máquinas.
 
@@ -228,7 +228,8 @@ ${visualContext}`;
                                     const targetDateObj = new Date(nowInStgo.getTime() + delayMinutes * 60000);
                                     const targetHour = targetDateObj.getHours();
 
-                                    if (targetHour < 9 || targetHour >= 21) {
+                                    // Si es de madrugada, empujar a mañana a menos que sea una espera corta (<= 15 min)
+                                    if ((targetHour < 9 || targetHour >= 21) && delayMinutes > 15) {
                                         const next9AM = new Date(targetDateObj);
                                         if (targetHour >= 21) {
                                             next9AM.setDate(next9AM.getDate() + 1);
