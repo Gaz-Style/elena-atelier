@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
+import { generateDeepSeekCompletion } from '@/lib/ai/deepseek';
+import { ATELIER_TOOLS, executeAtelierTool } from '@/lib/ai/tools';
 
 export const maxDuration = 60; // Max execution time for Vercel
 
@@ -71,6 +73,7 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                         const userMessage = task.payload.content || "Hola";
 
                         // Verificación de seguridad: comprobar si el chat sigue con el bot activo ('bot')
+                        let recipientPhone = task.payload.phone_number;
                         if (task.payload.chat_id) {
                             const { data: currentChat } = await supabase
                                 .from('crm_whatsapp_chats')
@@ -92,6 +95,21 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                                 results.push({ id: task.id, status: 'skipped', reason: 'human_takeover' });
                                 continue;
                             }
+                            
+                            if (currentChat?.phone_number) {
+                                recipientPhone = currentChat.phone_number;
+                            }
+                        }
+
+                        // Obtener catálogo para inyectar precios reales
+                        const { data: catalogItems } = await supabase
+                            .from('catalog')
+                            .select('name, category, price, description')
+                            .eq('active', true);
+                            
+                        let catalogContext = 'Catálogo No Disponible';
+                        if (catalogItems && catalogItems.length > 0) {
+                            catalogContext = catalogItems.map((item: any) => `- ${item.name} (${item.category}): desde $${item.price.toLocaleString('es-CL')}`).join('\n');
                         }
 
                         // Obtener historial reciente del chat (últimos 6 mensajes) para darle contexto completo a la IA
@@ -117,6 +135,15 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                         if (conversationHistory.length === 0 || conversationHistory[conversationHistory.length - 1].content !== userMessage) {
                             conversationHistory.push({ role: 'user', content: userMessage });
                         }
+                        
+                        // Evaluar si hay foto en el mensaje original (fase Gemini)
+                        const isImage = task.payload.message_type === 'image';
+                        let visualContext = '';
+                        if (isImage && task.payload.gemini_analysis) {
+                           visualContext = `\n[ANÁLISIS VISUAL DE LA FOTO ENVIADA]: ${task.payload.gemini_analysis}\n`;
+                        } else if (isImage) {
+                           visualContext = `\n[SISTEMA]: El usuario envió una imagen, pero aún no puedo analizarla. Dile que recibiste la foto y pídele que la traiga al taller.\n`;
+                        }
 
                         const systemPrompt = `Eres Elena, la Asistente Virtual Inteligente de "Elena La Costurera" (Atelier de Alta Costura y Upcycling en Santiago de Chile).
 Tratamiento: Cercano y profesional (Tuteo). NUNCA trates de Usted.
@@ -125,29 +152,66 @@ REGLAS DE ORO OBLIGATORIAS:
 1. BREVEDAD ABSOLUTA: Responde en MÁXIMO 2 o 3 líneas por mensaje. Prohibido escribir textos largos.
 2. PREGUNTA GUÍA: Termina tus respuestas con una pregunta cerrada para guiar al cliente hacia el agendamiento, EXCEPTO cuando la cita ya se haya agendado o el cliente se esté despidiendo. En esos casos, solo despídete amablemente sin hacer más preguntas.
 3. VOCABULARIO CHILENO: Prohibido decir "bastilla" (usa "basta"), "cremallera" (usa "cierre"), "playera" (usa "polera"). Usa lenguaje natural de Chile.
-4. PRECIOS Y AGENDAMIENTO: NUNCA des precios exactos sin ver la prenda. Invita siempre a agendar una visita en el taller.
-5. TOMA DE DATOS: Si el cliente acepta agendar, pídele SOLO su Nombre, Apellido y Correo. ¡NUNCA le pidas el número de teléfono celular! (El sistema ya lo captura automáticamente).
-6. DERIVACIÓN: Si el cliente muestra confusión o pide un humano, sé amable y avísale que un asesor tomará su caso.`;
+4. PRECIOS Y AGENDAMIENTO: Usa el catálogo adjunto. Siempre da precios referenciales con la palabra "desde". Despacho a domicilio en sector oriente cuesta $10.000.
+5. TOMA DE DATOS: Si el cliente acepta agendar, usa la herramienta. NO pidas el celular, el sistema ya lo tiene capturado.
+6. DERIVACIÓN: Si el cliente muestra confusión o pide un humano, sé amable y avísale que un asesor tomará su caso.
 
-                        const response = await fetch("https://api.deepseek.com/chat/completions", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "Authorization": `Bearer ${deepseekKey}`
-                            },
-                            body: JSON.stringify({
-                                model: "deepseek-chat",
+ACCIONES PROHIBIDAS (NUNCA LAS HAGAS):
+- NUNCA escribas datos bancarios, números de cuenta ni RUT en el chat.
+- NUNCA envíes links de pago. Los pagos se gestionan por correo desde el taller.
+- NUNCA borres datos de clientes. Si piden borrar sus datos, di que un asesor gestionará la solicitud.
+- NUNCA des un precio final exacto. Siempre usa "desde $X" y deriva al taller.
+- NUNCA agendes confección de novias o alta costura sin derivar al equipo humano primero.
+
+CATÁLOGO VIGENTE (USAR COMO REFERENCIA):
+${catalogContext}
+${visualContext}`;
+
+                        // PRIMERA LLAMADA A DEEPSEEK (CON TOOLS)
+                        let aiReply = "Disculpe, en este momento el atelier está con alta demanda. Un asesor humano le atenderá a la brevedad.";
+                        let isHandoffTriggered = false;
+
+                        try {
+                            const dsResponse = await generateDeepSeekCompletion({
                                 messages: [
-                                    { role: "system", content: systemPrompt },
+                                    { role: 'system', content: systemPrompt },
                                     ...conversationHistory
                                 ],
-                                max_tokens: 150,
+                                tools: ATELIER_TOOLS,
                                 temperature: 0.2
-                            })
-                        });
+                            });
 
-                        const responseData = await response.json();
-                        const aiReply = responseData.choices?.[0]?.message?.content || "Disculpe, en este momento el atelier está con alta demanda. Un asesor humano le atenderá a la brevedad.";
+                            if (dsResponse.toolCalls && dsResponse.toolCalls.length > 0) {
+                                // Ejecutar tool
+                                const toolCall = dsResponse.toolCalls[0];
+                                const funcName = toolCall.function.name;
+                                const funcArgs = JSON.parse(toolCall.function.arguments);
+                                
+                                const toolResult = await executeAtelierTool(funcName, funcArgs, { celular: recipientPhone });
+                                
+                                // SEGUNDA LLAMADA (Para que DeepSeek responda tras ejecutar)
+                                const dsResponse2 = await generateDeepSeekCompletion({
+                                    messages: [
+                                        { role: 'system', content: systemPrompt },
+                                        ...conversationHistory,
+                                        { role: 'assistant', content: '', tool_calls: dsResponse.toolCalls },
+                                        { role: 'tool', content: toolResult, tool_call_id: toolCall.id, name: funcName }
+                                    ],
+                                    temperature: 0.2
+                                });
+                                aiReply = dsResponse2.content || aiReply;
+                            } else {
+                                aiReply = dsResponse.content || aiReply;
+                            }
+                            
+                            // Evaluar Handoff Automático
+                            if (/elena directamente|conectar.*elena|hablar.*persona|asesora humana|transferir|un momento.*por favor|inconveniente|problema|queja|metros de tela|cuenta|transferencia|datos bancarios|despacho|retiro/i.test(aiReply)) {
+                                isHandoffTriggered = true;
+                            }
+
+                        } catch (error) {
+                            console.error("Error llamando a DeepSeek:", error);
+                        }
 
                         // Guardar respuesta del bot en el historial de mensajes
                         if (task.payload.chat_id) {
@@ -159,26 +223,19 @@ REGLAS DE ORO OBLIGATORIAS:
                                     message_type: 'text',
                                     content: aiReply
                                 }]);
-                        }
-
-                        // Enviar la respuesta directamente a Meta WhatsApp Cloud API si tenemos el número de teléfono
-                        let recipientPhone = task.payload.phone_number;
-                        
-                        // Si no vino phone_number en el payload pero hay chat_id, lo buscamos en la base de datos
-                        if (!recipientPhone && task.payload.chat_id) {
-                            const { data: chatData } = await supabase
-                                .from('crm_whatsapp_chats')
-                                .select('phone_number')
-                                .eq('id', task.payload.chat_id)
-                                .single();
-                            if (chatData?.phone_number) {
-                                recipientPhone = chatData.phone_number;
+                                
+                            if (isHandoffTriggered) {
+                                await supabase
+                                    .from('crm_whatsapp_chats')
+                                    .update({ session_status: 'human_handoff' })
+                                    .eq('id', task.payload.chat_id);
                             }
                         }
 
                         const token = process.env.WHATSAPP_API_TOKEN;
                         const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
+                        // ENVIAR MENSAJE A WHATSAPP
                         if (recipientPhone && token && phoneId) {
                             try {
                                 const waRes = await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
@@ -200,6 +257,26 @@ REGLAS DE ORO OBLIGATORIAS:
                                     console.error('Error enviando mensaje a WhatsApp Meta API:', waResData);
                                 } else {
                                     console.log('Mensaje enviado exitosamente a WhatsApp Meta API:', waResData);
+                                    
+                                    // Si hubo handoff, notificar al admin
+                                    if (isHandoffTriggered) {
+                                        const adminPhones = ['56984021940', '56937667709'];
+                                        for (const adminPhone of adminPhones) {
+                                            await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Authorization': `Bearer ${token}`,
+                                                    'Content-Type': 'application/json'
+                                                },
+                                                body: JSON.stringify({
+                                                    messaging_product: 'whatsapp',
+                                                    to: adminPhone,
+                                                    type: 'text',
+                                                    text: { body: `🚨 *Atención Humana Requerida*\n\nEl cliente (${recipientPhone}) ha solicitado hablar con una persona.\n\n👉 Responder aquí: https://elenalacosturera.cl/admin/livechat` }
+                                                })
+                                            });
+                                        }
+                                    }
                                 }
                             } catch (waErr) {
                                 console.error('Excepción al enviar a WhatsApp Meta API:', waErr);
@@ -215,6 +292,7 @@ REGLAS DE ORO OBLIGATORIAS:
                         resultPayload = { 
                             action: 'reply', 
                             message: aiReply,
+                            handoff: isHandoffTriggered,
                             original_payload: task.payload 
                         };
                         break;
@@ -253,7 +331,7 @@ REGLAS DE ORO OBLIGATORIAS:
                     .eq('id', task.id);
                 results.push({ id: task.id, status: 'failed', error: err.message });
             }
-        }
+    }
 
     return results;
 }

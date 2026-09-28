@@ -1,101 +1,69 @@
 import { NextResponse } from 'next/server';
-import { createClient as createAdminClient } from '@supabase/supabase-js';
-import { consultar_disponibilidad, agendar_visita } from '@/lib/agenda';
-import { processAITasks } from '@/app/api/orchestrator/route';
+import { createClient } from '@supabase/supabase-js';
 
-export const maxDuration = 60; // Max execution time for Vercel Hobby plan
-export const dynamic = 'force-dynamic'; // Prevent Next.js from aggressive caching
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-const WHATSAPP_VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'elena_atelier_secret';
-
-// Handle webhook verification (GET request from Meta)
 export async function GET(req: Request) {
-    const { searchParams } = new URL(req.url);
-    const mode = searchParams.get('hub.mode');
-    const token = searchParams.get('hub.verify_token');
-    const challenge = searchParams.get('hub.challenge');
+    const url = new URL(req.url);
+    const mode = url.searchParams.get('hub.mode');
+    const token = url.searchParams.get('hub.verify_token');
+    const challenge = url.searchParams.get('hub.challenge');
 
-    if (mode === 'subscribe' && token === WHATSAPP_VERIFY_TOKEN) {
-        console.log('WhatsApp Webhook verified!');
-        return new NextResponse(challenge, { status: 200 });
+    if (mode && token) {
+        if (mode === 'subscribe' && token === process.env.WHATSAPP_VERIFY_TOKEN) {
+            console.log('WEBHOOK_VERIFIED');
+            return new NextResponse(challenge, { status: 200 });
+        } else {
+            return new NextResponse('Forbidden', { status: 403 });
+        }
     }
-
-    return new NextResponse('Forbidden', { status: 403 });
+    return new NextResponse('Bad Request', { status: 400 });
 }
 
-// Handle incoming messages (POST request from Meta)
 export async function POST(req: Request) {
     try {
         const body = await req.json();
 
-        // Check if this is a WhatsApp API message event
-        if (body.object !== 'whatsapp_business_account') {
-            return new NextResponse('Not a WhatsApp event', { status: 404 });
-        }
+        if (body.object === 'whatsapp_business_account') {
+            for (const entry of body.entry) {
+                for (const change of entry.changes) {
+                    const value = change.value;
+                    const message = value.messages?.[0];
 
-        const supabase = createAdminClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.SUPABASE_SERVICE_ROLE_KEY!
-        );
+                    if (!message) continue;
 
-        for (const entry of body.entry) {
-            for (const change of entry.changes) {
-                const value = change.value;
-                // Ignorar eventos de estado (read, delivered, sent) para evitar duplicados y respuestas no deseadas
-                if (value && value.statuses) {
-                    continue;
-                }
-
-                if (value && value.messages && value.messages.length > 0) {
-                    const message = value.messages[0];
-                    const contact = value.contacts?.[0];
-                    const phoneNumber = message.from; // Sender's phone number
+                    const phoneNumber = value.contacts?.[0]?.wa_id;
+                    const contactName = value.contacts?.[0]?.profile?.name || 'Cliente';
                     const messageId = message.id;
 
-                    // 1. Find or create the chat session
-                    let { data: chatData, error: chatError } = await supabase
+                    // 1. Get or create Chat Session
+                    let { data: chatData } = await supabase
                         .from('crm_whatsapp_chats')
-                        .select('id, session_status, customer_id')
+                        .select('*')
                         .eq('phone_number', phoneNumber)
                         .single();
 
                     if (!chatData) {
-                        // Buscar coincidencia de cliente por teléfono
-                        const { data: customers } = await supabase
-                            .from('customers')
-                            .select('id, phone')
-                            .not('phone', 'is', null);
-                        
-                        const cleanDigits = (n: string) => n ? n.replace(/\D/g, '') : '';
-                        const chatDigits = cleanDigits(phoneNumber);
-                        let matchedCustomerId = null;
-                        
-                        if (customers) {
-                            const match = customers.find(c => {
-                                const custDigits = cleanDigits(c.phone);
-                                return custDigits && (custDigits.slice(-9) === chatDigits.slice(-9));
-                            });
-                            if (match) matchedCustomerId = match.id;
-                        }
-
-                        // Create a new chat session
-                        const { data: newChat, error: newChatError } = await supabase
+                        const { data: newChat, error: chatError } = await supabase
                             .from('crm_whatsapp_chats')
-                            .insert([{ 
-                                phone_number: phoneNumber, 
+                            .insert([{
+                                phone_number: phoneNumber,
+                                customer_name: contactName,
                                 session_status: 'bot',
-                                customer_id: matchedCustomerId
+                                last_interaction: new Date().toISOString()
                             }])
-                            .select('id, session_status, customer_id')
+                            .select()
                             .single();
 
-                        if (newChatError) {
-                            console.error('Error creating chat:', newChatError);
+                        if (chatError || !newChat) {
+                            console.error('Error creating chat session:', chatError);
                             continue;
                         }
                         chatData = newChat;
-                    } else if (!chatData.customer_id) {
-                        // Si el chat ya existe pero no está enrolado, buscar y enrolar proactivamente
+
+                        // Try to link to existing customer
                         const { data: customers } = await supabase
                             .from('customers')
                             .select('id, phone')
@@ -122,13 +90,71 @@ export async function POST(req: Request) {
                     let content = '';
                     let messageType = 'text';
                     let mediaUrl = null;
+                    let geminiAnalysis = null;
 
                     if (message.type === 'text') {
                         content = message.text.body;
                     } else if (message.type === 'image') {
                         messageType = 'image';
-                        mediaUrl = message.image.id; // Just storing media ID for now
+                        mediaUrl = message.image.id; 
                         content = message.image.caption || '';
+                        
+                        // Descargar y procesar imagen con Gemini Vision
+                        const metaToken = process.env.WHATSAPP_API_TOKEN;
+                        const geminiKey = process.env.GEMINI_API_KEY;
+                        
+                        if (metaToken && geminiKey && mediaUrl) {
+                            try {
+                                // 1. Obtener URL temporal de Meta
+                                const mediaRes = await fetch(`https://graph.facebook.com/v21.0/${mediaUrl}`, {
+                                    headers: { 'Authorization': `Bearer ${metaToken}` }
+                                });
+                                const mediaData = await mediaRes.json();
+                                
+                                if (mediaData.url) {
+                                    // 2. Descargar bytes
+                                    const imageRes = await fetch(mediaData.url, {
+                                        headers: { 'Authorization': `Bearer ${metaToken}` }
+                                    });
+                                    
+                                    if (imageRes.ok) {
+                                        const arrayBuffer = await imageRes.arrayBuffer();
+                                        const buffer = Buffer.from(arrayBuffer);
+                                        const base64Image = buffer.toString('base64');
+                                        const mimeType = mediaData.mime_type || 'image/jpeg';
+                                        
+                                        // 3. Mandar a Gemini 2.5 Flash
+                                        const payload = {
+                                            contents: [{
+                                                parts: [
+                                                    { text: "Actúa como experta modista. Describe brevemente qué prenda es y qué tipo de arreglo o confección parece necesitar según la foto (máximo 2 líneas, sin cotizar precios, solo diagnóstico técnico)." },
+                                                    {
+                                                        inlineData: {
+                                                            mimeType: mimeType,
+                                                            data: base64Image
+                                                        }
+                                                    }
+                                                ]
+                                            }],
+                                            generationConfig: { maxOutputTokens: 150 }
+                                        };
+                                        
+                                        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify(payload)
+                                        });
+                                        
+                                        if (geminiRes.ok) {
+                                            const geminiData = await geminiRes.json();
+                                            geminiAnalysis = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || null;
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Error procesando imagen con Gemini:', e);
+                            }
+                        }
                     } else if (message.type === 'audio') {
                         messageType = 'audio';
                         mediaUrl = message.audio.id;
@@ -157,7 +183,7 @@ export async function POST(req: Request) {
                         .eq('id', chatData.id);
 
                     // 4. Trigger AI Processing Task if session is 'bot'
-                    if (chatData.session_status === 'bot' && content) {
+                    if (chatData.session_status === 'bot' && (content || messageType === 'image')) {
                         try {
                             // Auto-limpiar tareas atascadas (>3 min) para este chat antes de verificar debounce
                             const threeMinAgo = new Date(Date.now() - 3 * 60 * 1000).toISOString();
@@ -193,7 +219,8 @@ export async function POST(req: Request) {
                                             content: content,
                                             message_type: messageType,
                                             media_url: mediaUrl,
-                                            message_id: messageId
+                                            message_id: messageId,
+                                            gemini_analysis: geminiAnalysis
                                         }
                                     }]).select().single();
 

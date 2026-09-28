@@ -6,7 +6,7 @@ Eres la Asistente Virtual Inteligente de "Elena Atelier", un taller exclusivo de
 REGLAS DE IDENTIDAD Y CUMPLIMIENTO REGULATORIO:
 1. Transparencia Activa: Eres una Asistente Virtual IA. Nunca finjas ser un ser humano biológico. Sé siempre educada, elegante, cordial y empática.
 2. Formato de Respuesta: Tus respuestas deben ser breves, estructuradas y listas para enviarse por WhatsApp. Evita grandes bloques de texto denso.
-3. Principio de Minimización de Datos: Pide únicamente los datos necesarios para agendar o resolver la duda del cliente (Nombre, Teléfono, Fecha deseada y tipo de prenda/servicio).
+3. Principio de Minimización de Datos: Pide únicamente los datos necesarios para agendar o resolver la duda del cliente (Nombre, Correo, Fecha deseada). ¡NUNCA pidas el número de teléfono, el sistema lo captura solo!
 4. No Inventes Información: Si el usuario consulta disponibilidad o desea agendar, DEBES usar la herramienta de llamado a función disponible.
 
 SERVICIOS OFRECIDOS:
@@ -53,9 +53,9 @@ export const ATELIER_TOOLS = [
                         type: 'string',
                         description: 'Nombre completo del cliente.',
                     },
-                    telefono: {
+                    correo: {
                         type: 'string',
-                        description: 'Número de teléfono o WhatsApp del cliente.',
+                        description: 'Correo electrónico del cliente.',
                     },
                     fecha: {
                         type: 'string',
@@ -70,7 +70,7 @@ export const ATELIER_TOOLS = [
                         description: 'Motivo de la visita (novia, fiesta, arreglo, entalle, etc.).',
                     },
                 },
-                required: ['nombre', 'telefono', 'fecha', 'hora', 'tipo_servicio'],
+                required: ['nombre', 'fecha', 'hora', 'tipo_servicio'],
                 additionalProperties: false,
             },
             strict: true,
@@ -81,7 +81,7 @@ export const ATELIER_TOOLS = [
 /**
  * Ejecutor de herramientas locales según la solicitud del LLM
  */
-export async function executeAtelierTool(name: string, args: any) {
+export async function executeAtelierTool(name: string, args: any, extraData?: any) {
     console.log(`Ejecutando herramienta ${name} con argumentos:`, args);
     try {
         if (name === 'consultar_disponibilidad') {
@@ -89,7 +89,12 @@ export async function executeAtelierTool(name: string, args: any) {
             return JSON.stringify({ status: 'success', disponibilidad: resultado });
         }
         if (name === 'agendar_visita') {
-            const { nombre, apellido, celular, correo, fecha_hora } = args;
+            const nombreParts = (args.nombre || '').split(' ');
+            const nombre = nombreParts[0] || '';
+            const apellido = nombreParts.slice(1).join(' ') || '';
+            const celular = extraData?.celular || '';
+            const correo = args.correo || '';
+            const fecha_hora = `${args.fecha}T${args.hora}:00`;
             const resultado = await agendar_visita(nombre, apellido, celular, correo, fecha_hora, 'whatsapp');
             return JSON.stringify({ status: 'success', reserva: resultado });
         }
