@@ -129,7 +129,7 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                                 .select('sender_type, content')
                                 .eq('chat_id', task.payload.chat_id)
                                 .order('created_at', { ascending: false })
-                                .limit(6);
+                                .limit(15);
                             
                             if (pastMsgs && pastMsgs.length > 0) {
                                 // Invertir para orden cronológico
