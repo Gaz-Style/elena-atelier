@@ -202,7 +202,24 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                         }
 
                         // Recuperar RAG context
-                        const ragContext = await retrieveContext(userMessage, task.payload.phone_number);
+                        let ragContext = await retrieveContext(userMessage, recipientPhone);
+
+                        // Inyectar datos del cliente desde CRM si existe
+                        const { data: customerData } = await supabase
+                            .from('customers')
+                            .select('full_name, email')
+                            .eq('phone', recipientPhone)
+                            .limit(1);
+                        
+                        if (customerData && customerData.length > 0) {
+                            const cName = customerData[0].full_name || '';
+                            const cEmail = customerData[0].email || '';
+                            const [nombre, ...apellidos] = cName.split(' ');
+                            const apellido = apellidos.join(' ');
+                            ragContext += `\n[CRM DATA]: Este cliente ya está registrado en tu base de datos. Su celular es ${recipientPhone}. Su nombre es "${nombre}", su apellido es "${apellido}" y su correo es "${cEmail}". NO le pidas nombre ni correo para agendar, ya los tienes, úsalos automáticamente al invocar la herramienta de agendar.`;
+                        } else {
+                            ragContext += `\n[CRM DATA]: Este es un cliente NUEVO. Recuerda entregarle la dirección física del taller (Av Tabancura 1091 Of 319 Vitacura) en un mensaje aparte después de agendar.`;
+                        }
 
                         // Obtener fecha actual en Santiago
                         const now = new Date();
