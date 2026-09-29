@@ -542,6 +542,31 @@ export async function agendar_visita(nombre: string, apellido: string, celular: 
             return `Lo siento, el bloque de las ${dateObj.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' })} acaba de ser ocupado. Por favor, elige otra hora.`;
         }
 
+        // 1.5 Crear o actualizar cliente en CRM (customers)
+        if (celular) {
+            const cleanDigits = celular.replace(/\D/g, '');
+            const formattedPhone = cleanDigits.startsWith('56') ? cleanDigits : `56${cleanDigits}`;
+            
+            const { data: existingCustomer } = await supabase
+                .from('customers')
+                .select('id')
+                .eq('phone', formattedPhone)
+                .maybeSingle();
+                
+            if (!existingCustomer) {
+                await supabase.from('customers').insert([{
+                    full_name: `${nombre} ${apellido}`.trim(),
+                    phone: formattedPhone,
+                    email: correo
+                }]);
+            } else {
+                await supabase.from('customers').update({
+                    full_name: `${nombre} ${apellido}`.trim(),
+                    email: correo
+                }).eq('id', existingCustomer.id);
+            }
+        }
+
         // Insertar en Supabase
         const { data, error } = await supabase
             .from('agendamientos')

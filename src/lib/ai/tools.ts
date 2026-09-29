@@ -149,6 +149,9 @@ export async function executeAtelierTool(name: string, args: any, extraData?: an
             const correo = args.correo || '';
             const fecha_hora = `${args.fecha}T${args.hora}:00`;
             const resultado = await agendar_visita(nombre, apellido, celular, correo, fecha_hora, 'whatsapp');
+            if (resultado.includes('error interno') || resultado.includes('Lo siento') || resultado.includes('no atiende')) {
+                return JSON.stringify({ status: 'error', reason: resultado });
+            }
             return JSON.stringify({ status: 'success', reserva: resultado });
         }
         return JSON.stringify({ error: `Herramienta ${name} no encontrada` });
