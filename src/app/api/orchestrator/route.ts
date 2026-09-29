@@ -372,8 +372,8 @@ ${ragContext}`;
                             }
                             
                             // Evaluar Handoff Automático (Backup por Regex)
-                            const handoffRegexUser = /humano|persona|asesor|elena|reclamo|problema|inconveniente|queja|devolución|datos bancarios|transferencia/i;
-                            const handoffRegexBot = /elena directamente|conectar.*elena|hablar.*persona|asesora humana|transferir|un momento.*por favor|inconveniente|problema/i;
+                            const handoffRegexUser = /humano|asesor|reclamo|problema|inconveniente|queja|devolución|datos bancarios|transferencia/i;
+                            const handoffRegexBot = /asesora humana|transferir|un momento.*por favor|inconveniente|problema/i;
                             
                             if (!isHandoffTriggered && !isScheduledTask && (handoffRegexUser.test(userMessage) || handoffRegexBot.test(aiReply))) {
                                 isHandoffTriggered = true;
