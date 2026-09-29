@@ -98,61 +98,10 @@ export async function POST(req: Request) {
                         mediaUrl = message.image.id; 
                         content = message.image.caption || '';
                         
-                        // Descargar y procesar imagen con Gemini Vision
-                        const metaToken = process.env.WHATSAPP_API_TOKEN;
-                        const geminiKey = process.env.GEMINI_API_KEY;
-                        
-                        if (metaToken && geminiKey && mediaUrl) {
-                            try {
-                                // 1. Obtener URL temporal de Meta
-                                const mediaRes = await fetch(`https://graph.facebook.com/v21.0/${mediaUrl}`, {
-                                    headers: { 'Authorization': `Bearer ${metaToken}` }
-                                });
-                                const mediaData = await mediaRes.json();
-                                
-                                if (mediaData.url) {
-                                    // 2. Descargar bytes
-                                    const imageRes = await fetch(mediaData.url, {
-                                        headers: { 'Authorization': `Bearer ${metaToken}` }
-                                    });
-                                    
-                                    if (imageRes.ok) {
-                                        const arrayBuffer = await imageRes.arrayBuffer();
-                                        const buffer = Buffer.from(arrayBuffer);
-                                        const base64Image = buffer.toString('base64');
-                                        const mimeType = mediaData.mime_type || 'image/jpeg';
-                                        
-                                        // 3. Mandar a Gemini 2.5 Flash
-                                        const payload = {
-                                            contents: [{
-                                                parts: [
-                                                    { text: "Actúa como experta modista. Describe brevemente qué prenda es y qué tipo de arreglo o confección parece necesitar según la foto (máximo 2 líneas, sin cotizar precios, solo diagnóstico técnico)." },
-                                                    {
-                                                        inlineData: {
-                                                            mimeType: mimeType,
-                                                            data: base64Image
-                                                        }
-                                                    }
-                                                ]
-                                            }],
-                                            generationConfig: { maxOutputTokens: 150 }
-                                        };
-                                        
-                                        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify(payload)
-                                        });
-                                        
-                                        if (geminiRes.ok) {
-                                            const geminiData = await geminiRes.json();
-                                            geminiAnalysis = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || null;
-                                        }
-                                    }
-                                }
-                            } catch (e) {
-                                console.error('Error procesando imagen con Gemini:', e);
-                            }
+                        // El procesamiento de la imagen con Gemini Vision se ha movido al orquestador asíncrono
+                        // para evitar que WhatsApp de timeout (límite de 3 segundos).
+                        if (mediaUrl) {
+                            console.log(`[Webhook] Imagen recibida: ${mediaUrl}. Se procesará en background.`);
                         }
                     } else if (message.type === 'audio') {
                         messageType = 'audio';
