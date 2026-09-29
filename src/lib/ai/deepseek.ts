@@ -26,7 +26,7 @@ export function sanitizeDeepSeekResponse(content: string): string {
     cleaned = cleaned.replace(/<\/?think>/gi, '').trim();
     
     // Limpiar fuga de tokens internos de herramientas (DeepSeek DSML)
-    cleaned = cleaned.replace(/<\s*\|\s*DSML\s*\|.*$/gis, '').trim();
+    cleaned = cleaned.replace(/<\s*\|\s*DSML\s*\|[\s\S]*$/gi, '').trim();
     
     return cleaned;
 }
