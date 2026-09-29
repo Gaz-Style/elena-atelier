@@ -547,13 +547,13 @@ export async function agendar_visita(nombre: string, apellido: string, celular: 
             const cleanDigits = celular.replace(/\D/g, '');
             const formattedPhone = cleanDigits.startsWith('56') ? cleanDigits : `56${cleanDigits}`;
             
-            const { data: existingCustomer } = await supabase
+            const { data: existingCustomers } = await supabase
                 .from('customers')
                 .select('id')
                 .eq('phone', formattedPhone)
-                .maybeSingle();
+                .limit(1);
                 
-            if (!existingCustomer) {
+            if (!existingCustomers || existingCustomers.length === 0) {
                 await supabase.from('customers').insert([{
                     full_name: `${nombre} ${apellido}`.trim(),
                     phone: formattedPhone,
@@ -563,7 +563,7 @@ export async function agendar_visita(nombre: string, apellido: string, celular: 
                 await supabase.from('customers').update({
                     full_name: `${nombre} ${apellido}`.trim(),
                     email: correo
-                }).eq('id', existingCustomer.id);
+                }).eq('id', existingCustomers[0].id);
             }
         }
 
