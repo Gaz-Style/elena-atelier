@@ -54,7 +54,7 @@ export default async function ProgrammaticSeoPage({ params }: Props) {
                         Bienvenida a Elena Atelier. Si vives en <strong>{comuna}</strong> y buscas un nivel de exigencia y pulcritud insuperable para tu <strong>{especialidad.toLowerCase()}</strong>, estás en el lugar indicado. 
                     </p>
                     <div className="pt-6">
-                        <Link href="https://wa.me/56930510626?text=Hola%20Elena,%20necesito%20una%20cita%20para%20dise%C3%B1o" target="_blank" className="bg-brand-charcoal text-brand-sand hover:bg-brand-terracotta px-8 py-4 rounded-sm transition-all flex items-center gap-2 uppercase tracking-widest text-xs font-bold w-max">
+                        <Link href="https://wa.me/56937667709?text=Hola%20Elena,%20necesito%20una%20cita%20para%20dise%C3%B1o" target="_blank" className="bg-brand-charcoal text-brand-sand hover:bg-brand-terracotta px-8 py-4 rounded-sm transition-all flex items-center gap-2 uppercase tracking-widest text-xs font-bold w-max">
                             Agendar Asesoría VIP <ArrowRight className="w-4 h-4" />
                         </Link>
                     </div>

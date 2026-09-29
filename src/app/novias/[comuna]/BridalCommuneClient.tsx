@@ -84,7 +84,7 @@ export default function BridalCommuneClient({ comuna }: BridalCommuneClientProps
   const [selectedStyle, setSelectedStyle] = useState(NUPCIAL_STYLES[0]);
   const [selectedFabric, setSelectedFabric] = useState(NUPCIAL_FABRICS[0]);
 
-  const whatsappUrl = `https://wa.me/56930510626?text=Hola%20Elena%20La%20Costurera,%20me%20gustar%C3%ADa%20agendar%20una%20cita%20nupcial.%20Vivo%20en%20${encodeURIComponent(comuna)}.%20Me%20interes%C3%B3%20el%20estilo%20de%20novia%20${encodeURIComponent(selectedStyle.name)}.`;
+  const whatsappUrl = `https://wa.me/56937667709?text=Hola%20Elena%20La%20Costurera,%20me%20gustar%C3%ADa%20agendar%20una%20cita%20nupcial.%20Vivo%20en%20${encodeURIComponent(comuna)}.%20Me%20interes%C3%B3%20el%20estilo%20de%20novia%20${encodeURIComponent(selectedStyle.name)}.`;
 
   return (
     <div className="min-h-screen bg-[#070707] text-[#f5f2eb] font-sans selection:bg-[#cda45e] selection:text-black">
