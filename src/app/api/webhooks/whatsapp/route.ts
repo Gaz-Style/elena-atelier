@@ -50,7 +50,6 @@ export async function POST(req: Request) {
                             .from('crm_whatsapp_chats')
                             .insert([{
                                 phone_number: phoneNumber,
-                                customer_name: contactName,
                                 session_status: 'bot',
                                 last_interaction: new Date().toISOString()
                             }])
