@@ -51,7 +51,11 @@ export const ATELIER_TOOLS = [
                 properties: {
                     nombre: {
                         type: 'string',
-                        description: 'Nombre completo del cliente.',
+                        description: 'Solo el nombre del cliente.',
+                    },
+                    apellido: {
+                        type: 'string',
+                        description: 'Solo el apellido del cliente.',
                     },
                     correo: {
                         type: 'string',
@@ -67,10 +71,10 @@ export const ATELIER_TOOLS = [
                     },
                     tipo_servicio: {
                         type: 'string',
-                        description: 'Motivo de la visita (novia, fiesta, arreglo, entalle, etc.).',
+                        description: 'Motivo de la visita inferido del chat (novia, fiesta, arreglo, entalle, etc.).',
                     },
                 },
-                required: ['nombre', 'fecha', 'hora', 'tipo_servicio'],
+                required: ['nombre', 'apellido', 'correo', 'fecha', 'hora', 'tipo_servicio'],
                 additionalProperties: false,
             },
             strict: true,
@@ -139,9 +143,8 @@ export async function executeAtelierTool(name: string, args: any, extraData?: an
             return JSON.stringify({ status: 'success', disponibilidad: resultado });
         }
         if (name === 'agendar_visita') {
-            const nombreParts = (args.nombre || '').split(' ');
-            const nombre = nombreParts[0] || '';
-            const apellido = nombreParts.slice(1).join(' ') || '';
+            const nombre = args.nombre || '';
+            const apellido = args.apellido || '';
             const celular = extraData?.celular || '';
             const correo = args.correo || '';
             const fecha_hora = `${args.fecha}T${args.hora}:00`;
