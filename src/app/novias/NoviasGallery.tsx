@@ -98,7 +98,7 @@ export default function NoviasGallery() {
               <p className="text-sm text-[#cda45e] mt-1">{dress.price}</p>
               
               <Link 
-                href={`https://wa.me/56972812907?text=Hola%20Elena,%20me%20encant%C3%B3%20el%20vestido%20de%20novia%20${encodeURIComponent(dress.name)}.%20Quiero%20agendar%20una%20cita%20nupcial.`}
+                href={`https://wa.me/56930510626?text=Hola%20Elena,%20me%20encant%C3%B3%20el%20vestido%20de%20novia%20${encodeURIComponent(dress.name)}.%20Quiero%20agendar%20una%20cita%20nupcial.`}
                 target="_blank"
                 className="inline-flex items-center gap-2 text-[10px] text-white uppercase tracking-widest border-b border-white/30 pb-1 mt-4 hover:border-white transition-colors"
               >
@@ -112,7 +112,7 @@ export default function NoviasGallery() {
       {/* Sticky Bottom Bar for Mobile Booking */}
       <div className="fixed bottom-0 left-0 right-0 bg-[#000000] border-t border-white/10 p-4 z-50 lg:hidden flex justify-center">
         <Link 
-          href="https://wa.me/56972812907?text=Hola%20Elena,%20me%20gustar%C3%ADa%20agendar%20una%20cita%20para%20un%20vestido%20de%20novia."
+          href="https://wa.me/56930510626?text=Hola%20Elena,%20me%20gustar%C3%ADa%20agendar%20una%20cita%20para%20un%20vestido%20de%20novia."
           target="_blank"
           className="w-full max-w-sm bg-[#cda45e] text-black hover:bg-[#e4be7a] py-4 flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-widest"
         >

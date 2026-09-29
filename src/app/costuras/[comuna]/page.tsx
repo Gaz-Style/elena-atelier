@@ -63,13 +63,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 function getWhatsAppUrl(comunaFormatted: string, servicio: string = "general") {
-    const phone = "56972812907";
+    const phone = "56937667709";
     const text = `Hola. Tengo una prenda que necesita arreglo (${servicio}) y estoy en el sector de ${comunaFormatted}. ¿Puedo enviarles una foto rápida para saber si se puede reparar y cuánto costaría?`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 }
 
 function getWhatsAppPhotoUrl(comunaFormatted: string) {
-    const phone = "56972812907";
+    const phone = "56937667709";
     const text = `Hola Elena Atelier. Estoy en ${comunaFormatted} y les envío una foto de mi prenda para cotizar el arreglo. ¿Pueden darme un precio estimado?`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 }
@@ -148,7 +148,7 @@ export default async function CosturasComunaPage({ params }: Props) {
         "image": "https://www.elenalacosturera.cl/hero_seamstress_taller.png",
         "@id": `https://www.elenalacosturera.cl/costuras/${resolvedParams.comuna}#business`,
         "url": `https://www.elenalacosturera.cl/costuras/${resolvedParams.comuna}`,
-        "telephone": "+56972812907",
+        "telephone": "+56937667709",
         "priceRange": "$$",
         "address": {
             "@type": "PostalAddress",

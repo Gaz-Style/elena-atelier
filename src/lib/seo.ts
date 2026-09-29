@@ -7,7 +7,7 @@ export const ElenaAtelierSchema = {
             "name": "ELENA La Costurera - Atelier de Alta Costura en Vitacura",
             "url": "https://elenalacosturera.cl",
             "image": "https://elenalacosturera.cl/hero_seamstress_taller.png",
-            "telephone": "+56972812907",
+            "telephone": "+56937667709",
             "priceRange": "$$$",
             "description": "Atelier exclusivo de Alta Costura, vestidos de novia, gala, graduación y arreglos de ropa fina. Ubicado en Av. Tabancura 1091, Oficina 319, Vitacura, Santiago de Chile. Atención presencial con estacionamiento y envíos a todo Chile.",
             "address": {

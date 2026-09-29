@@ -126,7 +126,7 @@ export default function GraduationQualifierForm() {
         const formattedDate = formData.eventDate ? new Date(formData.eventDate).toLocaleDateString('es-CL') : 'por definir';
         const templateMessage = `Hola Elena Atelier, acabo de verificar mi diseño en la web para la graduación en el colegio/universidad *${formData.school}* el día *${formattedDate}*. Me interesa la opción *${formData.serviceType}*. ¿Tienen horas disponibles esta semana en Vitacura?`;
         
-        const whatsappUrl = `https://wa.me/56972812907?text=${encodeURIComponent(templateMessage)}`;
+        const whatsappUrl = `https://wa.me/56937667709?text=${encodeURIComponent(templateMessage)}`;
         window.open(whatsappUrl, '_blank');
     };
 

@@ -81,7 +81,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
 
   const getWhatsAppLink = () => {
     const text = `Hola Elena, me encantó uno de tus vestidos me gustaría cotizar la confección a medida de un diseño para mi.`;
-    return `https://wa.me/56972812907?text=${encodeURIComponent(text)}`;
+    return `https://wa.me/56937667709?text=${encodeURIComponent(text)}`;
   };
 
   return (
@@ -221,7 +221,7 @@ function DressGridItem({ vestido, onClick }: { vestido: Vestido, onClick: () => 
 
   const getWhatsAppLink = () => {
     const text = `Hola Elena, me encantó uno de tus vestidos me gustaría cotizar la confección a medida de un diseño para mi.`;
-    return `https://wa.me/56972812907?text=${encodeURIComponent(text)}`;
+    return `https://wa.me/56937667709?text=${encodeURIComponent(text)}`;
   };
 
   const handleCardClick = () => {
@@ -423,7 +423,7 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
                 ¿El nerviosismo de llegar a un evento y ver a otra invitada con tu mismo vestido? En Elena Atelier registramos cada evento y diseñamos piezas únicas en moldería, textura y calce para que brilles con total exclusividad.
               </p>
               <a
-                href="https://wa.me/56972812907?text=Hola%20Elena,%20tengo%20un%20evento%20de%20gala/fiesta%20y%20busco%20un%20dise%C3%B1o%20exclusivo%20a%20medida%20sin%20riesgo%20de%20vestido%20repetido."
+                href="https://wa.me/56937667709?text=Hola%20Elena,%20tengo%20un%20evento%20de%20gala/fiesta%20y%20busco%20un%20dise%C3%B1o%20exclusivo%20a%20medida%20sin%20riesgo%20de%20vestido%20repetido."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-brand-sand hover:text-white transition-colors pt-2 border-b border-brand-sand/40 pb-1"
@@ -595,7 +595,7 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
                                 </div>
                                 <div className="pointer-events-auto">
                                   <a
-                                    href="https://wa.me/56972812907?text=Hola%20Elena,%20estoy%20viendo%20el%20video%20del%20proceso%20de%20novias%20y%20me%20gustar%C3%ADa%20cotizar%20un%20dise%C3%B1o%20a%20medida."
+                                    href="https://wa.me/56937667709?text=Hola%20Elena,%20estoy%20viendo%20el%20video%20del%20proceso%20de%20novias%20y%20me%20gustar%C3%ADa%20cotizar%20un%20dise%C3%B1o%20a%20medida."
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center justify-center gap-2 border border-white/20 border-t-white/40 text-white font-sans text-[11px] uppercase tracking-[0.2em] font-bold bg-white/[0.12] backdrop-blur-[12px] px-4 py-3 rounded-[1px] hover:bg-[#f5f2eb]/90 hover:text-[#121212] transition-all w-full text-center shadow-lg"

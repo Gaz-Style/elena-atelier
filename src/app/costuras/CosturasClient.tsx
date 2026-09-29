@@ -10,13 +10,13 @@ import LocationMap from '@/components/LocationMap';
 import TrackedLink from '@/components/TrackedLink';
 
 function getWhatsAppUrl(comunaFormatted: string = "[La Dehesa / Los Trapenses / Lo Barnechea / Otro]", servicio: string = "general") {
-    const phone = "56972812907";
+    const phone = "56937667709";
     const text = `Hola. Tengo una prenda que necesita arreglo (${servicio}) y estoy en el sector de ${comunaFormatted}. ¿Puedo enviarles una foto rápida para saber si se puede reparar y cuánto costaría?`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 }
 
 function getWhatsAppPhotoUrl() {
-    const phone = "56972812907";
+    const phone = "56937667709";
     const text = "Hola Elena Atelier. Les envío una foto de mi prenda para cotizar el arreglo. ¿Pueden darme un precio estimado?";
     return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 }
