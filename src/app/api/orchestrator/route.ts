@@ -147,7 +147,6 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                         
                         // Evaluar si hay foto en el mensaje original (fase Gemini)
                         const isImage = task.payload.message_type === 'image';
-                        let visualContext = '';
                         if (isImage) {
                             let geminiAnalysisLocal = task.payload.gemini_analysis || null;
                             const mediaUrl = task.payload.media_url;
@@ -189,9 +188,16 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                             }
                             
                             if (geminiAnalysisLocal) {
-                               visualContext = `\n[ANÁLISIS VISUAL DE LA FOTO ENVIADA]: ${geminiAnalysisLocal}\n`;
+                               // Inyectar el análisis visual directamente en el mensaje del usuario para que el LLM lo lea como acción del usuario
+                               const lastUserMsgIndex = conversationHistory.findLastIndex((msg: any) => msg.role === 'user');
+                               if (lastUserMsgIndex !== -1) {
+                                   conversationHistory[lastUserMsgIndex].content = `[EL USUARIO ENVIÓ UNA FOTO. Análisis de la imagen: ${geminiAnalysisLocal}] ${conversationHistory[lastUserMsgIndex].content}`;
+                               }
                             } else {
-                               visualContext = `\n[SISTEMA]: El usuario envió una imagen, pero hubo un error al leerla. Dile que no pudiste verla bien y pídele que traiga la prenda.\n`;
+                               const lastUserMsgIndex = conversationHistory.findLastIndex((msg: any) => msg.role === 'user');
+                               if (lastUserMsgIndex !== -1) {
+                                   conversationHistory[lastUserMsgIndex].content = `[EL USUARIO ENVIÓ UNA FOTO, pero hubo un error al leerla o descargarla. Dile que no pudiste verla bien y pídele que traiga la prenda o envíe otra foto.] ${conversationHistory[lastUserMsgIndex].content}`;
+                               }
                             }
                         }
 
@@ -217,7 +223,7 @@ REGLAS DE ORO OBLIGATORIAS:
 2. PREGUNTA GUÍA: Termina tus respuestas con una pregunta cerrada para guiar al cliente hacia el agendamiento, EXCEPTO cuando la cita ya se haya agendado o el cliente se esté despidiendo.
 3. VOCABULARIO CHILENO: Prohibido decir "bastilla" (usa "basta"), "cremallera" (usa "cierre"). Usa lenguaje natural de Chile.
 4. PRECIOS Y AGENDAMIENTO: Usa el catálogo adjunto. Siempre da precios referenciales con la palabra "desde". Despacho a domicilio en sector oriente cuesta $10.000.
-5. TOMA DE DATOS Y AGENDA: OBLIGATORIO usar 'consultar_disponibilidad' antes de ofrecer días/horas. Si el cliente acepta, pide Nombre y Correo. CUANDO TENGAS EL NOMBRE, CORREO Y HORA, ESTÁS OBLIGADO a ejecutar la herramienta 'agendar_visita'. NUNCA digas que agendaste si no ejecutaste la herramienta primero. NO pidas el celular.
+5. TOMA DE DATOS Y AGENDA: OBLIGATORIO usar 'consultar_disponibilidad' antes de ofrecer días/horas. Si el cliente acepta, pide Nombre, Apellido y Correo. CUANDO TENGAS EL NOMBRE, APELLIDO, CORREO Y HORA, ESTÁS OBLIGADO a ejecutar la herramienta 'agendar_visita'. NUNCA digas que agendaste si no ejecutaste la herramienta primero. NO pidas el celular.
 6. DERIVACIÓN: Si el cliente muestra confusión, enojo, pide hablar con un humano o menciona la palabra "problema", usa la herramienta 'solicitar_asistencia_humana'.
 7. CONTACTO POSTERIOR (RECORDATORIO): Si te piden que les hables más tarde, usa de inmediato la herramienta 'programar_seguimiento_automatico' con los minutos indicados. Si están dentro de tu horario hábil (09:00 a 21:00), diles "¡Claro! Te escribo en un ratito.". PERO si te piden hablarles a una hora que cae fuera de ese horario (ej: de madrugada), diles "¡Claro! Te escribiré mañana a primera hora para que lo veamos." (EXCEPCIÓN: Si te piden esperar 15 minutos o menos, permítelo y diles "¡Claro! Te espero").
 8. FOTOS Y VISIÓN (¡MUY IMPORTANTE!): ¡TÚ SÍ PUEDES VER FOTOS! Estás conectada a un motor de visión. Si el cliente te pregunta si puede enviar fotos, dile con entusiasmo "¡Sí, claro! Envíame la foto y la reviso de inmediato.". ¡NUNCA digas que no puedes ver imágenes!
@@ -230,11 +236,11 @@ ACCIONES PROHIBIDAS (NUNCA LAS HAGAS):
 - NUNCA des un precio final exacto. Siempre usa "desde $X" y deriva al taller.
 - NUNCA inventes fechas u horas que no hayas verificado con la herramienta. No ofrezcas las 13:00.
 - NUNCA confirmes una cita verbalmente (ej: "Te agendé", "Listo") sin haber ejecutado la herramienta 'agendar_visita'. ESTÁ ESTRICTAMENTE PROHIBIDO.
+- NUNCA respondas con bloques de código XML ni etiquetas DSML. Si necesitas usar una herramienta, usa la invocación de función JSON en formato nativo, NO LA ESCRIBAS EN TU RESPUESTA DE TEXTO.
 
 CATÁLOGO VIGENTE Y CONTEXTO RAG (USAR COMO REFERENCIA):
 ${catalogContext}
-${ragContext}
-${visualContext}`;
+${ragContext}`;
 
                         // PRIMERA LLAMADA A DEEPSEEK (CON TOOLS)
                         let aiReply = "Disculpe, en este momento el atelier está con alta demanda. Un asesor humano le atenderá a la brevedad.";

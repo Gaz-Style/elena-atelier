@@ -24,6 +24,10 @@ export function sanitizeDeepSeekResponse(content: string): string {
     let cleaned = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
     // Limpiar posibles etiquetas sueltas por truncación
     cleaned = cleaned.replace(/<\/?think>/gi, '').trim();
+    
+    // Limpiar fuga de tokens internos de herramientas (DeepSeek DSML)
+    cleaned = cleaned.replace(/<\s*\|\s*DSML\s*\|.*$/gis, '').trim();
+    
     return cleaned;
 }
 
