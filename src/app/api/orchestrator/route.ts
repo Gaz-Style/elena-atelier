@@ -150,6 +150,7 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                         const isImage = task.payload.message_type === 'image';
                         if (isImage) {
                             let geminiAnalysisLocal = task.payload.gemini_analysis || null;
+                            let rawGeminiData = null;
                             const mediaUrl = task.payload.media_url;
                             if (!geminiAnalysisLocal && mediaUrl) {
                                 // Procesar la foto aquí asíncronamente
@@ -172,7 +173,6 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                                                     generationConfig: { maxOutputTokens: 150 }
                                                 };
                                                 
-                                                let rawGeminiData = null;
                                                 const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
                                                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
                                                 });
