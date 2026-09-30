@@ -181,16 +181,29 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                                                     const geminiData = await geminiRes.json();
                                                     rawGeminiData = geminiData;
                                                     geminiAnalysisLocal = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || null;
+                                                } else {
+                                                    throw new Error(`Gemini API Error: ${geminiRes.status} ${await geminiRes.text()}`);
                                                 }
+                                            } else {
+                                                throw new Error(`Meta Image Download Error: ${imageRes.status} ${await imageRes.text()}`);
                                             }
+                                        } else {
+                                            throw new Error(`Meta API Media URL Missing: ${JSON.stringify(mediaData)}`);
                                         }
-                                    } catch (e) {
+                                    } catch (e: any) {
                                         console.error('Error visual:', e);
+                                        // Save the precise error to the DB for debugging
+                                        await supabase.from('crm_whatsapp_messages')
+                                            .update({ content: `[EL USUARIO ENVIÓ UNA FOTO. Error del sistema: ${e.message}]` })
+                                            .eq('chat_id', task.payload.chat_id)
+                                            .eq('media_url', mediaUrl);
+                                        // Mark geminiAnalysisLocal as something so it doesn't trigger the generic else below
+                                        geminiAnalysisLocal = `ERROR: ${e.message}`;
                                     }
                                 }
                             }
                             
-                            if (geminiAnalysisLocal) {
+                            if (geminiAnalysisLocal && !geminiAnalysisLocal.startsWith('ERROR:')) {
                                // Guardar el análisis en la base de datos para que el bot tenga memoria de la imagen en los siguientes mensajes
                                await supabase.from('crm_whatsapp_messages')
                                    .update({ content: `[EL USUARIO ENVIÓ UNA FOTO. Análisis visual: ${geminiAnalysisLocal} | RAW: ${JSON.stringify(rawGeminiData)}]` })
@@ -202,7 +215,7 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                                if (lastUserMsgIndex !== -1) {
                                    conversationHistory[lastUserMsgIndex].content = `[EL USUARIO ENVIÓ UNA FOTO. Análisis de la imagen: ${geminiAnalysisLocal}] ${conversationHistory[lastUserMsgIndex].content}`;
                                }
-                            } else {
+                            } else if (!geminiAnalysisLocal) {
                                // Guardar el error de lectura en la base de datos
                                await supabase.from('crm_whatsapp_messages')
                                    .update({ content: `[EL USUARIO ENVIÓ UNA FOTO. Error del sistema: No se pudo descargar la imagen. El Token de Meta podría estar vencido o la imagen es inaccesible.]` })
