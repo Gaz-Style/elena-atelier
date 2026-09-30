@@ -172,12 +172,14 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                                                     generationConfig: { maxOutputTokens: 150 }
                                                 };
                                                 
+                                                let rawGeminiData = null;
                                                 const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
                                                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
                                                 });
                                                 
                                                 if (geminiRes.ok) {
                                                     const geminiData = await geminiRes.json();
+                                                    rawGeminiData = geminiData;
                                                     geminiAnalysisLocal = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || null;
                                                 }
                                             }
@@ -191,7 +193,7 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                             if (geminiAnalysisLocal) {
                                // Guardar el análisis en la base de datos para que el bot tenga memoria de la imagen en los siguientes mensajes
                                await supabase.from('crm_whatsapp_messages')
-                                   .update({ content: `[EL USUARIO ENVIÓ UNA FOTO. Análisis visual: ${geminiAnalysisLocal}]` })
+                                   .update({ content: `[EL USUARIO ENVIÓ UNA FOTO. Análisis visual: ${geminiAnalysisLocal} | RAW: ${JSON.stringify(rawGeminiData)}]` })
                                    .eq('chat_id', task.payload.chat_id)
                                    .eq('media_url', mediaUrl);
                                
