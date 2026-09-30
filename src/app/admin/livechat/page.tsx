@@ -2,8 +2,15 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Send, Bot, User, Phone, CheckCircle, Search, ToggleLeft, ToggleRight, FileText } from 'lucide-react';
-import { getWhatsAppChatsAction, getWhatsAppMessagesAction, sendWhatsAppMessageAction, toggleBotSessionAction, sendWhatsAppTemplateAction } from './actions';
+import { ArrowLeft, Send, Bot, User, Phone, CheckCircle, Search, ToggleLeft, ToggleRight, MessageSquare, ArrowLeft as ArrowLeftMobile } from 'lucide-react';
+import { getWhatsAppChatsAction, getWhatsAppMessagesAction, sendWhatsAppMessageAction, toggleBotSessionAction } from './actions';
+
+// Icono simple de WhatsApp (Omnicanal)
+const WhatsAppIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+  </svg>
+);
 
 export default function LiveChatPage() {
     const [chats, setChats] = useState<any[]>([]);
@@ -14,19 +21,14 @@ export default function LiveChatPage() {
     const [sending, setSending] = useState(false);
     const [sendError, setSendError] = useState<string | null>(null);
     const [autoRevertSeconds, setAutoRevertSeconds] = useState<number | null>(null);
+    
+    // UI State for mobile responsiveness
+    const [showMobileList, setShowMobileList] = useState(true);
+
     const autoRevertRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
-    const [templateClientName, setTemplateClientName] = useState('');
-    const [templatePrenda, setTemplatePrenda] = useState('');
-    const [templateMonto, setTemplateMonto] = useState('');
-    const [templateOrderId, setTemplateOrderId] = useState('');
-    const [templatePaymentMethod, setTemplatePaymentMethod] = useState('Transferencia Bancaria');
-    const [templateSending, setTemplateSending] = useState(false);
-    const [templateSendError, setTemplateSendError] = useState<string | null>(null);
-
-    const AUTO_REVERT_SECS = 180; // 3 minutos (180 segundos)
+    const AUTO_REVERT_SECS = 180; // 3 minutos
 
     const clearAutoRevert = () => {
         if (autoRevertRef.current) clearInterval(autoRevertRef.current);
@@ -64,7 +66,6 @@ export default function LiveChatPage() {
 
     useEffect(() => {
         loadChats();
-        // Polling for new messages
         const interval = setInterval(loadChats, 10000);
         return () => clearInterval(interval);
     }, []);
@@ -89,7 +90,7 @@ export default function LiveChatPage() {
         };
 
         loadMessages();
-        interval = setInterval(loadMessages, 5000); // Polling cada 5 segundos para recibir mensajes del cliente en tiempo real
+        interval = setInterval(loadMessages, 5000); 
         
         return () => clearInterval(interval);
     }, [selectedChat?.id]);
@@ -111,6 +112,16 @@ export default function LiveChatPage() {
         }, 100);
     };
 
+    const handleSelectChat = (chat: any) => {
+        setSelectedChat(chat);
+        setShowMobileList(false); // Oculta lista en mobile
+    };
+
+    const handleBackToList = () => {
+        setShowMobileList(true);
+        setSelectedChat(null);
+    };
+
     const handleSend = async () => {
         if (!replyText.trim() || !selectedChat || sending) return;
         const txt = replyText;
@@ -129,52 +140,14 @@ export default function LiveChatPage() {
             setSendError(result.error || 'Error desconocido al enviar el mensaje');
         }
         
-        // Refresh messages from DB
         const msgs = await getWhatsAppMessagesAction(selectedChat.id);
         setMessages(msgs);
         
-        // Update local chat status to human if needed
         if (selectedChat.session_status === 'bot') {
             setSelectedChat({ ...selectedChat, session_status: 'human_handoff' });
             loadChats();
         } else {
-            // Already in human_handoff, restart the timer
             startAutoRevert(selectedChat.id);
-        }
-    };
-
-    const handleSendTemplate = async () => {
-        if (!selectedChat || templateSending) return;
-        setTemplateSendError(null);
-        setTemplateSending(true);
-
-        const params = [
-            templateClientName || 'Clienta',
-            templatePrenda,
-            templateMonto,
-            templateOrderId || 'S/N',
-            templatePaymentMethod
-        ];
-
-        const result = await sendWhatsAppTemplateAction(selectedChat.id, 'confirmacion_pago_cliente', params);
-        setTemplateSending(false);
-
-        if (result.success) {
-            setIsTemplateModalOpen(false);
-            // Refresh messages from DB
-            const msgs = await getWhatsAppMessagesAction(selectedChat.id);
-            setMessages(msgs);
-            scrollToBottom();
-            
-            // Switch bot to human handoff if needed
-            if (selectedChat.session_status === 'bot') {
-                setSelectedChat({ ...selectedChat, session_status: 'human_handoff' });
-                loadChats();
-            } else {
-                startAutoRevert(selectedChat.id);
-            }
-        } else {
-            setTemplateSendError(result.error || 'Error al enviar la plantilla');
         }
     };
 
@@ -195,15 +168,11 @@ export default function LiveChatPage() {
         yesterday.setDate(today.getDate() - 1);
         
         if (d.toDateString() === today.toDateString()) {
-            return 'Hoy';
+            return 'HOY';
         } else if (d.toDateString() === yesterday.toDateString()) {
-            return 'Ayer';
+            return 'AYER';
         } else {
-            return d.toLocaleDateString('es-CL', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            });
+            return d.toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
         }
     };
 
@@ -219,189 +188,199 @@ export default function LiveChatPage() {
         } else if (d.toDateString() === yesterday.toDateString()) {
             return 'Ayer';
         } else {
-            return d.toLocaleDateString('es-CL', {
-                day: 'numeric',
-                month: 'short'
-            });
+            return d.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: '2-digit' });
         }
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex font-sans h-screen">
+        <div className="h-screen w-full bg-[#f0f2f5] flex flex-col font-sans overflow-hidden">
+            
+            {/* Header Global (Desktop) */}
+            <div className={`bg-brand-charcoal px-4 py-3 flex items-center justify-between text-white shrink-0 shadow-sm z-20 ${!showMobileList ? 'hidden md:flex' : 'flex'}`}>
+                <div>
+                    <Link href="/admin" className="text-gray-300 hover:text-white text-xs flex items-center gap-2 mb-0.5 transition-colors">
+                        <ArrowLeft className="w-4 h-4" />
+                        Volver al Dashboard
+                    </Link>
+                    <h1 className="text-lg font-serif">Bandeja Omnicanal</h1>
+                </div>
+            </div>
 
-
-            {/* Main Chat Area Wrapper */}
-            <div className="flex-1 p-6 flex flex-col h-screen overflow-hidden">
-                <div className="w-full flex-grow flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="bg-brand-charcoal px-6 py-4 flex items-center justify-between text-white shrink-0">
-                        <div>
-                            <Link href="/admin" className="text-gray-400 hover:text-white text-xs flex items-center gap-2 mb-1 transition-colors">
-                                <ArrowLeft className="w-3 h-3" />
-                                Volver al Dashboard
-                            </Link>
-                            <h1 className="text-xl font-serif">Elena La Costurera (Live Chat)</h1>
+            <div className="flex-grow flex w-full max-w-[1600px] mx-auto overflow-hidden bg-white md:my-0 md:rounded-none md:border-t md:border-gray-200">
+                
+                {/* --- SIDEBAR LISTA DE CHATS --- */}
+                <div className={`w-full md:w-[350px] lg:w-[400px] border-r border-gray-200 flex flex-col bg-white shrink-0 transition-all z-10 ${!showMobileList ? 'hidden md:flex' : 'flex'}`}>
+                    <div className="p-2 border-b border-gray-100 bg-white">
+                        <div className="relative">
+                            <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
+                            <input 
+                                type="text" 
+                                placeholder="Busca un chat o contacto" 
+                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-gray-100 border-none rounded-lg outline-none focus:bg-white focus:ring-1 focus:ring-brand-terracotta transition-colors" 
+                            />
                         </div>
                     </div>
-
-                <div className="flex flex-grow overflow-hidden">
-                    {/* Sidebar */}
-                    <div className="w-1/3 border-r border-gray-100 flex flex-col bg-gray-50">
-                        <div className="p-4 border-b border-gray-200">
-                            <div className="relative">
-                                <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-                                <input type="text" placeholder="Buscar conversación..." className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-md outline-none focus:border-brand-terracotta transition-colors" />
+                    
+                    <div className="flex-grow overflow-y-auto bg-white">
+                        {loading ? (
+                            <p className="text-center text-sm text-gray-400 p-8 animate-pulse">Cargando chats...</p>
+                        ) : chats.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-full text-gray-400 p-8">
+                                <MessageSquare className="w-10 h-10 mb-3 opacity-20" />
+                                <p className="text-sm">Bandeja vacía</p>
                             </div>
-                        </div>
-                        <div className="flex-grow overflow-y-auto">
-                            {loading ? (
-                                <p className="text-center text-sm text-gray-400 p-4">Cargando chats...</p>
-                            ) : chats.length === 0 ? (
-                                <p className="text-center text-sm text-gray-400 p-4">No hay conversaciones</p>
-                            ) : (
-                                chats.map(chat => (
-                                    <button
-                                        key={chat.id}
-                                        onClick={() => setSelectedChat(chat)}
-                                        className={`w-full p-4 border-b border-gray-100 text-left transition-colors flex items-start gap-3 ${selectedChat?.id === chat.id ? 'bg-white border-l-4 border-brand-terracotta' : 'hover:bg-gray-100 border-l-4 border-transparent'}`}
-                                    >
-                                        <div className="w-10 h-10 rounded-full bg-brand-sand flex items-center justify-center shrink-0">
-                                            <User className="w-5 h-5 text-brand-charcoal" />
+                        ) : (
+                            chats.map(chat => (
+                                <button
+                                    key={chat.id}
+                                    onClick={() => handleSelectChat(chat)}
+                                    className={`w-full px-3 py-3 border-b border-gray-100 text-left transition-colors flex items-center gap-3 relative ${selectedChat?.id === chat.id ? 'bg-[#f0f2f5]' : 'hover:bg-gray-50'}`}
+                                >
+                                    <div className="relative shrink-0">
+                                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                                            <User className="w-6 h-6 text-gray-500" />
                                         </div>
-                                        <div className="flex-grow overflow-hidden">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <h4 className="font-bold text-sm text-brand-charcoal truncate">{chat.customers?.full_name || chat.phone_number}</h4>
-                                                <span className="text-[10px] text-gray-400">{formatLastInteraction(chat.last_interaction)}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className={`px-1.5 py-0.5 rounded-[4px] text-[8px] uppercase tracking-wider font-bold ${chat.session_status === 'bot' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
-                                                    {chat.session_status === 'bot' ? 'Bot IA' : 'Humano'}
-                                                </span>
-                                                <span className="text-xs text-gray-500 truncate">Score: {chat.lead_score}%</span>
-                                            </div>
+                                        {/* Omnichannel Badge */}
+                                        <div className="absolute -bottom-0.5 -right-0.5 bg-white rounded-full p-[2px] shadow-sm">
+                                            <WhatsAppIcon className="w-4 h-4 text-[#25D366]" />
                                         </div>
-                                    </button>
-                                ))
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Main Chat Area */}
-                    <div className="w-2/3 flex flex-col bg-white">
-                        {selectedChat ? (
-                            <>
-                                {/* Chat Header */}
-                                <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-full bg-brand-sand flex items-center justify-center">
-                                            <User className="w-6 h-6 text-brand-charcoal" />
+                                    </div>
+                                    
+                                    <div className="flex-grow overflow-hidden pr-1">
+                                        <div className="flex justify-between items-baseline mb-0.5">
+                                            <h4 className="font-medium text-gray-900 truncate text-[16px]">
+                                                {chat.customers?.full_name || chat.phone_number}
+                                            </h4>
+                                            <span className="text-[12px] text-gray-500 shrink-0 ml-2">
+                                                {formatLastInteraction(chat.last_interaction)}
+                                            </span>
                                         </div>
-                                        <div>
-                                            <h3 className="font-bold text-brand-charcoal">{selectedChat.customers?.full_name || selectedChat.phone_number}</h3>
-                                            <p className="text-xs text-gray-500 flex items-center gap-1">
-                                                <Phone className="w-3 h-3" /> {selectedChat.phone_number}
+                                        <div className="flex items-center justify-between gap-2">
+                                            <p className="text-[14px] text-gray-500 truncate flex-grow">
+                                                {chat.session_status === 'bot' ? 'IA respondiendo...' : '👤 En espera...'}
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        {selectedChat.session_status !== 'bot' && autoRevertSeconds !== null && (
-                                            <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100 animate-pulse">
-                                                IA en {autoRevertSeconds}s
-                                            </span>
-                                        )}
-                                        <button 
-                                            onClick={toggleBot}
-                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wide transition-colors ${
-                                                selectedChat.session_status === 'bot' 
-                                                ? 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100' 
-                                                : 'bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100'
-                                            }`}
-                                        >
-                                            {selectedChat.session_status === 'bot' ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
-                                            {selectedChat.session_status === 'bot' ? 'IA Activa' : 'Pausado (Humano)'}
-                                        </button>
+                                </button>
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                {/* --- MAIN CHAT AREA --- */}
+                <div className={`w-full flex-grow flex-col bg-[#efeae2] relative ${showMobileList ? 'hidden md:flex' : 'flex'}`}>
+                    {/* Trama de fondo tipo WhatsApp */}
+                    <div className="absolute inset-0 pointer-events-none opacity-[0.4]" style={{ backgroundImage: 'url("https://w0.peakpx.com/wallpaper/508/887/HD-wallpaper-whatsapp-background-cool-dark-green-new-theme-whatsapp-thumbnail.jpg")', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.05 }}></div>
+                    
+                    {selectedChat ? (
+                        <>
+                            {/* Sticky Header del Chat */}
+                            <div className="h-[60px] px-3 border-b border-gray-200 bg-[#f0f2f5] flex items-center justify-between shrink-0 z-10 sticky top-0">
+                                <div className="flex items-center gap-2">
+                                    <button 
+                                        onClick={handleBackToList}
+                                        className="md:hidden p-2 -ml-2 text-gray-600 hover:text-gray-900"
+                                    >
+                                        <ArrowLeftMobile className="w-6 h-6" />
+                                    </button>
+                                    
+                                    <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center shrink-0">
+                                        <User className="w-6 h-6 text-gray-500" />
+                                    </div>
+                                    <div className="flex flex-col ml-1">
+                                        <h3 className="font-semibold text-gray-900 text-[16px] leading-tight">
+                                            {selectedChat.customers?.full_name || selectedChat.phone_number}
+                                        </h3>
+                                        <p className="text-[13px] text-gray-500 leading-tight">
+                                            {selectedChat.phone_number}
+                                        </p>
                                     </div>
                                 </div>
 
-                                {/* Messages */}
-                                <div className="flex-grow overflow-y-auto p-6 space-y-4 bg-gray-50/50">
-                                    {messages.map((msg, index) => {
-                                        const isCustomer = msg.sender_type === 'customer';
-                                        
-                                        // Show a date separator when the day changes
-                                        const prevMsg = index > 0 ? messages[index - 1] : null;
-                                        const showDateSeparator = !prevMsg || 
-                                            new Date(msg.created_at).toDateString() !== new Date(prevMsg.created_at).toDateString();
+                                <div className="flex items-center gap-3 pr-2">
+                                    {selectedChat.session_status !== 'bot' && autoRevertSeconds !== null && (
+                                        <span className="hidden sm:inline-block text-[12px] text-orange-800 bg-orange-100 px-3 py-1 rounded-full font-medium animate-pulse">
+                                            Reanuda IA en {autoRevertSeconds}s
+                                        </span>
+                                    )}
+                                    <button 
+                                        onClick={toggleBot}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all border ${
+                                            selectedChat.session_status === 'bot' 
+                                            ? 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50' 
+                                            : 'bg-[#00a884] text-white border-[#00a884] hover:bg-[#008f6f]'
+                                        }`}
+                                    >
+                                        {selectedChat.session_status === 'bot' ? <ToggleRight className="w-5 h-5 text-[#00a884]" /> : <ToggleLeft className="w-5 h-5" />}
+                                        <span className="hidden sm:inline">{selectedChat.session_status === 'bot' ? 'Modo Bot IA' : 'Modo Humano'}</span>
+                                    </button>
+                                </div>
+                            </div>
 
-                                        return (
-                                            <React.Fragment key={msg.id}>
-                                                {showDateSeparator && (
-                                                    <div className="flex justify-center my-4">
-                                                        <span className="text-[9px] font-bold uppercase tracking-widest text-gray-500 bg-gray-200/50 px-3 py-1 rounded-full">
-                                                            {formatMessageDate(msg.created_at)}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                <div className={`flex ${isCustomer ? 'justify-start' : 'justify-end'}`}>
-                                                    <div className={`max-w-[70%] rounded-2xl px-5 py-3 shadow-sm ${
-                                                        isCustomer ? 'bg-white border border-gray-100 text-gray-800 rounded-tl-none' 
-                                                        : msg.sender_type === 'bot' ? 'bg-brand-sand/30 border border-brand-sand text-brand-charcoal rounded-tr-none' 
-                                                        : 'bg-brand-charcoal text-white rounded-tr-none'
-                                                    }`}>
-                                                        {!isCustomer && (
-                                                            <div className="flex items-center gap-1 mb-1 opacity-70">
-                                                                {msg.sender_type === 'bot' ? <Bot className="w-3 h-3" /> : <User className="w-3 h-3" />}
-                                                                <span className="text-[9px] uppercase tracking-widest font-bold">
-                                                                    {msg.sender_type === 'bot' ? 'Elena La Costurera' : 'Asesor'}
-                                                                </span>
-                                                            </div>
-                                                        )}
-                                                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                                                        <div className={`text-[10px] mt-2 flex justify-end items-center gap-1 ${isCustomer ? 'text-gray-400' : 'text-white/70'}`}>
-                                                            {new Date(msg.created_at).toLocaleTimeString('es-CL', {hour: '2-digit', minute:'2-digit'})}
-                                                            {!isCustomer && <CheckCircle className="w-3 h-3" />}
+                            {/* Área de Historial de Mensajes */}
+                            <div className="flex-grow overflow-y-auto p-3 sm:p-5 space-y-2 z-10 scroll-smooth">
+                                {messages.map((msg, index) => {
+                                    const isCustomer = msg.sender_type === 'customer';
+                                    const prevMsg = index > 0 ? messages[index - 1] : null;
+                                    const showDateSeparator = !prevMsg || 
+                                        new Date(msg.created_at).toDateString() !== new Date(prevMsg.created_at).toDateString();
+
+                                    return (
+                                        <React.Fragment key={msg.id}>
+                                            {showDateSeparator && (
+                                                <div className="flex justify-center my-3">
+                                                    <span className="text-[12.5px] text-gray-600 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-sm">
+                                                        {formatMessageDate(msg.created_at)}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            
+                                            <div className={`flex ${isCustomer ? 'justify-start' : 'justify-end'}`}>
+                                                <div className={`relative max-w-[85%] sm:max-w-[65%] rounded-lg px-2.5 py-1.5 shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] ${
+                                                    isCustomer 
+                                                    ? 'bg-white rounded-tl-none' 
+                                                    : 'bg-[#dcf8c6] rounded-tr-none' // Verde clásico WhatsApp web
+                                                }`}>
+                                                    
+                                                    {/* Indicador de Bot/Humano dentro de la burbuja enviada */}
+                                                    {!isCustomer && (
+                                                        <div className={`flex items-center gap-1 mb-0.5 text-[#075e54]`}>
+                                                            {msg.sender_type === 'bot' ? <Bot className="w-3 h-3" /> : <User className="w-3 h-3" />}
+                                                            <span className="text-[11px] font-medium">
+                                                                {msg.sender_type === 'bot' ? 'Bot' : 'Tú'}
+                                                            </span>
                                                         </div>
+                                                    )}
+
+                                                    <p className="text-[14.2px] text-[#111111] leading-[19px] whitespace-pre-wrap pr-12 pb-2">
+                                                        {msg.content}
+                                                    </p>
+                                                    
+                                                    {/* Marca de tiempo estilo WhatsApp */}
+                                                    <div className={`absolute bottom-1 right-2 text-[11px] flex items-center gap-1 ${
+                                                        isCustomer ? 'text-gray-500' : 'text-[#667781]'
+                                                    }`}>
+                                                        {new Date(msg.created_at).toLocaleTimeString('es-CL', {hour: '2-digit', minute:'2-digit'})}
+                                                        {!isCustomer && <span className="text-[#53bdeb]">✓✓</span>}
                                                     </div>
                                                 </div>
-                                            </React.Fragment>
-                                        );
-                                    })}
-                                    <div ref={messagesEndRef} />
-                                </div>
+                                            </div>
+                                        </React.Fragment>
+                                    );
+                                })}
+                                <div ref={messagesEndRef} className="h-2" />
+                            </div>
 
-                                {/* Input Area */}
-                                <div className="p-4 border-t border-gray-100 bg-white shrink-0">
-                                    {selectedChat.session_status === 'bot' && (
-                                        <div className="mb-2 text-[10px] text-blue-600 font-medium bg-blue-50 p-2 rounded-md border border-blue-100 flex items-center gap-2">
-                                            <Bot className="w-4 h-4" />
-                                            El Agente IA está respondiendo automáticamente. Al enviar un mensaje, el bot se pausará.
-                                        </div>
-                                    )}
-                                    {sendError && (
-                                        <div className="mb-2 text-[11px] text-red-700 font-medium bg-red-50 p-2 rounded-md border border-red-200 flex items-start gap-2">
-                                            <span className="shrink-0 mt-0.5">⚠️</span>
-                                            <span><strong>Error WhatsApp:</strong> {sendError}</span>
-                                        </div>
-                                    )}
-                                    <div className="flex justify-between items-center mb-2 px-1">
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => {
-                                                    setTemplateClientName(selectedChat.customers?.full_name?.split(' ')[0] || 'Clienta');
-                                                    setTemplatePrenda('');
-                                                    setTemplateMonto('');
-                                                    setTemplateOrderId('');
-                                                    setTemplatePaymentMethod('Transferencia Bancaria');
-                                                    setTemplateSendError(null);
-                                                    setIsTemplateModalOpen(true);
-                                                }}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-sand/20 hover:bg-brand-sand/40 border border-brand-sand/50 text-brand-charcoal rounded-md text-xs font-semibold transition-colors"
-                                            >
-                                                <FileText className="w-3.5 h-3.5" />
-                                                Plantilla de Pago
-                                            </button>
-                                        </div>
+                            {/* Sticky Input Area (Cápsula inferior) */}
+                            <div className="bg-[#f0f2f5] p-2.5 z-20 shrink-0">
+                                {sendError && (
+                                    <div className="mb-2 text-[12px] text-red-600 text-center bg-red-50 py-1 rounded">
+                                        ⚠️ Error: {sendError}
                                     </div>
-                                    <div className="flex gap-3">
+                                )}
+                                
+                                <div className="flex items-end gap-2 max-w-5xl mx-auto">
+                                    <div className="flex-grow bg-white rounded-3xl flex items-center px-4 overflow-hidden min-h-[44px]">
                                         <textarea
                                             value={replyText}
                                             onChange={(e) => { 
@@ -417,145 +396,33 @@ export default function LiveChatPage() {
                                                     handleSend();
                                                 }
                                             }}
-                                            placeholder="Escribe un mensaje al cliente..."
-                                            className="flex-grow p-3 text-sm bg-gray-50 border border-gray-200 rounded-lg outline-none focus:bg-white focus:border-brand-terracotta focus:ring-1 focus:ring-brand-terracotta resize-none min-h-[60px]"
+                                            placeholder="Escribe un mensaje"
+                                            className="w-full py-3 text-[15px] bg-transparent outline-none resize-none max-h-[120px] scrollbar-hide flex items-center"
+                                            rows={1}
+                                            style={{ height: replyText.split('\n').length > 1 ? 'auto' : '44px' }}
                                         />
-                                        <button
-                                            onClick={handleSend}
-                                            disabled={!replyText.trim() || sending}
-                                            className="bg-brand-charcoal text-white p-4 rounded-lg hover:bg-brand-terracotta transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center h-[60px] w-[60px]"
-                                        >
-                                            {sending ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-5 h-5" />}
-                                        </button>
                                     </div>
+                                    <button
+                                        onClick={handleSend}
+                                        disabled={!replyText.trim() || sending}
+                                        className="bg-[#00a884] text-white rounded-full w-[44px] h-[44px] flex items-center justify-center shrink-0 transition-transform active:scale-95 disabled:opacity-50"
+                                    >
+                                        {sending ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-5 h-5 ml-1" />}
+                                    </button>
                                 </div>
-                            </>
-                        ) : (
-                            <div className="flex-grow flex flex-col items-center justify-center text-gray-400">
-                                <MessageSquare className="w-12 h-12 mb-4 opacity-20" />
-                                <p>Selecciona una conversación para comenzar</p>
                             </div>
-                        )}
-                    </div>
+                        </>
+                    ) : (
+                        <div className="hidden md:flex flex-grow flex-col items-center justify-center text-gray-500 bg-[#f0f2f5] z-10 border-b-8 border-[#00a884]">
+                            <h2 className="text-3xl font-light text-[#41525d] mb-4 mt-8">WhatsApp Web</h2>
+                            <p className="text-[14px] text-[#667781] text-center max-w-md leading-relaxed">
+                                Envía y recibe mensajes sin necesidad de tener tu teléfono conectado.
+                                Usa WhatsApp en hasta 4 dispositivos vinculados y 1 teléfono a la vez.
+                            </p>
+                        </div>
+                    )}
                 </div>
-            {/* Modal de Plantilla de Confirmación de Pago */}
-            {isTemplateModalOpen && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl shadow-xl border border-gray-100 max-w-md w-full p-6 mx-4">
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 className="font-serif text-lg font-bold text-brand-charcoal">Enviar Plantilla de Confirmación</h3>
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Esta plantilla oficial de WhatsApp se enviará directamente al cliente.
-                                </p>
-                            </div>
-                            <button 
-                                onClick={() => setIsTemplateModalOpen(false)}
-                                className="text-gray-400 hover:text-gray-600 font-bold text-lg"
-                            >
-                                ×
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Nombre de la Clienta</label>
-                                <input 
-                                    type="text" 
-                                    value={templateClientName}
-                                    onChange={(e) => setTemplateClientName(e.target.value)}
-                                    placeholder="Ej: María"
-                                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-md outline-none focus:bg-white focus:border-brand-terracotta focus:ring-1 focus:ring-brand-terracotta transition-colors"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Prenda / Servicio</label>
-                                <input 
-                                    type="text" 
-                                    value={templatePrenda}
-                                    onChange={(e) => setTemplatePrenda(e.target.value)}
-                                    placeholder="Ej: Ajuste Vestido de Fiesta"
-                                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-md outline-none focus:bg-white focus:border-brand-terracotta focus:ring-1 focus:ring-brand-terracotta transition-colors"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Monto ($)</label>
-                                    <input 
-                                        type="text" 
-                                        value={templateMonto}
-                                        onChange={(e) => setTemplateMonto(e.target.value)}
-                                        placeholder="Ej: $45.000"
-                                        className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-md outline-none focus:bg-white focus:border-brand-terracotta focus:ring-1 focus:ring-brand-terracotta transition-colors"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">ID Orden / Referencia</label>
-                                    <input 
-                                        type="text" 
-                                        value={templateOrderId}
-                                        onChange={(e) => setTemplateOrderId(e.target.value)}
-                                        placeholder="Ej: order_123"
-                                        className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-md outline-none focus:bg-white focus:border-brand-terracotta focus:ring-1 focus:ring-brand-terracotta transition-colors"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Medio de Pago</label>
-                                <select
-                                    value={templatePaymentMethod}
-                                    onChange={(e) => setTemplatePaymentMethod(e.target.value)}
-                                    className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-md outline-none focus:bg-white focus:border-brand-terracotta focus:ring-1 focus:ring-brand-terracotta transition-colors"
-                                >
-                                    <option value="Transferencia Bancaria">Transferencia Bancaria</option>
-                                    <option value="MercadoPago">MercadoPago</option>
-                                    <option value="Transbank">Transbank</option>
-                                    <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
-                                    <option value="Tarjeta de Débito">Tarjeta de Débito</option>
-                                    <option value="Efectivo">Efectivo</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {templateSendError && (
-                            <div className="mt-3 text-[11px] text-red-700 font-medium bg-red-50 p-2 rounded-md border border-red-200">
-                                {templateSendError}
-                            </div>
-                        )}
-
-                        <div className="mt-6 flex justify-end gap-3">
-                            <button
-                                onClick={() => setIsTemplateModalOpen(false)}
-                                className="px-4 py-2 border border-gray-200 hover:bg-gray-50 rounded-md text-xs font-bold text-gray-500 uppercase tracking-wider transition-colors"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleSendTemplate}
-                                disabled={templateSending || !templatePrenda.trim() || !templateMonto.trim()}
-                                className="px-4 py-2 bg-brand-charcoal hover:bg-brand-terracotta text-white rounded-md text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                            >
-                                {templateSending ? (
-                                    <>
-                                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        Enviando...
-                                    </>
-                                ) : 'Enviar Plantilla'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            </div>
             </div>
         </div>
     );
 }
-
-// Just an icon to avoid missing import
-const MessageSquare = (props: any) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-);
