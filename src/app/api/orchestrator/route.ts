@@ -206,7 +206,7 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                             if (geminiAnalysisLocal && !geminiAnalysisLocal.startsWith('ERROR:')) {
                                // Guardar el análisis en la base de datos para que el bot tenga memoria de la imagen en los siguientes mensajes
                                await supabase.from('crm_whatsapp_messages')
-                                   .update({ content: `[EL USUARIO ENVIÓ UNA FOTO. Análisis visual: ${geminiAnalysisLocal} | RAW: ${JSON.stringify(rawGeminiData)}]` })
+                                   .update({ content: `[EL USUARIO ENVIÓ UNA FOTO. Análisis visual: ${geminiAnalysisLocal}]` })
                                    .eq('chat_id', task.payload.chat_id)
                                    .eq('media_url', mediaUrl);
                                
