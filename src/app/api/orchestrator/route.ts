@@ -533,13 +533,13 @@ ${ragContext}`;
                                 try {
                                     const allText = conversationHistory.map((m: any) => m.content).join(' ') + ' ' + userMessage;
                                     const emailMatch = allText.match(/[\w.-]+@[\w.-]+\.\w+/);
-                                    const targetEmail = emailMatch ? emailMatch[0] : (customerData?.[0]?.email || '');
+                                    const targetEmail = emailMatch ? emailMatch[0] : cEmail;
 
                                     let targetNombre = 'Cliente';
                                     let targetApellido = 'Atelier';
 
-                                    if (customerData?.[0]?.full_name) {
-                                        const parts = customerData[0].full_name.split(' ');
+                                    if (cName) {
+                                        const parts = cName.split(' ');
                                         targetNombre = parts[0];
                                         targetApellido = parts.slice(1).join(' ') || 'Atelier';
                                     } else {
