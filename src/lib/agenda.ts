@@ -545,18 +545,19 @@ export async function agendar_visita(nombre: string, apellido: string, celular: 
         // 1.5 Crear o actualizar cliente en CRM (customers)
         if (celular) {
             const cleanDigits = celular.replace(/\D/g, '');
-            const formattedPhone = cleanDigits.startsWith('56') ? cleanDigits : `56${cleanDigits}`;
+            const phoneWithout56 = cleanDigits.startsWith('56') ? cleanDigits.substring(2) : cleanDigits;
+            const phoneWith56 = cleanDigits.startsWith('56') ? cleanDigits : `56${cleanDigits}`;
             
             const { data: existingCustomers } = await supabase
                 .from('customers')
                 .select('id')
-                .eq('phone', formattedPhone)
+                .or(`phone.eq.${phoneWithout56},phone.eq.${phoneWith56}`)
                 .limit(1);
                 
             if (!existingCustomers || existingCustomers.length === 0) {
                 await supabase.from('customers').insert([{
                     full_name: `${nombre} ${apellido}`.trim(),
-                    phone: formattedPhone,
+                    phone: phoneWith56, // Standardize new entries with 56
                     email: correo
                 }]);
             } else {
