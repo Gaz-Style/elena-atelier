@@ -168,7 +168,7 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                                                 const mimeType = mediaData.mime_type || 'image/jpeg';
                                                 
                                                 const payload = {
-                                                    contents: [{ parts: [{ text: "Actúa como experta modista. Describe brevemente qué prenda es y qué tipo de arreglo o confección parece necesitar según la foto (máximo 2 líneas)." }, { inlineData: { mimeType, data: base64Image } }] }],
+                                                    contents: [{ role: 'user', parts: [{ text: "Actúa como experta modista. Describe brevemente qué prenda es y qué tipo de arreglo o confección parece necesitar según la foto (máximo 2 líneas)." }, { inlineData: { mimeType, data: base64Image } }] }],
                                                     generationConfig: { maxOutputTokens: 150 }
                                                 };
                                                 
@@ -189,15 +189,27 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                             }
                             
                             if (geminiAnalysisLocal) {
-                               // Inyectar el análisis visual directamente en el mensaje del usuario para que el LLM lo lea como acción del usuario
+                               // Guardar el análisis en la base de datos para que el bot tenga memoria de la imagen en los siguientes mensajes
+                               await supabase.from('crm_whatsapp_messages')
+                                   .update({ content: `[EL USUARIO ENVIÓ UNA FOTO. Análisis visual: ${geminiAnalysisLocal}]` })
+                                   .eq('chat_id', task.payload.chat_id)
+                                   .eq('media_url', mediaUrl);
+                               
+                               // Inyectar en memoria para el turno actual
                                const lastUserMsgIndex = conversationHistory.findLastIndex((msg: any) => msg.role === 'user');
                                if (lastUserMsgIndex !== -1) {
                                    conversationHistory[lastUserMsgIndex].content = `[EL USUARIO ENVIÓ UNA FOTO. Análisis de la imagen: ${geminiAnalysisLocal}] ${conversationHistory[lastUserMsgIndex].content}`;
                                }
                             } else {
+                               // Guardar el error de lectura en la base de datos
+                               await supabase.from('crm_whatsapp_messages')
+                                   .update({ content: `[EL USUARIO ENVIÓ UNA FOTO. Error del sistema: No se pudo descargar la imagen. El Token de Meta podría estar vencido o la imagen es inaccesible.]` })
+                                   .eq('chat_id', task.payload.chat_id)
+                                   .eq('media_url', mediaUrl);
+
                                const lastUserMsgIndex = conversationHistory.findLastIndex((msg: any) => msg.role === 'user');
                                if (lastUserMsgIndex !== -1) {
-                                   conversationHistory[lastUserMsgIndex].content = `[EL USUARIO ENVIÓ UNA FOTO, pero hubo un error al leerla o descargarla. Dile que no pudiste verla bien y pídele que traiga la prenda o envíe otra foto.] ${conversationHistory[lastUserMsgIndex].content}`;
+                                   conversationHistory[lastUserMsgIndex].content = `[EL USUARIO ENVIÓ UNA FOTO, pero hubo un error al leerla por un problema de autenticación con Meta. Dile que no pudiste verla bien y pídele que traiga la prenda o envíe otra foto.] ${conversationHistory[lastUserMsgIndex].content}`;
                                }
                             }
                         }
