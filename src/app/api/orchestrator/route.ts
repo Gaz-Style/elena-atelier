@@ -221,7 +221,10 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                             const apellido = apellidos.join(' ');
                             ragContext += `\n[CRM DATA]: Este cliente ya está registrado en tu base de datos. Su celular es ${recipientPhone}. Su nombre es "${nombre}", su apellido es "${apellido}" y su correo es "${cEmail}". NO le pidas nombre ni correo para agendar, ya los tienes, úsalos automáticamente al invocar la herramienta de agendar.`;
                         } else {
-                            ragContext += `\n[CRM DATA]: Este es un cliente NUEVO. Recuerda entregarle la dirección física del taller (Av Tabancura 1091 Of 319 Vitacura) en un mensaje aparte después de agendar.`                        // Obtener fecha actual en Santiago
+                            ragContext += `\n[CRM DATA]: Este es un cliente NUEVO. Recuerda entregarle la dirección física del taller (Av Tabancura 1091 Of 319 Vitacura) en un mensaje aparte después de agendar.`;
+                        }
+
+                        // Obtener fecha actual en Santiago
                         const now = new Date();
                         const santiagoTime = new Intl.DateTimeFormat('es-CL', {
                             timeZone: 'America/Santiago',
