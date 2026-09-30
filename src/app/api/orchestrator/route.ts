@@ -206,11 +206,11 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
 
                         // Inyectar datos del cliente desde CRM si existe
                         let searchPhone1 = recipientPhone;
-                        let searchPhone2 = recipientPhone.startsWith('56') ? recipientPhone.substring(2) : \`56\${recipientPhone}\`;
+                        let searchPhone2 = recipientPhone.startsWith('56') ? recipientPhone.substring(2) : `56${recipientPhone}`;
                         const { data: customerData } = await supabase
                             .from('customers')
                             .select('full_name, email')
-                            .or(\`phone.eq.\${searchPhone1},phone.eq.\${searchPhone2}\`)
+                            .or(`phone.eq.${searchPhone1},phone.eq.${searchPhone2}`)
                             .limit(1);
                         
                         if (customerData && customerData.length > 0) {
