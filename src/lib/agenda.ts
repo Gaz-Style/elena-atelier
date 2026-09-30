@@ -542,30 +542,6 @@ export async function agendar_visita(nombre: string, apellido: string, celular: 
             return `Lo siento, el bloque de las ${dateObj.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' })} acaba de ser ocupado. Por favor, elige otra hora.`;
         }
 
-        // 1.5 Crear o actualizar cliente en CRM (customers)
-        if (celular) {
-            const cleanDigits = celular.replace(/\D/g, '');
-            const phoneWithout56 = cleanDigits.startsWith('56') ? cleanDigits.substring(2) : cleanDigits;
-            const phoneWith56 = cleanDigits.startsWith('56') ? cleanDigits : `56${cleanDigits}`;
-            
-            const { data: existingCustomers } = await supabase
-                .from('customers')
-                .select('id')
-                .or(`phone.eq.${phoneWithout56},phone.eq.${phoneWith56}`)
-                .limit(1);
-                
-            if (!existingCustomers || existingCustomers.length === 0) {
-                await supabase.from('customers').insert([{
-                    full_name: `${nombre} ${apellido}`.trim(),
-                    phone: phoneWith56, // Standardize new entries with 56
-                    email: correo
-                }]);
-            }
-            // Eliminado el bloque 'else' que hacía update a customers, 
-            // para no sobreescribir datos valiosos del CRM (como correos existentes) 
-            // con strings vacíos provenientes del bot.
-        }
-
         // Insertar en Supabase
         const { data, error } = await supabase
             .from('agendamientos')
