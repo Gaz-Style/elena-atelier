@@ -506,11 +506,19 @@ export async function registrarMensajeSalienteLiveChat(
 
 export async function agendar_visita(nombre: string, apellido: string, celular: string, correo: string, fecha_hora: string, origen: string = 'whatsapp') {
     try {
-        // Redondear a la hora más cercana o forzar que termine en :00 para evitar desajustes
-        const dateObj = new Date(fecha_hora);
-        dateObj.setMinutes(0, 0, 0); // Forzar inicio de hora
-        const fechaAjustada = dateObj.toISOString();
-        const dayOfWeek = dateObj.getDay();
+        // Extraer fecha (YYYY-MM-DD) y hora (HH:mm) expresadas en hora local de Santiago
+        const parts = fecha_hora.split('T');
+        const fechaStr = parts[0];
+        let horaStr = parts[1] ? parts[1].substring(0, 5) : '12:00';
+        if (horaStr.length === 5) horaStr = `${horaStr}:00`;
+
+        const fechaAjustada = toSantiagoISO(fechaStr, horaStr);
+        const dateObj = new Date(fechaAjustada);
+
+        // Obtener el día de la semana en hora local de Santiago
+        const dayOfWeekStr = dateObj.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'America/Santiago' });
+        const dayMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+        const dayOfWeek = dayMap[dayOfWeekStr] ?? dateObj.getDay();
 
         // 1. Validar horario
         const { data: config, error: configError } = await supabase
@@ -520,15 +528,18 @@ export async function agendar_visita(nombre: string, apellido: string, celular: 
             .single();
 
         if (configError || !config || !config.activo) {
-            return `El taller no atiende los días ${dateObj.toLocaleDateString('es-CL', { weekday: 'long' })}.`;
+            return `El taller no atiende los días ${dateObj.toLocaleDateString('es-CL', { weekday: 'long', timeZone: 'America/Santiago' })}.`;
         }
 
-        const requestedHour = dateObj.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' });
-        if (requestedHour < config.hora_inicio || requestedHour > config.hora_fin) {
-            return `El horario de atención para los ${dateObj.toLocaleDateString('es-CL', { weekday: 'long' })} es de ${config.hora_inicio} a ${config.hora_fin}.`;
+        const requestedHourNum = parseInt(horaStr.split(':')[0], 10);
+        const startHourNum = parseInt(config.hora_inicio.split(':')[0], 10);
+        const endHourNum = parseInt(config.hora_fin.split(':')[0], 10);
+
+        if (requestedHourNum < startHourNum || requestedHourNum >= endHourNum) {
+            return `El horario de atención para los ${dateObj.toLocaleDateString('es-CL', { weekday: 'long', timeZone: 'America/Santiago' })} es de ${config.hora_inicio.substring(0, 5)} a ${config.hora_fin.substring(0, 5)}.`;
         }
         
-        if (requestedHour.startsWith('13:')) {
+        if (requestedHourNum === 13) {
             return "Las 13:00 está reservado para colación del taller. Por favor escoge otra hora.";
         }
 
