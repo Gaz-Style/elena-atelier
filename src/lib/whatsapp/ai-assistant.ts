@@ -139,15 +139,15 @@ export async function processWhatsAppAIMessage(chatId: string, userMessage: stri
                 const { data: catalogData } = await supabase
                     .from('catalog')
                     .select('name, price, category')
-                    .ilike('name', \`%\${servicio}%\`)
+                    .ilike('name', `%${servicio}%`)
                     .eq('active', true)
                     .limit(5);
 
                 if (!catalogData || catalogData.length === 0) {
-                    functionResult = \`No se encontraron precios exactos para "\${servicio}". Indica al cliente que la confección/arreglo debe evaluarse presencialmente.\`;
+                    functionResult = `No se encontraron precios exactos para "${servicio}". Indica al cliente que la confección/arreglo debe evaluarse presencialmente.`;
                 } else {
-                    const results = catalogData.map(item => \`- \${item.name}: $\${item.price.toLocaleString('es-CL')}\`).join('\\n');
-                    functionResult = \`Precios encontrados (usa esto como referencia):\\n\${results}\`;
+                    const results = catalogData.map(item => `- ${item.name}: $${item.price.toLocaleString('es-CL')}`).join('\n');
+                    functionResult = `Precios encontrados (usa esto como referencia):\n${results}`;
                 }
             } else if (call.name === "consultar_disponibilidad") {
                 const fecha = call.args?.fecha;
@@ -157,7 +157,7 @@ export async function processWhatsAppAIMessage(chatId: string, userMessage: stri
                 const partesNombre = (nombre || '').trim().split(' ');
                 const primerNombre = partesNombre[0] || 'Cliente';
                 const apellido = partesNombre.slice(1).join(' ') || 'Atelier';
-                const fechaHoraIso = \`\${fecha}T\${hora}:00\`;
+                const fechaHoraIso = `${fecha}T${hora}:00`;
 
                 functionResult = await agendar_visita(
                     primerNombre,
@@ -165,7 +165,7 @@ export async function processWhatsAppAIMessage(chatId: string, userMessage: stri
                     phoneNumber,
                     email,
                     fechaHoraIso,
-                    \`whatsapp_\${tipo_servicio || 'cita'}\`
+                    `whatsapp_${tipo_servicio || 'cita'}`
                 );
             }
 
