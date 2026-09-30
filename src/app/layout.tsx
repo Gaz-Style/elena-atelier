@@ -6,6 +6,7 @@ import FacebookPixel from "@/components/FacebookPixel";
 import TikTokPixel from "@/components/TikTokPixel";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import GoogleTagManager from "@/components/GoogleTagManager";
+import GlobalWhatsAppTracker from "@/components/GlobalWhatsAppTracker";
 import { ElenaAtelierSchema } from "@/lib/seo";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -79,6 +80,7 @@ export default function RootLayout({
         <TikTokPixel />
         <GoogleAnalytics />
         <GoogleTagManager />
+        <GlobalWhatsAppTracker />
         <MicrosoftClarity />
         <script
           type="application/ld+json"
