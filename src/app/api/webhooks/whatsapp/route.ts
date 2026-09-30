@@ -151,9 +151,34 @@ export async function POST(req: Request) {
                                 .in('status', ['pending', 'processing'])
                                 .filter('payload->>chat_id', 'eq', chatData.id);
 
+                            let shouldEnqueue = true;
+
                             if (existingTasks && existingTasks.length > 0) {
-                                console.log(`Ya existe una tarea activa para el chat ${chatData.id}. Omitiendo encolamiento duplicado.`);
-                            } else {
+                                if (messageType === 'image') {
+                                    // IMAGEN: Esperar a que la tarea activa termine (máx 8 segundos) y luego encolar la foto
+                                    console.log(`[Webhook] Imagen recibida con tarea activa. Esperando hasta 8s...`);
+                                    let waited = 0;
+                                    while (waited < 8000) {
+                                        await new Promise(r => setTimeout(r, 1500));
+                                        waited += 1500;
+                                        const { data: checkTasks } = await supabase
+                                            .from('ai_agent_tasks')
+                                            .select('id')
+                                            .eq('agent_role', 'whatsapp_closer')
+                                            .in('status', ['pending', 'processing'])
+                                            .filter('payload->>chat_id', 'eq', chatData.id);
+                                        if (!checkTasks || checkTasks.length === 0) break;
+                                    }
+                                    // Siempre encolar la imagen después de esperar
+                                    shouldEnqueue = true;
+                                } else {
+                                    // Texto duplicado: ignorar
+                                    console.log(`[Webhook] Tarea activa para chat ${chatData.id}. Texto duplicado omitido.`);
+                                    shouldEnqueue = false;
+                                }
+                            }
+
+                            if (shouldEnqueue) {
                                 // Encolar tarea asíncrona para que la procese el worker de IA
                                 const { data: newTask, error: insertError } = await supabase
                                     .from('ai_agent_tasks')

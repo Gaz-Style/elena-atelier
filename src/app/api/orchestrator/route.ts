@@ -423,6 +423,7 @@ ${ragContext}`;
                             if (!res.ok) {
                                 const errText = await res.text();
                                 console.log("GEMINI ERROR RESPONSE:", errText);
+                                await supabase.from('ai_agent_tasks').update({ error_log: errText }).eq('id', task.id);
                                 throw new Error("Gemini fetch failed: " + errText);
                             }
 
