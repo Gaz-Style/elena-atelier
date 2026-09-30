@@ -3,7 +3,7 @@ import { createClient as createAdminClient } from '@supabase/supabase-js';
 import { generateDeepSeekCompletion } from '@/lib/ai/deepseek';
 import { ATELIER_TOOLS, executeAtelierTool } from '@/lib/ai/tools';
 import { retrieveContext, saveClientMemory } from '@/lib/ai/rag';
-import { consultar_disponibilidad } from '@/lib/agenda';
+import { consultar_disponibilidad, agendar_visita } from '@/lib/agenda';
 
 export const maxDuration = 60; // Max execution time for Vercel
 
@@ -275,7 +275,7 @@ REGLAS DE ORO OBLIGATORIAS:
 2. PREGUNTA GUÍA: Termina tus respuestas con una pregunta cerrada para guiar al cliente hacia el agendamiento, EXCEPTO cuando la cita ya se haya agendado o el cliente se esté despidiendo.
 3. VOCABULARIO CHILENO: Prohibido decir "bastilla" (usa "basta"), "cremallera" (usa "cierre"). Usa lenguaje natural de Chile.
 4. PRECIOS Y AGENDAMIENTO: Usa el catálogo adjunto. Siempre da precios referenciales con la palabra "desde". Despacho a domicilio en sector oriente cuesta $10.000.
-5. TOMA DE DATOS Y AGENDA: Revisa las horas disponibles reales arriba. Si el cliente acepta una fecha y hora disponible, revisa tu Contexto (CRM). Si ya tienes su Nombre y Correo, NO se los pidas de nuevo; avanza directo a agendar. Si no los tienes, pídeselos. CUANDO TENGAS EL NOMBRE, APELLIDO, CORREO Y HORA, ESTÁS OBLIGADO a ejecutar la herramienta 'agendar_visita'. Si la herramienta devuelve un error, DEBES decirle al cliente que hubo un problema y NO confirmar la cita. NUNCA confirmes una cita si no ejecutaste la herramienta EXITOSAMENTE. Tras agendar exitosamente, NUNCA entregues la dirección si es cliente antiguo (a menos que te la pida). SÓLO entrega la dirección si es cliente nuevo. NO pidas el celular.
+5. TOMA DE DATOS Y AGENDA: Revisa las horas disponibles reales arriba. Si el cliente acepta una fecha y hora disponible, revisa tu Contexto (CRM). Si ya tienes su Nombre y Correo, NO se los pidas de nuevo; avanza directo a agendar. Si no los tienes, pídeselos. SI EL CLIENTE ENVÍA NOMBRE Y APELLIDO JUNTO CON O SIN CORREO (ej: "Elena Rojas, nenitadesign@gmail.com" o "Elena Rojas"), TOMA EL PRIMER NOMBRE COMO "Elena" Y EL SEGUNDO COMO "Rojas". ¡PROHIBIDO PREGUNTAR NUEVAMENTE POR EL APELLIDO! CUANDO TENGAS EL NOMBRE, APELLIDO, CORREO Y HORA, ESTÁS OBLIGADO a ejecutar la herramienta 'agendar_visita'. Si la herramienta devuelve un error, DEBES decirle al cliente que hubo un problema y NO confirmar la cita. NUNCA confirmes una cita si no ejecutaste la herramienta EXITOSAMENTE. Tras agendar exitosamente, NUNCA entregues la dirección si es cliente antiguo (a menos que te la pida). SÓLO entrega la dirección si es cliente nuevo. NO pidas el celular.
 6. DERIVACIÓN: Si el cliente muestra confusión, enojo, pide hablar con un humano o menciona la palabra "problema", usa la herramienta 'solicitar_asistencia_humana'.
 7. CONTACTO POSTERIOR (RECORDATORIO): Si te piden que les hables más tarde, usa de inmediato la herramienta 'programar_seguimiento_automatico' con los minutos indicados. Si están dentro de tu horario hábil (09:00 a 21:00), diles "¡Claro! Te escribo en un ratito.". PERO si te piden hablarles a una hora que cae fuera de ese horario (ej: de madrugada), diles "¡Claro! Te escribiré mañana a primera hora para que lo veamos." (EXCEPCIÓN: Si te piden esperar 15 minutos o menos, permítelo y diles "¡Claro! Te espero").
 8. FOTOS Y VISIÓN (¡MUY IMPORTANTE!): ¡TÚ SÍ PUEDES VER FOTOS! Estás conectada a un motor de visión. Si el cliente te pregunta si puede enviar fotos, dile con entusiasmo "¡Sí, claro! Envíame la foto y la reviso de inmediato.". ¡NUNCA digas que no puedes ver imágenes!
@@ -393,6 +393,69 @@ ${ragContext}`;
                                 aiReply = dsResponse2.content || aiReply;
                             } else {
                                 aiReply = dsResponse.content || aiReply;
+                            }
+
+                            // SALVAGUARDA DE SEGURIDAD PARA AGENDAMIENTO:
+                            // Si el bot afirmó verbalmente agendar ("Te agendé..."), pero la herramienta agendar_visita no fue invocada:
+                            const wasAgendarExecuted = dsResponse.toolCalls?.some((t: any) => t.function?.name === 'agendar_visita');
+                            const isVerbalConfirmation = /te agendé|quedaste agendad|cita confirmada|te dejé agendad/i.test(aiReply);
+
+                            if (!wasAgendarExecuted && isVerbalConfirmation) {
+                                console.warn('[FAIL-SAFE AGENDA] El bot confirmó verbalmente la cita pero no ejecutó la tool. Ejecutando salvaguarda...');
+                                try {
+                                    const allText = conversationHistory.map((m: any) => m.content).join(' ') + ' ' + userMessage;
+                                    const emailMatch = allText.match(/[\w.-]+@[\w.-]+\.\w+/);
+                                    const targetEmail = emailMatch ? emailMatch[0] : (customerData?.[0]?.email || '');
+
+                                    let targetNombre = 'Cliente';
+                                    let targetApellido = 'Atelier';
+
+                                    if (customerData?.[0]?.full_name) {
+                                        const parts = customerData[0].full_name.split(' ');
+                                        targetNombre = parts[0];
+                                        targetApellido = parts.slice(1).join(' ') || 'Atelier';
+                                    } else {
+                                        const userMsgs = conversationHistory.filter((m: any) => m.role === 'user').map((m: any) => m.content);
+                                        for (const msg of userMsgs.reverse()) {
+                                            const clean = msg.replace(/[\w.-]+@[\w.-]+\.\w+/, '').replace(/,/g, '').trim();
+                                            const words = clean.split(/\s+/).filter((w: string) => w.length > 1 && !/^(hola|si|sí|a|las|el|miércoles|jueves|viernes|sábado|mañana|tarde)$/i.test(w));
+                                            if (words.length >= 2) {
+                                                targetNombre = words[0];
+                                                targetApellido = words.slice(1).join(' ');
+                                                break;
+                                            } else if (words.length === 1 && targetNombre === 'Cliente') {
+                                                targetNombre = words[0];
+                                            }
+                                        }
+                                    }
+
+                                    let targetHora = '18:00';
+                                    const horaMatch = aiReply.match(/(\d{1,2}):(\d{2})/) || userMessage.match(/(\d{1,2}):(\d{2})/);
+                                    if (horaMatch) {
+                                        targetHora = `${horaMatch[1].padStart(2, '0')}:${horaMatch[2]}`;
+                                    } else {
+                                        const horaSimple = aiReply.match(/a las (\d{1,2})/i) || userMessage.match(/a las (\d{1,2})/i);
+                                        if (horaSimple) {
+                                            targetHora = `${horaSimple[1].padStart(2, '0')}:00`;
+                                        }
+                                    }
+
+                                    let targetFecha = currentDateISO;
+                                    const diaMatch = aiReply.match(/(\d{1,2})\s+de\s+(\w+)|día\s+(\d{1,2})|miércoles\s+(\d{1,2})|jueves\s+(\d{1,2})|viernes\s+(\d{1,2})|sábado\s+(\d{1,2})/i);
+                                    if (diaMatch) {
+                                        const numDia = (diaMatch[1] || diaMatch[3] || diaMatch[4] || diaMatch[5] || diaMatch[6] || diaMatch[7]).padStart(2, '0');
+                                        const nowObj = new Date();
+                                        targetFecha = `${nowObj.getFullYear()}-${(nowObj.getMonth() + 1).toString().padStart(2, '0')}-${numDia}`;
+                                    }
+
+                                    if (targetEmail) {
+                                        const fechaHoraISO = `${targetFecha}T${targetHora}:00`;
+                                        console.log(`[FAIL-SAFE AGENDA] Ejecutando agendar_visita automático: ${targetNombre} ${targetApellido}, ${targetEmail}, ${fechaHoraISO}`);
+                                        await agendar_visita(targetNombre, targetApellido, recipientPhone, targetEmail, fechaHoraISO, 'whatsapp');
+                                    }
+                                } catch (fsErr) {
+                                    console.error('[FAIL-SAFE AGENDA] Error en salvaguarda:', fsErr);
+                                }
                             }
                             
                             // Evaluar Handoff Automático (Backup por Regex)
