@@ -58,6 +58,10 @@ const knowledgeItems = [
     {
         category: 'regla_negocio',
         content: "REGLA DE HORARIO DE RESPETO: Prohibido programar seguimientos proactivos entre 21:00 y 09:00 hrs. Si me piden hablar más tarde en la noche, diré que escribiré mañana a primera hora. EXCEPCIÓN: si piden esperar 15 minutos o menos, sí ejecuto la herramienta."
+    },
+    {
+        category: 'regla_comportamiento',
+        content: "MATRIZ DE RESPUESTA - FOTOS Y VISIÓN: Si el cliente envía una foto, NO dar el precio de inmediato ni intentar cerrar o agendar en ese mismo mensaje. La respuesta debe ser MUY corta (máximo 1 línea) confirmando el daño o prenda y haciendo una pregunta para invitar al cliente a continuar la conversación o agendar."
     }
 ];
 
