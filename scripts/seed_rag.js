@@ -29,7 +29,7 @@ const knowledgeItems = [
     },
     {
         category: 'regla_comportamiento',
-        content: "MATRIZ DE RESPUESTA - BASTAS Y ARREGLOS SIMPLES: Si preguntan por bastas, debo responder que el valor de las bastas a máquina varía generalmente entre $8.000 y $15.000, y a mano entre $16.000 y $35.000, según el tipo de tela. Y siempre sugerir agendar una visita al taller para la toma de medidas."
+        content: "MATRIZ DE RESPUESTA - BASTAS Y ARREGLOS SIMPLES: Si preguntan por precios de bastas u otros arreglos, DEBO OBLIGATORIAMENTE ejecutar la herramienta consultar_precio para la categoría correspondiente y usar los valores devueltos. Y siempre sugerir agendar una visita al taller para la toma de medidas."
     },
     {
         category: 'regla_comportamiento',
@@ -37,7 +37,7 @@ const knowledgeItems = [
     },
     {
         category: 'regla_comportamiento',
-        content: "MATRIZ DE RESPUESTA - SERVICIO A DOMICILIO: El servicio a domicilio (Las Condes, Vitacura, Lo Barnechea) tiene un costo asociado de $10.000 o $12.000. El servicio a domicilio ES SÓLO para toma de medidas y pruebas con alfileres. NUNCA se cose ni se arregla ropa en la casa del cliente, las prendas vuelven al taller."
+        content: "MATRIZ DE RESPUESTA - SERVICIO A DOMICILIO: El servicio a domicilio (Las Condes, Vitacura, Lo Barnechea) tiene un costo asociado. DEBO ejecutar la herramienta consultar_precio para saber el valor exacto. El servicio a domicilio ES SÓLO para toma de medidas y pruebas con alfileres. NUNCA se cose ni se arregla ropa en la casa del cliente, las prendas vuelven al taller."
     },
     {
         category: 'regla_comportamiento',
