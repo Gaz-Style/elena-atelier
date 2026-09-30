@@ -560,7 +560,39 @@ export async function agendar_visita(nombre: string, apellido: string, celular: 
             return `Lo siento, el bloque de las ${dateObj.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' })} acaba de ser ocupado. Por favor, elige otra hora.`;
         }
 
-        // Insertar en Supabase
+        // REGISTRO DE CLIENTE: Asegurarnos de que el cliente quede guardado oficialmente en el sistema
+        const cleanPhone = celular ? celular.replace(/\D/g, '') : '';
+        const formattedPhone = cleanPhone.startsWith('56') ? cleanPhone : (cleanPhone ? `56${cleanPhone}` : null);
+        const fullName = `${nombre} ${apellido}`.trim();
+        
+        if (formattedPhone || correo) {
+            let query = supabase.from('customers').select('id');
+            if (formattedPhone) {
+                query = query.eq('phone', formattedPhone);
+            } else if (correo) {
+                query = query.eq('email', correo);
+            }
+            
+            const { data: existingCustomer } = await query.maybeSingle();
+
+            if (!existingCustomer) {
+                // Es un cliente nuevo: Lo registramos formalmente
+                await supabase.from('customers').insert([{
+                    full_name: fullName,
+                    email: correo || null,
+                    phone: formattedPhone || null
+                }]);
+            } else {
+                // El cliente ya existe: Actualizamos sus datos (ej. si antes no teníamos su email o nombre completo)
+                await supabase.from('customers').update({ 
+                    full_name: fullName,
+                    email: correo || null,
+                    phone: formattedPhone || null
+                }).eq('id', existingCustomer.id);
+            }
+        }
+
+        // Insertar en Supabase la Cita/Agendamiento
         const { data, error } = await supabase
             .from('agendamientos')
             .insert([{
