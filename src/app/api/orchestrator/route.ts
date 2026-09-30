@@ -307,10 +307,20 @@ ${ragContext}`;
                             const geminiKey = process.env.GEMINI_API_KEY;
                             if (!geminiKey) throw new Error("Gemini API Key missing");
 
-                            const geminiContents = conversationHistory.map(msg => ({
+                            const rawContents = conversationHistory.map((msg: any) => ({
                                 role: msg.role === 'assistant' ? 'model' : 'user',
                                 parts: [{ text: msg.content }]
                             }));
+
+                            // Gemini REST API REQUIRES alternating roles. Merge adjacent identical roles.
+                            const geminiContents: any[] = [];
+                            for (const msg of rawContents) {
+                                if (geminiContents.length > 0 && geminiContents[geminiContents.length - 1].role === msg.role) {
+                                    geminiContents[geminiContents.length - 1].parts[0].text += "\n" + msg.parts[0].text;
+                                } else {
+                                    geminiContents.push(msg);
+                                }
+                            }
 
                             const geminiTools = [{
                                 functionDeclarations: [
@@ -343,14 +353,22 @@ ${ragContext}`;
                                 systemInstruction: { parts: [{ text: systemPrompt }] },
                                 generationConfig: { temperature: 0.2 }
                             };
+                            
+                            console.log("GEMINI PAYLOAD:", JSON.stringify(payload));
 
                             let res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
                                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
                             });
 
-                            if (!res.ok) throw new Error("Gemini fetch failed");
+                            if (!res.ok) {
+                                const errText = await res.text();
+                                console.log("GEMINI ERROR RESPONSE:", errText);
+                                throw new Error("Gemini fetch failed: " + errText);
+                            }
 
                             let data = await res.json();
+                            console.log("GEMINI RESPONSE:", JSON.stringify(data));
+                            
                             let candidate = data.candidates?.[0];
                             let part = candidate?.content?.parts?.[0];
                             let wasAgendarExecuted = false;
@@ -508,7 +526,7 @@ ${ragContext}`;
                             }
 
                         } catch (error) {
-                            console.error("Error llamando a Gemini:", error);
+                            console.log("GEMINI CATCH ERROR:", error);
                         }
 
                         // Guardar respuesta del bot en el historial de mensajes
