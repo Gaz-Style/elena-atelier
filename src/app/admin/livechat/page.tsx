@@ -352,8 +352,9 @@ export default function LiveChatPage() {
                                                         </div>
                                                     )}
 
-                                                    <p className="text-[14.2px] text-[#111111] leading-[19px] whitespace-pre-wrap pr-12 pb-2">
+                                                    <p className="text-[14.2px] text-[#111111] leading-[19px] whitespace-pre-wrap pb-2 break-all overflow-hidden">
                                                         {msg.content}
+                                                        <span className="inline-block w-[65px] h-[1px]"></span>
                                                     </p>
                                                     
                                                     {/* Marca de tiempo estilo WhatsApp */}
