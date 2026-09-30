@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
 export async function consultar_disponibilidad(fecha_inicial: string) {
     try {
         const slotsEncontrados = [];
-        const maxDiasBusqueda = 7;
+        const maxDiasBusqueda = 4;
         let fechaActual = new Date(toSantiagoISO(fecha_inicial, '12:00:00'));
 
         const { data: configs } = await supabase.from('configuracion_horarios').select('*').eq('activo', true);
@@ -51,49 +51,56 @@ export async function consultar_disponibilidad(fecha_inicial: string) {
             ...(milestones ? milestones.map((m) => new Date(m.scheduled_date).toISOString()) : [])
         ];
 
-        for (let i = 0; i < maxDiasBusqueda; i++) {
-            if (slotsEncontrados.length >= 3) break;
+        let lineasDisponibilidad: string[] = [];
 
+        for (let i = 0; i < maxDiasBusqueda; i++) {
             const dayOfWeek = fechaActual.getDay();
             const configDia = configs.find(c => c.dia_semana === dayOfWeek);
 
+            const fechaStr = fechaActual.toISOString().split('T')[0];
+            const diaLegible = fechaActual.toLocaleDateString('es-CL', { weekday: 'long', timeZone: 'America/Santiago' });
+
             if (configDia) {
-                const fechaStr = fechaActual.toISOString().split('T')[0];
                 const startHour = parseInt(configDia.hora_inicio.split(':')[0]);
                 const endHour = parseInt(configDia.hora_fin.split(':')[0]);
+                const horasLibresDia: string[] = [];
 
                 for (let h = startHour; h < endHour; h++) {
-                    if (h === 13) continue; // PROHIBIDO: 13:00 es hora de colación
+                    if (h === 13) continue; // Colación
 
                     const horaStr = h.toString().padStart(2, '0');
                     const bloqueISO = toSantiagoISO(fechaStr, `${horaStr}:00:00`);
-                    
                     const bloqueDate = new Date(bloqueISO);
+
                     if (bloqueDate > new Date()) {
                         if (!horasOcupadas.includes(bloqueDate.toISOString())) {
-                            slotsEncontrados.push({
-                                fecha: fechaStr,
-                                diaLegible: fechaActual.toLocaleDateString('es-CL', { weekday: 'long', timeZone: 'America/Santiago' }),
-                                hora: `${horaStr}:00`
-                            });
+                            horasLibresDia.push(`${horaStr}:00`);
+                            slotsEncontrados.push({ fecha: fechaStr, diaLegible, hora: `${horaStr}:00` });
                         }
                     }
                 }
+
+                if (horasLibresDia.length > 0) {
+                    lineasDisponibilidad.push(`- ${diaLegible} ${fechaStr}: Horas disponibles -> ${horasLibresDia.join(', ')}`);
+                } else {
+                    lineasDisponibilidad.push(`- ${diaLegible} ${fechaStr}: Sin disponibilidad (Agenda llena).`);
+                }
+            } else {
+                lineasDisponibilidad.push(`- ${diaLegible} ${fechaStr}: Taller cerrado.`);
             }
             
             fechaActual.setDate(fechaActual.getDate() + 1);
         }
 
         if (slotsEncontrados.length === 0) {
-            return `No hay horas disponibles en los próximos días empezando desde ${fecha_inicial}.`;
+            return `No hay horas disponibles en la agenda para los próximos días a partir de ${fecha_inicial}.`;
         }
 
-        const opciones = slotsEncontrados.slice(0, 3).map((s, idx) => `Opción ${idx + 1}: ${s.diaLegible} ${s.fecha} a las ${s.hora}`);
-        return `Opciones de horarios disponibles:\n${opciones.join('\n')}`;
+        return `Disponibilidad real de la agenda (Supabase):\n${lineasDisponibilidad.join('\n')}`;
 
     } catch (err: any) {
         console.error('Error consultar_disponibilidad:', err);
-        return `Hubo un error al consultar la disponibilidad.`;
+        return `Hubo un error al consultar la disponibilidad real de la agenda.`;
     }
 }
 
