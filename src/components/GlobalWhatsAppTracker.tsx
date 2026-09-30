@@ -19,37 +19,48 @@ export default function GlobalWhatsAppTracker() {
         
         // Detect if it's a WhatsApp link
         if (href && (href.includes('wa.me/') || href.includes('api.whatsapp.com/send'))) {
-          // Extract the phone number if possible
+          // Extraer número de teléfono
           const phoneMatch = href.match(/wa\.me\/(\d+)/) || href.match(/phone=(\d+)/);
           const phone = phoneMatch ? phoneMatch[1] : 'unknown';
 
-          // Ensure it's the bot number (or any number)
-          // Fire all tracking events
+          // Extraer contexto de dónde viene el lead
+          const urlObj = new URL(href);
+          const textParam = urlObj.searchParams.get('text') || 'Sin mensaje precargado';
+          const originPath = window.location.pathname;
           
-          const eventLabel = `WhatsApp Link Click - ${phone}`;
+          let leadSource = 'General Web';
+          if (originPath.includes('/graduacion')) leadSource = 'Graduación';
+          else if (originPath.includes('/novias')) leadSource = 'Novias';
+          else if (originPath.includes('/portafolio')) leadSource = 'Portafolio Alta Costura';
+          else if (originPath.includes('/vip')) leadSource = 'Programa VIP';
+          else if (originPath.includes('/costuras')) leadSource = 'Arreglos de Ropa';
+          else if (originPath === '/') leadSource = 'Página Principal';
 
-          trackEvent('Contact', { 
+          const eventName = 'Contact';
+          const eventLabel = `WhatsApp Click: ${leadSource}`;
+
+          const pixelData = { 
             method: 'WhatsApp Web Link',
-            content_name: eventLabel
-          });
-          
-          trackTikTokEvent('Contact', { 
-            method: 'WhatsApp Web Link',
-            content_name: eventLabel
-          });
-          
-          trackGAEvent('Contact', 'WhatsApp', eventLabel);
+            content_name: eventLabel,
+            content_category: leadSource,
+            lead_source: leadSource,
+            preloaded_message: textParam.substring(0, 50) // Truncado por límites de APIs
+          };
+
+          trackEvent(eventName, pixelData);
+          trackTikTokEvent(eventName, pixelData);
+          trackGAEvent(eventName, 'WhatsApp', eventLabel);
 
           // Server-side Event Relay (Meta CAPI & TikTok Events API)
           fetch('/api/tracking', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                  eventName: 'Contact',
+                  eventName: eventName,
                   customData: {
-                      content_name: eventLabel,
-                      content_category: 'WhatsApp',
-                      phone_number: phone
+                      ...pixelData,
+                      phone_number: phone,
+                      source_url: window.location.href
                   }
               })
           }).catch((err) => console.error('Server tracking error:', err));
