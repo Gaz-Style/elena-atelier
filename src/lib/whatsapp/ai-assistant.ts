@@ -16,29 +16,16 @@ Eres Elena, la asistente virtual y representante de "Elena Atelier" (Av. Tabancu
 
 --- REGLAS DE NEGOCIO Y PRECIOS ---
 - IMPORTANTE SOBRE PRECIOS: Entrega precios referenciales SOLO en el caso de que el cliente lo solicite explícitamente. Si no preguntan por valores, no los menciones por iniciativa propia.
-
-1. CONFECCIÓN A MEDIDA / DISEÑO DE VESTIDOS:
-   - El diseño y confección a medida parte **desde los $180.000**. 
-   - Si te preguntan, comunica esto con delicadeza, dejando claro que es un valor base referencial y que depende del diseño final y las telas.
-   - Pregunta SIEMPRE la FECHA DEL EVENTO primero para validar factibilidad de tiempo.
-
-2. ARREGLOS & SASTRERÍA (Ajustes, Entalles, Bastas, Upcycling):
-   - Precios referenciales (solo si los piden): Expresa SIEMPRE la palabra "desde". Ej: Entalles desde $25.000 (varía según dificultad).
-   - Aclara cordialmente que la cotización exacta se entrega tras revisar la prenda presencialmente.
-   - Entrega: 2 a 5 días hábiles. Opción Express (en el día) con recargo de $12.000.
-
-3. NOVIAS Y MADRINAS (Alta Costura):
-   - Servicio muy exclusivo. Pregunta la fecha de la boda/evento.
-   - Invita amablemente a una cita de diseño presencial para ver referencias y vivir la experiencia del Atelier.
-
-4. B2B / SERVICIOS CORPORATIVOS:
-   - Si el contexto es sobre empresas o uniformes, mantén un tono profesional y sugiere coordinar una reunión.
+- **NO TIENES PRECIOS MEMORIZADOS.** Si el cliente pregunta por el valor de CUALQUIER servicio (ej: diseño a medida, entalles, basta, vestidos), DEBES usar la herramienta consultar_precio(servicio) para obtener el valor real desde la base de datos.
+- Al entregar el precio que te da la herramienta, hazlo con delicadeza, indicando que es un valor "desde" o referencial y que dependerá del diseño final o la tela.
+- Pregunta SIEMPRE la FECHA DEL EVENTO o plazo deseado para validar factibilidad de tiempo.
 
 --- OBJETIVO FINAL ---
 - Tras resolver las dudas básicas o entregar el precio referencial, debes guiar suave y elegantemente al cliente hacia el agendamiento de una cita presencial.
 - Si piden hablar explícitamente con un humano (ej: "quiero hablar con una persona"), indica con amabilidad que derivarás la conversación a una asesora.
 
 --- HERRAMIENTAS DISPONIBLES ---
+- consultar_precio(servicio): Busca el precio de un servicio en el catálogo (ej: "vestido", "basta", "confeccion").
 - consultar_disponibilidad(fecha_yyyy_mm_dd): Devuelve los bloques de hora disponibles para esa fecha.
 - agendar_visita(nombre, email, fecha, hora, tipo_servicio, notas): Registra la cita y envía mail de confirmación.
 `;
@@ -76,6 +63,17 @@ export async function processWhatsAppAIMessage(chatId: string, userMessage: stri
     // Definición de Herramientas (Function Calling para Gemini)
     const tools = [{
         functionDeclarations: [
+            {
+                name: "consultar_precio",
+                description: "Busca el precio de un servicio o prenda en la base de datos del Atelier.",
+                parameters: {
+                    type: "OBJECT",
+                    properties: {
+                        servicio: { type: "STRING", description: "Nombre o palabra clave del servicio (ej: vestido, basta, chaqueta, novia)" }
+                    },
+                    required: ["servicio"]
+                }
+            },
             {
                 name: "consultar_disponibilidad",
                 description: "Consulta los horarios de atención disponibles para una fecha específica (formato YYYY-MM-DD).",
@@ -135,7 +133,23 @@ export async function processWhatsAppAIMessage(chatId: string, userMessage: stri
             const call = part.functionCall;
             let functionResult: any = null;
 
-            if (call.name === "consultar_disponibilidad") {
+            if (call.name === "consultar_precio") {
+                const { servicio } = call.args;
+                // Buscar en la tabla catalog
+                const { data: catalogData } = await supabase
+                    .from('catalog')
+                    .select('name, price, category')
+                    .ilike('name', \`%\${servicio}%\`)
+                    .eq('active', true)
+                    .limit(5);
+
+                if (!catalogData || catalogData.length === 0) {
+                    functionResult = \`No se encontraron precios exactos para "\${servicio}". Indica al cliente que la confección/arreglo debe evaluarse presencialmente.\`;
+                } else {
+                    const results = catalogData.map(item => \`- \${item.name}: $\${item.price.toLocaleString('es-CL')}\`).join('\\n');
+                    functionResult = \`Precios encontrados (usa esto como referencia):\\n\${results}\`;
+                }
+            } else if (call.name === "consultar_disponibilidad") {
                 const fecha = call.args?.fecha;
                 functionResult = await consultar_disponibilidad(fecha);
             } else if (call.name === "agendar_visita") {
@@ -143,7 +157,7 @@ export async function processWhatsAppAIMessage(chatId: string, userMessage: stri
                 const partesNombre = (nombre || '').trim().split(' ');
                 const primerNombre = partesNombre[0] || 'Cliente';
                 const apellido = partesNombre.slice(1).join(' ') || 'Atelier';
-                const fechaHoraIso = `${fecha}T${hora}:00`;
+                const fechaHoraIso = \`\${fecha}T\${hora}:00\`;
 
                 functionResult = await agendar_visita(
                     primerNombre,
@@ -151,7 +165,7 @@ export async function processWhatsAppAIMessage(chatId: string, userMessage: stri
                     phoneNumber,
                     email,
                     fechaHoraIso,
-                    `whatsapp_${tipo_servicio || 'cita'}`
+                    \`whatsapp_\${tipo_servicio || 'cita'}\`
                 );
             }
 
