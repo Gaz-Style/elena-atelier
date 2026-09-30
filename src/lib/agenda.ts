@@ -560,12 +560,10 @@ export async function agendar_visita(nombre: string, apellido: string, celular: 
                     phone: phoneWith56, // Standardize new entries with 56
                     email: correo
                 }]);
-            } else {
-                await supabase.from('customers').update({
-                    full_name: `${nombre} ${apellido}`.trim(),
-                    email: correo
-                }).eq('id', existingCustomers[0].id);
             }
+            // Eliminado el bloque 'else' que hacía update a customers, 
+            // para no sobreescribir datos valiosos del CRM (como correos existentes) 
+            // con strings vacíos provenientes del bot.
         }
 
         // Insertar en Supabase
