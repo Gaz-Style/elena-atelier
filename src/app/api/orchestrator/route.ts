@@ -80,7 +80,7 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                         const deepseekKey = process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY;
                         if (!deepseekKey) throw new Error("DeepSeek API Key not found");
                         
-                        const userMessage = task.payload.content || "Hola";
+                        let userMessage = task.payload.content || "Hola";
 
                         // Verificación de seguridad: comprobar si el chat sigue con el bot activo ('bot')
                         let recipientPhone = task.payload.phone_number;
@@ -173,7 +173,7 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                                                     generationConfig: { maxOutputTokens: 150 }
                                                 };
                                                 
-                                                const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${geminiKey}`, {
+                                                const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
                                                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
                                                 });
                                                 
@@ -215,6 +215,8 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                                if (lastUserMsgIndex !== -1) {
                                    conversationHistory[lastUserMsgIndex].content = `[EL USUARIO ENVIÓ UNA FOTO. Análisis de la imagen: ${geminiAnalysisLocal}] ${conversationHistory[lastUserMsgIndex].content}`;
                                }
+                               userMessage = `FOTO ENVIADA. Análisis visual: ${geminiAnalysisLocal}. ` + userMessage; // Actualizar para que RAG se entere de la foto
+
                             } else if (!geminiAnalysisLocal) {
                                // Guardar el error de lectura en la base de datos
                                await supabase.from('crm_whatsapp_messages')
@@ -416,7 +418,7 @@ ${ragContext}`;
                             
                             console.log("GEMINI PAYLOAD:", JSON.stringify(payload));
 
-                            let res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${geminiKey}`, {
+                            let res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
                                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
                             });
 
@@ -501,7 +503,7 @@ ${ragContext}`;
                                     generationConfig: { temperature: 0.2 }
                                 };
 
-                                let res2 = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${geminiKey}`, {
+                                let res2 = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
                                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload2)
                                 });
 
