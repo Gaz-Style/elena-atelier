@@ -353,11 +353,11 @@ export default function LiveChatPage() {
                                             )}
                                             
                                             <div className={`flex ${isCustomer ? 'justify-start' : 'justify-end'}`}>
-                                                <div className={`relative max-w-[85%] sm:max-w-[65%] rounded-lg shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] overflow-hidden ${
+                                                <div className={`relative max-w-[85%] sm:max-w-[65%] rounded-xl shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] ${
                                                     isCustomer 
-                                                    ? 'bg-white rounded-tl-none' 
-                                                    : 'bg-[#dcf8c6] rounded-tr-none'
-                                                } ${isImageMsg ? 'p-0' : 'px-2.5 py-1.5'}`}>
+                                                    ? 'bg-white rounded-tl-none before:absolute before:top-0 before:-left-[8px] before:w-0 before:h-0 before:border-r-[8px] before:border-r-white before:border-b-[12px] before:border-b-transparent' 
+                                                    : 'bg-[#dcf8c6] rounded-tr-none after:absolute after:top-0 after:-right-[8px] after:w-0 after:h-0 after:border-l-[8px] after:border-l-[#dcf8c6] after:border-b-[12px] after:border-b-transparent'
+                                                } ${isImageMsg ? 'p-1' : 'px-2.5 py-1.5'}`}>
                                                     
                                                     {/* Indicador de Bot/Humano - solo en mensajes de texto */}
                                                     {!isCustomer && !isImageMsg && (
@@ -381,7 +381,7 @@ export default function LiveChatPage() {
                                                                 <img
                                                                     src={`/api/admin/media/${msg.media_url}`}
                                                                     alt="Foto del cliente"
-                                                                    className="max-w-full max-h-[280px] w-auto block cursor-zoom-in object-cover"
+                                                                    className="max-w-full max-h-[280px] w-auto block cursor-zoom-in object-cover rounded-lg"
                                                                     loading="lazy"
                                                                     onError={(e) => {
                                                                         (e.currentTarget as HTMLImageElement).style.display = 'none';
