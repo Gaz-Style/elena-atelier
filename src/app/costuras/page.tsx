@@ -22,7 +22,7 @@ export default function CosturasPage() {
         "image": "https://www.elenalacosturera.cl/hero_seamstress_taller.png",
         "@id": "https://www.elenalacosturera.cl/costuras#business",
         "url": "https://www.elenalacosturera.cl/costuras",
-        "telephone": "+56937667709",
+        "telephone": "+56972812907",
         "priceRange": "$$",
         "address": {
             "@type": "PostalAddress",

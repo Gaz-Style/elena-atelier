@@ -28,7 +28,7 @@ const jsonLdData = {
         "@type": "LocalBusiness",
         "name": "Elena Atelier",
         "image": "https://www.elenalacosturera.cl/hero_seamstress_taller.png",
-        "telephone": "+56937667709",
+        "telephone": "+56972812907",
         "address": {
             "@type": "PostalAddress",
             "addressLocality": "Vitacura",

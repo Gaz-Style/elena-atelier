@@ -125,7 +125,7 @@ export default function GraduationCommuneClient({ comuna }: GraduationCommuneCli
     }, 1500);
   };
 
-  const whatsappUrl = `https://wa.me/56937667709?text=Hola%20Elena%20La%20Costurera,%20me%20gustar%C3%ADa%20agendar%20una%20cita%20para%20un%20vestido%20de%20graduaci%C3%B3n.%20Vivo%20en%20${encodeURIComponent(comuna)}.%20Me%20interes%C3%B3%20el%20estilo%20${encodeURIComponent(selectedStyle.name)}.`;
+  const whatsappUrl = `https://wa.me/56972812907?text=Hola%20Elena%20La%20Costurera,%20me%20gustar%C3%ADa%20agendar%20una%20cita%20para%20un%20vestido%20de%20graduaci%C3%B3n.%20Vivo%20en%20${encodeURIComponent(comuna)}.%20Me%20interes%C3%B3%20el%20estilo%20${encodeURIComponent(selectedStyle.name)}.`;
 
   return (
     <div className="min-h-screen bg-[#070707] text-[#f5f2eb] font-sans selection:bg-[#cda45e] selection:text-black">
@@ -402,7 +402,7 @@ export default function GraduationCommuneClient({ comuna }: GraduationCommuneCli
                   <h4 className="font-bold text-white uppercase tracking-wider text-[10px]">Silueta Parcialmente Reservada</h4>
                   <p className="mt-1 text-white/70 leading-relaxed">{checkedResult.details}</p>
                   <Link 
-                    href={`https://wa.me/56937667709?text=Hola%20Elena,%20quisiera%20saber%20qu%C3%A9%20vestidos%20ya%20est%C3%A1n%20reservados%20para%20el%20colegio%20${encodeURIComponent(checkedResult.colegio)}.`} 
+                    href={`https://wa.me/56972812907?text=Hola%20Elena,%20quisiera%20saber%20qu%C3%A9%20vestidos%20ya%20est%C3%A1n%20reservados%20para%20el%20colegio%20${encodeURIComponent(checkedResult.colegio)}.`} 
                     target="_blank"
                     className="inline-flex items-center gap-1.5 mt-3 text-[#cda45e] hover:underline font-bold text-[10px] uppercase tracking-wider"
                   >

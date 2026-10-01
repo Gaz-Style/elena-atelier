@@ -99,7 +99,7 @@ export default async function BridalCommunePage({ params }: Props) {
     const whatsappMessage = encodeURIComponent(
         `Hola Elena, estoy en la sección de vestidos de novia de ${comuna} y me gustaría cotizar / agendar una cita para diseñar mi vestido de novia a medida.`
     );
-    const whatsappUrl = `https://wa.me/56937667709?text=${whatsappMessage}`;
+    const whatsappUrl = `https://wa.me/56972812907?text=${whatsappMessage}`;
 
     return (
         <div className="min-h-screen bg-brand-charcoal text-white font-sans selection:bg-[#cda45e] selection:text-black">

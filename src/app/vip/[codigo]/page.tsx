@@ -53,7 +53,7 @@ export default function VipQrLandingPage({ params }: { params: Promise<{ codigo:
 
                 <div className="pt-6">
                     <Link 
-                        href={`https://wa.me/56937667709?text=Hola%20Elena,%20escane%C3%A9%20mi%20tarjeta%20f%C3%ADsica%20VIP%20(c%C3%B3digo:%20${sourceCode})%20y%20me%20gustar%C3%ADa%20agendar%20mi%20cita%20de%20dise%C3%B1o.`}
+                        href={`https://wa.me/56972812907?text=Hola%20Elena,%20escane%C3%A9%20mi%20tarjeta%20f%C3%ADsica%20VIP%20(c%C3%B3digo:%20${sourceCode})%20y%20me%20gustar%C3%ADa%20agendar%20mi%20cita%20de%20dise%C3%B1o.`}
                         target="_blank"
                         className="inline-flex bg-brand-terracotta text-white hover:bg-brand-terracotta/90 px-8 py-4 rounded-sm transition-all items-center gap-2 uppercase tracking-widest text-xs font-bold"
                     >

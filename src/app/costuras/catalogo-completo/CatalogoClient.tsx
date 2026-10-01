@@ -8,7 +8,7 @@ import LocationMap from '@/components/LocationMap';
 import TrackedLink from '@/components/TrackedLink';
 
 function getWhatsAppUrl(servicio: string = "general") {
-    const phone = "56937667709";
+    const phone = "56972812907";
     const text = `Hola Elena Atelier. Tengo una prenda que necesita arreglo (${servicio}) y me gustaría cotizar.`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 }

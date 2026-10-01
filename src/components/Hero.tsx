@@ -150,7 +150,7 @@ export default function Hero() {
 
                         {/* Botón Secundario: Contacto Directo a WhatsApp */}
                         <a
-                            href={`https://wa.me/56937667709?text=${encodeURIComponent('Hola Elena, me gustaría consultar por un diseño de vestido y conversar sobre mi idea.')}`}
+                            href={`https://wa.me/56972812907?text=${encodeURIComponent('Hola Elena, me gustaría consultar por un diseño de vestido y conversar sobre mi idea.')}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={handleWhatsAppClick}

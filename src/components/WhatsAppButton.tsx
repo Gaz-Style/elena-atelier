@@ -9,7 +9,7 @@ import { trackGAEvent } from '@/components/GoogleAnalytics';
 
 export default function WhatsAppButton() {
     const pathname = usePathname();
-    const phoneNumber = '56937667709';
+    const phoneNumber = '56972812907';
     const message = 'Hola, me gustaría agendar una cita o hacer una consulta.';
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     
