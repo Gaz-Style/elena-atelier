@@ -26,6 +26,20 @@ export default function PremiumCalendar({ onConfirm, isConfirming = false }: Pre
             const res = await getMonthAvailabilityAction(currentYear, currentMonth);
             if (res.success && res.availability) {
                 setMonthData(res.availability);
+                
+                // Auto-avanzar al mes siguiente si es el mes actual y no quedan días disponibles
+                const todayDate = new Date();
+                if (currentYear === todayDate.getFullYear() && currentMonth === todayDate.getMonth()) {
+                    const hasAvailableDay = res.availability.some((d: any) => d.isOpen && !d.isFull && parseInt(d.date.split('-')[2]) >= todayDate.getDate());
+                    if (!hasAvailableDay && res.availability.length > 0) {
+                        if (currentMonth === 11) {
+                            setCurrentMonth(0);
+                            setCurrentYear(prev => prev + 1);
+                        } else {
+                            setCurrentMonth(prev => prev + 1);
+                        }
+                    }
+                }
             } else {
                 setMonthData([]);
             }
