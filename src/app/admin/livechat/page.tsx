@@ -78,15 +78,7 @@ export default function LiveChatPage() {
         const loadMessages = () => {
             if (selectedChat?.id) {
                 getWhatsAppMessagesAction(selectedChat.id).then(msgs => {
-                    setMessages(prev => {
-                        const lastPrev = prev[prev.length - 1];
-                        const lastMsgs = msgs[msgs.length - 1];
-                        if (prev.length !== msgs.length || lastPrev?.id !== lastMsgs?.id || lastPrev?.content !== lastMsgs?.content) {
-                            scrollToBottom();
-                            return msgs;
-                        }
-                        return prev;
-                    });
+                    setMessages(msgs);
                 });
             }
         };
@@ -108,11 +100,18 @@ export default function LiveChatPage() {
         };
     }, [selectedChat?.id, selectedChat?.session_status]);
 
-    const scrollToBottom = () => {
+    const scrollToBottom = (instant = false) => {
         setTimeout(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            messagesEndRef.current?.scrollIntoView({ behavior: instant ? 'auto' : 'smooth' });
         }, 100);
     };
+
+    // Auto-scroll when messages change or chat is selected
+    useEffect(() => {
+        if (messages.length > 0) {
+            scrollToBottom(true); // instant scroll to avoid annoying animation on load
+        }
+    }, [messages.length, selectedChat?.id]);
 
     const handleSelectChat = (chat: any) => {
         setSelectedChat(chat);
