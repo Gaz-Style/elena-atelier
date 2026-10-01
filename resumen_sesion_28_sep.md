@@ -13,10 +13,10 @@ En esta sesión nocturna de alto rendimiento, llevamos a Elena (IA) a un nivel d
 - **Horario de Respeto (09:00 - 21:00)**: Se implementó un guardrail a nivel de servidor. Si un cliente pide hablar "en 2 horas" a las 23:00 hrs, el servidor cancela la orden nocturna y la patea para que estalle al día siguiente a las 09:00 AM (con aleatorización para evitar spam).
 - **Excepción de Venta en Caliente**: Si son las 2 AM y el cliente pide una pausa cortita (15 minutos o menos, ej: "voy a buscar la ropa para la foto"), el sistema lo permite excepcionalmente para no cortar el hilo.
 
-## 3. Calibración de Inteligencia Artificial (Prompting) 🧠
 - **Habilidades Visuales**: Se le enseñó a DeepSeek que SÍ tiene ojos (gracias al puente con Gemini Vision). Ahora pide activamente que le manden fotos para analizar prendas.
 - **Corrección de Alucinación (Servicio a Domicilio)**: Se corrigió una deducción lógica errónea. La IA ahora entiende y advierte firmemente que el servicio a domicilio es SOLO para tomar medidas y usar alfileres, nunca para coser en el living del cliente.
 - **Bypass de Regex (Handoff)**: Se solucionó un conflicto técnico donde el bot se bloqueaba a sí mismo al decir "un momento" cuando programaba una alarma. Ahora sabe diferenciar entre transferir a un humano y pedir tiempo.
 
 ---
 *Fin de sesión técnica. Sistema estable, en producción y monitoreando tráfico.*
+

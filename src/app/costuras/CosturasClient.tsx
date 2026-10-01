@@ -104,12 +104,12 @@ export default function CosturasClient() {
                     <p className="text-white/80 text-base md:text-lg max-w-2xl mx-auto leading-relaxed font-light mb-8">
                         Recupera el calce perfecto de tus prendas sin salir de casa. Expertos en intervenciones técnicas manteniendo los acabados de fábrica.
                     </p>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
-                        <TrackedLink href={getWhatsAppPhotoUrl()} target="_blank" eventAction="click_whatsapp" eventCategory="Lead" eventLabel="Hero_Solicitar_Servicio" className="w-full sm:w-1/2 bg-[#C17F5F] hover:bg-[#b05c4b] text-white px-6 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2 shadow-lg shadow-[#C17F5F]/20 hover:scale-[1.02]">
-                            <Scissors className="w-4 h-4" /> Solicitar Servicio
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-lg mx-auto">
+                        <TrackedLink href={getWhatsAppPhotoUrl()} target="_blank" eventAction="click_whatsapp" eventCategory="Lead" eventLabel="Hero_Consultar_Foto" className="w-full sm:w-1/2 bg-[#C17F5F] hover:bg-[#b05c4b] text-white px-6 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2 shadow-lg shadow-[#C17F5F]/20 hover:scale-[1.02]">
+                            <Camera className="w-4 h-4" /> Consultar con Foto
                         </TrackedLink>
-                        <TrackedLink href="/costuras/catalogo-completo" eventAction="click_catalog" eventCategory="Navigation" eventLabel="Hero_Ver_Catalogo" className="w-full sm:w-1/2 border border-[#C17F5F]/50 bg-black/40 hover:bg-[#C17F5F]/20 text-[#E29D7A] hover:text-white px-6 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2 backdrop-blur-md hover:scale-[1.02] group">
-                            <List className="w-4 h-4 text-[#C17F5F]" /> Ver Catálogo
+                        <TrackedLink href={getWhatsAppUrl()} target="_blank" eventAction="click_whatsapp" eventCategory="Lead" eventLabel="Hero_Agendar_Cita" className="w-full sm:w-1/2 border border-[#C17F5F]/50 bg-black/40 hover:bg-[#C17F5F]/20 text-[#E29D7A] hover:text-white px-6 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2 backdrop-blur-md hover:scale-[1.02] group">
+                            <CheckCircle2 className="w-4 h-4 text-[#C17F5F] group-hover:text-white transition-colors" /> Agendar Cita
                         </TrackedLink>
                     </div>
                 </div>

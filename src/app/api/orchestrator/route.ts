@@ -210,16 +210,16 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                                }
                                userMessage = `FOTO ENVIADA. Análisis visual: ${geminiAnalysisLocal}. ` + userMessage; // Actualizar para que RAG se entere de la foto
 
-                            } else if (!geminiAnalysisLocal) {
+                            } else if (!geminiAnalysisLocal || geminiAnalysisLocal.startsWith('ERROR:')) {
                                // Guardar el error de lectura en la base de datos
                                await supabase.from('crm_whatsapp_messages')
-                                   .update({ content: `[EL USUARIO ENVIÓ UNA FOTO. Error del sistema: No se pudo descargar la imagen. El Token de Meta podría estar vencido o la imagen es inaccesible.]` })
+                                   .update({ content: `[EL USUARIO ENVIÓ UNA FOTO. Error del sistema al analizar la imagen: ${geminiAnalysisLocal}]` })
                                    .eq('chat_id', task.payload.chat_id)
                                    .eq('media_url', mediaUrl);
 
                                const lastUserMsgIndex = conversationHistory.findLastIndex((msg: any) => msg.role === 'user');
                                if (lastUserMsgIndex !== -1) {
-                                   conversationHistory[lastUserMsgIndex].content = `[EL USUARIO ENVIÓ UNA FOTO, pero hubo un error al leerla por un problema de autenticación con Meta. Dile que no pudiste verla bien y pídele que traiga la prenda o envíe otra foto.] ${conversationHistory[lastUserMsgIndex].content}`;
+                                   conversationHistory[lastUserMsgIndex].content = `[EL USUARIO ENVIÓ UNA FOTO, pero hubo un error en el sistema visual de la IA. Dile amablemente que no pudiste cargar la foto por un problema temporal y pídele que te describa la prenda o el arreglo que necesita con palabras.] ${conversationHistory[lastUserMsgIndex].content}`;
                                }
                             }
                         }
