@@ -2,7 +2,7 @@ import React from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, MapPin, Clock, Truck, ShieldCheck, Scissors, Star, Camera, UserCheck, Shirt, Sparkles, Ruler, Layers, List } from 'lucide-react';
+import { ArrowRight, MapPin, Clock, Truck, ShieldCheck, Scissors, Star, Camera, UserCheck, Shirt, Sparkles, Ruler, Layers, List, CheckCircle2 } from 'lucide-react';
 import BrandCarousel from '@/components/BrandCarousel';
 import LocationMap from '@/components/LocationMap';
 import AnimatedTestimonials from '@/components/AnimatedTestimonials';
@@ -286,17 +286,18 @@ export default async function CosturasComunaPage({ params }: Props) {
                             <TrackedLink 
                                 href={getWhatsAppPhotoUrl(comuna)} 
                                 target="_blank" 
-                                eventAction="click_whatsapp" eventCategory="Lead" eventLabel="Comuna_Hero_Solicitar_Servicio"
+                                eventAction="click_whatsapp" eventCategory="Lead" eventLabel="Comuna_Hero_Consultar_Foto"
                                 className="w-full sm:w-1/2 bg-[#C17F5F] hover:bg-[#b05c4b] text-white px-6 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2 shadow-lg shadow-[#C17F5F]/20 hover:scale-[1.02]"
                             >
-                                <Scissors className="w-4 h-4" /> Solicitar Servicio
+                                <Camera className="w-4 h-4" /> Consultar con Foto
                             </TrackedLink>
                             <TrackedLink 
-                                href="/costuras/catalogo-completo" 
-                                eventAction="click_catalog" eventCategory="Navigation" eventLabel="Comuna_Hero_Ver_Catalogo"
-                                className="w-full sm:w-1/2 border border-[#C17F5F]/50 bg-black/40 hover:bg-[#C17F5F]/20 text-[#E29D7A] hover:text-white px-6 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2 backdrop-blur-md hover:scale-[1.02]"
+                                href={getWhatsAppUrl(comuna)} 
+                                target="_blank"
+                                eventAction="click_whatsapp" eventCategory="Lead" eventLabel="Comuna_Hero_Agendar_Cita"
+                                className="w-full sm:w-1/2 border border-[#C17F5F]/50 bg-black/40 hover:bg-[#C17F5F]/20 text-[#E29D7A] hover:text-white px-6 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2 backdrop-blur-md hover:scale-[1.02] group"
                             >
-                                <List className="w-4 h-4 text-[#C17F5F]" /> Ver Catálogo
+                                <CheckCircle2 className="w-4 h-4 text-[#C17F5F] group-hover:text-white transition-colors" /> Agendar Cita
                             </TrackedLink>
                         </div>
                         {/* Badges de micro-confianza */}
