@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, use } from 'react';
-import Link from 'next/link';
+import TrackedLink from '@/components/TrackedLink';
 import { Gift, ArrowRight, ShieldCheck, Star } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
@@ -52,13 +52,16 @@ export default function VipQrLandingPage({ params }: { params: Promise<{ codigo:
                 </div>
 
                 <div className="pt-6">
-                    <Link 
+                    <TrackedLink 
                         href={`https://wa.me/56972812907?text=Hola%20Elena,%20escane%C3%A9%20mi%20tarjeta%20f%C3%ADsica%20VIP%20(c%C3%B3digo:%20${sourceCode})%20y%20me%20gustar%C3%ADa%20agendar%20mi%20cita%20de%20dise%C3%B1o.`}
                         target="_blank"
+                        eventAction="click_whatsapp"
+                        eventCategory="Lead"
+                        eventLabel={`VIP_Redeem_${sourceCode}`}
                         className="inline-flex bg-brand-terracotta text-white hover:bg-brand-terracotta/90 px-8 py-4 rounded-sm transition-all items-center gap-2 uppercase tracking-widest text-xs font-bold"
                     >
                         Reclamar Beneficio VIP por WhatsApp <ArrowRight className="w-4 h-4" />
-                    </Link>
+                    </TrackedLink>
                 </div>
 
                 <div className="flex justify-center gap-1 pt-12 text-gray-600">

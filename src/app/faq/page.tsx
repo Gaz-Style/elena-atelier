@@ -1,4 +1,4 @@
-import React from 'react';
+import TrackedLink from '@/components/TrackedLink';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { ChevronRight, HelpCircle, BookOpen, Clock, MapPin, Award, Scissors, ArrowRight, ShieldCheck } from 'lucide-react';
@@ -227,9 +227,9 @@ export default function FAQPage() {
                             <Link href="/costuras/catalogo-completo" className="w-full sm:w-auto bg-transparent border border-[#C17F5F] text-[#C17F5F] hover:bg-[#C17F5F]/10 px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center">
                                 Ver Catálogo de Precios
                             </Link>
-                            <Link href="https://wa.me/56972812907?text=Hola,%20tengo%20una%20duda%20sobre%20un%20arreglo" target="_blank" className="w-full sm:w-auto bg-[#C17F5F] hover:bg-[#b05c4b] text-white px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm shadow-lg shadow-[#C17F5F]/20 flex items-center justify-center gap-2">
+                            <TrackedLink href="https://wa.me/56972812907?text=Hola,%20tengo%20una%20duda%20sobre%20un%20arreglo" target="_blank" eventAction="click_whatsapp" eventCategory="Lead" eventLabel="FAQ_Consultar_WhatsApp" className="w-full sm:w-auto bg-[#C17F5F] hover:bg-[#b05c4b] text-white px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm shadow-lg shadow-[#C17F5F]/20 flex items-center justify-center gap-2">
                                 Consultar por WhatsApp <ArrowRight className="w-4 h-4" />
-                            </Link>
+                            </TrackedLink>
                         </div>
                     </div>
 

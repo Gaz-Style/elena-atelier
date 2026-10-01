@@ -5,11 +5,31 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { X, ChevronLeft, ChevronRight, SlidersHorizontal, ArrowRight } from 'lucide-react';
-import { vestidosFiesta, type Vestido } from '@/lib/fiesta-data';
+import { trackEvent } from '@/components/FacebookPixel';
+import { trackTikTokEvent } from '@/components/TikTokPixel';
+import { trackGAEvent } from '@/components/GoogleAnalytics';
 
 interface PortfolioData {
   category: string;
   images: string[];
+}
+
+function trackWhatsAppLead(itemName: string, value?: number) {
+  trackGAEvent('Contact', 'WhatsApp', itemName, value);
+  trackEvent('Contact', { content_name: itemName, value });
+  trackTikTokEvent('Contact', { content_name: itemName, value });
+  fetch('/api/tracking', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      eventName: 'Contact',
+      customData: {
+        content_name: itemName,
+        content_category: 'WhatsApp',
+        value: value,
+      }
+    })
+  }).catch((err) => console.error('CAPI tracking error:', err));
 }
 
 /* ─────────────────────────────────────────────
@@ -177,13 +197,7 @@ function Lightbox({ vestido, onClose }: { vestido: Vestido; onClose: () => void 
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => {
-                  if (typeof window !== 'undefined' && (window as any).gtag) {
-                    (window as any).gtag('event', 'generate_lead', {
-                      item_name: vestido.nombre,
-                      value: vestido.precio,
-                      currency: 'CLP'
-                    });
-                  }
+                  trackWhatsAppLead(vestido.nombre, vestido.precio);
                 }}
                 className="glass-btn group relative inline-flex items-center justify-center w-full py-4 sm:py-5 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-sm sm:text-base uppercase tracking-[0.2em] font-bold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:border-[#f5f2eb] hover:text-[#121212] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] cursor-pointer gap-2.5"
               >
@@ -289,13 +303,7 @@ function DressGridItem({ vestido, onClick }: { vestido: Vestido, onClick: () => 
             rel="noopener noreferrer"
             onClick={(e) => {
               e.stopPropagation();
-              if (typeof window !== 'undefined' && (window as any).gtag) {
-                (window as any).gtag('event', 'generate_lead', {
-                  item_name: vestido.nombre,
-                  value: vestido.precio,
-                  currency: 'CLP'
-                });
-              }
+              trackWhatsAppLead(vestido.nombre, vestido.precio);
             }}
             className="sm:hidden inline-flex items-center justify-center gap-2 border border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-[11px] uppercase tracking-[0.2em] font-bold bg-white/[0.08] backdrop-blur-[10px] px-4 py-3.5 transition-all duration-[400ms] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] rounded-[1px] w-full text-center whitespace-nowrap shadow-lg cursor-pointer"
           >

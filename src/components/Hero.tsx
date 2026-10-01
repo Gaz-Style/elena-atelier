@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Link from 'next/link';
 import { trackGAEvent } from '@/components/GoogleAnalytics';
+import { trackEvent } from '@/components/FacebookPixel';
+import { trackTikTokEvent } from '@/components/TikTokPixel';
 
 export default function Hero() {
     const [isSafari, setIsSafari] = useState(false);
@@ -35,6 +37,20 @@ export default function Hero() {
             });
         }
         trackGAEvent('Contact', 'WhatsApp', 'Boton Directo Hero');
+        trackEvent('Contact', { method: 'WhatsApp Direct', content_name: 'Boton Directo Hero' });
+        trackTikTokEvent('Contact', { method: 'WhatsApp Direct', content_name: 'Boton Directo Hero' });
+
+        fetch('/api/tracking', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                eventName: 'Contact',
+                customData: {
+                    content_name: 'Boton Directo Hero',
+                    content_category: 'WhatsApp'
+                }
+            })
+        }).catch((err) => console.error('CAPI Server tracking error:', err));
     };
 
     return (
