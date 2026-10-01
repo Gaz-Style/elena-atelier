@@ -268,7 +268,7 @@ export default function LiveChatPage() {
                 </div>
 
                 {/* --- MAIN CHAT AREA --- */}
-                <div className={`w-full flex-grow flex-col bg-[#efeae2] relative ${showMobileList ? 'hidden md:flex' : 'flex'}`}>
+                <div className={`w-full min-w-0 flex-grow flex-col bg-[#efeae2] relative ${showMobileList ? 'hidden md:flex' : 'flex'}`}>
                     {/* Trama de fondo tipo WhatsApp */}
                     <div className="absolute inset-0 pointer-events-none opacity-[0.4]" style={{ backgroundImage: 'url("https://w0.peakpx.com/wallpaper/508/887/HD-wallpaper-whatsapp-background-cool-dark-green-new-theme-whatsapp-thumbnail.jpg")', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.05 }}></div>
                     
@@ -387,7 +387,7 @@ export default function LiveChatPage() {
                                                                 </div>
                                                             </a>
                                                             {imageCaption && (
-                                                                <div className="px-2.5 pt-1 pb-4 text-[12px] text-gray-500 italic">
+                                                                <div className="px-2.5 pt-1 pb-4 text-[12px] text-gray-500 italic break-words whitespace-pre-wrap overflow-hidden max-w-full">
                                                                     🤖 {imageCaption}
                                                                 </div>
                                                             )}
