@@ -166,7 +166,7 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                                                     generationConfig: { maxOutputTokens: 150 }
                                                 };
                                                 
-                                                const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiKey}`, {
+                                                const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
                                                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
                                                 });
                                                 
@@ -420,7 +420,7 @@ ${ragContext}`;
                             
                             console.log("GEMINI PAYLOAD:", JSON.stringify(payload));
 
-                            let res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiKey}`, {
+                            let res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
                                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
                             });
 
@@ -518,7 +518,7 @@ ${ragContext}`;
                                     generationConfig: { temperature: 0.2 }
                                 };
 
-                                let res2 = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiKey}`, {
+                                let res2 = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
                                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload2)
                                 });
 
