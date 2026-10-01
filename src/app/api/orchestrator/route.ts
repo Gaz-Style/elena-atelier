@@ -363,85 +363,28 @@ ${ragContext}`;
                         let handoffMotivo = 'El cliente solicitó atención personalizada.';
 
                         try {
-                            const geminiKey = process.env.GEMINI_API_KEY;
-                            if (!geminiKey) throw new Error("Gemini API Key missing");
+                            const dsMessages = [{ role: 'system', content: systemPrompt } as any, ...conversationHistory.map((m: any) => ({
+                                role: m.role,
+                                content: m.content
+                            }))];
 
-                            const rawContents = conversationHistory.map((msg: any) => ({
-                                role: msg.role === 'assistant' ? 'model' : 'user',
-                                parts: [{ text: msg.content }]
-                            }));
-
-                            // Gemini REST API REQUIRES alternating roles. Merge adjacent identical roles.
-                            const geminiContents: any[] = [];
-                            for (const msg of rawContents) {
-                                if (geminiContents.length > 0 && geminiContents[geminiContents.length - 1].role === msg.role) {
-                                    geminiContents[geminiContents.length - 1].parts[0].text += "\n" + msg.parts[0].text;
-                                } else {
-                                    geminiContents.push(msg);
+                            const dsTools = [...ATELIER_TOOLS, {
+                                type: 'function',
+                                function: {
+                                    name: 'consultar_precio',
+                                    description: 'Busca el precio de un servicio o prenda en la base de datos del Atelier.',
+                                    parameters: { type: "object", properties: { servicio: { type: "string", description: "Término de búsqueda, ej: basta, cierre, vestido de novia, entalle" } }, required: ["servicio"], additionalProperties: false },
+                                    strict: true
                                 }
-                            }
-
-                            const geminiTools = [{
-                                functionDeclarations: [
-                                    {
-                                        name: "solicitar_asistencia_humana",
-                                        description: "Utilizar INMEDIATAMENTE si el cliente tiene un reclamo, pide hablar con un humano o pide que le contactemos.",
-                                        parameters: { type: "OBJECT", properties: { motivo: { type: "STRING" }, urgencia: { type: "STRING" } }, required: ["motivo", "urgencia"] }
-                                    },
-                                    {
-                                        name: "programar_seguimiento_automatico",
-                                        description: "Utilizar cuando el cliente te pida que le hables o contactes más tarde.",
-                                        parameters: { type: "OBJECT", properties: { minutos: { type: "NUMBER" }, motivo: { type: "STRING" } }, required: ["minutos", "motivo"] }
-                                    },
-                                    {
-                                        name: "agendar_visita",
-                                        description: "Registra una cita presencial.",
-                                        parameters: { type: "OBJECT", properties: { nombre: { type: "STRING" }, apellido: { type: "STRING" }, correo: { type: "STRING" }, fecha: { type: "STRING", description: "YYYY-MM-DD" }, hora: { type: "STRING", description: "HH:MM" }, tipo_servicio: { type: "STRING" } }, required: ["nombre", "apellido", "correo", "fecha", "hora", "tipo_servicio"] }
-                                    },
-                                    {
-                                        name: "consultar_disponibilidad",
-                                        description: "Consulta horarios disponibles (YYYY-MM-DD)",
-                                        parameters: { type: "OBJECT", properties: { fecha: { type: "STRING" } }, required: ["fecha"] }
-                                    },
-                                    {
-                                        name: "consultar_precio",
-                                        description: "Busca el precio de un servicio o prenda en la base de datos del Atelier.",
-                                        parameters: { type: "OBJECT", properties: { servicio: { type: "STRING", description: "Término de búsqueda, ej: basta, cierre, vestido de novia, entalle" } }, required: ["servicio"] }
-                                    }
-                                ]
                             }];
 
-                            let payload = {
-                                contents: geminiContents,
-                                tools: geminiTools,
-                                systemInstruction: { parts: [{ text: systemPrompt }] },
-                                generationConfig: { temperature: 0.2 }
-                            };
-                            
-                            console.log("GEMINI PAYLOAD:", JSON.stringify(payload));
-
-                            let res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
-                                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-                            });
-
-                            if (!res.ok) {
-                                const errText = await res.text();
-                                console.log("GEMINI ERROR RESPONSE:", errText);
-                                await supabase.from('ai_agent_tasks').update({ error_log: errText }).eq('id', task.id);
-                                throw new Error("Gemini fetch failed: " + errText);
-                            }
-
-                            let data = await res.json();
-                            console.log("GEMINI RESPONSE:", JSON.stringify(data));
-                            
-                            let candidate = data.candidates?.[0];
-                            let part = candidate?.content?.parts?.[0];
+                            let res = await generateDeepSeekCompletion({ messages: dsMessages, tools: dsTools, temperature: 0.2 });
                             let wasAgendarExecuted = false;
 
-                            if (part?.functionCall) {
-                                const call = part.functionCall;
-                                const funcName = call.name;
-                                const funcArgs = call.args;
+                            if (res.toolCalls && res.toolCalls.length > 0) {
+                                const toolCall = res.toolCalls[0];
+                                const funcName = toolCall.function.name;
+                                const funcArgs = JSON.parse(toolCall.function.arguments);
                                 
                                 if (funcName === 'agendar_visita') {
                                     wasAgendarExecuted = true;
@@ -501,33 +444,13 @@ ${ragContext}`;
                                     toolResult = await executeAtelierTool(funcName, funcArgs, { celular: recipientPhone });
                                 }
                                 
-                                geminiContents.push(candidate.content);
-                                geminiContents.push({
-                                    role: 'function' as any,
-                                    parts: [{
-                                        functionResponse: {
-                                            name: call.name,
-                                            response: { result: toolResult || "" }
-                                        }
-                                    } as any]
-                                });
-
-                                let payload2 = {
-                                    contents: geminiContents,
-                                    systemInstruction: { parts: [{ text: systemPrompt }] },
-                                    generationConfig: { temperature: 0.2 }
-                                };
-
-                                let res2 = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
-                                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload2)
-                                });
-
-                                if (res2.ok) {
-                                    let data2 = await res2.json();
-                                    aiReply = data2.candidates?.[0]?.content?.parts?.[0]?.text || aiReply;
-                                }
-                            } else if (part?.text) {
-                                aiReply = part.text;
+                                dsMessages.push({ role: 'assistant', content: res.content || '', tool_calls: res.toolCalls } as any);
+                                dsMessages.push({ role: 'tool', tool_call_id: toolCall.id, name: funcName, content: String(toolResult) } as any);
+                                
+                                let res2 = await generateDeepSeekCompletion({ messages: dsMessages, tools: dsTools, temperature: 0.2 });
+                                aiReply = res2.content;
+                            } else {
+                                aiReply = res.content;
                             }
 
                             // SALVAGUARDA DE SEGURIDAD PARA AGENDAMIENTO:
