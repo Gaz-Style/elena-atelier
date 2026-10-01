@@ -327,13 +327,19 @@ export default function LiveChatPage() {
 
                                     // Detect image messages: type='image' and media_url is a Meta numeric ID
                                     const isImageMsg = msg.message_type === 'image' && msg.media_url && /^\d+$/.test(msg.media_url);
-                                    // Clean Gemini analysis caption
+                                    // Clean Gemini analysis caption - filter out errors and partial/broken responses
                                     const rawContent = msg.content || '';
-                                    const imageCaption = rawContent
+                                    let imageCaption = rawContent
                                         .replace(/^\[EL USUARIO ENVIÓ UNA FOTO\. Análisis visual: /i, '')
-                                        .replace(/^\[EL USUARIO ENVIÓ UNA FOTO\. Error del sistema:[^\]]+\]/i, '')
+                                        .replace(/^\[EL USUARIO ENVIÓ UNA FOTO\. Análisis de la imagen: /i, '')
+                                        .replace(/^\[EL USUARIO ENVIÓ UNA FOTO\. Error del sistema[^\]]*\]/i, '')
+                                        .replace(/^\[EL USUARIO ENVIÓ UNA FOTO[^\]]*\]/i, '')
                                         .replace(/\]$/, '')
                                         .trim();
+                                    // Hide caption if it's too short (broken/partial), contains error indicators, or is raw JSON
+                                    if (imageCaption.length < 10 || /error|quota|"@type"|google\.rpc|FreeTier|blocked/i.test(imageCaption) || imageCaption.startsWith('{') || imageCaption.startsWith('[')) {
+                                        imageCaption = '';
+                                    }
 
                                     return (
                                         <React.Fragment key={msg.id}>
