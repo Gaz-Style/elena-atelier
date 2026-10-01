@@ -8,6 +8,7 @@ import { X, ChevronLeft, ChevronRight, SlidersHorizontal, ArrowRight } from 'luc
 import { trackEvent } from '@/components/FacebookPixel';
 import { trackTikTokEvent } from '@/components/TikTokPixel';
 import { trackGAEvent } from '@/components/GoogleAnalytics';
+import { vestidosFiesta, type Vestido } from '@/lib/fiesta-data';
 
 interface PortfolioData {
   category: string;
