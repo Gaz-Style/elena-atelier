@@ -434,8 +434,39 @@ export default function LiveChatPage() {
                                     </div>
                                 )}
                                 
-                                <div className="flex items-end gap-2 max-w-5xl mx-auto">
-                                <div className="flex-grow bg-white rounded-3xl flex items-center px-2 overflow-hidden min-h-[44px] relative">
+                                <div className="flex items-end gap-2 max-w-5xl mx-auto relative">
+                                {/* Emoji Picker Popover - outside overflow-hidden */}
+                                {showEmojiPicker && (
+                                    <div className="absolute bottom-[52px] left-0 bg-white rounded-xl shadow-xl border border-gray-200 p-3 z-50 w-[320px] max-h-[280px] overflow-y-auto">
+                                        {[
+                                            { label: 'Frecuentes', emojis: ['😊', '👍', '❤️', '🙏', '✨', '🎉', '💯', '🔥', '👏', '😍', '🥰', '💪'] },
+                                            { label: 'Caras', emojis: ['😀', '😃', '😄', '😁', '😆', '🥹', '😅', '🤣', '😂', '🙂', '😉', '😌', '😘', '🤔', '🤗', '😎', '🫡', '🤩'] },
+                                            { label: 'Gestos', emojis: ['👋', '🤝', '✌️', '🤞', '👌', '💅', '🫶', '🙌', '👀', '💬', '📸', '📌'] },
+                                            { label: 'Moda & Costura', emojis: ['🧵', '🪡', '✂️', '👗', '👔', '👖', '👠', '👜', '🎀', '💎', '🪭', '👰'] },
+                                            { label: 'Objetos', emojis: ['📅', '⏰', '📍', '📞', '💌', '🏷️', '💳', '🧾', '📦', '🚚', '⭐', '🌟'] },
+                                        ].map((cat) => (
+                                            <div key={cat.label} className="mb-2">
+                                                <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1 px-1">{cat.label}</p>
+                                                <div className="grid grid-cols-9 gap-0.5">
+                                                    {cat.emojis.map((emoji) => (
+                                                        <button
+                                                            key={emoji}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setReplyText(prev => prev + emoji);
+                                                                textareaRef.current?.focus();
+                                                            }}
+                                                            className="w-8 h-8 flex items-center justify-center text-xl hover:bg-gray-100 rounded transition-colors cursor-pointer"
+                                                        >
+                                                            {emoji}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                <div className="flex-grow bg-white rounded-3xl flex items-center px-2 min-h-[44px]">
                                     {/* Emoji Picker Button */}
                                     <button
                                         type="button"
@@ -445,37 +476,6 @@ export default function LiveChatPage() {
                                         <Smile className="w-6 h-6" />
                                     </button>
 
-                                    {/* Emoji Picker Popover */}
-                                    {showEmojiPicker && (
-                                        <div className="absolute bottom-[52px] left-0 bg-white rounded-xl shadow-xl border border-gray-200 p-3 z-50 w-[320px] max-h-[280px] overflow-y-auto">
-                                            {[
-                                                { label: 'Frecuentes', emojis: ['😊', '👍', '❤️', '🙏', '✨', '🎉', '💯', '🔥', '👏', '😍', '🥰', '💪'] },
-                                                { label: 'Caras', emojis: ['😀', '😃', '😄', '😁', '😆', '🥹', '😅', '🤣', '😂', '🙂', '😉', '😌', '😘', '🤔', '🤗', '😎', '🫡', '🤩'] },
-                                                { label: 'Gestos', emojis: ['👋', '🤝', '✌️', '🤞', '👌', '💅', '🫶', '🙌', '👀', '💬', '📸', '📌'] },
-                                                { label: 'Moda & Costura', emojis: ['🧵', '🪡', '✂️', '👗', '👔', '👖', '👠', '👜', '🎀', '💎', '🪭', '👰'] },
-                                                { label: 'Objetos', emojis: ['📅', '⏰', '📍', '📞', '💌', '🏷️', '💳', '🧾', '📦', '🚚', '⭐', '🌟'] },
-                                            ].map((cat) => (
-                                                <div key={cat.label} className="mb-2">
-                                                    <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1 px-1">{cat.label}</p>
-                                                    <div className="grid grid-cols-9 gap-0.5">
-                                                        {cat.emojis.map((emoji) => (
-                                                            <button
-                                                                key={emoji}
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setReplyText(prev => prev + emoji);
-                                                                    textareaRef.current?.focus();
-                                                                }}
-                                                                className="w-8 h-8 flex items-center justify-center text-xl hover:bg-gray-100 rounded transition-colors cursor-pointer"
-                                                            >
-                                                                {emoji}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
 
                                     <textarea
                                         ref={textareaRef}
