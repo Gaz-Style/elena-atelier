@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Send, Bot, User, Phone, CheckCircle, Search, ToggleLeft, ToggleRight, MessageSquare, ArrowLeft as ArrowLeftMobile } from 'lucide-react';
+import { ArrowLeft, Send, Bot, User, Phone, CheckCircle, Search, ToggleLeft, ToggleRight, MessageSquare, ArrowLeft as ArrowLeftMobile, Smile } from 'lucide-react';
 import { getWhatsAppChatsAction, getWhatsAppMessagesAction, sendWhatsAppMessageAction, toggleBotSessionAction } from './actions';
 
 // Icono simple de WhatsApp (Omnicanal)
@@ -18,6 +18,8 @@ export default function LiveChatPage() {
     const [messages, setMessages] = useState<any[]>([]);
     const [replyText, setReplyText] = useState('');
     const [loading, setLoading] = useState(true);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [sending, setSending] = useState(false);
     const [sendError, setSendError] = useState<string | null>(null);
     const [autoRevertSeconds, setAutoRevertSeconds] = useState<number | null>(null);
@@ -433,28 +435,71 @@ export default function LiveChatPage() {
                                 )}
                                 
                                 <div className="flex items-end gap-2 max-w-5xl mx-auto">
-                                    <div className="flex-grow bg-white rounded-3xl flex items-center px-4 overflow-hidden min-h-[44px]">
-                                        <textarea
-                                            value={replyText}
-                                            onChange={(e) => { 
-                                                setReplyText(e.target.value); 
-                                                setSendError(null);
-                                                if (selectedChat?.id && selectedChat?.session_status !== 'bot') {
-                                                    startAutoRevert(selectedChat.id);
-                                                }
-                                            }}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' && !e.shiftKey) {
-                                                    e.preventDefault();
-                                                    handleSend();
-                                                }
-                                            }}
-                                            placeholder="Escribe un mensaje"
-                                            className="w-full py-3 text-[15px] bg-transparent outline-none resize-none max-h-[120px] scrollbar-hide flex items-center"
-                                            rows={1}
-                                            style={{ height: replyText.split('\n').length > 1 ? 'auto' : '44px' }}
-                                        />
-                                    </div>
+                                <div className="flex-grow bg-white rounded-3xl flex items-center px-2 overflow-hidden min-h-[44px] relative">
+                                    {/* Emoji Picker Button */}
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                        className={`p-2 rounded-full transition-colors shrink-0 ${showEmojiPicker ? 'text-[#00a884]' : 'text-gray-500 hover:text-gray-700'}`}
+                                    >
+                                        <Smile className="w-6 h-6" />
+                                    </button>
+
+                                    {/* Emoji Picker Popover */}
+                                    {showEmojiPicker && (
+                                        <div className="absolute bottom-[52px] left-0 bg-white rounded-xl shadow-xl border border-gray-200 p-3 z-50 w-[320px] max-h-[280px] overflow-y-auto">
+                                            {[
+                                                { label: 'Frecuentes', emojis: ['😊', '👍', '❤️', '🙏', '✨', '🎉', '💯', '🔥', '👏', '😍', '🥰', '💪'] },
+                                                { label: 'Caras', emojis: ['😀', '😃', '😄', '😁', '😆', '🥹', '😅', '🤣', '😂', '🙂', '😉', '😌', '😘', '🤔', '🤗', '😎', '🫡', '🤩'] },
+                                                { label: 'Gestos', emojis: ['👋', '🤝', '✌️', '🤞', '👌', '💅', '🫶', '🙌', '👀', '💬', '📸', '📌'] },
+                                                { label: 'Moda & Costura', emojis: ['🧵', '🪡', '✂️', '👗', '👔', '👖', '👠', '👜', '🎀', '💎', '🪭', '👰'] },
+                                                { label: 'Objetos', emojis: ['📅', '⏰', '📍', '📞', '💌', '🏷️', '💳', '🧾', '📦', '🚚', '⭐', '🌟'] },
+                                            ].map((cat) => (
+                                                <div key={cat.label} className="mb-2">
+                                                    <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1 px-1">{cat.label}</p>
+                                                    <div className="grid grid-cols-9 gap-0.5">
+                                                        {cat.emojis.map((emoji) => (
+                                                            <button
+                                                                key={emoji}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setReplyText(prev => prev + emoji);
+                                                                    textareaRef.current?.focus();
+                                                                }}
+                                                                className="w-8 h-8 flex items-center justify-center text-xl hover:bg-gray-100 rounded transition-colors cursor-pointer"
+                                                            >
+                                                                {emoji}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <textarea
+                                        ref={textareaRef}
+                                        value={replyText}
+                                        onChange={(e) => { 
+                                            setReplyText(e.target.value); 
+                                            setSendError(null);
+                                            if (selectedChat?.id && selectedChat?.session_status !== 'bot') {
+                                                startAutoRevert(selectedChat.id);
+                                            }
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleSend();
+                                            }
+                                        }}
+                                        onFocus={() => setShowEmojiPicker(false)}
+                                        placeholder="Escribe un mensaje"
+                                        className="w-full py-3 text-[15px] bg-transparent outline-none resize-none max-h-[120px] scrollbar-hide flex items-center"
+                                        rows={1}
+                                        style={{ height: replyText.split('\n').length > 1 ? 'auto' : '44px' }}
+                                    />
+                                </div>
                                     <button
                                         onClick={handleSend}
                                         disabled={!replyText.trim() || sending}
