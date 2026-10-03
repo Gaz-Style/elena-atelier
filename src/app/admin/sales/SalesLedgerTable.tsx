@@ -9,6 +9,7 @@ import {
     updateSaleStatusAction, 
     requestSaleStatusAuthorizationAction 
 } from './actions';
+import AccountingBreakdownModal from './AccountingBreakdownModal';
 
 interface Sale {
     id: string;
@@ -27,9 +28,11 @@ interface Sale {
 
 interface SalesLedgerTableProps {
     sales: Sale[];
+    bridalProjects?: any[];
+    prodOrders?: any[];
 }
 
-export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
+export default function SalesLedgerTable({ sales, bridalProjects = [], prodOrders = [] }: SalesLedgerTableProps) {
     const [salesList, setSalesList] = useState<Sale[]>(sales);
     
     // Filters State
@@ -37,6 +40,7 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
     const currentMonth = (new Date().getMonth() + 1).toString();
     const [selectedYear, setSelectedYear] = useState<string>(currentYear);
     const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
+    const [selectedView, setSelectedView] = useState<'real' | 'cuotas' | 'caja' | 'pendientes'>('cuotas');
 
     // Auth Modal State
     const [showAuthModal, setShowAuthModal] = useState(false);
@@ -84,31 +88,164 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
 
     const todayChileStr = getChileDateParts(new Date()).dateStr;
 
-    // Filter sales based on selected period (excluding cancelled from calculations)
-    const filteredSales = salesList.filter(s => {
-        if (s.status === 'cancelled') return false;
-        const sParts = getChileDateParts(s.created_at);
+    // Base ID Helper to group related transactions
+    const getBaseId = (internalId: string) => {
+        if (internalId.startsWith('bridal_')) {
+            let base = internalId.replace('bridal_', '').split('_balance_')[0];
+            if (base.includes('_custom')) base = base.split('_custom')[0];
+            else if (base.includes('_p')) base = base.split('_p')[0];
+            else base = base.split('_')[0]; // Safely remove any other suffix for UUIDs
+            return base;
+        } else {
+            // For order_52210, pos_123, etc., just remove the balance suffix
+            return internalId.split('_balance_')[0];
+        }
+    };
 
+    // Find original date for each project
+    const projectOriginalDates: Record<string, ReturnType<typeof getChileDateParts>> = {};
+    
+    // 1. Use absolute creation date from the actual project/order if available
+    bridalProjects.forEach(p => {
+        if (p.created_at) projectOriginalDates[p.id] = getChileDateParts(p.created_at);
+    });
+    prodOrders.forEach(p => {
+        if (p.created_at) {
+            projectOriginalDates[p.pos_order_id] = getChileDateParts(p.created_at);
+            projectOriginalDates[`order_${p.pos_order_id}`] = getChileDateParts(p.created_at);
+        }
+    });
+
+    // 2. Fallback to the first transaction date ONLY if it's a loose sale without a project
+    salesList.forEach(s => {
+        if (s.status === 'cancelled') return;
+        const baseId = getBaseId(s.internal_id);
+        const sParts = getChileDateParts(s.created_at);
+        if (!projectOriginalDates[baseId]) {
+            projectOriginalDates[baseId] = sParts;
+        } else if (!bridalProjects.some(p => p.id === baseId) && !prodOrders.some(p => p.pos_order_id === baseId || `order_${p.pos_order_id}` === baseId)) {
+             // For general loose sales not tied to a project, find earliest transaction
+             if (new Date(s.created_at).getTime() < new Date(projectOriginalDates[baseId].dateStr).getTime()) {
+                 projectOriginalDates[baseId] = sParts;
+             }
+        }
+    });
+
+    const getCategory = (s: Sale) => {
+        if (s.internal_id.startsWith('bridal_')) return 'Alta Costura';
+        const baseId = s.internal_id.split('_balance_')[0];
+        const prod = prodOrders.find((p: any) => p.pos_order_id === baseId || `order_${p.pos_order_id}` === baseId || p.pos_order_id === baseId.replace('order_', ''));
+        if (prod) {
+            const desc = (prod.description || '').toLowerCase();
+            if (desc.includes('arreglo') || desc.includes('basta') || desc.includes('acortar') || desc.includes('ajuste') || desc.includes('entallar') || desc.includes('achicar') || desc.includes('cambio') || desc.includes('cierre') || prod.order_type === 'b2b_batch') {
+                return 'Arreglos';
+            }
+            return 'Confección';
+        }
+        return 'Venta General';
+    };
+
+    // 1. Volumen Comercial Real (Filtrado por fecha original del proyecto)
+    let trueCommercialVolume = 0;
+    const realViewSalesProcessed: any[] = [];
+    const seenBaseIdsForReal = new Set();
+    
+    // Agrupar todos los pagos históricos por proyecto para calcular saldo real
+    const allPaymentsByBaseId: Record<string, number> = {};
+    salesList.forEach(s => {
+        if (s.status === 'cancelled') return;
+        const baseId = getBaseId(s.internal_id);
+        if (s.status === 'completed' || s.status === 'paid' || s.status === 'partial') {
+            allPaymentsByBaseId[baseId] = (allPaymentsByBaseId[baseId] || 0) + (Number(s.paid_amount) || 0);
+        }
+    });
+
+    salesList.forEach(s => {
+        if (s.status === 'cancelled') return;
+        if (s.internal_id.includes('_balance_')) return;
+        
+        const baseId = getBaseId(s.internal_id);
+        if (seenBaseIdsForReal.has(baseId)) return;
+        
+        const origDate = projectOriginalDates[baseId];
+        if (!origDate) return;
+
+        // Apply month/year filter based on PROJECT creation date for this view
+        if (selectedYear && origDate.year !== selectedYear) return;
+        if (selectedMonth && origDate.month !== selectedMonth) return;
+        
+        seenBaseIdsForReal.add(baseId);
+        
+        const project = bridalProjects.find(p => p.id === baseId);
+        const realTotal = project && s.internal_id.startsWith('bridal_') ? Number(project.total_amount) : Number(s.total_amount);
+        const totalAbono = allPaymentsByBaseId[baseId] || 0;
+        
+        trueCommercialVolume += realTotal;
+        
+        realViewSalesProcessed.push({
+            ...s,
+            id: baseId,
+            real_total: realTotal,
+            abono: totalAbono,
+            saldo_pendiente: Math.max(0, realTotal - totalAbono),
+            category: getCategory(s),
+            created_at: s.created_at // Mantener fecha de la cuota principal para render
+        });
+    });
+    
+    const realViewSales = realViewSalesProcessed.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    // 2. Caja Real Cobrada (Filtrado por fecha exacta del pago/transacción)
+    const cajaViewSalesProcessed: any[] = [];
+    let cashCollected = 0;
+    
+    const baseIdGroupsForCaja: Record<string, Sale[]> = {};
+    salesList.forEach(s => {
+        if (s.status === 'cancelled') return;
+        const sParts = getChileDateParts(s.created_at);
+        if (selectedYear && sParts.year !== selectedYear) return;
+        if (selectedMonth && sParts.month !== selectedMonth) return;
+        
+        const baseId = s.internal_id.split('_balance_')[0];
+        if (!baseIdGroupsForCaja[baseId]) baseIdGroupsForCaja[baseId] = [];
+        baseIdGroupsForCaja[baseId].push({ ...s });
+    });
+
+    for (const baseId in baseIdGroupsForCaja) {
+        const group = baseIdGroupsForCaja[baseId];
+        const mainRow = group.find(s => !s.internal_id.includes('_balance_'));
+        const balanceRows = group.filter(s => s.internal_id.includes('_balance_'));
+
+        if (mainRow && balanceRows.length > 0) {
+            const balancePaid = balanceRows.reduce((sum, s) => sum + (Number(s.paid_amount) || 0), 0);
+            const totalAllowed = Number(mainRow.total_amount) || 0;
+            if (balancePaid >= totalAllowed) {
+                mainRow.paid_amount = 0;
+            } else if ((Number(mainRow.paid_amount) || 0) + balancePaid > totalAllowed) {
+                mainRow.paid_amount = totalAllowed - balancePaid;
+            }
+        }
+
+        group.forEach(s => {
+            if ((s.status === 'completed' || s.status === 'paid' || s.status === 'partial') && Number(s.paid_amount) > 0) {
+                cashCollected += Number(s.paid_amount);
+                cajaViewSalesProcessed.push({ ...s, category: getCategory(s) });
+            }
+        });
+    }
+    const cajaViewSales = cajaViewSalesProcessed.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    // 3. Ventas Registradas (Cuotas del mes)
+    const mainSales = salesList.filter(s => {
+        if (s.status === 'cancelled' || s.internal_id.includes('_balance_')) return false;
+        const sParts = getChileDateParts(s.created_at);
         if (selectedYear && sParts.year !== selectedYear) return false;
         if (selectedMonth && sParts.month !== selectedMonth) return false;
         return true;
     });
+    const cuotasVolume = mainSales.reduce((sum, s) => sum + (Number(s.total_amount) || 0), 0);
 
-    // Separate main orders (exclude balance entries _balance_) for UI table rendering & total order volume
-    const mainSales = filteredSales.filter(s => !s.internal_id.includes('_balance_'));
-
-    // 1. Ventas del Mes (Volumen Total Comercial: pendientes + pagadas)
-    const totalSalesVolume = mainSales.reduce((sum, s) => sum + (Number(s.total_amount) || 0), 0);
-    
-    // 2. Caja Real Cobrada (Dinero efectivamente cobrado en el período)
-    const cashCollected = filteredSales.reduce((sum, s) => {
-        if (s.status === 'completed' || s.status === 'paid' || s.status === 'partial') {
-            return sum + (Number(s.paid_amount) || 0);
-        }
-        return sum;
-    }, 0);
-    
-    // 3. Ventas de Hoy (Jornada diaria en fecha local de Chile)
+    // 4. Ventas de Hoy
     const todaysMainSales = salesList.filter(s => {
         if (s.status === 'cancelled') return false;
         if (s.internal_id.includes('_balance_')) return false;
@@ -116,11 +253,12 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
         return sParts.dateStr === todayChileStr;
     });
     const todaySalesVolume = todaysMainSales.reduce((sum, s) => sum + (Number(s.total_amount) || 0), 0);
-    
-    // 4. Ventas Pendientes de Pago
-    const pendingSalesList = mainSales.filter(s => s.status === 'pending' || s.status === 'pending_terminal');
-    const pendingCount = pendingSalesList.length;
-    const pendingAmountToCollect = pendingSalesList.reduce((sum, s) => sum + (Math.max(0, (Number(s.total_amount) || 0) - (Number(s.paid_amount) || 0))), 0);
+
+    // 5. Ventas Pendientes de Pago (ALL TIME)
+    const pendingSalesListAllTime = salesList.filter(s => !s.internal_id.includes('_balance_') && (s.status === 'pending' || s.status === 'pending_terminal'));
+    const pendientesViewSales = pendingSalesListAllTime.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).map(s => ({...s, category: getCategory(s)}));
+    const pendingCount = pendingSalesListAllTime.length;
+    const pendingAmountToCollect = pendingSalesListAllTime.reduce((sum, s) => sum + (Math.max(0, (Number(s.total_amount) || 0) - (Number(s.paid_amount) || 0))), 0);
 
     // Handler when user selects a new status in the dropdown
     async function handleStatusChange(sale: Sale, newStatus: string) {
@@ -259,51 +397,56 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
                     </select>
                 </div>
 
-                <div className="bg-brand-sand/15 p-4 rounded-sm border border-brand-sand/30 flex items-center">
-                    <p className="text-[10px] text-gray-500 leading-relaxed">
-                        Filtro rápido del registro de operaciones y calibrador de métricas en tiempo real.
-                    </p>
+                <div className="bg-white p-4 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-center">
+                    <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Ventas de Hoy</h3>
+                        <Activity className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <p className="text-2xl font-serif text-brand-charcoal">{formatCurrency(todaySalesVolume)}</p>
+                    <p className="text-[9px] text-gray-400 mt-1">{todaysMainSales.length} transacciones hoy (Hora Chile)</p>
                 </div>
             </div>
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-between">
+                <div onClick={() => setSelectedView('real')} className={`cursor-pointer bg-white p-6 rounded-sm border ${selectedView === 'real' ? 'border-brand-terracotta ring-1 ring-brand-terracotta' : 'border-gray-100'} shadow-sm flex flex-col justify-between transition-all hover:border-brand-terracotta/50`}>
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">
-                            {selectedMonth ? `Ventas del Mes (${monthNames.find(m => m.val === selectedMonth)?.label})` : 'Ventas Totales (Histórico)'}
+                            Volumen Comercial Real
                         </h3>
                         <DollarSign className="w-4 h-4 text-brand-terracotta" />
                     </div>
-                    <p className="text-3xl font-serif text-brand-charcoal">{formatCurrency(totalSalesVolume)}</p>
+                    <p className="text-3xl font-serif text-brand-charcoal">{formatCurrency(trueCommercialVolume)}</p>
+                    <p className="text-[10px] text-gray-400 mt-2">Valor total de proyectos creados</p>
+                </div>
+
+                <div onClick={() => setSelectedView('cuotas')} className={`cursor-pointer bg-white p-6 rounded-sm border ${selectedView === 'cuotas' ? 'border-brand-sand ring-1 ring-brand-sand' : 'border-gray-100'} shadow-sm flex flex-col justify-between transition-all hover:border-brand-sand/50`}>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">
+                            Ventas Registradas (Cuotas)
+                        </h3>
+                        <DollarSign className="w-4 h-4 text-brand-sand" />
+                    </div>
+                    <p className="text-3xl font-serif text-brand-charcoal">{formatCurrency(cuotasVolume)}</p>
                     <p className="text-[10px] text-gray-400 mt-2">{mainSales.length} órdenes (Pendientes + Pagadas)</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-between">
+                <div onClick={() => setSelectedView('caja')} className={`cursor-pointer bg-white p-6 rounded-sm border ${selectedView === 'caja' ? 'border-green-600 ring-1 ring-green-600' : 'border-gray-100'} shadow-sm flex flex-col justify-between transition-all hover:border-green-600/50`}>
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Caja Real Cobrada</h3>
                         <Wallet className="w-4 h-4 text-green-600" />
                     </div>
                     <p className="text-3xl font-serif text-brand-charcoal">{formatCurrency(cashCollected)}</p>
-                    <p className="text-[10px] text-gray-400 mt-2">Recaudación efectiva recibida</p>
+                    <p className="text-[10px] text-gray-400 mt-2">Pagos de las ventas de este período</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-between">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Ventas de Hoy</h3>
-                        <Activity className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <p className="text-3xl font-serif text-brand-charcoal">{formatCurrency(todaySalesVolume)}</p>
-                    <p className="text-[10px] text-gray-400 mt-2">{todaysMainSales.length} transacciones hoy (Hora Chile)</p>
-                </div>
-
-                <div className="bg-white p-6 rounded-sm border border-gray-100 shadow-sm flex flex-col justify-between">
+                <div onClick={() => setSelectedView('pendientes')} className={`cursor-pointer bg-white p-6 rounded-sm border ${selectedView === 'pendientes' ? 'border-orange-400 ring-1 ring-orange-400' : 'border-gray-100'} shadow-sm flex flex-col justify-between transition-all hover:border-orange-400/50`}>
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Ventas Pendientes</h3>
                         <Clock className="w-4 h-4 text-orange-400" />
                     </div>
                     <p className="text-3xl font-serif text-brand-charcoal">{pendingCount}</p>
-                    <p className="text-[10px] text-gray-400 mt-2">{formatCurrency(pendingAmountToCollect)} por cobrar</p>
+                    <p className="text-[10px] text-gray-400 mt-2">{formatCurrency(pendingAmountToCollect)} por cobrar histórico</p>
                 </div>
             </div>
 
@@ -315,6 +458,11 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
                         <button className="px-4 py-2 bg-white border border-gray-200 rounded-sm text-[10px] font-bold uppercase tracking-widest text-gray-600 hover:border-brand-terracotta hover:text-brand-terracotta transition-colors">
                             Filtrar
                         </button>
+                        <AccountingBreakdownModal 
+                            salesList={salesList} 
+                            selectedYear={selectedYear} 
+                            selectedMonth={selectedMonth} 
+                        />
                         <button className="px-4 py-2 bg-brand-charcoal border border-brand-charcoal rounded-sm text-[10px] font-bold uppercase tracking-widest text-white hover:bg-brand-terracotta hover:border-brand-terracotta transition-colors">
                             Reporte Mensual
                         </button>
@@ -324,77 +472,103 @@ export default function SalesLedgerTable({ sales }: SalesLedgerTableProps) {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-gray-200 bg-gray-50 text-[10px] uppercase tracking-widest text-gray-500">
-                                <th className="p-4 font-bold">ID Transacción</th>
-                                <th className="p-4 font-bold">Fecha</th>
-                                <th className="p-4 font-bold">Cliente</th>
-                                <th className="p-4 font-bold">Monto Total</th>
-                                <th className="p-4 font-bold">Medio de Pago</th>
-                                <th className="p-4 font-bold">Estado</th>
-                                <th className="p-4 font-bold text-right">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody className="text-sm text-gray-600">
-                            {mainSales.length === 0 ? (
-                                <tr>
-                                    <td colSpan={7} className="p-8 text-center text-gray-400 italic">
-                                        No hay registros de ventas para el período seleccionado.
-                                    </td>
+                            {selectedView === 'real' ? (
+                                <tr className="border-b border-gray-200 bg-gray-50 text-[10px] uppercase tracking-widest text-gray-500">
+                                    <th className="p-4 font-bold">Fecha</th>
+                                    <th className="p-4 font-bold">Cliente</th>
+                                    <th className="p-4 font-bold">Categoría</th>
+                                    <th className="p-4 font-bold">Venta</th>
+                                    <th className="p-4 font-bold">Abono (Total Pagado)</th>
+                                    <th className="p-4 font-bold">Saldo Pendiente</th>
+                                </tr>
+                            ) : selectedView === 'caja' ? (
+                                <tr className="border-b border-gray-200 bg-gray-50 text-[10px] uppercase tracking-widest text-gray-500">
+                                    <th className="p-4 font-bold">Fecha</th>
+                                    <th className="p-4 font-bold">Cliente</th>
+                                    <th className="p-4 font-bold">Categoría</th>
+                                    <th className="p-4 font-bold">Abono / Pago Recibido</th>
+                                    <th className="p-4 font-bold">Medio de Pago</th>
                                 </tr>
                             ) : (
-                                mainSales.map((sale) => (
-                                    <tr key={sale.id} className="border-b border-gray-100 hover:bg-gray-50/80 transition-colors">
-                                        <td className="p-4">
-                                            <span className="font-bold text-brand-charcoal">{sale.internal_id}</span>
-                                        </td>
-                                        <td className="p-4 text-xs" suppressHydrationWarning>
-                                            {formatDate(sale.created_at)}
-                                        </td>
-                                        <td className="p-4 font-serif text-brand-charcoal">
-                                            {sale.customers?.full_name ? sale.customers.full_name : sale.customer_id ? `Cliente (${sale.customer_id.substring(0,6)})` : 'Cliente General'}
-                                        </td>
-                                        <td className="p-4 font-bold text-brand-terracotta">
-                                            {formatCurrency(sale.total_amount)}
-                                        </td>
-                                        <td className="p-4">
-                                            <div className="flex items-center gap-2">
-                                                <CreditCard className="w-3 h-3 text-gray-400" />
-                                                <span className="capitalize">{sale.payment_method?.replace(/_/g, ' ') || 'No registrado'}</span>
-                                            </div>
-                                        </td>
-                                        <td className="p-4">
-                                            <select
-                                                value={sale.status}
-                                                onChange={(e) => handleStatusChange(sale, e.target.value)}
-                                                className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider outline-none border border-transparent cursor-pointer transition-all ${
-                                                    sale.status === 'completed' 
-                                                        ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                                                        : sale.status === 'pending' || sale.status === 'pending_terminal'
-                                                            ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' 
-                                                            : sale.status === 'partial'
-                                                                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                                }`}
-                                            >
-                                                <option value="pending" className="bg-white text-orange-700 font-bold">Pendiente</option>
-                                                <option value="partial" className="bg-white text-blue-700 font-bold">Abono</option>
-                                                <option value="completed" className="bg-white text-green-700 font-bold">Pagado</option>
-                                                <option value="cancelled" className="bg-white text-gray-600 font-bold">Cancelada</option>
-                                            </select>
-                                        </td>
-                                        <td className="p-4 text-right space-x-3">
-                                            <button 
-                                                onClick={() => handleDeleteClick(sale)}
-                                                className="text-[10px] uppercase font-bold text-rose-500 hover:text-rose-700 transition-colors inline-flex items-center gap-1"
-                                            >
-                                                <Trash2 className="w-3 h-3" /> Eliminar
-                                            </button>
-                                            <Link href={`/admin/sales/${sale.id}`} className="text-[10px] uppercase font-bold text-gray-400 hover:text-brand-terracotta transition-colors">
-                                                Ver Detalle
-                                            </Link>
-                                        </td>
-                                    </tr>
-                                ))
+                                <tr className="border-b border-gray-200 bg-gray-50 text-[10px] uppercase tracking-widest text-gray-500">
+                                    <th className="p-4 font-bold">ID Transacción</th>
+                                    <th className="p-4 font-bold">Fecha</th>
+                                    <th className="p-4 font-bold">Cliente</th>
+                                    <th className="p-4 font-bold">Monto</th>
+                                    <th className="p-4 font-bold">Medio de Pago</th>
+                                    <th className="p-4 font-bold">Estado</th>
+                                    <th className="p-4 font-bold text-right">Acciones</th>
+                                </tr>
+                            )}
+                        </thead>
+                        <tbody className="text-sm text-gray-600">
+                            {selectedView === 'real' ? (
+                                realViewSales.length === 0 ? (
+                                    <tr><td colSpan={6} className="p-8 text-center text-gray-400 italic">No hay proyectos registrados en este período.</td></tr>
+                                ) : (
+                                    realViewSales.map((sale) => (
+                                        <tr key={sale.id} className="border-b border-gray-100 hover:bg-gray-50/80 transition-colors">
+                                            <td className="p-4 text-xs" suppressHydrationWarning>{formatDate(sale.created_at)}</td>
+                                            <td className="p-4 font-serif text-brand-charcoal">{sale.customers?.full_name ? sale.customers.full_name : sale.customer_id ? `Cliente (${sale.customer_id.substring(0,6)})` : 'Cliente General'}</td>
+                                            <td className="p-4"><span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-gray-100 rounded-sm">{sale.category}</span></td>
+                                            <td className="p-4 font-bold text-brand-charcoal">{formatCurrency(sale.real_total)}</td>
+                                            <td className="p-4 font-bold text-green-600">{formatCurrency(sale.abono)}</td>
+                                            <td className="p-4 font-bold text-orange-500">{formatCurrency(sale.saldo_pendiente)}</td>
+                                        </tr>
+                                    ))
+                                )
+                            ) : selectedView === 'caja' ? (
+                                cajaViewSales.length === 0 ? (
+                                    <tr><td colSpan={5} className="p-8 text-center text-gray-400 italic">No hay pagos registrados en este período.</td></tr>
+                                ) : (
+                                    cajaViewSales.map((sale) => (
+                                        <tr key={sale.id} className="border-b border-gray-100 hover:bg-gray-50/80 transition-colors">
+                                            <td className="p-4 text-xs" suppressHydrationWarning>{formatDate(sale.created_at)}</td>
+                                            <td className="p-4 font-serif text-brand-charcoal">{sale.customers?.full_name ? sale.customers.full_name : sale.customer_id ? `Cliente (${sale.customer_id.substring(0,6)})` : 'Cliente General'}</td>
+                                            <td className="p-4"><span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 bg-gray-100 rounded-sm">{sale.category}</span></td>
+                                            <td className="p-4 font-bold text-green-600">{formatCurrency(sale.paid_amount)}</td>
+                                            <td className="p-4 capitalize"><div className="flex items-center gap-2"><CreditCard className="w-3 h-3 text-gray-400" />{sale.payment_method?.replace(/_/g, ' ') || 'No registrado'}</div></td>
+                                        </tr>
+                                    ))
+                                )
+                            ) : (
+                                (selectedView === 'pendientes' ? pendientesViewSales : mainSales).length === 0 ? (
+                                    <tr><td colSpan={7} className="p-8 text-center text-gray-400 italic">No hay registros para mostrar.</td></tr>
+                                ) : (
+                                    (selectedView === 'pendientes' ? pendientesViewSales : mainSales).map((sale) => (
+                                        <tr key={sale.id} className="border-b border-gray-100 hover:bg-gray-50/80 transition-colors">
+                                            <td className="p-4"><span className="font-bold text-brand-charcoal">{sale.internal_id}</span></td>
+                                            <td className="p-4 text-xs" suppressHydrationWarning>{formatDate(sale.created_at)}</td>
+                                            <td className="p-4 font-serif text-brand-charcoal">{sale.customers?.full_name ? sale.customers.full_name : sale.customer_id ? `Cliente (${sale.customer_id.substring(0,6)})` : 'Cliente General'}</td>
+                                            <td className="p-4 font-bold text-brand-terracotta">{formatCurrency(sale.total_amount)}</td>
+                                            <td className="p-4"><div className="flex items-center gap-2"><CreditCard className="w-3 h-3 text-gray-400" /><span className="capitalize">{sale.payment_method?.replace(/_/g, ' ') || 'No registrado'}</span></div></td>
+                                            <td className="p-4">
+                                                <select
+                                                    value={sale.status}
+                                                    onChange={(e) => handleStatusChange(sale, e.target.value)}
+                                                    className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider outline-none border border-transparent cursor-pointer transition-all ${
+                                                        sale.status === 'completed' 
+                                                            ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                                                            : sale.status === 'pending' || sale.status === 'pending_terminal'
+                                                                ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' 
+                                                                : sale.status === 'partial'
+                                                                    ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                                    }`}
+                                                >
+                                                    <option value="pending" className="bg-white text-orange-700 font-bold">Pendiente</option>
+                                                    <option value="partial" className="bg-white text-blue-700 font-bold">Abono</option>
+                                                    <option value="completed" className="bg-white text-green-700 font-bold">Pagado</option>
+                                                    <option value="cancelled" className="bg-white text-gray-600 font-bold">Cancelada</option>
+                                                </select>
+                                            </td>
+                                            <td className="p-4 text-right space-x-3">
+                                                <button onClick={() => handleDeleteClick(sale)} className="text-[10px] uppercase font-bold text-rose-500 hover:text-rose-700 transition-colors inline-flex items-center gap-1"><Trash2 className="w-3 h-3" /> Eliminar</button>
+                                                <Link href={`/admin/sales/${sale.id}`} className="text-[10px] uppercase font-bold text-gray-400 hover:text-brand-terracotta transition-colors">Ver Detalle</Link>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )
                             )}
                         </tbody>
                     </table>

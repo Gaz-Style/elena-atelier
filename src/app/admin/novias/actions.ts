@@ -1765,9 +1765,16 @@ export async function generateBridalPaymentLinksAction(projectId: string, cuotaI
         let amount = 0;
         let cuotaName = '';
         if (cuotas && cuotas.length > cuotaIndex) {
+            if (cuotas[cuotaIndex].status === 'paid') {
+                return { success: false, error: 'Esta cuota ya se encuentra pagada.' };
+            }
             amount = cuotas[cuotaIndex].amount || cuotas[cuotaIndex].monto || 0;
             cuotaName = cuotas[cuotaIndex].name || `Cuota ${cuotaIndex + 1}`;
         } else {
+            if (cuotaIndex === 0 && project.payment_1_status === 'paid') return { success: false, error: 'Esta cuota ya se encuentra pagada.' };
+            if (cuotaIndex === 1 && project.payment_2_status === 'paid') return { success: false, error: 'Esta cuota ya se encuentra pagada.' };
+            if (cuotaIndex === 2 && project.payment_3_status === 'paid') return { success: false, error: 'Esta cuota ya se encuentra pagada.' };
+
             amount = cuotaIndex === 0 ? project.payment_1_amount : cuotaIndex === 1 ? project.payment_2_amount : project.payment_3_amount;
             cuotaName = cuotaIndex === 0 ? 'Reserva 50%' : `Cuota ${cuotaIndex + 1}`;
         }

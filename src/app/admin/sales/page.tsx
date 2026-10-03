@@ -27,6 +27,14 @@ export default async function SalesLedgerPage() {
         `)
         .order('created_at', { ascending: false });
 
+    const { data: bridalProjects } = await supabase
+        .from('bridal_projects')
+        .select('id, total_amount, created_at');
+
+    const { data: prodOrders } = await supabase
+        .from('production_orders')
+        .select('pos_order_id, description, order_type, created_at');
+
     if (error) {
         console.error('Error fetching sales:', error);
     }
@@ -51,7 +59,7 @@ export default async function SalesLedgerPage() {
                 </header>
 
                 {/* Sales Table and KPIs (client-side) */}
-                <SalesLedgerTable sales={safeSales} />
+                <SalesLedgerTable sales={safeSales} bridalProjects={bridalProjects || []} prodOrders={prodOrders || []} />
             </main>
         </div>
     );
