@@ -16,7 +16,7 @@ export default function Navbar() {
     const navLinks = [
         { href: '/novias', label: 'Alta Costura' },
         { href: '/costuras', label: 'Composturas' },
-        { href: '/b2b', label: 'Sastrería & B2B' },
+        { href: '/sastreria', label: 'Sastrería & Bespoke' },
         { href: '/faq', label: 'Historia & FAQ' },
         { href: '/portafolio', label: 'Portafolio' },
     ];
