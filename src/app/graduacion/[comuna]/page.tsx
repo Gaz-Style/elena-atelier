@@ -144,12 +144,12 @@ export default async function GraduationCommunePage({ params }: Props) {
                     <h2 className="font-serif text-2xl text-white mt-2">Áreas de Atención de Fiesta</h2>
                 </div>
                 
-                <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-3 max-w-4xl mx-auto">
+                <ul className="flex flex-wrap justify-center items-center gap-4 max-w-4xl mx-auto">
                     {communesList.map((c, i) => (
-                        <React.Fragment key={c.slug}>
+                        <li key={c.slug} className="flex items-center">
                             <Link 
-                                href={`/graduacion/${c.slug}`}
-                                className={`text-[10px] md:text-xs uppercase tracking-[0.15em] md:tracking-[0.2em] transition-all duration-300 ${
+                                href={`/${file.includes('novias') ? 'novias' : 'graduacion'}/${c.slug}`}
+                                className={`text-[10px] md:text-xs uppercase tracking-[0.15em] md:tracking-[0.2em] transition-all duration-300 whitespace-nowrap ${
                                     c.name === comuna 
                                         ? 'text-brand-sand font-bold' 
                                         : 'text-white/40 hover:text-white'
@@ -158,11 +158,11 @@ export default async function GraduationCommunePage({ params }: Props) {
                                 {c.name}
                             </Link>
                             {i < communesList.length - 1 && (
-                                <span className="text-white/10 text-[10px] select-none">/</span>
+                                <span className="text-white/10 text-[10px] select-none ml-4">/</span>
                             )}
-                        </React.Fragment>
+                        </li>
                     ))}
-                </div>
+                </ul>
             </section>
 
 

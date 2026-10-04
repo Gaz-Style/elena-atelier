@@ -33,9 +33,9 @@ export default function Footer() {
           </div>
 
           {/* Col 3: Novias por Comuna */}
-          <div className="space-y-4">
+          <div className="space-y-4 lg:col-span-1">
             <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Novias</h4>
-            <ul className="space-y-1.5 text-[11px]">
+            <ul className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-[11px] w-max">
               <li><Link href="/novias/vitacura" className="hover:text-[#cda45e] transition-colors">Novias Vitacura</Link></li>
               <li><Link href="/novias/las-condes" className="hover:text-[#cda45e] transition-colors">Novias Las Condes</Link></li>
               <li><Link href="/novias/lo-barnechea" className="hover:text-[#cda45e] transition-colors">Novias Lo Barnechea</Link></li>
@@ -52,9 +52,9 @@ export default function Footer() {
           </div>
 
           {/* Col 4: Graduacion por Comuna */}
-          <div className="space-y-4">
+          <div className="space-y-4 lg:col-span-1">
             <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Graduación</h4>
-            <ul className="space-y-1.5 text-[11px]">
+            <ul className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-[11px] w-max">
               <li><Link href="/graduacion/vitacura" className="hover:text-[#cda45e] transition-colors">Gala Vitacura</Link></li>
               <li><Link href="/graduacion/las-condes" className="hover:text-[#cda45e] transition-colors">Gala Las Condes</Link></li>
               <li><Link href="/graduacion/lo-barnechea" className="hover:text-[#cda45e] transition-colors">Gala Lo Barnechea</Link></li>
