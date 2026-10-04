@@ -8,6 +8,7 @@ import BackLink from '@/components/BackLink';
 import TrackedLink from '@/components/TrackedLink';
 import LocationMap from '@/components/LocationMap';
 import PremiumPricingTable from '@/components/PremiumPricingTable';
+import { Camera, CheckCircle2, MapPin, ArrowRight, Star, Scissors } from 'lucide-react';
 
 function getWhatsAppSastreriaUrl() {
     const phone = "56972812907";
@@ -44,21 +45,24 @@ export default function SastreriaPage() {
                             Elevamos la precisión de la sastrería tradicional. Desde la confección de trajes Bespoke hasta el entalle arquitectónico de sus prendas de lujo en nuestro Atelier de <span className="text-[#C17F5F] font-semibold">Vitacura</span>.
                         </p>
                         
-                        <div className="flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-start pt-4">
+                        <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start pt-4">
+                            <TrackedLink
+                                href={getWhatsAppSastreriaUrl() + "&text=" + encodeURIComponent("Hola Elena Atelier. Les envío una foto de mi traje/prenda para cotizar arreglo en sastreria. ¿Pueden darme un estimado?")}
+                                target="_blank"
+                                eventAction="click_whatsapp" eventCategory="Lead" eventLabel="Sastreria_Hero_Foto"
+                                className="w-full sm:w-auto bg-[#C17F5F] hover:bg-[#b05c4b] text-white px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(193,127,95,0.3)] hover:scale-[1.02]"
+                            >
+                                <Camera className="w-4 h-4" /> Consultar con Foto
+                            </TrackedLink>
+
                             <TrackedLink
                                 href={getWhatsAppSastreriaUrl()}
                                 target="_blank"
-                                eventAction="click_whatsapp" eventCategory="Lead" eventLabel="Sastreria_Hero"
-                                className="glass-btn relative inline-flex items-center justify-center gap-3 px-8 py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.2em] font-bold bg-[#C17F5F]/20 backdrop-blur-[10px] transition-all hover:bg-[#C17F5F] hover:border-[#E29D7A] hover:shadow-[0_0_30px_rgba(193,127,95,0.3)] shadow-[0_8px_32px_0_rgba(0,0,0,0.5)] rounded-sm w-full sm:w-auto"
+                                eventAction="click_whatsapp" eventCategory="Lead" eventLabel="Sastreria_Hero_Cita"
+                                className="w-full sm:w-auto bg-transparent border border-white/20 hover:border-[#E29D7A] hover:bg-white/5 text-white px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2 hover:scale-[1.02]"
                             >
-                                Agendar en el Atelier
-                                <ArrowRight className="w-4 h-4" />
+                                <CheckCircle2 className="w-4 h-4 text-[#C17F5F]" /> Agendar Cita
                             </TrackedLink>
-                            
-                            <div className="flex items-center gap-3 text-white/50 text-xs font-semibold uppercase tracking-widest justify-center sm:justify-start">
-                                <MapPin className="w-4 h-4 text-[#C17F5F]" />
-                                <span>Vitacura & Domicilio</span>
-                            </div>
                         </div>
                     </div>
 
