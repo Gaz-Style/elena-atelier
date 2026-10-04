@@ -42,6 +42,12 @@ export default function Footer() {
               <li><Link href="/novias/providencia" className="hover:text-[#cda45e] transition-colors">Novias Providencia</Link></li>
               <li><Link href="/novias/la-reina" className="hover:text-[#cda45e] transition-colors">Novias La Reina</Link></li>
               <li><Link href="/novias/nunoa" className="hover:text-[#cda45e] transition-colors">Novias Ñuñoa</Link></li>
+              <li><Link href="/novias/maipu" className="hover:text-[#cda45e] transition-colors">Novias Maipú</Link></li>
+              <li><Link href="/novias/la-florida" className="hover:text-[#cda45e] transition-colors">Novias La Florida</Link></li>
+              <li><Link href="/novias/penalolen" className="hover:text-[#cda45e] transition-colors">Novias Peñalolén</Link></li>
+              <li><Link href="/novias/san-miguel" className="hover:text-[#cda45e] transition-colors">Novias San Miguel</Link></li>
+              <li><Link href="/novias/chicureo" className="hover:text-[#cda45e] transition-colors">Novias Chicureo</Link></li>
+              <li><Link href="/novias/huechuraba" className="hover:text-[#cda45e] transition-colors">Novias Huechuraba</Link></li>
             </ul>
           </div>
 
@@ -55,6 +61,12 @@ export default function Footer() {
               <li><Link href="/graduacion/providencia" className="hover:text-[#cda45e] transition-colors">Gala Providencia</Link></li>
               <li><Link href="/graduacion/la-reina" className="hover:text-[#cda45e] transition-colors">Gala La Reina</Link></li>
               <li><Link href="/graduacion/nunoa" className="hover:text-[#cda45e] transition-colors">Gala Ñuñoa</Link></li>
+              <li><Link href="/graduacion/maipu" className="hover:text-[#cda45e] transition-colors">Gala Maipú</Link></li>
+              <li><Link href="/graduacion/la-florida" className="hover:text-[#cda45e] transition-colors">Gala La Florida</Link></li>
+              <li><Link href="/graduacion/penalolen" className="hover:text-[#cda45e] transition-colors">Gala Peñalolén</Link></li>
+              <li><Link href="/graduacion/san-miguel" className="hover:text-[#cda45e] transition-colors">Gala San Miguel</Link></li>
+              <li><Link href="/graduacion/chicureo" className="hover:text-[#cda45e] transition-colors">Gala Chicureo</Link></li>
+              <li><Link href="/graduacion/huechuraba" className="hover:text-[#cda45e] transition-colors">Gala Huechuraba</Link></li>
             </ul>
           </div>
 
