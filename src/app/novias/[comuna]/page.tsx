@@ -166,7 +166,7 @@ export default async function BridalCommunePage({ params }: Props) {
                     {communesList.map((c, i) => (
                         <li key={c.slug} className="flex items-center">
                             <Link 
-                                href={`/${file.includes('novias') ? 'novias' : 'graduacion'}/${c.slug}`}
+                                href={`/novias/${c.slug}`}
                                 className={`text-[10px] md:text-xs uppercase tracking-[0.15em] md:tracking-[0.2em] transition-all duration-300 whitespace-nowrap ${
                                     c.name === comuna 
                                         ? 'text-brand-sand font-bold' 
