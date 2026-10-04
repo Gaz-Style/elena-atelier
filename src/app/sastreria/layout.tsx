@@ -1,11 +1,11 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Sastrería Femenina & Confección a Medida | Elena La Costurera',
-    description: 'Servicio exclusivo de sastrería y confección a medida para mujer. Trajes, vestidos y piezas únicas diseñadas sobre tu anatomía en Santiago.',
+    title: 'Sastrería a Medida & Bespoke en Santiago | Elena La Costurera',
+    description: 'Sastrería tradicional de alta gama para hombre y mujer. Entalle arquitectónico, trajes a medida, deconstrucción y calce perfecto en nuestro Atelier de Vitacura.',
     openGraph: {
-        title: 'Sastrería Femenina & Confección a Medida | Elena La Costurera',
-        description: 'Servicio exclusivo de sastrería y confección a medida para mujer.',
+        title: 'Sastrería a Medida & Bespoke | Elena Atelier',
+        description: 'Sastrería tradicional de alta gama para hombre y mujer en Santiago.',
     }
 };
 
