@@ -19,10 +19,40 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.9,
         },
         {
-            url: `${baseUrl}/appointment`,
+            url: `${baseUrl}/novias`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.95,
+        },
+        {
+            url: `${baseUrl}/sastreria`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.9,
+        },
+        {
+            url: `${baseUrl}/servicios`,
             lastModified: new Date(),
             changeFrequency: 'monthly',
             priority: 0.8,
+        },
+        {
+            url: `${baseUrl}/costuras`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.85,
+        },
+        {
+            url: `${baseUrl}/restauracion`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.8,
+        },
+        {
+            url: `${baseUrl}/graduacion`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.85,
         },
         {
             url: `${baseUrl}/opiniones`,
@@ -43,10 +73,34 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.95,
         },
         {
-            url: `${baseUrl}/p/et-001`,
+            url: `${baseUrl}/faq`,
             lastModified: new Date(),
-            changeFrequency: 'weekly',
+            changeFrequency: 'monthly',
+            priority: 0.6,
+        },
+        {
+            url: `${baseUrl}/vip`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.6,
+        },
+        {
+            url: `${baseUrl}/registro`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
             priority: 0.5,
+        },
+        {
+            url: `${baseUrl}/cursos`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.6,
+        },
+        {
+            url: `${baseUrl}/presupuesto`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.4,
         },
     ];
 

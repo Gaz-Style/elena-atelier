@@ -588,7 +588,7 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
                                 muted 
                                 loop 
                                 playsInline 
-                                preload="auto"
+                                preload="metadata"
                                 className="w-full h-full object-cover transform-gpu" 
                               />
 
@@ -616,13 +616,16 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
                             </div>
                           ) : (
                             <div className="relative w-full overflow-hidden">
-                              <Image 
-                                src={item} 
-                                alt={`${section.titulo} ${idx + 1}`} 
-                                width={600} 
-                                height={800} 
-                                className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700" 
-                              />
+                                <Image 
+                                  src={item} 
+                                  alt={`${section.titulo} ${idx + 1}`} 
+                                  width={600} 
+                                  height={800} 
+                                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                  loading={idx < 2 && sIdx === 0 ? "eager" : "lazy"}
+                                  priority={idx < 2 && sIdx === 0}
+                                  className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700" 
+                                />
                             </div>
                           )}
                         </div>
@@ -648,7 +651,10 @@ export default function PortfolioClient({ data, generalImages, hideFilters = fal
                   src={img} 
                   alt={`Trabajo Elena ${formatName(activeCategory)} ${idx + 1}`} 
                   width={600} 
-                  height={800} 
+                  height={800}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  loading={idx < 4 ? "eager" : "lazy"}
+                  priority={idx < 4}
                   className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"
                 />
               </div>

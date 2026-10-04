@@ -1,3 +1,4 @@
+import React from 'react';
 import { Metadata } from 'next';
 import fs from 'fs';
 import path from 'path';
@@ -28,6 +29,16 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const resolvedParams = await params;
+    const communesList = [
+        { name: 'Vitacura', slug: 'vitacura' },
+        { name: 'Las Condes', slug: 'las-condes' },
+        { name: 'Lo Barnechea', slug: 'lo-barnechea' },
+        { name: 'Providencia', slug: 'providencia' },
+        { name: 'La Reina', slug: 'la-reina' },
+        { name: 'Ñuñoa', slug: 'nunoa' },
+        { name: 'Colina / Chicureo', slug: 'chicureo' },
+    ];
+
     const comuna = formatTitle(resolvedParams.comuna);
     
     return {
@@ -138,6 +149,38 @@ export default async function BridalCommunePage({ params }: Props) {
 
             {/* Replicamos el Catálogo inmersivo */}
             <PortfolioClient data={categoryData} generalImages={generalImages} hideFilters={true} forceCategory="novias" />
+
+            
+            {/* SECCIÓN DE OTRAS COMUNAS (ESTÉTICA MINIMALISTA) */}
+            <section className="max-w-5xl mx-auto px-6 py-16 relative z-10 border-t border-white/10 mt-10">
+                <div className="text-center mb-8">
+                    <span className="text-[10px] text-brand-sand uppercase tracking-[0.3em] font-semibold">
+                        Disponibilidad Geográfica
+                    </span>
+                    <h2 className="font-serif text-2xl text-white mt-2">Áreas de Atención a Novias</h2>
+                </div>
+                
+                <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-3 max-w-4xl mx-auto">
+                    {communesList.map((c, i) => (
+                        <React.Fragment key={c.slug}>
+                            <Link 
+                                href={`/novias/${c.slug}`}
+                                className={`text-[10px] md:text-xs uppercase tracking-[0.15em] md:tracking-[0.2em] transition-all duration-300 ${
+                                    c.name === comuna 
+                                        ? 'text-brand-sand font-bold' 
+                                        : 'text-white/40 hover:text-white'
+                                }`}
+                            >
+                                {c.name}
+                            </Link>
+                            {i < communesList.length - 1 && (
+                                <span className="text-white/10 text-[10px] select-none">/</span>
+                            )}
+                        </React.Fragment>
+                    ))}
+                </div>
+            </section>
+
 
             {/* Schema Markup Local */}
             <script
