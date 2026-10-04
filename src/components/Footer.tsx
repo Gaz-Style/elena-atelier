@@ -66,7 +66,7 @@ export default function Footer() {
           {/* Col 4: Sastrería */}
           <div className="space-y-4 lg:w-[20%] shrink-0">
             <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Sastrería & Bespoke</h4>
-            <ul className="grid grid-rows-3 grid-flow-col gap-x-2 gap-y-1.5 text-[11px]">
+            <ul className="space-y-1.5 text-[11px]">
               <li><Link href="/sastreria" className="hover:text-[#cda45e] transition-colors font-semibold text-white/80">Confección a Medida</Link></li>
               <li><Link href="/sastreria/el-golf" className="hover:text-[#cda45e] transition-colors">Sastrería El Golf</Link></li>
               <li><Link href="/sastreria/las-condes" className="hover:text-[#cda45e] transition-colors">Sastrería Las Condes</Link></li>
