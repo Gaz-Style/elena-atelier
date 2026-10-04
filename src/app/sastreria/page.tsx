@@ -1,14 +1,13 @@
 'use client';
 
 import React from 'react';
-import { Briefcase, MapPin, ArrowRight, Clock, Star, Scissors, Gem, ShieldCheck } from 'lucide-react';
+import { Briefcase, MapPin, ArrowRight, Clock, Star, Scissors, Gem, ShieldCheck, Camera, CheckCircle2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import BackLink from '@/components/BackLink';
 import TrackedLink from '@/components/TrackedLink';
 import LocationMap from '@/components/LocationMap';
 import PremiumPricingTable from '@/components/PremiumPricingTable';
-import { Camera, CheckCircle2, MapPin, ArrowRight, Star, Scissors } from 'lucide-react';
 
 function getWhatsAppSastreriaUrl() {
     const phone = "56972812907";
