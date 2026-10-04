@@ -11,7 +11,7 @@ import PremiumPricingTable from '@/components/PremiumPricingTable';
 
 function getWhatsAppB2BUrl() {
     const phone = "56972812907";
-    const text = `Hola Elena Atelier. Me interesa gestionar un convenio corporativo de sastrería a domicilio para nuestra empresa en el sector oriente. Me gustaría coordinar una reunión.`;
+    const text = `Hola Elena Atelier. Me interesa el servicio de sastrería ejecutiva a domicilio para mi oficina en el sector oriente. Me gustaría coordinar una visita.`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 }
 
@@ -34,7 +34,7 @@ export default function B2BPage() {
                     <div className="flex-1 space-y-8 text-center lg:text-left">
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[#C17F5F]">
                             <Building2 className="w-4 h-4" />
-                            <span className="text-[10px] uppercase tracking-[0.2em] font-bold">División Corporativa · B2B</span>
+                            <span className="text-[10px] uppercase tracking-[0.2em] font-bold">Servicio Ejecutivo en Oficina</span>
                         </div>
                         <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[1.1] text-white font-black tracking-tight">
                             Sastrería Ejecutiva <br className="hidden md:block" />
@@ -46,12 +46,12 @@ export default function B2BPage() {
                         
                         <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start pt-4">
                             <TrackedLink
-                                href={getWhatsAppB2BUrl() + "&text=" + encodeURIComponent("Hola Elena Atelier. Somos una empresa y necesitamos evaluar un convenio o ajuste corporativo. Aquí les envío algunas fotos referenciales.")}
+                                href={getWhatsAppB2BUrl() + "&text=" + encodeURIComponent("Hola Elena Atelier. Me interesa el servicio de sastrería en mi oficina. Aquí les envío algunas fotos referenciales de la prenda.")}
                                 target="_blank"
                                 eventAction="click_whatsapp" eventCategory="Lead" eventLabel="B2B_Hero_Foto"
                                 className="w-full sm:w-auto bg-[#C17F5F] hover:bg-[#b05c4b] text-white px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(193,127,95,0.3)] hover:scale-[1.02]"
                             >
-                                <Camera className="w-4 h-4" /> Consultar Convenio con Foto
+                                <Camera className="w-4 h-4" /> Consultar Prenda con Foto
                             </TrackedLink>
 
                             <TrackedLink
@@ -60,7 +60,7 @@ export default function B2BPage() {
                                 eventAction="click_whatsapp" eventCategory="Lead" eventLabel="B2B_Hero_Cita"
                                 className="w-full sm:w-auto bg-transparent border border-white/20 hover:border-[#E29D7A] hover:bg-white/5 text-white px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2 hover:scale-[1.02]"
                             >
-                                <CheckCircle2 className="w-4 h-4 text-[#C17F5F]" /> Agendar Visita Corporativa
+                                <CheckCircle2 className="w-4 h-4 text-[#C17F5F]" /> Agendar Visita a Oficina
                             </TrackedLink>
                         </div>
                     </div>
