@@ -10,14 +10,7 @@ export default function Footer() {
   return (
     <footer className="w-full py-16 border-t border-white/5 bg-[#0d0d0d] mt-auto relative z-10 text-white/60">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 mb-12">
-          {/* Col 1: Brand */}
-          <div className="space-y-4 md:col-span-1">
-            <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Elena La Costurera</h4>
-            <p className="text-xs leading-relaxed">
-              Alta costura a medida y upcycling. Diseños únicos y exclusivos para novias, graduaciones y arreglos sastreros en Santiago.
-            </p>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 mb-12">
           
           {/* Col 2: Useful Links */}
           <div className="space-y-4">
@@ -104,7 +97,16 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t border-white/5">
+        {/* Brand horizontal strip */}
+        <div className="py-8 border-t border-white/5 flex flex-col items-center md:items-start text-center md:text-left">
+            <h4 className="text-white text-[10px] uppercase tracking-[0.3em] font-bold mb-3">Elena La Costurera</h4>
+            <p className="text-[11px] leading-relaxed text-white/50 max-w-2xl">
+              Alta costura a medida y upcycling. Diseños únicos y exclusivos para novias, graduaciones y arreglos sastreros en Santiago.
+            </p>
+        </div>
+
+        {/* Copyright */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-6 border-t border-white/5">
           <div className="text-[9px] text-white/40 font-sans tracking-widest uppercase font-semibold text-center md:text-left">
             &copy; {new Date().getFullYear()} Elena La Costurera. Todos los derechos reservados.
           </div>
