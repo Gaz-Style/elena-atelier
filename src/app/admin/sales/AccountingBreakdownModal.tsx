@@ -27,9 +27,12 @@ export default function AccountingBreakdownModal({
     selectedMonth 
 }: { 
     salesList: any[], 
-    selectedYear: number, 
-    selectedMonth: number 
+    selectedYear: number | string, 
+    selectedMonth: number | string 
 }) {
+    const yearNum = Number(selectedYear);
+    const monthNum = Number(selectedMonth);
+    
     const [isOpen, setIsOpen] = useState(false);
 
     // -- Cálculos Contables (Modo Lectura) --
@@ -38,8 +41,8 @@ export default function AccountingBreakdownModal({
     const thisMonthSales = salesList.filter(s => {
         if (s.status === 'cancelled') return false;
         const sParts = getChileDateParts(s.created_at);
-        if (selectedYear && sParts.year !== selectedYear) return false;
-        if (selectedMonth && sParts.month !== selectedMonth) return false;
+        if (yearNum && sParts.year !== yearNum) return false;
+        if (monthNum && sParts.month !== monthNum) return false;
         return true;
     });
 
@@ -100,8 +103,8 @@ export default function AccountingBreakdownModal({
         if (s.status === 'cancelled') return false;
         if (s.internal_id.includes('_balance_')) return false;
         const sParts = getChileDateParts(s.created_at);
-        if (sParts.year > selectedYear) return false;
-        if (sParts.year === selectedYear && sParts.month > selectedMonth) return false;
+        if (sParts.year > yearNum) return false;
+        if (sParts.year === yearNum && sParts.month > monthNum) return false;
         return true;
     });
 
@@ -112,7 +115,7 @@ export default function AccountingBreakdownModal({
         const debt = Math.max(0, (Number(s.total_amount) || 0) - (Number(s.paid_amount) || 0));
         if (debt > 0) {
             const sParts = getChileDateParts(s.created_at);
-            if (sParts.year === selectedYear && sParts.month === selectedMonth) {
+            if (sParts.year === yearNum && sParts.month === monthNum) {
                 pendingThisMonth += debt;
             } else {
                 pendingPastMonths += debt;
