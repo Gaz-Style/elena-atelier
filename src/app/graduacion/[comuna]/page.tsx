@@ -117,6 +117,17 @@ export default async function GraduationCommunePage({ params }: Props) {
                     <h1 className="font-serif text-3xl md:text-5xl font-bold uppercase tracking-tight text-white mb-2">
                         Vestidos de Graduación en {comuna}
                     </h1>
+                    <div className="hidden md:block space-y-4 pt-2">
+                        {['Vitacura', 'Las Condes', 'Lo Barnechea', 'Providencia', 'La Reina', 'Ñuñoa'].includes(comuna) ? (
+                            <p className="text-white/70 text-xs sm:text-sm font-light max-w-xl mx-auto leading-relaxed">
+                                Diseño exclusivo y pruebas presenciales en nuestro Atelier de Vitacura para clientas de {comuna}.
+                            </p>
+                        ) : (
+                            <p className="text-white/70 text-xs sm:text-sm font-light max-w-xl mx-auto leading-relaxed">
+                                El vestido de tus sueños merece el viaje. Recibimos frecuentemente a clientas de {comuna} en nuestro Atelier de Vitacura, garantizando un calce perfecto, exclusividad total y una experiencia de Alta Costura.
+                            </p>
+                        )}
+                    </div>
                 </div>
             </div>
 
