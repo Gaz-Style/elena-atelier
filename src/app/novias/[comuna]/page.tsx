@@ -21,14 +21,6 @@ function formatTitle(slug: string) {
     return slug.charAt(0).toUpperCase() + slug.slice(1);
 }
 
-type Props = {
-    params: Promise<{
-        comuna: string;
-    }>;
-};
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const resolvedParams = await params;
     const communesList = [
         { name: 'Vitacura', slug: 'vitacura' },
         { name: 'Las Condes', slug: 'las-condes' },
@@ -38,6 +30,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         { name: 'Ñuñoa', slug: 'nunoa' },
         { name: 'Colina / Chicureo', slug: 'chicureo' },
     ];
+
+type Props = {
+    params: Promise<{
+        comuna: string;
+    }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    const resolvedParams = await params;
+
 
     const comuna = formatTitle(resolvedParams.comuna);
     
