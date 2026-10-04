@@ -104,7 +104,6 @@ export default function Footer() {
               <li><Link href="/costuras/valle-escondido" title="Costuras en Valle Escondido" className="hover:text-[#cda45e] transition-colors">Valle Escondido</Link></li>
             </ul>
           </div>
-          </div>
         </div>
 
         {/* Brand horizontal strip */}
