@@ -10,7 +10,7 @@ export default function Footer() {
   return (
     <footer className="w-full py-16 border-t border-white/5 bg-[#0d0d0d] mt-auto relative z-10 text-white/60">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 mb-12">
           
           {/* Col 2: Useful Links */}
           <div className="space-y-4">
@@ -63,7 +63,22 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Col 5 & 6: Costuras por Comuna & Sectores */}
+          {/* Col 5: Sastrería & B2B */}
+          <div className="space-y-4 lg:col-span-1">
+            <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Sastrería & B2B</h4>
+            <ul className="space-y-1.5 text-[11px] w-max">
+              <li><Link href="/b2b" className="hover:text-[#cda45e] transition-colors font-semibold text-white/80">División Corporativa</Link></li>
+              <li><Link href="/b2b#ejecutiva" className="hover:text-[#cda45e] transition-colors text-white/50">Executive Care</Link></li>
+              <li><Link href="/b2b#uniformes" className="hover:text-[#cda45e] transition-colors text-white/50">Ajuste de Flota</Link></li>
+              <li className="pt-2"><span className="text-[9px] uppercase tracking-widest text-white/30">Cobertura Destacada</span></li>
+              <li><Link href="/b2b" className="hover:text-[#cda45e] transition-colors">Sastrería El Golf</Link></li>
+              <li><Link href="/b2b" className="hover:text-[#cda45e] transition-colors">Sastrería Las Condes</Link></li>
+              <li><Link href="/b2b" className="hover:text-[#cda45e] transition-colors">Sastrería Sanhattan</Link></li>
+              <li><Link href="/b2b" className="hover:text-[#cda45e] transition-colors">Sastrería Vitacura</Link></li>
+            </ul>
+          </div>
+
+          {/* Col 6 & 7: Costuras por Comuna & Sectores */}
           <div className="space-y-4 lg:col-span-2">
             <h4 className="text-white text-xs uppercase tracking-[0.2em] font-bold">Taller Costuras</h4>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
