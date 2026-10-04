@@ -7,6 +7,7 @@ import Link from 'next/link';
 import BackLink from '@/components/BackLink';
 import TrackedLink from '@/components/TrackedLink';
 import LocationMap from '@/components/LocationMap';
+import PremiumPricingTable from '@/components/PremiumPricingTable';
 
 function getWhatsAppB2BUrl() {
     const phone = "56972812907";
@@ -84,6 +85,11 @@ export default function B2BPage() {
                         </div>
                     </div>
                 </header>
+
+                {/* 1.25. CARTA DE PRECIOS TRANSPARENTE (BAJO EL HERO) */}
+                <section className="px-0 sm:px-6">
+                    <PremiumPricingTable />
+                </section>
 
                 {/* 1.5 CARTA DE ALTA GAMA BANNER */}
                 <section className="relative overflow-hidden rounded-xl border border-white/10 bg-[#1a1a1a] p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 group hover:border-[#C17F5F]/40 transition-colors">

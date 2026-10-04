@@ -7,6 +7,7 @@ import Link from 'next/link';
 import BackLink from '@/components/BackLink';
 import TrackedLink from '@/components/TrackedLink';
 import LocationMap from '@/components/LocationMap';
+import PremiumPricingTable from '@/components/PremiumPricingTable';
 
 function getWhatsAppSastreriaUrl() {
     const phone = "56972812907";
@@ -84,6 +85,11 @@ export default function SastreriaPage() {
                         </div>
                     </div>
                 </header>
+
+                {/* 1.5. CARTA DE PRECIOS TRANSPARENTE (BAJO EL HERO) */}
+                <section className="px-0 sm:px-6">
+                    <PremiumPricingTable />
+                </section>
 
                 {/* 2. MEN'S TAILORING */}
                 <section className="grid lg:grid-cols-2 gap-16 items-center">
