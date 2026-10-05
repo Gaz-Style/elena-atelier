@@ -1,8 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { ShieldCheck, Plus, Trash2, Mail, KeyRound, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
 import UserForm from './UserForm';
 import DeleteUserButton from './DeleteUserButton';
 
