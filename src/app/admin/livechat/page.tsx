@@ -340,8 +340,8 @@ export default function LiveChatPage() {
                                     let imageCaption = rawContent
                                         .replace(/^\[EL USUARIO ENVIÓ UNA FOTO\. Análisis visual: /i, '')
                                         .replace(/^\[EL USUARIO ENVIÓ UNA FOTO\. Análisis de la imagen: /i, '')
-                                        .replace(/^\[EL USUARIO ENVIÓ UNA FOTO\. Error del sistema[^\]]*\]/i, '')
-                                        .replace(/^\[EL USUARIO ENVIÓ UNA FOTO[^\]]*\]/i, '')
+                                        .replace(/^\[EL USUARIO ENVIÓ UN(A)? (FOTO|AUDIO)\. Error del sistema[^\]]*\]/i, '')
+                                        .replace(/^\[EL USUARIO ENVIÓ UN(A)? (FOTO|AUDIO)[^\]]*\]/i, '')
                                         .replace(/\]$/, '')
                                         .trim();
                                     // Hide caption if it's too short (broken/partial), contains error indicators, or is raw JSON
