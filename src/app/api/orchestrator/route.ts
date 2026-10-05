@@ -139,14 +139,15 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                             conversationHistory.push({ role: 'user', content: userMessage });
                         }
                         
-                        // Evaluar si hay foto en el mensaje original (fase Gemini)
+                        // Evaluar si hay foto o audio en el mensaje original (fase Gemini)
                         const isImage = task.payload.message_type === 'image';
-                        if (isImage) {
+                        const isAudio = task.payload.message_type === 'audio';
+                        
+                        if (isImage || isAudio) {
                             let geminiAnalysisLocal = task.payload.gemini_analysis || null;
-                            let rawGeminiData = null;
                             const mediaUrl = task.payload.media_url;
                             if (!geminiAnalysisLocal && mediaUrl) {
-                                // Procesar la foto aquí asíncronamente
+                                // Procesar la foto o audio aquí asíncronamente
                                 const metaToken = process.env.WHATSAPP_API_TOKEN;
                                 const geminiKey = process.env.GEMINI_API_KEY;
                                 if (metaToken && geminiKey) {
@@ -154,16 +155,20 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                                         const mediaRes = await fetch(`https://graph.facebook.com/v21.0/${mediaUrl}`, { headers: { 'Authorization': `Bearer ${metaToken}` }});
                                         const mediaData = await mediaRes.json();
                                         if (mediaData.url) {
-                                            const imageRes = await fetch(mediaData.url, { headers: { 'Authorization': `Bearer ${metaToken}` }});
-                                            if (imageRes.ok) {
-                                                const arrayBuffer = await imageRes.arrayBuffer();
+                                            const fileRes = await fetch(mediaData.url, { headers: { 'Authorization': `Bearer ${metaToken}` }});
+                                            if (fileRes.ok) {
+                                                const arrayBuffer = await fileRes.arrayBuffer();
                                                 const buffer = Buffer.from(arrayBuffer);
-                                                const base64Image = buffer.toString('base64');
-                                                const mimeType = mediaData.mime_type || 'image/jpeg';
+                                                const base64Data = buffer.toString('base64');
+                                                const mimeType = mediaData.mime_type || (isImage ? 'image/jpeg' : 'audio/ogg');
                                                 
+                                                const promptText = isImage 
+                                                    ? "Actúa como experta modista. Describe brevemente qué prenda es y qué tipo de arreglo o confección parece necesitar según la foto (máximo 2 líneas)." 
+                                                    : "Transcribe exactamente lo que el usuario dice en este audio. Solo devuelve la transcripción literal en texto, sin agregar comentarios adicionales.";
+
                                                 const payload = {
-                                                    contents: [{ role: 'user', parts: [{ text: "Actúa como experta modista. Describe brevemente qué prenda es y qué tipo de arreglo o confección parece necesitar según la foto (máximo 2 líneas)." }, { inlineData: { mimeType, data: base64Image } }] }],
-                                                    generationConfig: { maxOutputTokens: 150 }
+                                                    contents: [{ role: 'user', parts: [{ text: promptText }, { inlineData: { mimeType, data: base64Data } }] }],
+                                                    generationConfig: { maxOutputTokens: isImage ? 150 : 500 }
                                                 };
                                                 
                                                 const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
@@ -172,54 +177,57 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                                                 
                                                 if (geminiRes.ok) {
                                                     const geminiData = await geminiRes.json();
-                                                    rawGeminiData = geminiData;
                                                     geminiAnalysisLocal = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || null;
                                                 } else {
                                                     throw new Error(`Gemini API Error: ${geminiRes.status} ${await geminiRes.text()}`);
                                                 }
                                             } else {
-                                                throw new Error(`Meta Image Download Error: ${imageRes.status} ${await imageRes.text()}`);
+                                                throw new Error(`Meta Media Download Error: ${fileRes.status} ${await fileRes.text()}`);
                                             }
                                         } else {
                                             throw new Error(`Meta API Media URL Missing: ${JSON.stringify(mediaData)}`);
                                         }
                                     } catch (e: any) {
-                                        console.error('Error visual:', e);
-                                        // Save the precise error to the DB for debugging
+                                        console.error('Error visual/audio:', e);
+                                        const errPrefix = isImage ? 'FOTO' : 'AUDIO';
                                         await supabase.from('crm_whatsapp_messages')
-                                            .update({ content: `[EL USUARIO ENVIÓ UNA FOTO. Error del sistema: ${e.message}]` })
+                                            .update({ content: `[EL USUARIO ENVIÓ UN(A) ${errPrefix}. Error del sistema: ${e.message}]` })
                                             .eq('chat_id', task.payload.chat_id)
                                             .eq('media_url', mediaUrl);
-                                        // Mark geminiAnalysisLocal as something so it doesn't trigger the generic else below
                                         geminiAnalysisLocal = `ERROR: ${e.message}`;
                                     }
                                 }
                             }
                             
                             if (geminiAnalysisLocal && !geminiAnalysisLocal.startsWith('ERROR:')) {
-                               // Guardar el análisis en la base de datos para que el bot tenga memoria de la imagen en los siguientes mensajes
+                               const logPrefix = isImage ? '[EL USUARIO ENVIÓ UNA FOTO. Análisis visual:' : '[EL USUARIO ENVIÓ UN AUDIO. Transcripción:';
+                               const internalPrefix = isImage ? 'FOTO ENVIADA. Análisis visual:' : 'AUDIO ENVIADO. Transcripción:';
+                               
                                await supabase.from('crm_whatsapp_messages')
-                                   .update({ content: `[EL USUARIO ENVIÓ UNA FOTO. Análisis visual: ${geminiAnalysisLocal}]` })
+                                   .update({ content: `${logPrefix} ${geminiAnalysisLocal}]` })
                                    .eq('chat_id', task.payload.chat_id)
                                    .eq('media_url', mediaUrl);
                                
-                               // Inyectar en memoria para el turno actual
                                const lastUserMsgIndex = conversationHistory.findLastIndex((msg: any) => msg.role === 'user');
                                if (lastUserMsgIndex !== -1) {
-                                   conversationHistory[lastUserMsgIndex].content = `[EL USUARIO ENVIÓ UNA FOTO. Análisis de la imagen: ${geminiAnalysisLocal}] ${conversationHistory[lastUserMsgIndex].content}`;
+                                   conversationHistory[lastUserMsgIndex].content = `${logPrefix} ${geminiAnalysisLocal}] ${conversationHistory[lastUserMsgIndex].content}`;
                                }
-                               userMessage = `FOTO ENVIADA. Análisis visual: ${geminiAnalysisLocal}. ` + userMessage; // Actualizar para que RAG se entere de la foto
+                               userMessage = `${internalPrefix} ${geminiAnalysisLocal}. ` + userMessage; 
 
                             } else if (!geminiAnalysisLocal || geminiAnalysisLocal.startsWith('ERROR:')) {
-                               // Guardar el error de lectura en la base de datos
+                               const errPrefix2 = isImage ? 'UNA FOTO' : 'UN AUDIO';
+                               const errDesc = isImage ? 'visual' : 'de transcripción de audio';
+                               const errAction = isImage ? 'la foto' : 'el audio';
+                               const errFall = isImage ? 'te describa la prenda o el arreglo' : 'te escriba su consulta por texto';
+                               
                                await supabase.from('crm_whatsapp_messages')
-                                   .update({ content: `[EL USUARIO ENVIÓ UNA FOTO. Error del sistema al analizar la imagen: ${geminiAnalysisLocal}]` })
+                                   .update({ content: `[EL USUARIO ENVIÓ ${errPrefix2}. Error del sistema al procesar: ${geminiAnalysisLocal}]` })
                                    .eq('chat_id', task.payload.chat_id)
                                    .eq('media_url', mediaUrl);
 
                                const lastUserMsgIndex = conversationHistory.findLastIndex((msg: any) => msg.role === 'user');
                                if (lastUserMsgIndex !== -1) {
-                                   conversationHistory[lastUserMsgIndex].content = `[EL USUARIO ENVIÓ UNA FOTO, pero hubo un error en el sistema visual de la IA. Dile amablemente que no pudiste cargar la foto por un problema temporal y pídele que te describa la prenda o el arreglo que necesita con palabras.] ${conversationHistory[lastUserMsgIndex].content}`;
+                                   conversationHistory[lastUserMsgIndex].content = `[EL USUARIO ENVIÓ ${errPrefix2}, pero hubo un error en el sistema ${errDesc} de la IA. Dile amablemente que no pudiste cargar ${errAction} por un problema temporal y pídele que ${errFall}.] ${conversationHistory[lastUserMsgIndex].content}`;
                                }
                             }
                         }
