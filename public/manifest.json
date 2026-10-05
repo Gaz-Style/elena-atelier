@@ -1,0 +1,22 @@
+{
+  "name": "Elena OS",
+  "short_name": "Elena OS",
+  "description": "Panel de Administración de Elena Atalier",
+  "start_url": "/admin",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#282f32",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

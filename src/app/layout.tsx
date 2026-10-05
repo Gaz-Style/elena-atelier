@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter, Geist } from "next/font/google";
 import LayoutWrapper from "@/components/LayoutWrapper";
 import WhatsAppButton from "@/components/WhatsAppButton";
@@ -23,10 +23,23 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: '#282f32',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://elenalacosturera.cl"),
   title: "ELENA La Costurera | Atelier de Alta Costura & Confección a Medida en Vitacura",
   description: "Atelier exclusivo de Alta Costura y arreglos de ropa fina ubicado en Av. Tabancura 1091 (Oficina 319), Vitacura, Santiago. Especialistas en vestidos de novia, gala, graduaciones y sastrería a medida con atención presencial y envíos.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Elena OS",
+  },
   keywords: [
     "alta costura vitacura",
     "costurera lo barnechea",
