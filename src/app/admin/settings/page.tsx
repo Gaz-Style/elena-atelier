@@ -10,7 +10,7 @@ export default function SettingsPage() {
       color: "bg-blue-50 text-blue-600",
       links: [
         { name: "Sesiones & Accesos", href: "/admin/sessions", desc: "Monitorea dispositivos y direcciones IP conectados." },
-        { name: "Usuarios Administradores", href: "#", desc: "Próximamente: Añade o revoca permisos a tu equipo.", disabled: true }
+        { name: "Usuarios Administradores", href: "/admin/settings/users", desc: "Añade o revoca permisos a tu equipo de trabajo." }
       ]
     },
     {
