@@ -106,6 +106,25 @@ export async function POST(req: Request) {
                     } else if (message.type === 'audio') {
                         messageType = 'audio';
                         mediaUrl = message.audio.id;
+                    } else if (message.type === 'document') {
+                        // Muchos clientes envían fotos como documentos para no perder calidad.
+                        // Lo pasamos como 'image' para que la IA intente procesar la Media ID.
+                        messageType = 'image';
+                        mediaUrl = message.document.id;
+                        content = message.document.caption || '';
+                        console.log(`[Webhook] Documento adjunto recibido: ${mediaUrl}. Intentando procesar como imagen.`);
+                    } else if (message.type === 'sticker') {
+                        messageType = 'text';
+                        content = '[Sticker enviado]';
+                    } else if (message.type === 'reaction') {
+                        messageType = 'text';
+                        content = `[Reaccionó con ${message.reaction?.emoji || 'un emoji'}]`;
+                    } else if (message.type === 'video') {
+                        messageType = 'text';
+                        content = '[Video enviado - Formato no soportado por IA]';
+                    } else {
+                        messageType = 'text';
+                        content = `[Formato de archivo o mensaje no soportado: ${message.type}]`;
                     }
 
                     // 3. Save user message to database
