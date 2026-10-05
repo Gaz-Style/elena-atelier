@@ -3,6 +3,27 @@ import { Monitor, Smartphone, Globe, ShieldCheck } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
+function parseUserAgent(ua: string) {
+  if (!ua) return 'Desconocido';
+  
+  let browser = 'Navegador Desconocido';
+  let os = 'OS Desconocido';
+
+  if (ua.includes('Edg/')) browser = 'Microsoft Edge';
+  else if (ua.includes('Chrome/')) browser = 'Google Chrome';
+  else if (ua.includes('Firefox/')) browser = 'Mozilla Firefox';
+  else if (ua.includes('Safari/') && !ua.includes('Chrome/')) browser = 'Apple Safari';
+  else if (ua.includes('Opera/') || ua.includes('OPR/')) browser = 'Opera';
+
+  if (ua.includes('Windows')) os = 'Windows';
+  else if (ua.includes('Mac OS')) os = 'macOS';
+  else if (ua.includes('Linux')) os = 'Linux';
+  else if (ua.includes('Android')) os = 'Android';
+  else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+
+  return `${browser} en ${os}`;
+}
+
 export default async function SessionsPage() {
   const supabase = await createClient();
 
@@ -71,7 +92,7 @@ export default async function SessionsPage() {
                           <div className="flex items-center gap-2 text-zinc-600">
                             {isMobile ? <Smartphone className="w-4 h-4 text-zinc-400" /> : <Globe className="w-4 h-4 text-zinc-400" />}
                             <span className="truncate max-w-[200px]" title={session.user_agent}>
-                              {session.user_agent || 'Desconocido'}
+                              {parseUserAgent(session.user_agent || '')}
                             </span>
                           </div>
                         </td>
