@@ -41,7 +41,8 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
   const isPlanificador = pathname?.startsWith('/admin/planificador');
   const isPOS = pathname === '/admin/pos';
   const isMonitor = pathname?.startsWith('/admin/taller-monitor');
-  const hideHeader = isPlanificador || isPOS || isMonitor;
+  const isLogin = pathname === '/admin/login';
+  const hideHeader = isPlanificador || isPOS || isMonitor || isLogin;
 
   useEffect(() => {
     // Add light background to body for admin pages to prevent dark background leakage
@@ -65,7 +66,8 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     )}>
       
       {/* Mobile Top Bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-zinc-200/80 z-40 flex items-center justify-between px-4">
+      {!isLogin && (
+        <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-zinc-200/80 z-40 flex items-center justify-between px-4">
         <div className="flex items-center gap-3">
           {pathname !== '/admin' && (
             <Link 
@@ -87,18 +89,21 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
           <Menu size={24} className="text-zinc-700" />
         </button>
       </div>
+      )}
 
-      <Sidebar 
-        isCollapsed={isCollapsed} 
-        setIsCollapsed={setIsCollapsed} 
-        isMobileOpen={isMobileOpen}
-        setIsMobileOpen={setIsMobileOpen}
-      />
+      {!isLogin && (
+        <Sidebar 
+          isCollapsed={isCollapsed} 
+          setIsCollapsed={setIsCollapsed} 
+          isMobileOpen={isMobileOpen}
+          setIsMobileOpen={setIsMobileOpen}
+        />
+      )}
 
       <div 
         className={cn(
             "flex-1 transition-all duration-300 relative flex flex-col min-h-screen overflow-x-hidden pt-16 lg:pt-0",
-            isCollapsed ? "ml-0 lg:ml-[80px]" : "ml-0 lg:ml-[280px]"
+            !isLogin && (isCollapsed ? "ml-0 lg:ml-[80px]" : "ml-0 lg:ml-[280px]")
         )}
       >
         {children}

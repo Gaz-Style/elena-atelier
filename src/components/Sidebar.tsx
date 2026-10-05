@@ -74,7 +74,7 @@ export const sidebarSections = [
             { name: 'RRHH & Operarias', href: '/admin/hr', icon: Users },
             { name: 'Marketing', href: '/admin/marketing', icon: Activity },
             { name: 'Orquestador IA', href: '/admin/ai-agents', icon: BrainCircuit },
-            { name: 'Sistema y Logs', href: '/admin/logs', icon: Settings },
+            { name: 'Configuraciones', href: '/admin/settings', icon: Settings },
         ]
     }
 ];

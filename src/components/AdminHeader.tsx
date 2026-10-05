@@ -37,9 +37,10 @@ export default function AdminHeader({ hasUser }: AdminHeaderProps) {
   const isSubpage = pathname !== '/admin';
   const isPlanificador = pathname?.startsWith('/admin/planificador');
   const isPOS = pathname === '/admin/pos';
+  const isLogin = pathname === '/admin/login';
 
   // Find matching module name
-  if (isPlanificador || isPOS) return null;
+  if (isPlanificador || isPOS || isLogin) return null;
   const currentModuleKey = Object.keys(moduleNames).find(key => 
     pathname === key || (key !== '/admin' && pathname?.startsWith(key))
   );
