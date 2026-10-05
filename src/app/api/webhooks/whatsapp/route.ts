@@ -150,7 +150,7 @@ export async function POST(req: Request) {
                         .eq('id', chatData.id);
 
                     // 4. Trigger AI Processing Task if session is 'bot'
-                    if (chatData.session_status === 'bot' && (content || messageType === 'image')) {
+                    if (chatData.session_status === 'bot' && (content || messageType === 'image' || messageType === 'audio')) {
                         try {
                             // Auto-limpiar tareas atascadas (>3 min) para este chat antes de verificar debounce
                             const threeMinAgo = new Date(Date.now() - 3 * 60 * 1000).toISOString();
@@ -173,9 +173,9 @@ export async function POST(req: Request) {
                             let shouldEnqueue = true;
 
                             if (existingTasks && existingTasks.length > 0) {
-                                if (messageType === 'image') {
-                                    // IMAGEN: Esperar a que la tarea activa termine (máx 8 segundos) y luego encolar la foto
-                                    console.log(`[Webhook] Imagen recibida con tarea activa. Esperando hasta 8s...`);
+                                if (messageType === 'image' || messageType === 'audio') {
+                                    // IMAGEN/AUDIO: Esperar a que la tarea activa termine (máx 8 segundos) y luego encolar
+                                    console.log(`[Webhook] Multimedia (img/audio) recibida con tarea activa. Esperando hasta 8s...`);
                                     let waited = 0;
                                     while (waited < 8000) {
                                         await new Promise(r => setTimeout(r, 1500));
