@@ -63,6 +63,13 @@ export default function LiveChatPage() {
         getWhatsAppChatsAction().then(data => {
             setChats(data);
             setLoading(false);
+            setSelectedChat(prevSelected => {
+                if (prevSelected) {
+                    const updatedSelected = data.find((c: any) => c.id === prevSelected.id);
+                    return updatedSelected || prevSelected;
+                }
+                return prevSelected;
+            });
         });
     };
 
