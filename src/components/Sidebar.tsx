@@ -57,8 +57,8 @@ export const sidebarSections = [
     {
         title: 'CLIENTES',
         items: [
-            { name: 'Live Chat', href: '/admin/livechat', icon: MessageSquare },
-            { name: 'CRM & WhatsApp', href: '/admin/crm', icon: Users },
+            { name: 'Live Chat (WhatsApp)', href: '/admin/livechat', icon: MessageSquare },
+            { name: 'CRM & Base Clientes', href: '/admin/crm', icon: Users },
             { name: 'Central de Correos', href: '/admin/crm/correo-central', icon: Mail },
             { name: 'Agenda & Citas', href: '/admin/agenda', icon: Calendar },
         ]

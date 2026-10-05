@@ -201,7 +201,7 @@ export default function LiveChatPage() {
     };
 
     return (
-        <div className="h-screen w-full bg-[#f0f2f5] flex flex-col font-sans overflow-hidden">
+        <div className="h-[calc(100dvh-64px)] lg:h-[100dvh] w-full bg-[#f0f2f5] flex flex-col font-sans overflow-hidden">
             
             {/* Header Global (Desktop) */}
             <div className={`bg-brand-charcoal px-4 py-3 flex items-center justify-between text-white shrink-0 shadow-sm z-20 ${!showMobileList ? 'hidden md:flex' : 'flex'}`}>
@@ -433,7 +433,7 @@ export default function LiveChatPage() {
                             </div>
 
                             {/* Sticky Input Area (Cápsula inferior) */}
-                            <div className="bg-[#f0f2f5] p-2.5 z-20 shrink-0">
+                            <div className="bg-[#f0f2f5] p-2.5 pb-[max(10px,env(safe-area-inset-bottom))] z-20 shrink-0">
                                 {sendError && (
                                     <div className="mb-2 text-[12px] text-red-600 text-center bg-red-50 py-1 rounded">
                                         ⚠️ Error: {sendError}
