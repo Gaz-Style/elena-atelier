@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import {
     ArrowLeft, Scissors, Clock, Calendar, CheckCircle2,
     AlertTriangle, Loader2, ImageIcon, ChevronLeft, ChevronRight,
-    Ruler, Layers, Sparkles, StickyNote, X
+    ChevronDown, Ruler, Layers, Sparkles, StickyNote, X
 } from 'lucide-react';
 import { getOrderTechSheet, updateOrderStatus } from '../../../actions';
 
@@ -125,9 +125,6 @@ export default function TechSheetPage() {
                             {techSheet.description}
                         </h1>
                     </div>
-                    <span className={`text-[8px] sm:text-[10px] uppercase font-bold tracking-widest px-2.5 py-1.5 rounded-full border shrink-0 text-center ${STATUS_COLORS[techSheet.status] || 'bg-zinc-100 text-zinc-500 border-zinc-200'}`}>
-                        {STATUS_LABELS[techSheet.status] || techSheet.status}
-                    </span>
                 </div>
             </header>
 
@@ -224,17 +221,19 @@ export default function TechSheetPage() {
                             <h2 className="text-[10px] uppercase tracking-widest font-bold text-[#737373]">Detalles del Trabajo</h2>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="text-[9px] uppercase tracking-widest font-bold text-[#737373]">ESTADO:</span>
-                            <select
-                                value={techSheet.status}
-                                onChange={handleStatusChange}
-                                className={`text-[9px] uppercase font-bold tracking-widest px-2 py-1 rounded border outline-none cursor-pointer appearance-none text-center hover:opacity-80 transition-opacity ${STATUS_COLORS[techSheet.status] || 'bg-zinc-100 text-zinc-500 border-zinc-200'}`}
-                                style={{ textAlignLast: 'center' }}
-                            >
-                                {Object.entries(STATUS_LABELS).map(([val, label]) => (
-                                    <option key={val} value={val}>{label}</option>
-                                ))}
-                            </select>
+                            <span className="text-[9px] uppercase tracking-widest font-bold text-[#737373] mt-0.5">ESTADO:</span>
+                            <div className="relative">
+                                <select
+                                    value={techSheet.status}
+                                    onChange={handleStatusChange}
+                                    className={`appearance-none text-[10px] uppercase font-bold tracking-widest pl-4 pr-8 py-2 rounded-full border outline-none cursor-pointer transition-all focus:ring-2 focus:ring-[#C17F5F]/20 hover:shadow-sm ${STATUS_COLORS[techSheet.status] || 'bg-zinc-100 text-zinc-500 border-zinc-200'}`}
+                                >
+                                    {Object.entries(STATUS_LABELS).map(([val, label]) => (
+                                        <option key={val} value={val} className="text-black bg-white">{label}</option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50" />
+                            </div>
                         </div>
                     </div>
 
