@@ -83,17 +83,17 @@ export default function HRPage() {
                                 <form key={op.id} onSubmit={handleSaveContract} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-gray-50 p-4 border border-gray-100 rounded-sm">
                                     <input type="hidden" name="id" value={op.id} />
                                     
-                                    <div className="md:col-span-3">
+                                    <div className="md:col-span-2">
                                         <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Operaria(o)</label>
-                                        <p className="font-bold text-brand-charcoal py-2">{op.name}</p>
+                                        <p className="font-bold text-brand-charcoal py-2 truncate" title={op.name}>{op.name}</p>
                                     </div>
                                     
-                                    <div className="md:col-span-3">
-                                        <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Tipo de Contrato</label>
+                                    <div className="md:col-span-2">
+                                        <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Contrato</label>
                                         <select name="contract_type" defaultValue={op.contract_type || 'fixed'} className="w-full text-sm p-2 border border-gray-200 rounded-sm focus:ring-brand-terracotta bg-white outline-none">
-                                            <option value="fixed">Sueldo Fijo Mensual</option>
-                                            <option value="percentage">Comisión por Prenda (%)</option>
-                                            <option value="piecework">Destajo Fijo por Prenda ($)</option>
+                                            <option value="fixed">Fijo</option>
+                                            <option value="percentage">Comisión</option>
+                                            <option value="piecework">Destajo</option>
                                         </select>
                                     </div>
                                     
@@ -105,6 +105,11 @@ export default function HRPage() {
                                     <div className="md:col-span-2">
                                         <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Comisión (%)</label>
                                         <input type="number" step="0.1" name="commission_percentage" defaultValue={op.commission_percentage || 0} className="w-full text-sm p-2 border border-gray-200 rounded-sm focus:ring-brand-terracotta outline-none" />
+                                    </div>
+                                    
+                                    <div className="md:col-span-2">
+                                        <label className="text-[10px] uppercase font-bold text-gray-500 block mb-1">Clave Taller</label>
+                                        <input type="text" maxLength={4} name="pin" placeholder="1234" defaultValue={op.pin || ''} className="w-full text-sm p-2 border border-gray-200 rounded-sm focus:ring-brand-terracotta outline-none text-center font-mono tracking-widest" />
                                     </div>
                                     
                                     <div className="md:col-span-2">
