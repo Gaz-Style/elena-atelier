@@ -25,6 +25,30 @@ export async function getActiveOperators() {
     return data || [];
 }
 
+// ─── Verificar PIN de Costurera ───
+export async function verifyOperatorPin(operatorId: string, pin: string) {
+    const supabase = getAdminClient();
+    
+    try {
+        const { data, error } = await supabase
+            .from('atelier_operators')
+            .select('pin')
+            .eq('id', operatorId)
+            .single();
+
+        if (error) throw error;
+        
+        // Si no hay PIN configurado en la base de datos, usamos 1234 por defecto
+        const correctPin = data?.pin || '1234';
+        
+        return correctPin === pin;
+    } catch (err) {
+        console.error('Error verificando PIN:', err);
+        // Fallback al PIN maestro si la columna no existe aún
+        return pin === '1234';
+    }
+}
+
 // ─── Obtener tareas del día para una costurera ───
 export async function getOperatorDayTasks(operatorId: string, dateStr: string) {
     const supabase = getAdminClient();

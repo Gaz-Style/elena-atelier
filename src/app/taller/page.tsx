@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getActiveOperators } from './actions';
+import { getActiveOperators, verifyOperatorPin } from './actions';
 import { Scissors, ChevronRight, Loader2, Lock, X } from 'lucide-react';
 
 export default function TallerLoginPage() {
@@ -41,20 +41,25 @@ export default function TallerLoginPage() {
         }
     };
 
-    const verifyPin = (enteredPin: string) => {
+    const verifyPin = async (enteredPin: string) => {
         setIsAuthenticating(true);
         
-        // NOTA: Para propósitos del demo/versión actual, el PIN universal es 1234
-        // A futuro, esto se puede conectar a un campo 'pin' en la tabla atelier_operators
-        setTimeout(() => {
-            if (enteredPin === '1234') {
+        try {
+            const isValid = await verifyOperatorPin(selectedOp.id, enteredPin);
+            
+            if (isValid) {
                 router.push(`/taller/${selectedOp.id}`);
             } else {
                 setError(true);
                 setPin('');
                 setIsAuthenticating(false);
             }
-        }, 500);
+        } catch (error) {
+            console.error("Error verificando PIN:", error);
+            setError(true);
+            setPin('');
+            setIsAuthenticating(false);
+        }
     };
 
     return (
