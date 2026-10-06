@@ -155,9 +155,11 @@ export default function TallerDashboard() {
                         const dayHours = dayTasks.reduce((s: number, t: any) => s + Number(t.duration_hours || 0), 0);
 
                         return (
-                            <div
+                        return (
+                            <Link
+                                href={`/taller/${operatorId}/dia/${dayStr}`}
                                 key={dayStr}
-                                className={`bg-white border rounded-2xl overflow-hidden shadow-sm transition-all ${
+                                className={`block bg-white border rounded-2xl overflow-hidden shadow-sm transition-all hover:border-[#C17F5F] hover:shadow-md active:scale-[0.99] ${
                                     isToday
                                         ? 'border-[#C17F5F] ring-1 ring-[#C17F5F]/20'
                                         : isPast
@@ -166,9 +168,11 @@ export default function TallerDashboard() {
                                 }`}
                             >
                                 {/* Cabecera del Día */}
-                                <div className={`px-4 py-3 flex items-center justify-between border-b border-[#F5F5F0] ${
-                                    isToday ? 'bg-[#C17F5F]/5' : 'bg-[#FDFCF8]'
-                                }`}>
+                                <div 
+                                    className={`px-4 py-3 flex items-center justify-between border-b border-[#F5F5F0] transition-colors ${
+                                        isToday ? 'bg-[#C17F5F]/5' : 'bg-[#FDFCF8]'
+                                    }`}
+                                >
                                     <div className="flex items-center gap-2">
                                         {isToday && <div className="w-2 h-2 rounded-full bg-[#C17F5F] animate-pulse" />}
                                         <span className={`text-xs font-bold uppercase tracking-wider ${
@@ -178,9 +182,12 @@ export default function TallerDashboard() {
                                         </span>
                                         {isToday && <span className="text-[8px] bg-[#C17F5F] text-white px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">Hoy</span>}
                                     </div>
-                                    {dayTasks.length > 0 && (
-                                        <span className="text-[10px] text-[#737373] font-bold">{dayHours}h · {dayTasks.length} tarea{dayTasks.length > 1 ? 's' : ''}</span>
-                                    )}
+                                    <div className="flex items-center gap-2">
+                                        {dayTasks.length > 0 && (
+                                            <span className="text-[10px] text-[#737373] font-bold">{dayHours}h · {dayTasks.length} tarea{dayTasks.length > 1 ? 's' : ''}</span>
+                                        )}
+                                        <ChevronRight className="w-4 h-4 text-[#C17F5F]" />
+                                    </div>
                                 </div>
 
                                 {/* Lista de Tareas */}
@@ -220,31 +227,19 @@ export default function TallerDashboard() {
                                                         <span className="text-[10px] bg-[#F5F5F0] text-[#4A4A4A] px-2 py-1 rounded-full font-bold uppercase tracking-widest">
                                                             {task.duration_hours}h
                                                         </span>
-                                                        {hasOrder && (
-                                                            <ChevronRight className="w-4 h-4 text-[#C17F5F]" />
-                                                        )}
                                                     </div>
                                                 </div>
                                             );
 
-                                            // Renderizar como Link (si hay orden) o como div estático
-                                            return hasOrder ? (
-                                                <Link 
-                                                    key={task.id || i}
-                                                    href={`/taller/${operatorId}/orden/${task.order_id}`} 
-                                                    className="px-4 py-3.5 flex items-center justify-between hover:bg-[#FDFCF8] active:bg-[#F5F5F0] transition-colors block w-full"
-                                                >
-                                                    {taskContent}
-                                                </Link>
-                                            ) : (
-                                                <div key={task.id || i} className="px-4 py-3.5 flex items-center justify-between w-full">
+                                            return (
+                                                <div key={task.id || i} className="px-4 py-3.5 flex items-center justify-between w-full opacity-80 hover:bg-[#FDFCF8] transition-colors">
                                                     {taskContent}
                                                 </div>
                                             );
                                         })}
                                     </div>
                                 )}
-                            </div>
+                            </Link>
                         );
                     })}
                 </div>

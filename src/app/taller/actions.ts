@@ -288,3 +288,70 @@ export async function getOperatorInfo(operatorId: string) {
     if (error || !data) return null;
     return data;
 }
+
+// ─── Obtener citas y entregas del taller para un día específico ───
+export async function getTallerDayAppointments(dateStr: string) {
+    const supabase = getAdminClient();
+    
+    // 1. Agendamientos estándar
+    const { data: agData } = await supabase
+        .from('agendamientos')
+        .select('id, fecha_hora, nombre, apellido, tipo_evento, notas')
+        .neq('estado', 'cancelado')
+        .gte('fecha_hora', `${dateStr}T00:00:00-03:00`)
+        .lte('fecha_hora', `${dateStr}T23:59:59-03:00`);
+
+    // 2. Citas de Novias (Milestones)
+    const { data: mData } = await supabase
+        .from('bridal_milestones')
+        .select('id, scheduled_date, title, project_id, bridal_projects(customers(full_name))')
+        .neq('status', 'completed')
+        .not('scheduled_date', 'is', null)
+        .gte('scheduled_date', `${dateStr}T00:00:00-03:00`)
+        .lte('scheduled_date', `${dateStr}T23:59:59-03:00`)
+        .is('agenda_event_id', null);
+
+    let mEvents: any[] = [];
+    if (mData) {
+        mEvents = mData.map((m: any) => {
+            const cust = Array.isArray(m.bridal_projects?.customers) ? m.bridal_projects.customers[0] : m.bridal_projects?.customers;
+            return {
+                id: `milestone-${m.id}`,
+                fecha_hora: m.scheduled_date,
+                nombre: cust?.full_name || 'Clienta',
+                apellido: '',
+                tipo_evento: 'cita_cliente',
+                notas: `Prueba: ${m.title}`
+            };
+        });
+    }
+
+    // 3. Entregas (Deadlines)
+    const { data: pOrders } = await supabase
+        .from('production_orders')
+        .select('id, description, deadline, pos_order_id, customers(full_name)')
+        .not('status', 'in', '("delivered", "cancelled", "cancelado")')
+        .not('deadline', 'is', null)
+        .gte('deadline', `${dateStr}T00:00:00-03:00`)
+        .lte('deadline', `${dateStr}T23:59:59-03:00`);
+
+    let deliveryEvents: any[] = [];
+    if (pOrders) {
+        deliveryEvents = pOrders.map((o: any) => {
+            const c = Array.isArray(o.customers) ? o.customers[0] : o.customers;
+            return {
+                id: `delivery-${o.id}`,
+                fecha_hora: o.deadline,
+                nombre: c?.full_name || 'Clienta',
+                apellido: '',
+                tipo_evento: 'retiro_encargo',
+                notas: `Retiro: ${o.description || 'Prenda'} (${o.pos_order_id || 'S/N'})`
+            };
+        });
+    }
+
+    const combined = [...(agData || []), ...mEvents, ...deliveryEvents]
+        .sort((a, b) => new Date(a.fecha_hora).getTime() - new Date(b.fecha_hora).getTime());
+
+    return combined;
+}
