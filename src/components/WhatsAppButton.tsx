@@ -56,7 +56,7 @@ export default function WhatsAppButton() {
     }, [pathname]);
 
     useEffect(() => {
-        if (pathname.startsWith('/admin') || pathname.startsWith('/portal-novias')) return;
+        if (pathname.startsWith('/admin') || pathname.startsWith('/portal-novias') || pathname.startsWith('/taller')) return;
 
         let scrollTimeout: NodeJS.Timeout;
 
@@ -80,7 +80,7 @@ export default function WhatsAppButton() {
         };
     }, [pathname]);
 
-    if (pathname.startsWith('/admin') || pathname.startsWith('/portal-novias') || pathname.startsWith('/opiniones')) return null;
+    if (pathname.startsWith('/admin') || pathname.startsWith('/portal-novias') || pathname.startsWith('/opiniones') || pathname.startsWith('/taller')) return null;
 
     return (
         <motion.a
