@@ -98,8 +98,14 @@ export default async function TallerDayViewPage({
                                     </div>
                                     <div className="flex-1 min-w-0 flex flex-col justify-center">
                                         <div className="flex justify-between items-start gap-2 mb-1">
-                                            <span className={`text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${app.tipo_evento === 'retiro_encargo' ? 'bg-[#C17F5F] text-white' : 'bg-black text-white'}`}>
-                                                {app.tipo_evento === 'retiro_encargo' ? 'Entrega' : 'Prueba Cliente'}
+                                            <span className={`text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full ${
+                                                app.tipo_evento === 'retiro_encargo' 
+                                                    ? 'bg-[#C17F5F] text-white' 
+                                                    : app.tipo_evento === 'tarea_interna'
+                                                        ? 'bg-[#E5E5E5] text-[#4A4A4A]'
+                                                        : 'bg-black text-white'
+                                            }`}>
+                                                {app.tipo_evento === 'retiro_encargo' ? 'Entrega' : app.tipo_evento === 'tarea_interna' ? 'Bloqueo' : 'Cita'}
                                             </span>
                                         </div>
                                         <p className="font-bold text-sm text-[#1A1A1A] truncate">{app.nombre}</p>
