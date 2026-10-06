@@ -276,6 +276,21 @@ export async function getOrderTechSheet(orderId: string) {
     };
 }
 
+// ─── Actualizar el estado de una orden ───
+export async function updateOrderStatus(orderId: string, newStatus: string) {
+    const supabase = getAdminClient();
+    const { error } = await supabase
+        .from('production_orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
+        
+    if (error) {
+        console.error('Error updating order status:', error);
+        return { success: false, error: error.message };
+    }
+    return { success: true };
+}
+
 // ─── Info de la operaria (nombre y capacidad) ───
 export async function getOperatorInfo(operatorId: string) {
     const supabase = getAdminClient();

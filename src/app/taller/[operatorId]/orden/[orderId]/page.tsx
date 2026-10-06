@@ -7,7 +7,7 @@ import {
     AlertTriangle, Loader2, ImageIcon, ChevronLeft, ChevronRight,
     Ruler, Layers, Sparkles, StickyNote, X
 } from 'lucide-react';
-import { getOrderTechSheet } from '../../../actions';
+import { getOrderTechSheet, updateOrderStatus } from '../../../actions';
 
 const STATUS_LABELS: Record<string, string> = {
     draft: 'Ingresado',
@@ -89,6 +89,18 @@ export default function TechSheetPage() {
         return d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
     };
 
+    const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newStatus = e.target.value;
+        const previousStatus = techSheet.status;
+        setTechSheet({ ...techSheet, status: newStatus });
+        
+        const res = await updateOrderStatus(orderId, newStatus);
+        if (!res.success) {
+            alert('Error al actualizar el estado: ' + res.error);
+            setTechSheet({ ...techSheet, status: previousStatus });
+        }
+    };
+
     // Parse notas técnicas (buscar patrones de estructura)
     const notesLines = techSheet.notes ? techSheet.notes.split('\n').filter((l: string) => l.trim()) : [];
 
@@ -113,9 +125,16 @@ export default function TechSheetPage() {
                             {techSheet.description}
                         </h1>
                     </div>
-                    <span className={`text-[8px] uppercase font-bold tracking-widest px-2.5 py-1.5 rounded-full border shrink-0 ${STATUS_COLORS[techSheet.status] || 'bg-zinc-100 text-zinc-500 border-zinc-200'}`}>
-                        {STATUS_LABELS[techSheet.status] || techSheet.status}
-                    </span>
+                    <select
+                        value={techSheet.status}
+                        onChange={handleStatusChange}
+                        className={`text-[8px] sm:text-[10px] uppercase font-bold tracking-widest px-2.5 py-1.5 rounded-full border shrink-0 outline-none cursor-pointer appearance-none text-center ${STATUS_COLORS[techSheet.status] || 'bg-zinc-100 text-zinc-500 border-zinc-200'}`}
+                        style={{ textAlignLast: 'center' }}
+                    >
+                        {Object.entries(STATUS_LABELS).map(([val, label]) => (
+                            <option key={val} value={val}>{label}</option>
+                        ))}
+                    </select>
                 </div>
             </header>
 
