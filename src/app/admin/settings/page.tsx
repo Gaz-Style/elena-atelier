@@ -10,7 +10,8 @@ export default function SettingsPage() {
       color: "bg-blue-50 text-blue-600",
       links: [
         { name: "Sesiones & Accesos", href: "/admin/sessions", desc: "Monitorea dispositivos y direcciones IP conectados." },
-        { name: "Usuarios Administradores", href: "/admin/settings/users", desc: "Añade o revoca permisos a tu equipo de trabajo." }
+        { name: "Usuarios Administradores", href: "/admin/settings/users", desc: "Añade o revoca permisos a tu equipo de trabajo." },
+        { name: "Accesos Portal Taller", href: "/admin/settings/taller", desc: "Administra las claves (PIN) de las costureras." }
       ]
     },
     {

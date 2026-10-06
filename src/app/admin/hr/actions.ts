@@ -59,18 +59,11 @@ export async function updateOperatorContractAction(formData: FormData) {
     const contract_type = formData.get('contract_type') as string;
     const base_salary = Number(formData.get('base_salary') || 0);
     const commission_percentage = Number(formData.get('commission_percentage') || 0);
-    const pin = formData.get('pin') as string;
     
     const supabase = await createClient();
-    const updateData: any = { contract_type, base_salary, commission_percentage };
-    
-    if (pin && pin.length === 4) {
-        updateData.pin = pin;
-    }
-    
     const { error } = await supabase
         .from('atelier_operators')
-        .update(updateData)
+        .update({ contract_type, base_salary, commission_percentage })
         .eq('id', id);
         
     if (error) return { success: false, error: error.message };
