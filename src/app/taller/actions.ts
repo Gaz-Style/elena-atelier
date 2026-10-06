@@ -32,7 +32,7 @@ export async function verifyOperatorPin(operatorId: string, pin: string) {
     try {
         const { data, error } = await supabase
             .from('atelier_operators')
-            .select('pin')
+            .select('pin, name')
             .eq('id', operatorId)
             .single();
 
@@ -40,8 +40,27 @@ export async function verifyOperatorPin(operatorId: string, pin: string) {
         
         // Si no hay PIN configurado en la base de datos, usamos 1234 por defecto
         const correctPin = data?.pin || '1234';
+        const isValid = correctPin === pin;
+
+        if (isValid) {
+            try {
+                const { headers } = await import('next/headers');
+                const headersList = await headers();
+                const userAgent = headersList.get('user-agent') || 'Unknown';
+                const ipAddress = headersList.get('x-forwarded-for') || 'Unknown IP';
+                
+                await supabase.from('admin_sessions_log').insert({
+                    user_id: null,
+                    email: `Taller: ${data.name || 'Operaria'}`,
+                    ip_address: ipAddress,
+                    user_agent: userAgent
+                });
+            } catch (logError) {
+                console.error('Error logging taller session:', logError);
+            }
+        }
         
-        return correctPin === pin;
+        return isValid;
     } catch (err) {
         console.error('Error verificando PIN:', err);
         // Fallback al PIN maestro si la columna no existe aún
