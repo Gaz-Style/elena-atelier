@@ -155,7 +155,6 @@ export default function TallerDashboard() {
                         const dayHours = dayTasks.reduce((s: number, t: any) => s + Number(t.duration_hours || 0), 0);
 
                         return (
-                        return (
                             <Link
                                 href={`/taller/${operatorId}/dia/${dayStr}`}
                                 key={dayStr}
