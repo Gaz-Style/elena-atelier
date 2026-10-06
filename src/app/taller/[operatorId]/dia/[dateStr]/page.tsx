@@ -108,8 +108,12 @@ export default async function TallerDayViewPage({
                                                 {app.tipo_evento === 'retiro_encargo' ? 'Entrega' : app.tipo_evento === 'tarea_interna' ? 'Bloqueo' : 'Cita'}
                                             </span>
                                         </div>
-                                        <p className="font-bold text-sm text-[#1A1A1A] truncate">{app.nombre}</p>
-                                        <p className="text-xs text-[#737373] mt-0.5 line-clamp-2 leading-snug">{app.notas}</p>
+                                        <p className="font-bold text-sm text-[#1A1A1A] truncate">
+                                            {app.tipo_evento === 'tarea_interna' ? app.notas : `${app.nombre} ${app.apellido || ''}`}
+                                        </p>
+                                        <p className="text-xs text-[#737373] mt-0.5 line-clamp-2 leading-snug">
+                                            {app.tipo_evento === 'tarea_interna' ? 'Bloqueo en Agenda' : app.notas}
+                                        </p>
                                     </div>
                                 </div>
                             ))}
