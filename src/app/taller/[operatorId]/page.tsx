@@ -215,7 +215,7 @@ export default function TallerDashboard() {
                                                                 <p className="text-[10px] text-[#737373] truncate">{task.order.customerName}</p>
                                                                 {task.order.status && (
                                                                     <span className={`text-[8px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded-sm ${STATUS_COLORS[task.order.status] || 'bg-zinc-100 text-zinc-500'}`}>
-                                                                        {{
+                                                                        {({
                                                                             draft: 'En Espera',
                                                                             cutting: 'Corte',
                                                                             sewing: 'Costura',
@@ -223,7 +223,7 @@ export default function TallerDashboard() {
                                                                             ready: 'Listo',
                                                                             delivered: 'Entregado',
                                                                             cancelled: 'Cancelado'
-                                                                        }[task.order.status] || task.order.status}
+                                                                        } as Record<string, string>)[task.order.status as string] || task.order.status}
                                                                     </span>
                                                                 )}
                                                             </div>

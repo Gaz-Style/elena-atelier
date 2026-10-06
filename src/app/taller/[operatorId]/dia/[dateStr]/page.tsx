@@ -156,7 +156,7 @@ export default async function TallerDayViewPage({
                                                     </p>
                                                     {task.order.status && (
                                                         <span className={`text-[8px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded-sm shrink-0 ${STATUS_COLORS[task.order.status] || 'bg-zinc-100 text-zinc-500'}`}>
-                                                            {{
+                                                            {({
                                                                 draft: 'En Espera',
                                                                 cutting: 'Corte',
                                                                 sewing: 'Costura',
@@ -164,7 +164,7 @@ export default async function TallerDayViewPage({
                                                                 ready: 'Listo',
                                                                 delivered: 'Entregado',
                                                                 cancelled: 'Cancelado'
-                                                            }[task.order.status] || task.order.status}
+                                                            } as Record<string, string>)[task.order.status as string] || task.order.status}
                                                         </span>
                                                     )}
                                                 </div>
