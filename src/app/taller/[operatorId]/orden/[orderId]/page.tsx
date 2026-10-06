@@ -125,16 +125,9 @@ export default function TechSheetPage() {
                             {techSheet.description}
                         </h1>
                     </div>
-                    <select
-                        value={techSheet.status}
-                        onChange={handleStatusChange}
-                        className={`text-[8px] sm:text-[10px] uppercase font-bold tracking-widest px-2.5 py-1.5 rounded-full border shrink-0 outline-none cursor-pointer appearance-none text-center ${STATUS_COLORS[techSheet.status] || 'bg-zinc-100 text-zinc-500 border-zinc-200'}`}
-                        style={{ textAlignLast: 'center' }}
-                    >
-                        {Object.entries(STATUS_LABELS).map(([val, label]) => (
-                            <option key={val} value={val}>{label}</option>
-                        ))}
-                    </select>
+                    <span className={`text-[8px] sm:text-[10px] uppercase font-bold tracking-widest px-2.5 py-1.5 rounded-full border shrink-0 text-center ${STATUS_COLORS[techSheet.status] || 'bg-zinc-100 text-zinc-500 border-zinc-200'}`}>
+                        {STATUS_LABELS[techSheet.status] || techSheet.status}
+                    </span>
                 </div>
             </header>
 
@@ -225,9 +218,24 @@ export default function TechSheetPage() {
 
                 {/* ═══════════════ DETALLES GENERALES ═══════════════ */}
                 <div className="bg-white border border-[#E5E5E5] rounded-2xl p-5 shadow-sm space-y-4">
-                    <div className="flex items-center gap-2 border-b border-[#F5F5F0] pb-3">
-                        <Layers className="w-4 h-4 text-[#C17F5F]" />
-                        <h2 className="text-[10px] uppercase tracking-widest font-bold text-[#737373]">Detalles del Trabajo</h2>
+                    <div className="flex items-center justify-between border-b border-[#F5F5F0] pb-3">
+                        <div className="flex items-center gap-2">
+                            <Layers className="w-4 h-4 text-[#C17F5F]" />
+                            <h2 className="text-[10px] uppercase tracking-widest font-bold text-[#737373]">Detalles del Trabajo</h2>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[9px] uppercase tracking-widest font-bold text-[#737373]">ESTADO:</span>
+                            <select
+                                value={techSheet.status}
+                                onChange={handleStatusChange}
+                                className={`text-[9px] uppercase font-bold tracking-widest px-2 py-1 rounded border outline-none cursor-pointer appearance-none text-center hover:opacity-80 transition-opacity ${STATUS_COLORS[techSheet.status] || 'bg-zinc-100 text-zinc-500 border-zinc-200'}`}
+                                style={{ textAlignLast: 'center' }}
+                            >
+                                {Object.entries(STATUS_LABELS).map(([val, label]) => (
+                                    <option key={val} value={val}>{label}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
