@@ -116,6 +116,9 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} Elena La Costurera. Todos los derechos reservados.
           </div>
           <div className="flex items-center justify-center gap-6 text-[9px] text-white/40 font-sans tracking-[0.2em] uppercase font-semibold">
+            <Link href="/taller" className="hover:text-[#cda45e] transition-all duration-300">
+              Portal Taller
+            </Link>
             <Link href="/admin" className="hover:text-[#cda45e] transition-all duration-300">
               Admin Portal
             </Link>
