@@ -32,7 +32,7 @@ async function analyzeDemographicsAndPages() {
     try {
       const [ageReport] = await analyticsDataClient.runReport({
         property: `properties/${propertyId}`,
-        dateRanges: [{ startDate: '90daysAgo', endDate: 'today' }],
+        dateRanges: [{ startDate: 'yesterday', endDate: 'today' }],
         dimensions: [{ name: 'userAgeBracket' }],
         metrics: [
           { name: 'activeUsers' },
@@ -62,7 +62,7 @@ async function analyzeDemographicsAndPages() {
     try {
       const [genderReport] = await analyticsDataClient.runReport({
         property: `properties/${propertyId}`,
-        dateRanges: [{ startDate: '90daysAgo', endDate: 'today' }],
+        dateRanges: [{ startDate: 'yesterday', endDate: 'today' }],
         dimensions: [{ name: 'userGender' }],
         metrics: [
           { name: 'activeUsers' },
@@ -87,7 +87,7 @@ async function analyzeDemographicsAndPages() {
     console.log('\n📄 3. TOP PÁGINAS MÁS VISITADAS (pagePath):');
     const [pagesReport] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
-      dateRanges: [{ startDate: '90daysAgo', endDate: 'today' }],
+      dateRanges: [{ startDate: 'yesterday', endDate: 'today' }],
       dimensions: [{ name: 'pagePath' }, { name: 'pageTitle' }],
       metrics: [
         { name: 'screenPageViews' },
@@ -118,7 +118,7 @@ async function analyzeDemographicsAndPages() {
     console.log('\n📱 4. DISPOSITIVOS (deviceCategory):');
     const [deviceReport] = await analyticsDataClient.runReport({
       property: `properties/${propertyId}`,
-      dateRanges: [{ startDate: '90daysAgo', endDate: 'today' }],
+      dateRanges: [{ startDate: 'yesterday', endDate: 'today' }],
       dimensions: [{ name: 'deviceCategory' }],
       metrics: [
         { name: 'activeUsers' },
