@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { Monitor, Smartphone, Globe, ShieldCheck, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { ClientDate } from '@/components/ClientDate';
 
 export const dynamic = 'force-dynamic';
 
@@ -88,7 +89,7 @@ export default async function SessionsPage() {
                           <div className="font-medium text-zinc-900">{session.email}</div>
                         </td>
                         <td className="px-6 py-4 text-zinc-600">
-                          {new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(session.created_at))}
+                          <ClientDate date={session.created_at} />
                         </td>
                         <td className="px-6 py-4 font-mono text-xs text-zinc-500">
                           {session.ip_address || 'Desconocida'}
