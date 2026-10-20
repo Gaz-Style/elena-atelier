@@ -606,19 +606,26 @@ ${ragContext}`;
                                 }
                             }
                             
-                            // Evaluar Handoff Automático (Backup por Regex solo en casos explícitos de reclamo o solicitud humana)
+                            // Evaluar Handoff Automático (Backup por Regex o detección de fallo/alta demanda)
                             const handoffRegexUser = /humano|asesor\s+humano|reclamo|queja|devolución|datos bancarios|transferencia/i;
-                            const handoffRegexBot = /asesora humana|te voy a transferir/i;
+                            const handoffRegexBot = /asesora humana|asesor humano|te voy a transferir|transferiré|alta demanda|atenderá a la brevedad/i;
                             
                             if (!isHandoffTriggered && !isScheduledTask && (handoffRegexUser.test(userMessage) || handoffRegexBot.test(aiReply))) {
                                 isHandoffTriggered = true;
                                 handoffUrgency = /reclamo|queja|devolución/i.test(userMessage) ? 'alta' : 'normal';
-                                handoffMotivo = 'Detectado por filtro de seguridad (Regex).';
-                                aiReply = "Entendido. Para atenderte de forma más personalizada, te voy a transferir directamente con nuestro equipo del taller. Un momento por favor.";
+                                handoffMotivo = /reclamo|queja|devolución/i.test(userMessage) 
+                                    ? 'Cliente insatisfecho o reclamo detectado' 
+                                    : 'Cliente solicita atención o IA derivó a equipo';
+                                if (!aiReply.includes("alta demanda") && !aiReply.includes("asesor")) {
+                                    aiReply = "Entendido. Para atenderte de forma más personalizada, te voy a transferir directamente con nuestro equipo del taller. Un momento por favor.";
+                                }
                             }
 
                         } catch (error) {
-                            console.log("GEMINI CATCH ERROR:", error);
+                            console.log("ORCHESTRATOR ERROR / CATCH:", error);
+                            isHandoffTriggered = true;
+                            handoffUrgency = 'normal';
+                            handoffMotivo = 'Fallo de procesamiento IA (Derivación por alta demanda)';
                         }
 
                         // Guardar respuesta del bot en el historial de mensajes
@@ -666,29 +673,65 @@ ${ragContext}`;
                                 } else {
                                     console.log('Mensaje enviado exitosamente a WhatsApp Meta API:', waResData);
                                     
-                                    // Si hubo handoff, notificar al admin
+                                    // Si hubo handoff, notificar al admin mediante Plantilla de WhatsApp oficial
                                     if (isHandoffTriggered) {
                                         const adminPhones = ['56984021940', '56937667709'];
-                                        
-                                        let iconoAlerta = handoffUrgency === 'alta' ? '🚨' : '⚠️';
-                                        let tituloAlerta = handoffUrgency === 'alta' ? '*URGENCIA: RECLAMO O PROBLEMA*' : '*Atención Humana Requerida*';
-                                        
-                                        const adminMessage = `${iconoAlerta} ${tituloAlerta}\n\nEl cliente (${recipientPhone}) ha sido transferido a un humano.\n\n*Motivo de la IA:* ${handoffMotivo}\n\n👉 Responder aquí: https://elenalacosturera.cl/admin/livechat`;
-                                        
+                                        const livechatUrl = 'https://elenalacosturera.cl/admin/livechat';
+                                        const motivoLimpio = (handoffMotivo || 'Consulta de cliente derivada a humano').slice(0, 100);
+                                        const prioridadTexto = handoffUrgency === 'alta' ? 'Alta' : 'Normal';
+
                                         for (const adminPhone of adminPhones) {
-                                            await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
-                                                method: 'POST',
-                                                headers: {
-                                                    'Authorization': `Bearer ${token}`,
-                                                    'Content-Type': 'application/json'
-                                                },
-                                                body: JSON.stringify({
-                                                    messaging_product: 'whatsapp',
-                                                    to: adminPhone,
-                                                    type: 'text',
-                                                    text: { body: adminMessage }
-                                                })
-                                            });
+                                            try {
+                                                const tplRes = await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Authorization': `Bearer ${token}`,
+                                                        'Content-Type': 'application/json'
+                                                    },
+                                                    body: JSON.stringify({
+                                                        messaging_product: 'whatsapp',
+                                                        to: adminPhone,
+                                                        type: 'template',
+                                                        template: {
+                                                            name: 'alerta_atencion_humana',
+                                                            language: { code: 'es_CL' },
+                                                            components: [
+                                                                {
+                                                                    type: 'body',
+                                                                    parameters: [
+                                                                        { type: 'text', text: `+${recipientPhone}` },
+                                                                        { type: 'text', text: motivoLimpio },
+                                                                        { type: 'text', text: prioridadTexto },
+                                                                        { type: 'text', text: livechatUrl }
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    })
+                                                });
+                                                const tplData = await tplRes.json();
+                                                console.log(`[HANDOFF TEMPLATE] Enviado a ${adminPhone}:`, tplData);
+
+                                                // Fallback de texto si la plantilla da error de propagación
+                                                if (tplData.error) {
+                                                    console.warn(`[HANDOFF FALLBACK TEXT] Fallback a texto para ${adminPhone}:`, tplData.error.message);
+                                                    await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Authorization': `Bearer ${token}`,
+                                                            'Content-Type': 'application/json'
+                                                        },
+                                                        body: JSON.stringify({
+                                                            messaging_product: 'whatsapp',
+                                                            to: adminPhone,
+                                                            type: 'text',
+                                                            text: { body: `⚠️ *Atención Requerida - Elena La Costurera*\n\nEl cliente (+${recipientPhone}) requiere atención humana.\n*Motivo:* ${motivoLimpio}\n\n👉 Responder aquí: ${livechatUrl}` }
+                                                        })
+                                                    });
+                                                }
+                                            } catch (sendErr) {
+                                                console.error(`[HANDOFF SEND ERROR] Error enviando alerta a ${adminPhone}:`, sendErr);
+                                            }
                                         }
                                     }
                                 }
