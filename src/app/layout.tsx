@@ -78,6 +78,7 @@ export const metadata: Metadata = {
 };
 
 import MicrosoftClarity from "@/components/MicrosoftClarity";
+import { UtmTracker } from "@/components/UtmTracker";
 
 export default function RootLayout({
   children,
@@ -95,6 +96,7 @@ export default function RootLayout({
         <GoogleTagManager />
         <GlobalWhatsAppTracker />
         <MicrosoftClarity />
+        <UtmTracker />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ElenaAtelierSchema) }}

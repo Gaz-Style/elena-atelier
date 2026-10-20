@@ -18,20 +18,22 @@ interface Task {
     impact: 'Alto' | 'Medio' | 'Bajo';
 }
 
-import { getMarketingTasks, updateMarketingTaskStatus, getMarketingMetrics } from './actions';
+import { getMarketingTasks, updateMarketingTaskStatus, getMarketingMetrics, getMarketingAttribution } from './actions';
 
 export default function MarketingDashboard() {
-    const [activeTab, setActiveTab] = useState<'plan' | 'ai-studio'>('plan');
+    const [activeTab, setActiveTab] = useState<'plan' | 'ai-studio' | 'attribution'>('plan');
     const [copiedLink, setCopiedLink] = useState(false);
     
     const [tasks, setTasks] = useState<Task[]>([]);
     const [metricsData, setMetricsData] = useState<{ whatsappConversion: number, chatsTotal: number }>({ whatsappConversion: 0, chatsTotal: 0 });
+    const [attributionData, setAttributionData] = useState<any[]>([]);
 
     useEffect(() => {
         const loadData = async () => {
-            const [tasksData, metrics] = await Promise.all([
+            const [tasksData, metrics, attribution] = await Promise.all([
                 getMarketingTasks(),
-                getMarketingMetrics()
+                getMarketingMetrics(),
+                getMarketingAttribution()
             ]);
             setTasks(tasksData.map((t: any) => ({
                 id: t.id,
@@ -43,6 +45,7 @@ export default function MarketingDashboard() {
                 impact: t.impact
             })));
             setMetricsData(metrics);
+            setAttributionData(attribution);
         };
         loadData();
     }, []);
@@ -188,6 +191,16 @@ export default function MarketingDashboard() {
                         }`}
                     >
                         <Sparkles className="w-4 h-4" /> AI Content Studio
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('attribution')}
+                        className={`py-4 px-6 font-medium text-xs uppercase tracking-widest border-b-2 transition-all duration-300 flex items-center gap-2 ${
+                            activeTab === 'attribution'
+                                ? 'border-brand-terracotta text-brand-charcoal font-bold'
+                                : 'border-transparent text-gray-400 hover:text-brand-charcoal hover:border-gray-300'
+                        }`}
+                    >
+                        <Target className="w-4 h-4" /> Atribución UTM
                     </button>
                 </div>
 
@@ -555,6 +568,51 @@ export default function MarketingDashboard() {
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'attribution' && (
+                    <div className="space-y-8 animate-fadeIn">
+                        <div className="bg-white p-8 rounded-sm shadow-sm border border-gray-100">
+                            <h2 className="text-2xl font-serif text-brand-charcoal flex items-center gap-2 mb-6">
+                                <Target className="w-6 h-6 text-brand-terracotta" /> Panel de Atribución UTM
+                            </h2>
+                            <p className="text-sm text-text-secondary mb-8">
+                                Monitorea desde qué canales de marketing (Meta Ads, Instagram Orgánico, Google Search) provienen tus clientes.
+                            </p>
+                            
+                            {attributionData && attributionData.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-4">
+                                        <h3 className="text-xs uppercase tracking-widest font-bold text-gray-400 mb-4">Últimos Agendamientos (Trackeados)</h3>
+                                        {attributionData.map((a, i) => (
+                                            <div key={i} className="flex flex-col p-4 bg-gray-50 border border-gray-100 rounded-sm gap-2 hover:border-gray-200 transition-colors">
+                                                <div className="flex justify-between items-center text-xs text-gray-500">
+                                                    <span>{new Date(a.fecha_hora).toLocaleDateString('es-CL')}</span>
+                                                    <span className={`px-2 py-0.5 rounded-sm font-bold uppercase tracking-wider text-[9px] ${a.estado === 'confirmado' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-700'}`}>{a.estado}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                                    <span className="bg-brand-sand/40 border border-brand-sand/80 text-brand-charcoal text-[10px] font-bold px-2 py-1 rounded-sm uppercase tracking-wider">
+                                                        Fuente: {a.utm_source}
+                                                    </span>
+                                                    {a.utm_campaign && (
+                                                        <span className="bg-white border border-gray-200 text-gray-600 text-[10px] font-bold px-2 py-1 rounded-sm uppercase tracking-wider">
+                                                            Campaña: {a.utm_campaign}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-center py-12 text-gray-400 bg-gray-50 border border-dashed border-gray-200 rounded-sm">
+                                    <Target className="w-8 h-8 mx-auto mb-3 opacity-50 text-brand-terracotta" />
+                                    <p className="font-serif text-lg text-brand-charcoal">Cargando datos o sin conversiones</p>
+                                    <p className="text-xs mt-2 text-gray-500 max-w-md mx-auto">Comparte tus links agregando ?utm_source=instagram para ver aparecer aquí a los clientes que agenden desde ahí.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

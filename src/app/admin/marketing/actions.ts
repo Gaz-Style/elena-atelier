@@ -43,3 +43,14 @@ export async function getMarketingMetrics() {
         chatsTotal: chatsCount || 0
     };
 }
+
+export async function getMarketingAttribution() {
+    const supabase = await createClient();
+    const { data: agendamientos } = await supabase
+        .from('agendamientos')
+        .select('id, utm_source, utm_medium, utm_campaign, fecha_hora, estado')
+        .not('utm_source', 'is', null)
+        .order('fecha_hora', { ascending: false });
+        
+    return agendamientos || [];
+}

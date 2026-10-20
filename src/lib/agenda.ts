@@ -504,7 +504,15 @@ export async function registrarMensajeSalienteLiveChat(
     }
 }
 
-export async function agendar_visita(nombre: string, apellido: string, celular: string, correo: string, fecha_hora: string, origen: string = 'whatsapp') {
+export async function agendar_visita(
+    nombre: string, 
+    apellido: string, 
+    celular: string, 
+    correo: string, 
+    fecha_hora: string, 
+    origen: string = 'whatsapp',
+    utms?: { utm_source?: string; utm_medium?: string; utm_campaign?: string; utm_term?: string }
+) {
     try {
         // Extraer fecha (YYYY-MM-DD) y hora (HH:mm) expresadas en hora local de Santiago
         const parts = fecha_hora.split('T');
@@ -580,15 +588,25 @@ export async function agendar_visita(nombre: string, apellido: string, celular: 
                 await supabase.from('customers').insert([{
                     full_name: fullName,
                     email: correo || null,
-                    phone: formattedPhone || null
+                    phone: formattedPhone || null,
+                    utm_source: utms?.utm_source || null,
+                    utm_medium: utms?.utm_medium || null,
+                    utm_campaign: utms?.utm_campaign || null,
+                    utm_term: utms?.utm_term || null
                 }]);
             } else {
                 // El cliente ya existe: Actualizamos sus datos (ej. si antes no teníamos su email o nombre completo)
-                await supabase.from('customers').update({ 
+                const updateData: any = { 
                     full_name: fullName,
                     email: correo || null,
                     phone: formattedPhone || null
-                }).eq('id', existingCustomer.id);
+                };
+                if (utms?.utm_source) updateData.utm_source = utms.utm_source;
+                if (utms?.utm_medium) updateData.utm_medium = utms.utm_medium;
+                if (utms?.utm_campaign) updateData.utm_campaign = utms.utm_campaign;
+                if (utms?.utm_term) updateData.utm_term = utms.utm_term;
+                
+                await supabase.from('customers').update(updateData).eq('id', existingCustomer.id);
             }
         }
 
@@ -603,7 +621,11 @@ export async function agendar_visita(nombre: string, apellido: string, celular: 
                 fecha_hora: fechaAjustada,
                 origen: origen,
                 tipo_evento: 'cita_cliente',
-                estado: 'confirmado'
+                estado: 'confirmado',
+                utm_source: utms?.utm_source || null,
+                utm_medium: utms?.utm_medium || null,
+                utm_campaign: utms?.utm_campaign || null,
+                utm_term: utms?.utm_term || null
             }])
             .select();
 

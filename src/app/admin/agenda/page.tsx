@@ -728,6 +728,18 @@ export default async function AgendaPage({
                                                                 <div className="text-sm text-gray-600 mt-1 space-y-1">
                                                                     <p>📱 {evento.celular}</p>
                                                                     <p>✉️ {evento.correo}</p>
+                                                                    {evento.utm_source && (
+                                                                        <div className="mt-2 flex items-center gap-1">
+                                                                            <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded">
+                                                                                🏷️ {evento.utm_source}
+                                                                            </span>
+                                                                            {evento.utm_campaign && (
+                                                                                <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded">
+                                                                                    {evento.utm_campaign}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             )}
                                                             {evento.tipo_evento === 'retiro_encargo' && evento.notas && (

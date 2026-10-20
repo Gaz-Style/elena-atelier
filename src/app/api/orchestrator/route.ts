@@ -171,9 +171,17 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                                                     generationConfig: { maxOutputTokens: isImage ? 150 : 500 }
                                                 };
                                                 
-                                                const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiKey}`, {
+                                                // Intento con modelo primario y fallback automático a gemini-2.5-flash si hay sobrecarga (503)
+                                                let geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiKey}`, {
                                                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-                                                });
+                                                 });
+
+                                                if (!geminiRes.ok) {
+                                                    console.warn(`[GEMINI RETRY] Modelo gemini-3.5-flash devolvió ${geminiRes.status}. Reintentando con gemini-2.5-flash...`);
+                                                    geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
+                                                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                                                    });
+                                                }
                                                 
                                                 if (geminiRes.ok) {
                                                     const geminiData = await geminiRes.json();
@@ -215,20 +223,19 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                                userMessage = `${internalPrefix} ${geminiAnalysisLocal}. ` + userMessage; 
 
                             } else if (!geminiAnalysisLocal || geminiAnalysisLocal.startsWith('ERROR:')) {
-                               const errPrefix2 = isImage ? 'UNA FOTO' : 'UN AUDIO';
-                               const errDesc = isImage ? 'visual' : 'de transcripción de audio';
-                               const errAction = isImage ? 'la foto' : 'el audio';
-                               const errFall = isImage ? 'te describa la prenda o el arreglo' : 'te escriba su consulta por texto';
-                               
-                               await supabase.from('crm_whatsapp_messages')
-                                   .update({ content: `[EL USUARIO ENVIÓ ${errPrefix2}. Error del sistema al procesar: ${geminiAnalysisLocal}]` })
-                                   .eq('chat_id', task.payload.chat_id)
-                                   .eq('media_url', mediaUrl);
+                                const errPrefix2 = isImage ? 'UNA FOTO' : 'UN AUDIO';
+                                
+                                await supabase.from('crm_whatsapp_messages')
+                                    .update({ content: `[EL USUARIO ENVIÓ ${errPrefix2}. Nota: Procesamiento conversacional directo]` })
+                                    .eq('chat_id', task.payload.chat_id)
+                                    .eq('media_url', mediaUrl);
 
-                               const lastUserMsgIndex = conversationHistory.findLastIndex((msg: any) => msg.role === 'user');
-                               if (lastUserMsgIndex !== -1) {
-                                   conversationHistory[lastUserMsgIndex].content = `[EL USUARIO ENVIÓ ${errPrefix2}, pero hubo un error en el sistema ${errDesc} de la IA. Dile amablemente que no pudiste cargar ${errAction} por un problema temporal y pídele que ${errFall}.] ${conversationHistory[lastUserMsgIndex].content}`;
-                               }
+                                const lastUserMsgIndex = conversationHistory.findLastIndex((msg: any) => msg.role === 'user');
+                                if (lastUserMsgIndex !== -1) {
+                                    conversationHistory[lastUserMsgIndex].content = isImage 
+                                        ? `[EL USUARIO ENVIÓ UNA FOTO, pero la imagen no se pudo previsualizar de inmediato. Responde con amabilidad diciendo exactamente o con tus palabras: "Tuve un problema cargando la foto, ¿me cuentas qué tipo de prenda es y qué arreglo necesita mientras la reviso?". ¡ESTÁ ESTRICTAMENTE PROHIBIDO transferir a un asesor humano o enviar links como walink o números externos!] ${conversationHistory[lastUserMsgIndex].content}`
+                                        : `[EL USUARIO ENVIÓ UN AUDIO, pero no se pudo reproducir bien. Pídele amablemente que te cuente su consulta por texto para atenderlo ya mismo. ¡PROHIBIDO transferir o enviar links externos!] ${conversationHistory[lastUserMsgIndex].content}`;
+                                }
                             }
                         }
 
@@ -287,6 +294,34 @@ export async function processAITasks(supabase: any, specificTaskIds?: string[]) 
                             ragContext += `\n[CRM DATA]: Este es un cliente NUEVO. Recuerda entregarle la dirección física del taller (Av Tabancura 1091 Of 319 Vitacura) en un mensaje aparte después de agendar.`;
                         }
 
+                        // Verificar si el cliente ya tiene una cita agendada en la tabla agendamientos
+                        try {
+                            const cleanPhone = recipientPhone ? recipientPhone.replace(/\D/g, '') : '';
+                            const p1 = cleanPhone.startsWith('56') ? cleanPhone : `56${cleanPhone}`;
+                            const p2 = cleanPhone.startsWith('56') ? cleanPhone.substring(2) : cleanPhone;
+                            
+                            const { data: citasExistentes } = await supabase
+                                .from('agendamientos')
+                                .select('fecha_hora, nombre, apellido, estado')
+                                .or(`celular.eq.${p1},celular.eq.${p2}${cEmail ? `,correo.eq.${cEmail}` : ''}`)
+                                .neq('estado', 'cancelado')
+                                .order('fecha_hora', { ascending: false })
+                                .limit(2);
+
+                            if (citasExistentes && citasExistentes.length > 0) {
+                                const proxCita = citasExistentes[0];
+                                const fechaObj = new Date(proxCita.fecha_hora);
+                                const fechaLegible = new Intl.DateTimeFormat('es-CL', {
+                                    timeZone: 'America/Santiago',
+                                    dateStyle: 'full',
+                                    timeStyle: 'short'
+                                }).format(fechaObj);
+                                ragContext += `\n[CITA EXISTENTE REGISTRADA EN EL ATELIER]: El cliente ya tiene una cita confirmada para el día: "${fechaLegible}". Si el cliente consulta si su cita está tomada, dice que agendó por la página web o que no le llegó confirmación, CONFÍRMALE inmediatamente que su cita para "${fechaLegible}" está agendada con éxito en Av Tabancura 1091 Of 319, Vitacura. Tenemos estacionamiento disponible en el edificio.`;
+                            }
+                        } catch (errCita) {
+                            console.error("Error consultando citas previas:", errCita);
+                        }
+
                         // Obtener fecha actual en Santiago
                         const now = new Date();
                         const santiagoTime = new Intl.DateTimeFormat('es-CL', {
@@ -343,18 +378,19 @@ REGLAS DE ORO OBLIGATORIAS (PERSONALIDAD Y AGENDAMIENTO):
 3. BREVEDAD ABSOLUTA: Responde en MÁXIMO 2 líneas por mensaje. Un solo pensamiento por mensaje. Prohibido mezclar precio + invitación + horarios en el mismo mensaje.
 4. PREGUNTA GUÍA: Termina con UNA sola pregunta suave. La pregunta debe ser sobre lo que el cliente necesita (ej: "¿Qué prenda necesitas arreglar?"), NO sobre horarios si el cliente aún no ha dicho que quiere venir.
 5. VOCABULARIO CHILENO: Prohibido decir "bastilla" (usa "basta"), "cremallera" (usa "cierre"). Usa lenguaje natural de Chile.
-6. PRECIOS Y AGENDAMIENTO: ¡NO TIENES PRECIOS MEMORIZADOS! Si el cliente pregunta por el valor de CUALQUIER servicio (bastas, vestidos, despacho a domicilio), ESTÁS OBLIGADA a usar la herramienta 'consultar_precio'. Al entregar un precio devuelto por la herramienta, usa siempre la palabra "desde".
+6. PRECIOS Y AGENDAMIENTO (REGLA CONTRA BUCLES): Si el cliente pregunta por el valor de CUALQUIER servicio o modelo (bastas, vestidos, modelos de fiesta, graduación, novia, trajes), ESTÁS OBLIGADA a usar la herramienta 'consultar_precio'. Si el cliente insiste diciendo "necesito precio primero" o similar, NUNCA te niegues ni entres en un bucle diciendo que "se cotiza en el taller". ENTREGA INMEDIATAMENTE el rango referencial devuelto por la herramienta con la palabra "desde $...", explica amablemente qué detalles influyen, y LUEGO invítalo a la prueba en el taller para definir los detalles finales.
 7. TOMA DE DATOS Y AGENDA: Revisa las horas disponibles reales arriba. Si el cliente acepta una fecha y hora disponible, revisa tu Contexto (CRM). Si ya tienes su Nombre y Correo, NO se los pidas de nuevo; avanza directo a agendar. Si no los tienes, pídeselos. SI EL CLIENTE ENVÍA NOMBRE Y APELLIDO JUNTO CON O SIN CORREO (ej: "Elena Rojas, nenitadesign@gmail.com" o "Elena Rojas"), TOMA EL PRIMER NOMBRE COMO "Elena" Y EL SEGUNDO COMO "Rojas". ¡PROHIBIDO PREGUNTAR NUEVAMENTE POR EL APELLIDO! CUANDO TENGAS EL NOMBRE, APELLIDO, CORREO Y HORA, ESTÁS OBLIGADO a ejecutar la herramienta 'agendar_visita'. Si la herramienta devuelve un error, DEBES decirle al cliente que hubo un problema y NO confirmar la cita. NUNCA confirmes una cita si no ejecutaste la herramienta EXITOSAMENTE. Tras agendar exitosamente, NUNCA entregues la dirección si es cliente antiguo (a menos que te la pida). SÓLO entrega la dirección si es cliente nuevo. NO pidas el celular.
-8. DERIVACIÓN: Si el cliente muestra confusión, enojo, pide hablar con un humano o menciona la palabra "problema", usa la herramienta 'solicitar_asistencia_humana'.
+8. DERIVACIÓN: Si el cliente muestra enojo explícito, queja formal o pide hablar expresamente con un humano ("quiero hablar con una persona"), usa la herramienta 'solicitar_asistencia_humana'. Si solo tiene dudas de prendas, fotos o precios, atiéndelo tú misma con calidez.
 9. CONTACTO POSTERIOR (RECORDATORIO): Si te piden que les hables más tarde, usa de inmediato la herramienta 'programar_seguimiento_automatico' con los minutos indicados. Si están dentro de tu horario hábil (09:00 a 21:00), diles "¡Claro! Te escribo en un ratito.". PERO si te piden hablarles a una hora que cae fuera de ese horario (ej: de madrugada), diles "¡Claro! Te escribiré mañana a primera hora para que lo veamos." (EXCEPCIÓN: Si te piden esperar 15 minutos o menos, permítelo y diles "¡Claro! Te espero").
 10. FOTOS Y VISIÓN (¡MUY IMPORTANTE!): ¡TÚ SÍ PUEDES VER FOTOS! Estás conectada a un motor de visión. Si el cliente te pregunta si puede enviar fotos, dile con entusiasmo "¡Sí, claro! Envíame la foto y la reviso de inmediato.". ¡NUNCA digas que no puedes ver imágenes!
 11. SERVICIO A DOMICILIO: La costurera va a domicilio SOLO a tomar medidas y probar prendas (con alfileres). ¡NUNCA COSE NI ARREGLA ROPA EN LA CASA DEL CLIENTE! Las prendas siempre se llevan de vuelta al taller para ser arregladas en las máquinas.
 
 ACCIONES PROHIBIDAS (NUNCA LAS HAGAS):
+- ESTÁ ESTRICTAMENTE PROHIBIDO enviar links a otros números de WhatsApp, enlaces de tipo 'walink.co' o derivar a canales externos. Todas las consultas se resuelven aquí en este chat.
+- NUNCA entres en bucle diciendo "eso se ve en el taller" cuando un cliente exige o pide un precio. Da siempre el precio base de referencia con "desde $...".
 - NUNCA escribas datos bancarios, números de cuenta ni RUT en el chat.
 - NUNCA envíes links de pago. Los pagos se gestionan por correo desde el taller.
 - NUNCA borres datos de clientes. Si piden borrar sus datos, di que un asesor gestionará la solicitud.
-- NUNCA des un precio final exacto. Siempre usa "desde $X" y deriva al taller.
 - NUNCA confirmes una cita verbalmente (ej: "Te agendé", "Listo") sin haber ejecutado la herramienta 'agendar_visita'. ESTÁ ESTRICTAMENTE PROHIBIDO.
 - NUNCA respondas con bloques de código XML ni etiquetas DSML.
 - ALUCINACIÓN PROHIBIDA: Tienes PROHIBIDO decir "Tengo disponible a las 09:00, 10:00 u 11:00" u ofrecer CUALQUIER hora que no esté en los datos de disponibilidad real de Supabase adjuntos arriba.
@@ -437,16 +473,64 @@ ${ragContext}`;
                                     }
                                     toolResult = JSON.stringify({ status: 'scheduled', message: `Recordatorio configurado para en ${delayMinutes} minutos.` });
                                 } else if (funcName === 'consultar_precio') {
-                                    const searchTerm = funcArgs.servicio || '';
+                                    const rawSearch = (funcArgs.servicio || '').toLowerCase();
                                     const { data: catalogData } = await supabase.from('catalog').select('*').eq('active', true);
                                     let found = [];
                                     if (catalogData) {
-                                        found = catalogData.filter((i: any) => i.name.toLowerCase().includes(searchTerm.toLowerCase()) || i.category.toLowerCase().includes(searchTerm.toLowerCase()));
+                                        found = catalogData.filter((i: any) => 
+                                            i.name.toLowerCase().includes(rawSearch) || 
+                                            i.category.toLowerCase().includes(rawSearch)
+                                        );
                                     }
+
+                                    // Si no hubo coincidencia directa (ej: modelo específico "rebecca", "verde sage", o "vestido fiesta"), mapear por categoría
+                                    if (found.length === 0 && catalogData) {
+                                        const isVestidoFiesta = /vestido|gala|graduaci|fiesta|rebecca|clara|estrella|camille|aliana|madrina/i.test(rawSearch);
+                                        const isNovia = /novia|boda|nupcial|matrimonio/i.test(rawSearch);
+                                        const isBasta = /basta|ruedo|dobladillo/i.test(rawSearch);
+                                        const isCierre = /cierre|cremallera/i.test(rawSearch);
+                                        const isTrajeSastre = /traje|saco|blazer|chaqueta|sastr/i.test(rawSearch);
+                                        const isPantalon = /pantalon|pantalón|jean/i.test(rawSearch);
+
+                                        if (isNovia) {
+                                            found = catalogData.filter((i: any) => i.name.toLowerCase().includes('novia') || i.category.toLowerCase().includes('novia'));
+                                        } else if (isVestidoFiesta) {
+                                            found = catalogData.filter((i: any) => 
+                                                i.name.toLowerCase().includes('graduación') || 
+                                                i.name.toLowerCase().includes('madrina') || 
+                                                i.name.toLowerCase().includes('confección vestido') ||
+                                                i.category.toLowerCase().includes('gala')
+                                            );
+                                        } else if (isBasta) {
+                                            found = catalogData.filter((i: any) => i.name.toLowerCase().includes('basta'));
+                                        } else if (isCierre) {
+                                            found = catalogData.filter((i: any) => i.name.toLowerCase().includes('cierre'));
+                                        } else if (isTrajeSastre) {
+                                            found = catalogData.filter((i: any) => i.category.toLowerCase().includes('chaquetas'));
+                                        } else if (isPantalon) {
+                                            found = catalogData.filter((i: any) => i.category.toLowerCase().includes('pantalones'));
+                                        }
+                                    }
+
                                     if (found.length > 0) {
-                                        toolResult = JSON.stringify({ status: 'success', precios_referenciales: found.map((i: any) => `${i.name}: desde ${i.price}`) });
+                                        toolResult = JSON.stringify({ 
+                                            status: 'success', 
+                                            precios_referenciales: found.slice(0, 5).map((i: any) => `${i.name}: desde $${Number(i.price).toLocaleString('es-CL')}`),
+                                            instruccion_para_ia: 'Entrega este valor usando la palabra "desde" para calmar la inquietud del cliente. Explica que el valor final depende de la tela y detalles, e invítalo cordialmente al taller a ver muestras o probarse.'
+                                        });
                                     } else {
-                                        toolResult = JSON.stringify({ status: 'not_found', message: 'No hay un precio estandarizado para esto. Indica al cliente que esto se evalúa en el taller y requiere cita.' });
+                                        // Fallback garantizado: siempre entregar referencias claras
+                                        toolResult = JSON.stringify({ 
+                                            status: 'success', 
+                                            precios_referenciales: [
+                                                'Vestidos de Fiesta y Graduación a Medida: desde $180.000',
+                                                'Vestidos de Madrina / Gala Alta Costura: desde $280.000 a $310.000',
+                                                'Vestidos de Novia a Medida: desde $360.000',
+                                                'Arreglos y Entalles de Vestidos: desde $12.000 a $45.000',
+                                                'Bastas y Ruedos: desde $6.000 a $15.000'
+                                            ],
+                                            instruccion_para_ia: 'Entrega el precio referencial base "desde $..." que mejor se adapte al tipo de prenda solicitada. Luego invita al cliente a una cita de prueba en el taller para definir telas y cotización exacta.'
+                                        });
                                     }
                                 } else {
                                     toolResult = await executeAtelierTool(funcName, funcArgs, { celular: recipientPhone });
@@ -522,15 +606,15 @@ ${ragContext}`;
                                 }
                             }
                             
-                            // Evaluar Handoff Automático (Backup por Regex)
-                            const handoffRegexUser = /humano|asesor|reclamo|problema|inconveniente|queja|devolución|datos bancarios|transferencia/i;
-                            const handoffRegexBot = /asesora humana|transferir|un momento.*por favor|inconveniente|problema/i;
+                            // Evaluar Handoff Automático (Backup por Regex solo en casos explícitos de reclamo o solicitud humana)
+                            const handoffRegexUser = /humano|asesor\s+humano|reclamo|queja|devolución|datos bancarios|transferencia/i;
+                            const handoffRegexBot = /asesora humana|te voy a transferir/i;
                             
                             if (!isHandoffTriggered && !isScheduledTask && (handoffRegexUser.test(userMessage) || handoffRegexBot.test(aiReply))) {
                                 isHandoffTriggered = true;
-                                handoffUrgency = /reclamo|problema|inconveniente|queja|devolución/i.test(userMessage) ? 'alta' : 'normal';
+                                handoffUrgency = /reclamo|queja|devolución/i.test(userMessage) ? 'alta' : 'normal';
                                 handoffMotivo = 'Detectado por filtro de seguridad (Regex).';
-                                aiReply = "Entendido. Para atenderte de forma más personalizada, te voy a transferir directamente con nuestro equipo. Un momento por favor.";
+                                aiReply = "Entendido. Para atenderte de forma más personalizada, te voy a transferir directamente con nuestro equipo del taller. Un momento por favor.";
                             }
 
                         } catch (error) {

@@ -74,9 +74,14 @@ export default function Navbar() {
                                 {link.label}
                             </Link>
                         ))}
-                        <Link href="/agenda" className="glass-btn px-6 py-2.5 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.2em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[500ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] rounded-[1px] whitespace-nowrap">
+                        <a 
+                            href="https://wa.me/56972812907?text=Hola%20Elena%20La%20Costurera,%20me%20gustar%C3%ADa%20agendar%20una%20cita%20en%20el%20taller." 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="glass-btn px-6 py-2.5 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.2em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[500ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] rounded-[1px] whitespace-nowrap inline-flex items-center justify-center cursor-pointer"
+                        >
                             Agendar Cita
-                        </Link>
+                        </a>
                     </div>
  
                     {/* Mobile Menu Toggle */}
@@ -109,13 +114,15 @@ export default function Navbar() {
                                 {link.label}
                             </Link>
                         ))}
-                        <Link
-                            href="/agenda"
+                        <a
+                            href="https://wa.me/56972812907?text=Hola%20Elena%20La%20Costurera,%20me%20gustar%C3%ADa%20agendar%20una%20cita%20en%20el%20taller."
+                            target="_blank"
+                            rel="noopener noreferrer"
                             onClick={() => setIsOpen(false)}
-                            className="glass-btn block w-full py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.2em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[500ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] rounded-[1px] text-center whitespace-nowrap"
+                            className="glass-btn block w-full py-4 border-[0.5px] border-white/20 border-t-white/40 border-l-white/40 border-b-white/10 border-r-white/10 text-white font-sans text-xs uppercase tracking-[0.2em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[500ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/90 hover:text-[#121212] hover:border-[#f5f2eb] hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] rounded-[1px] text-center whitespace-nowrap cursor-pointer"
                         >
                             Agendar Cita
-                        </Link>
+                        </a>
                     </motion.div>
                 )}
             </AnimatePresence>
