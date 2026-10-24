@@ -581,26 +581,17 @@ export default function Step4Payment() {
 
           {/* Botones de Acción */}
           <div className="pt-8 space-y-3">
-            {(initialPaymentType === 'total' || initialPaymentType === '50percent') && posMode !== 'pay_balance' && (
-              <button
-                type="button"
-                onClick={generateBudgetLink}
-                disabled={isGeneratingBudget}
-                className="w-full bg-white border border-zinc-800 text-zinc-800 py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-zinc-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isGeneratingBudget ? 'Generando...' : 'Generar Presupuesto Web (Link)'}
-              </button>
-            )}
-
             <button
               type="button"
-              onClick={handleProcessPayment}
-              disabled={(initialPaymentType !== 'zero' && !paymentMethod) || isProcessing}
-              className={`w-full py-3 text-[10px] uppercase tracking-widest font-bold transition-all ${
-                (initialPaymentType !== 'zero' && !paymentMethod) || isProcessing
-                  ? 'bg-zinc-200 text-zinc-500 cursor-not-allowed'
-                  : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm'
-              }`}
+              onClick={() => {
+                if (initialPaymentType !== 'zero' && !paymentMethod) {
+                  alert('Por favor selecciona un método de pago antes de continuar.');
+                  return;
+                }
+                handleProcessPayment();
+              }}
+              disabled={isProcessing}
+              className="w-full py-3.5 bg-green-500 hover:bg-green-600 text-white text-[10px] uppercase tracking-widest font-bold transition-all shadow-md hover:shadow-lg active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed rounded-sm"
             >
               {isProcessing
                 ? 'Procesando...'
@@ -614,10 +605,21 @@ export default function Step4Payment() {
               }
             </button>
 
+            {(initialPaymentType === 'total' || initialPaymentType === '50percent') && posMode !== 'pay_balance' && (
+              <button
+                type="button"
+                onClick={generateBudgetLink}
+                disabled={isGeneratingBudget}
+                className="w-full bg-white border border-zinc-800 text-zinc-800 py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-zinc-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-sm"
+              >
+                {isGeneratingBudget ? 'Generando...' : 'Generar Presupuesto Web (Link)'}
+              </button>
+            )}
+
             <button
               type="button"
               onClick={handleCancel}
-              className="w-full bg-white border border-red-200 text-red-500 py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-red-50 hover:border-red-500 transition-all"
+              className="w-full bg-white border border-red-200 text-red-500 py-3 text-[10px] uppercase tracking-widest font-bold hover:bg-red-50 hover:border-red-500 transition-all rounded-sm"
             >
               {posMode === 'pay_balance' ? 'Cancelar Pago de Saldo' : 'Cancelar Venta y Vaciar Carrito'}
             </button>
