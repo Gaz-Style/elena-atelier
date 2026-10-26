@@ -765,7 +765,7 @@ export async function sendWhatsAppPaymentConfirmationAction(posOrderId: string, 
             const monto = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(amount);
 
             // Alerta a los dueños
-            for (const ownerNum of ['56984021940', '56937667709']) {
+            for (const ownerNum of ['56984021940']) {
                 await sendWsp(ownerNum, 'alerta_pago_recibido', [
                     clienteName, prenda, monto, posOrderId, paymentMethod
                 ], 'en');
@@ -1892,7 +1892,7 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
                     }
                     
                     // Alerta a los dueños (independiente de si el cliente tiene teléfono o no)
-                    for (const ownerNum of ['56984021940', '56937667709']) {
+                    for (const ownerNum of ['56984021940']) {
                         try {
                             const formattedMonto = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(finalTotal);
                             await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
@@ -2127,7 +2127,7 @@ export async function requestDiscountAuthorizationAction(payload: {
         const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
         const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
         if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
-            const numerosEncargados = ['56984021940', '56937667709'];
+            const numerosEncargados = ['56984021940'];
             for (const numeroEncargado of numerosEncargados) {
                 try {
                     const wRes = await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {

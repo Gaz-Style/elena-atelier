@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePOS } from './POSContext';
 import { getOperatorsAction, getOperatorsDailyLoadAction, getEstimatedDatesAction } from '@/app/admin/pos/actions';
-import { Calendar as CalendarIcon, User, ArrowLeft, ArrowRight, Clock, Calculator, AlertCircle, Unlock, Activity, ShieldAlert } from 'lucide-react';
+import { Calendar as CalendarIcon, User, ArrowLeft, ArrowRight, Clock, Calculator, AlertCircle, Unlock, Activity, ShieldAlert, Sparkles, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Step3Production() {
@@ -14,6 +14,28 @@ export default function Step3Production() {
   const [adminOverride, setAdminOverride] = useState(false);
   const [loadBalancerModal, setLoadBalancerModal] = useState<{ show: boolean, targetOpId: string, itemIndex: number, targetName: string, targetLoad: number, alternatives: any[] } | null>(null);
   const [isCalculatingDates, setIsCalculatingDates] = useState(false);
+
+  // Calcula la costurera con mayor cantidad de horas disponibles
+  const getBestOperator = (ops: any[], loads: any[]) => {
+    if (!ops || ops.length === 0) return null;
+    if (!loads || loads.length === 0) return ops[0];
+
+    const sorted = [...ops].map(op => {
+      const load = loads.find(l => l.id === op.id);
+      const cap = Number(load?.dailyCapacity ?? op.daily_hours_capacity ?? 7);
+      const backlog = Number(load?.backlog ?? 0);
+      const availableHours = cap - backlog; // Horas netas disponibles (mayor es mejor)
+      const availableDate = load?.availableFromDate ? new Date(load.availableFromDate).getTime() : 0;
+      return { op, cap, backlog, availableHours, availableDate };
+    }).sort((a, b) => {
+      if (b.availableHours !== a.availableHours) {
+        return b.availableHours - a.availableHours; // Orden descendente por horas disponibles
+      }
+      return a.availableDate - b.availableDate; // Desempate por fecha más pronta
+    });
+
+    return sorted[0]?.op || ops[0];
+  };
 
   useEffect(() => {
     if (!adminOverride && estimatedDates?.finalDeliveryDate) {
@@ -32,16 +54,43 @@ export default function Step3Production() {
         return [];
       })
     ]).then(([opsRes, loadRes]) => {
-      if (Array.isArray(opsRes)) {
-        setOperators(opsRes);
+      const validOps = Array.isArray(opsRes) ? opsRes : [];
+      const validLoads = Array.isArray(loadRes) ? loadRes : [];
+      if (validOps.length > 0) {
+        setOperators(validOps);
       }
-      setOperatorsLoad(loadRes || []);
+      setOperatorsLoad(validLoads);
       setIsLoadingOps(false);
+
+      // Asignar por defecto a la costurera con más horas disponibles a las prendas sin costurera
+      if (validOps.length > 0) {
+        const best = getBestOperator(validOps, validLoads);
+        if (best) {
+          cart.forEach((item, idx) => {
+            if (!item.assignedOperatorId) {
+              updateCartItem(idx, { assignedOperatorId: best.id });
+            }
+          });
+        }
+      }
     }).catch(err => {
       console.error('Fatal error loading production assets:', err);
       setIsLoadingOps(false);
     });
   }, []);
+
+  // Mantener asignada la mejor costurera por defecto para cualquier prenda nueva no asignada
+  useEffect(() => {
+    if (operators.length === 0 || isLoadingOps) return;
+    const best = getBestOperator(operators, operatorsLoad);
+    if (!best) return;
+
+    cart.forEach((item, idx) => {
+      if (!item.assignedOperatorId) {
+        updateCartItem(idx, { assignedOperatorId: best.id });
+      }
+    });
+  }, [operators, operatorsLoad, isLoadingOps, cart]);
 
   useEffect(() => {
     // Agrupar horas por costurera
@@ -105,7 +154,7 @@ export default function Step3Production() {
 
   const handleAssignOp = (itemIndex: number, opId: string) => {
     if (opId === 'unassigned') {
-      updateCartItem(itemIndex, { assignedOperatorId: undefined });
+      updateCartItem(itemIndex, { assignedOperatorId: 'unassigned' });
       return;
     }
     
@@ -118,6 +167,9 @@ export default function Step3Production() {
   };
 
   const allAssigned = cart.every(item => item.assignedOperatorId && item.assignedOperatorId !== 'unassigned');
+  const bestOp = getBestOperator(operators, operatorsLoad);
+  const bestOpLoad = operatorsLoad.find(l => l.id === bestOp?.id);
+  const bestOpAvail = bestOpLoad ? Math.max(0, (bestOpLoad.dailyCapacity || 7) - (bestOpLoad.backlog || 0)) : null;
 
   if (isLoadingOps) {
     return (
@@ -138,50 +190,102 @@ export default function Step3Production() {
 
       <div className="bg-white border border-zinc-200 rounded-2xl shadow-sm p-4 md:p-6 space-y-6">
         
-        {/* Asignación de Costureras */}
-        <div>
-          <h3 className="text-sm font-semibold text-zinc-900 mb-3 flex items-center gap-2">
-            <User className="w-4 h-4 text-emerald-600" />
-            Asignación por Prenda
-          </h3>
-          <div className="space-y-3">
-            {cart.map((item, idx) => (
-              <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-zinc-50 border border-zinc-100 rounded-lg gap-3">
-                <div>
-                  <p className="text-sm font-medium text-zinc-900">{item.name}</p>
-                  <p className="text-xs text-zinc-500">{item.category}</p>
-                </div>
-                <select
-                  value={item.assignedOperatorId || 'unassigned'}
-                  onChange={(e) => handleAssignOp(idx, e.target.value)}
-                  className="bg-white border border-zinc-200 text-sm rounded-md px-3 py-1.5 min-w-[180px]"
-                >
-                  <option value="unassigned">Sin asignar</option>
-                  {operators.map(op => {
-                    const opLoad = operatorsLoad.find(o => o.id === op.id);
-                    let loadText = '';
-                    if (opLoad?.availableFromDate) {
-                      const d = new Date(opLoad.availableFromDate);
-                      const today = new Date();
-                      const isToday = d.toDateString() === today.toDateString();
-                      
-                      if (isToday) {
-                        loadText = ` (Libre desde Hoy ${d.toLocaleTimeString('es-CL', {hour: '2-digit', minute: '2-digit'})})`;
-                      } else {
-                        const dow = d.toLocaleDateString('es-CL', { weekday: 'short' });
-                        const day = d.getDate();
-                        loadText = ` (Libre ${dow} ${day}, ${d.toLocaleTimeString('es-CL', {hour: '2-digit', minute: '2-digit'})})`;
-                      }
-                    }
-                    return (
-                      <option key={op.id} value={op.id}>
-                        {op.name}{loadText}
-                      </option>
-                    );
-                  })}
-                </select>
+        {/* Asignación de Costureras - SECCIÓN DESTACADA */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50/70 via-white to-emerald-50/30 border-2 border-emerald-500/40 rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-emerald-100">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center justify-center w-7 h-7 rounded-full bg-emerald-600 text-white shadow-xs">
+                  <User className="w-4 h-4" />
+                </span>
+                <h3 className="text-base font-bold text-zinc-900 tracking-tight">
+                  Asignación por Prenda
+                </h3>
               </div>
-            ))}
+              <p className="text-xs text-zinc-600 mt-1">
+                Costurera con <strong className="text-emerald-700 font-semibold">más horas disponibles</strong> preseleccionada automáticamente.
+              </p>
+            </div>
+
+            {bestOp && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100/90 text-emerald-800 text-[11px] font-bold border border-emerald-300 shadow-xs self-start sm:self-auto">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+                <span>Recomendada: {bestOp.name}</span>
+                {bestOpAvail !== null && (
+                  <span className="bg-emerald-600 text-white text-[9px] px-2 py-0.5 rounded-full font-bold ml-1">
+                    {bestOpAvail}h libres
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            {cart.map((item, idx) => {
+              const isAssigned = item.assignedOperatorId && item.assignedOperatorId !== 'unassigned';
+              const isBest = item.assignedOperatorId === bestOp?.id;
+
+              return (
+                <div 
+                  key={item.id} 
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border-2 transition-all gap-3 ${
+                    isAssigned 
+                      ? 'bg-white border-emerald-300 shadow-sm hover:border-emerald-400' 
+                      : 'bg-amber-50/50 border-amber-300 shadow-sm'
+                  }`}
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-bold text-zinc-900">{item.name}</p>
+                      {isAssigned ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          {isBest ? 'Auto-asignada' : 'Asignada'}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                          <AlertCircle className="w-3 h-3 text-amber-600" />
+                          Sin Asignar
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-zinc-500">
+                      <span>{item.category}</span>
+                      <span>•</span>
+                      <span className="font-semibold text-zinc-700">{item.details?.hours || 2} horas est.</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={item.assignedOperatorId || 'unassigned'}
+                      onChange={(e) => handleAssignOp(idx, e.target.value)}
+                      className={`text-xs font-bold rounded-lg px-3.5 py-2.5 min-w-[220px] transition-all outline-none cursor-pointer border-2 ${
+                        isAssigned
+                          ? 'bg-emerald-50/50 border-emerald-500 text-zinc-900 focus:ring-2 focus:ring-emerald-300'
+                          : 'bg-white border-amber-400 text-amber-900 focus:ring-2 focus:ring-amber-300'
+                      }`}
+                    >
+                      <option value="unassigned">⚠️ Sin asignar</option>
+                      {operators.map(op => {
+                        const opLoad = operatorsLoad.find(o => o.id === op.id);
+                        const isRecommended = op.id === bestOp?.id;
+                        let loadText = '';
+                        if (opLoad) {
+                          const netAvail = (opLoad.dailyCapacity || 7) - (opLoad.backlog || 0);
+                          loadText = ` (${netAvail > 0 ? `${netAvail}h disponibles` : `${Math.abs(netAvail)}h sobrecarga`})`;
+                        }
+                        return (
+                          <option key={op.id} value={op.id}>
+                            {isRecommended ? '⭐ ' : ''}{op.name}{loadText}{isRecommended ? ' — MÁS DISPONIBLE' : ''}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

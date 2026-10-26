@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { MAINTENANCE_MODE, MAINTENANCE_CONFIG } from '@/lib/maintenance';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -151,6 +152,39 @@ export async function POST(req: Request) {
 
                     // 4. Trigger AI Processing Task if session is 'bot'
                     if (chatData.session_status === 'bot' && (content || messageType === 'image' || messageType === 'audio')) {
+                        // --- MODO MANTENIMIENTO DEL CHATBOT ---
+                        if (MAINTENANCE_MODE) {
+                            const token = process.env.WHATSAPP_API_TOKEN;
+                            const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+                            if (phoneNumber && token && phoneId) {
+                                try {
+                                    await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Authorization': `Bearer ${token}`,
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({
+                                            messaging_product: 'whatsapp',
+                                            to: phoneNumber,
+                                            type: 'text',
+                                            text: { body: MAINTENANCE_CONFIG.whatsappReply }
+                                        })
+                                    });
+
+                                    await supabase.from('crm_whatsapp_messages').insert([{
+                                        chat_id: chatData.id,
+                                        sender_type: 'bot',
+                                        message_type: 'text',
+                                        content: MAINTENANCE_CONFIG.whatsappReply
+                                    }]);
+                                } catch (mErr) {
+                                    console.error('Error enviando respuesta de mantenimiento de WhatsApp:', mErr);
+                                }
+                            }
+                            continue;
+                        }
+
                         try {
                             // Auto-limpiar tareas atascadas (>3 min) para este chat antes de verificar debounce
                             const threeMinAgo = new Date(Date.now() - 3 * 60 * 1000).toISOString();

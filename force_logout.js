@@ -23,7 +23,7 @@ async function main() {
 
     console.log(`Found admin user: ${adminUser.id}. Updating password...`);
     const { error: updateError } = await supabase.auth.admin.updateUserById(adminUser.id, {
-        password: 'Mcruz1232'
+        password: 'Zooanimal1232'
     });
 
     if (updateError) {

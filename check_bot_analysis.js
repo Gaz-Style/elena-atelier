@@ -4,7 +4,7 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.
 
 async function deepDive() {
   // 1. Obtener las tareas de CLIENTES reales (no admin) y ver sus error_logs
-  const adminPhones = ['56937667709', '56984021940'];
+  const adminPhones = ['56984021940'];
   
   const { data: allTasks } = await supabase
     .from('ai_agent_tasks')

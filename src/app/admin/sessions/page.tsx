@@ -26,6 +26,8 @@ function parseUserAgent(ua: string) {
   return `${browser} en ${os}`;
 }
 
+import RevokeSessionsButton from './RevokeSessionsButton';
+
 export default async function SessionsPage() {
   const supabase = await createClient();
 
@@ -39,20 +41,26 @@ export default async function SessionsPage() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <header className="flex flex-col gap-2">
-        <Link href="/admin/settings" className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 transition-colors w-fit mb-2">
-          <ArrowLeft className="w-4 h-4" />
-          Volver a Configuraciones
-        </Link>
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-brand-charcoal/5 flex items-center justify-center">
-            <ShieldCheck className="text-brand-charcoal w-5 h-5" />
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <Link href="/admin/settings" className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 transition-colors w-fit mb-2">
+            <ArrowLeft className="w-4 h-4" />
+            Volver a Configuraciones
+          </Link>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-brand-charcoal/5 flex items-center justify-center">
+              <ShieldCheck className="text-brand-charcoal w-5 h-5" />
+            </div>
+            <h1 className="text-2xl font-serif font-bold text-zinc-900 tracking-tight">Sesiones & Accesos</h1>
           </div>
-          <h1 className="text-2xl font-serif font-bold text-zinc-900 tracking-tight">Sesiones & Accesos</h1>
+          <p className="text-zinc-500 text-sm ml-13">
+            Monitorea quién y desde dónde acceden al panel de administración de Elena.
+          </p>
         </div>
-        <p className="text-zinc-500 text-sm ml-13">
-          Monitorea quién y desde dónde acceden al panel de administración de Elena.
-        </p>
+
+        <div>
+          <RevokeSessionsButton />
+        </div>
       </header>
 
       {isMissingTable ? (

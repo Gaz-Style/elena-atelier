@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { MAINTENANCE_MODE } from '@/lib/maintenance';
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -49,6 +50,23 @@ export async function updateSession(request: NextRequest) {
       const url = request.nextUrl.clone();
       url.pathname = '/admin';
       return NextResponse.redirect(url);
+  }
+
+  // --- MODO MANTENIMIENTO ---
+  if (MAINTENANCE_MODE) {
+    // Permitir acceso a la administración, APIs (webhooks), archivos estáticos y /maintenance
+    const isExempt = 
+      path.startsWith('/admin') ||
+      path.startsWith('/api') ||
+      path.startsWith('/maintenance') ||
+      path.startsWith('/_next') ||
+      path.includes('.');
+
+    if (!isExempt) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/maintenance';
+      return NextResponse.rewrite(url);
+    }
   }
 
   return supabaseResponse;

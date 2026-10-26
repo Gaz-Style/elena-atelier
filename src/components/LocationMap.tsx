@@ -65,7 +65,7 @@ export default function LocationMap({ comuna }: Props) {
                   <Phone className="w-4 h-4 text-[#C17F5F] shrink-0 mt-0.5" />
                   <div>
                     <div className="font-bold text-white mb-0.5">Contacto Directo</div>
-                    <div>+56 9 3766 7709</div>
+                    <div>+56 9 7281 2907</div>
                   </div>
                 </div>
               </div>

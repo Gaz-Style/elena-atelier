@@ -4,6 +4,7 @@ import { generateDeepSeekCompletion } from '@/lib/ai/deepseek';
 import { ATELIER_TOOLS, executeAtelierTool } from '@/lib/ai/tools';
 import { retrieveContext, saveClientMemory } from '@/lib/ai/rag';
 import { consultar_disponibilidad, agendar_visita } from '@/lib/agenda';
+import { MAINTENANCE_MODE, MAINTENANCE_CONFIG } from '@/lib/maintenance';
 
 export const maxDuration = 60; // Max execution time for Vercel
 
@@ -400,13 +401,15 @@ ${catalogContext}
 ${ragContext}`;
 
                         // PRIMERA LLAMADA A DEEPSEEK (CON TOOLS)
-                        let aiReply = "Disculpe, en este momento el atelier está con alta demanda. Un asesor humano le atenderá a la brevedad.";
+                        let aiReply = MAINTENANCE_MODE 
+                            ? MAINTENANCE_CONFIG.whatsappReply 
+                            : "Disculpe, en este momento el atelier está con alta demanda. Un asesor humano le atenderá a la brevedad.";
                         let isHandoffTriggered = false;
                         let isScheduledTask = false;
                         let handoffUrgency = 'normal';
                         let handoffMotivo = 'El cliente solicitó atención personalizada.';
 
-                        try {
+                        if (!MAINTENANCE_MODE) try {
                             const dsMessages = [{ role: 'system', content: systemPrompt } as any, ...conversationHistory.map((m: any) => ({
                                 role: m.role,
                                 content: m.content
@@ -675,7 +678,7 @@ ${ragContext}`;
                                     
                                     // Si hubo handoff, notificar al admin mediante Plantilla de WhatsApp oficial
                                     if (isHandoffTriggered) {
-                                        const adminPhones = ['56984021940', '56937667709'];
+                                        const adminPhones = ['56984021940'];
                                         const livechatUrl = 'https://elenalacosturera.cl/admin/livechat';
                                         const motivoLimpio = (handoffMotivo || 'Consulta de cliente derivada a humano').slice(0, 100);
                                         const prioridadTexto = handoffUrgency === 'alta' ? 'Alta' : 'Normal';

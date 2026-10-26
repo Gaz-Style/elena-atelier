@@ -30,7 +30,7 @@ async function main() {
     console.log('TOKEN ok:', WHATSAPP_API_TOKEN ? 'SI' : 'NO');
     
     await testNumber('56984021940');
-    await testNumber('56937667709');
+    await testNumber('56984021940');
 }
 
 main().catch(console.error);
