@@ -47,8 +47,8 @@ export default function LocationMap({ comuna }: Props) {
                   <MapPin className="w-4 h-4 text-[#C17F5F] shrink-0 mt-0.5" />
                   <div>
                     <div className="font-bold text-white mb-0.5">Dirección</div>
-                    <div>Tabancura 1091, Oficina 319</div>
-                    <div className="text-white/50 text-[11px] sm:text-xs">Vitacura, Santiago</div>
+                    <div>Mall Casa Costanera - Av. Nueva Costanera 3900, Piso PB</div>
+                    <div className="text-white/50 text-[11px] sm:text-xs">7630000 Vitacura, Región Metropolitana</div>
                   </div>
                 </div>
 

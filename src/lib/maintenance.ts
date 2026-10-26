@@ -7,8 +7,8 @@ export const MAINTENANCE_CONFIG = {
   title: 'Plataforma en Mantenimiento',
   subtitle: 'Estamos realizando mejoras técnicas en nuestros sistemas digitales para ofrecerte una experiencia aún más exclusiva.',
   estimatedTime: 'Volveremos a estar en línea a la brevedad.',
-  contactEmail: 'contacto@elena-atelier.com',
-  address: 'Av. Tabancura 1091, Of. 319 · Vitacura, Santiago',
+  contactEmail: 'contacto@elenalacosturera.cl',
+  address: 'Mall Casa Costanera - Av. Nueva Costanera 3900, Piso PB, 7630000 Vitacura',
   
   // Mensaje que responde el Chatbot de WhatsApp mientras está en mantenimiento
   whatsappReply: '¡Hola! ✨ En este momento nuestro sistema se encuentra en mantenimiento programado. Tu mensaje ha quedado registrado y nuestro equipo se comunicará contigo a la brevedad posible. Agradecemos tu paciencia y comprensión.'
