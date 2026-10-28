@@ -1,7 +1,7 @@
 // Configuración centralizada del Modo Mantenimiento
 // Para reactivar la web y el chatbot normalmente, cambia MAINTENANCE_MODE a false.
 
-export const MAINTENANCE_MODE = true;
+export const MAINTENANCE_MODE = false;
 
 export const MAINTENANCE_CONFIG = {
   title: 'Plataforma en Mantenimiento',
