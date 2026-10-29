@@ -766,6 +766,12 @@ export async function sendWhatsAppPaymentConfirmationAction(posOrderId: string, 
 
             // Alerta a los dueños
             for (const ownerNum of ['56984021940', '56937667709']) {
+                import('@/lib/notifications')
+                    .then(({ registrarNotificacionEnLiveChat }) => {
+                        registrarNotificacionEnLiveChat(ownerNum, 'Pago Recibido (Caja/POS)', `Cliente: ${clienteName}\nPrenda: ${prenda}\nMonto: ${monto}\nOrden: ${posOrderId}\nMétodo: ${paymentMethod}`);
+                    })
+                    .catch(err => console.error('Error registrando alerta de pago en LiveChat:', err));
+
                 await sendWsp(ownerNum, 'alerta_pago_recibido', [
                     clienteName, prenda, monto, posOrderId, paymentMethod
                 ], 'en');
@@ -814,7 +820,7 @@ export async function sendWhatsAppPaymentConfirmationAction(posOrderId: string, 
                             const readableMsg = `✅ *Confirmación de Pago Enviada*\n\nEstimada ${clienteName}, confirmamos el pago de tu prenda *${prenda}* por un valor de *${monto}* (ID Orden: ${posOrderId}) a través de *${paymentMethod}*. ¡Tu proyecto ya está en proceso!`;
                             await supabase.from('crm_whatsapp_messages').insert([{
                                 chat_id: chatData.id,
-                                sender_type: 'system',
+                                sender_type: 'bot',
                                 message_type: 'text',
                                 content: readableMsg
                             }]);
@@ -1081,12 +1087,11 @@ export async function createPOSOrdersAction(payload: {
         }
     }
 
-    // Sync to accounting ERP
-    try {
-        const { syncSalesLedgerToAccounting } = await import('../accounting/actions');
-        await syncSalesLedgerToAccounting();
-    } catch (accErr) {
-        console.error('Error syncing sales ledger to accounting in createPOSOrdersAction:', accErr);
+    // Sync to accounting ERP (atómico de la orden actual, ultrarrápido y no bloqueante)
+    if (paidAmount > 0) {
+        import('../accounting/actions')
+            .then(({ recordSaleInAccounting }) => recordSaleInAccounting(internalId, paidAmount, false))
+            .catch(accErr => console.error('Error syncing sale to accounting in createPOSOrdersAction:', accErr));
     }
 
     // Register exclusivity lock if payload was provided
@@ -1877,7 +1882,7 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
                                     if (chatData) {
                                         await supabase.from('crm_whatsapp_messages').insert([{
                                             chat_id: chatData.id,
-                                            sender_type: 'system',
+                                            sender_type: 'bot',
                                             message_type: 'text',
                                             content: `[Sistema] Webpay Plus: Se envió la plantilla confirmacion_pago_cliente automáticamente.`
                                         }]);
@@ -1895,6 +1900,12 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
                     for (const ownerNum of ['56984021940', '56937667709']) {
                         try {
                             const formattedMonto = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(finalTotal);
+                            import('@/lib/notifications')
+                                .then(({ registrarNotificacionEnLiveChat }) => {
+                                    registrarNotificacionEnLiveChat(ownerNum, 'Pago Webpay Aprobado', `Cliente: ${custInfo.full_name || 'Clienta'}\nPrenda: ${orderInfo.description || 'Prenda'}\nMonto: ${formattedMonto}\nOrden: ${posOrderId}\nMétodo: Webpay Plus`);
+                                })
+                                .catch(err => console.error('Error registrando alerta Webpay en LiveChat:', err));
+
                             await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
                                 method: 'POST',
                                 headers: { 'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`, 'Content-Type': 'application/json' },
@@ -2130,6 +2141,12 @@ export async function requestDiscountAuthorizationAction(payload: {
             const numerosEncargados = ['56984021940', '56937667709'];
             for (const numeroEncargado of numerosEncargados) {
                 try {
+                    import('@/lib/notifications')
+                        .then(({ registrarNotificacionEnLiveChat }) => {
+                            registrarNotificacionEnLiveChat(numeroEncargado, 'Solicitud Autorización Descuento POS', `Vendedor: ${sellerName || 'Caja'}\nItem: ${itemName}\nDescuento: ${discountPct}%\nPrecio: ${formatCurrency(originalPrice)}\nPIN: ${pin}`);
+                        })
+                        .catch(err => console.error('Error registrando alerta pos en LiveChat:', err));
+
                     const wRes = await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
                         method: 'POST',
                         headers: {

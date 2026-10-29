@@ -280,6 +280,13 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
         const mensajeWsp = `🔔 *Nueva Cita Agendada*\n\n*Cliente:* ${nombre} ${apellido}\n*Fecha:* ${fechaLegible}\n*Hora:* ${horaLegible}\n*Tel:* ${celular}`;
         
         for (const numeroEncargado of numerosEncargados) {
+            // Registrar también en la bandeja de LiveChat para visibilidad del taller
+            import('@/lib/notifications')
+                .then(({ registrarNotificacionEnLiveChat }) => {
+                    registrarNotificacionEnLiveChat(numeroEncargado, 'Nueva Cita Agendada', mensajeWsp);
+                })
+                .catch(err => console.error('Error registrando alerta de cita en LiveChat:', err));
+
             promises.push(
                 fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
                     method: 'POST',

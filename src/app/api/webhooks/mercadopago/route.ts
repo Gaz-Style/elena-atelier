@@ -349,7 +349,7 @@ async function updateDatabaseAndNotify(
                             const readableMsg = `✅ *Confirmación de Pago Enviada*\n\nEstimada ${clienteName}, confirmamos el pago de tu prenda *${prenda}* por un valor de *${monto}* (ID Orden: ${externalRef}) a través de *${paymentMethodLabel}*. ¡Tu proyecto ya está en proceso!`;
                             await supabase.from('crm_whatsapp_messages').insert([{
                                 chat_id: chatData.id,
-                                sender_type: 'system',
+                                sender_type: 'bot',
                                 message_type: 'text',
                                 content: readableMsg
                             }]);
@@ -369,12 +369,11 @@ async function updateDatabaseAndNotify(
         }
     }
 
-    // Sync to accounting ERP
-    try {
-        const { syncSalesLedgerToAccounting } = await import('@/app/admin/accounting/actions');
-        await syncSalesLedgerToAccounting();
-    } catch (accErr) {
-        console.error('Error syncing sales ledger to accounting in MercadoPago webhook:', accErr);
+    // Sync to accounting ERP (atómico de la orden actual, ultrarrápido y no bloqueante)
+    if (amount && amount > 0) {
+        import('@/app/admin/accounting/actions')
+            .then(({ recordSaleInAccounting }) => recordSaleInAccounting(externalRef, amount, externalRef.includes('_balance_')))
+            .catch(accErr => console.error('Error syncing sales ledger to accounting in MercadoPago webhook:', accErr));
     }
 
     return true;

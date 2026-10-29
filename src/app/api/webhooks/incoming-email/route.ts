@@ -58,6 +58,12 @@ export async function POST(req: Request) {
         if (token && phoneId) {
             for (const adminPhone of ADMIN_PHONES) {
                 try {
+                    import('@/lib/notifications')
+                        .then(({ registrarNotificacionEnLiveChat }) => {
+                            registrarNotificacionEnLiveChat(adminPhone, 'Nuevo Correo Entrante', `Remitente: ${name} <${fromEmail}>\nAsunto: ${cleanSubject}`);
+                        })
+                        .catch(err => console.error('Error registrando correo entrante en LiveChat:', err));
+
                     const fbResponse = await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
                         method: 'POST',
                         headers: {

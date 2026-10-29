@@ -73,6 +73,12 @@ export async function requestSaleDeletionAuthorizationAction(payload: {
             const numerosEncargados = ['56984021940', '56937667709'];
             for (const numeroEncargado of numerosEncargados) {
                 try {
+                    import('@/lib/notifications')
+                        .then(({ registrarNotificacionEnLiveChat }) => {
+                            registrarNotificacionEnLiveChat(numeroEncargado, 'Solicitud Eliminación Venta', `Transacción: ${internalId}\nMonto: ${formatCurrency(totalAmount)}\nMétodo: ${paymentMethod || 'No registrado'}\nPIN: ${pin}`);
+                        })
+                        .catch(err => console.error('Error registrando alerta pos en LiveChat:', err));
+
                     // Send alert_pos template with custom details
                     await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
                         method: 'POST',
@@ -282,6 +288,12 @@ export async function requestSaleStatusAuthorizationAction(payload: {
             const numerosEncargados = ['56984021940', '56937667709'];
             for (const numeroEncargado of numerosEncargados) {
                 try {
+                    import('@/lib/notifications')
+                        .then(({ registrarNotificacionEnLiveChat }) => {
+                            registrarNotificacionEnLiveChat(numeroEncargado, 'Solicitud Cambio Estado Venta', `Transacción: ${internalId}\nMonto: ${formatCurrency(totalAmount)}\nEstado: ${currentStatus} -> ${newStatus}\nPIN: ${pin}`);
+                        })
+                        .catch(err => console.error('Error registrando alerta anulación en LiveChat:', err));
+
                     await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
                         method: 'POST',
                         headers: {

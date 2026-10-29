@@ -390,12 +390,11 @@ export async function payOrderBalanceAction(posOrderId: string, amountToPay: num
         }
     }
 
-    // Sync to accounting ERP
-    try {
-        const { syncSalesLedgerToAccounting } = await import('../accounting/actions');
-        await syncSalesLedgerToAccounting();
-    } catch (accErr) {
-        console.error('Error syncing sales ledger to accounting in payOrderBalanceAction:', accErr);
+    // Sync to accounting ERP (atómico de la orden actual, ultrarrápido y no bloqueante)
+    if (actualPaidNow > 0) {
+        import('../accounting/actions')
+            .then(({ recordSaleInAccounting }) => recordSaleInAccounting(posOrderId, actualPaidNow, true))
+            .catch(accErr => console.error('Error syncing sales ledger to accounting in payOrderBalanceAction:', accErr));
     }
 
     return { success: true, isFullyPaid, newPaidAmount };

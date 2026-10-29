@@ -1704,6 +1704,12 @@ export async function sendBridalPaymentConfirmationEmailAction(projectId: string
             if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
                 const prenda = project.project_type || 'Vestido';
                 for (const ownerNum of ['56984021940', '56937667709']) {
+                    import('@/lib/notifications')
+                        .then(({ registrarNotificacionEnLiveChat }) => {
+                            registrarNotificacionEnLiveChat(ownerNum, 'Pago Novias Aprobado', `Novia: ${customerName}\nPrenda: ${prenda} (${cuotaName})\nMonto: ${formattedAmount}\nOrden: ${projectId.substring(0,8)}\nMétodo: ${paymentMethod}`);
+                        })
+                        .catch(err => console.error('Error registrando alerta novias en LiveChat:', err));
+
                     await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
                         method: 'POST',
                         headers: {

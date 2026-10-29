@@ -684,6 +684,13 @@ ${ragContext}`;
                                         const prioridadTexto = handoffUrgency === 'alta' ? 'Alta' : 'Normal';
 
                                         for (const adminPhone of adminPhones) {
+                                            // Registrar en LiveChat para el teléfono del admin
+                                            import('@/lib/notifications')
+                                                .then(({ registrarNotificacionEnLiveChat }) => {
+                                                    registrarNotificacionEnLiveChat(adminPhone, 'Atención Humana Requerida', `Cliente: +${recipientPhone}\nMotivo: ${motivoLimpio}\nPrioridad: ${prioridadTexto}\nBandeja: ${livechatUrl}`);
+                                                })
+                                                .catch(err => console.error('Error registrando handoff en LiveChat:', err));
+
                                             try {
                                                 const tplRes = await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
                                                     method: 'POST',

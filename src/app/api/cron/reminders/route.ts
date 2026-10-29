@@ -85,7 +85,7 @@ export async function GET(request: Request) {
                         if (chatData) {
                             await supabase.from('crm_whatsapp_messages').insert([{
                                 chat_id: chatData.id,
-                                sender_type: 'system',
+                                sender_type: 'bot',
                                 message_type: 'text',
                                 content: `🔔 *Recordatorio Enviado Automáticamente*\n${message}`
                             }]);

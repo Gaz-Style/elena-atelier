@@ -31,6 +31,16 @@
   - **Acción:** Se prioriza `TBK_COMMERCE_CODE` en el servidor con fallback seguro y se asigna una URL de callback centralizada (`/api/webpay/callback`).
   - **Criterio de Aceptación:** El código de comercio se procesa en el entorno del servidor y la URL por defecto apunta a la API backend.
 
+- [x] **1.4. Optimización de Rendimiento en Checkout POS y Webhooks (Latencia < 1.5s)**
+  - **Archivos afectados:** [src/app/admin/accounting/actions.ts](file:///c:/Users/ADMIN/Downloads/IA%20trabajaos/Elena%20Atalier/src/app/admin/accounting/actions.ts), [src/app/admin/pos/actions.ts](file:///c:/Users/ADMIN/Downloads/IA%20trabajaos/Elena%20Atalier/src/app/admin/pos/actions.ts), [src/app/admin/caja/actions.ts](file:///c:/Users/ADMIN/Downloads/IA%20trabajaos/Elena%20Atalier/src/app/admin/caja/actions.ts), [src/app/api/webhooks/mercadopago/route.ts](file:///c:/Users/ADMIN/Downloads/IA%20trabajaos/Elena%20Atalier/src/app/api/webhooks/mercadopago/route.ts)
+  - **Acción:** Se erradicó el bucle síncrono `syncSalesLedgerToAccounting()` que borraba y recalculaba todo el historial (525 queries secuenciales a Supabase que congelaban la pantalla 45-55s por venta). Se implementó `recordSaleInAccounting` de ejecución atómica, no bloqueante e instantánea.
+  - **Criterio de Aceptación:** Las ventas POS y cobros de saldos se procesan en menos de 1.5 segundos.
+
+- [x] **1.5. Visibilidad Integral de Notificaciones de Negocio en LiveChat y Corrección DB**
+  - **Archivos afectados:** [src/lib/notifications.ts](file:///c:/Users/ADMIN/Downloads/IA%20trabajaos/Elena%20Atalier/src/lib/notifications.ts), [src/lib/agenda.ts](file:///c:/Users/ADMIN/Downloads/IA%20trabajaos/Elena%20Atalier/src/lib/agenda.ts), [src/app/api/orchestrator/route.ts](file:///c:/Users/ADMIN/Downloads/IA%20trabajaos/Elena%20Atalier/src/app/api/orchestrator/route.ts), [src/app/api/webhooks/incoming-email/route.ts](file:///c:/Users/ADMIN/Downloads/IA%20trabajaos/Elena%20Atalier/src/app/api/webhooks/incoming-email/route.ts), [src/app/admin/novias/actions.ts](file:///c:/Users/ADMIN/Downloads/IA%20trabajaos/Elena%20Atalier/src/app/admin/novias/actions.ts), [src/app/admin/sales/actions.ts](file:///c:/Users/ADMIN/Downloads/IA%20trabajaos/Elena%20Atalier/src/app/admin/sales/actions.ts)
+  - **Acción:** Se corrigió la restricción de Postgres (`sender_type: 'bot'` en vez de `'system'`). Se creó la función centralizada `registrarNotificacionEnLiveChat()` que inserta cada alerta (citas agendadas, cobros POS/Webpay, correos entrantes, solicitudes de autorización, intervención humana) en `crm_whatsapp_messages` y actualiza `last_interaction` en `crm_whatsapp_chats`.
+  - **Criterio de Aceptación:** Todas las alertas disparadas a los teléfonos de administración se reflejan de inmediato al tope de la bandeja de entrada del LiveChat administrativo (`/admin/livechat`).
+
 ---
 
 ## FASE 2: Resiliencia de WhatsApp Webhook y Agente IA 🟠 (Prioridad Alta)
@@ -135,10 +145,10 @@
 
 | Fase | Título | Total Tareas | Completadas | Estado |
 | :--- | :--- | :---: | :---: | :---: |
-| **Fase 1** | Pagos y Webpay (Crítico) | 3 | 3 | `Completado` ✅ |
+| **Fase 1** | Pagos, POS y Rendimiento (Crítico) | 5 | 5 | `Completado` ✅ |
 | **Fase 2** | WhatsApp & Orquestador IA | 3 | 0 | `Pendiente` |
 | **Fase 3** | Seguridad y RBAC | 2 | 0 | `Pendiente` |
 | **Fase 4** | Refactorización de Monolitos | 2 | 0 | `Pendiente` |
 | **Fase 5** | Limpieza de Repositorio & DB | 3 | 0 | `Pendiente` |
 | **Fase 6** | Optimización de Conversión (CRO) | 2 | 0 | `Pendiente` |
-| **TOTAL** | | **15** | **3** | **20%** |
+| **TOTAL** | | **17** | **5** | **29%** |

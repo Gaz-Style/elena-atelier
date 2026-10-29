@@ -59,3 +59,92 @@ ELENA La Costurera`;
 
   return { success: true };
 }
+
+/**
+ * Registra una notificación saliente del sistema en la bandeja de LiveChat (/admin/livechat)
+ * para que sea visible en la conversación del teléfono receptor (administrador o cliente),
+ * actualizando el timestamp para colocar el chat al tope de la lista.
+ */
+export async function registrarNotificacionEnLiveChat(
+  celular: string,
+  titulo: string,
+  cuerpo: string
+) {
+  try {
+    const { createClient: createAdminClient } = await import('@supabase/supabase-js');
+    const adminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const cleanDigits = (n: string) => (n ? n.replace(/\D/g, '') : '');
+    const phoneDigits = cleanDigits(celular);
+    if (!phoneDigits) return;
+
+    const formattedPhone = phoneDigits.startsWith('56') ? phoneDigits : `56${phoneDigits}`;
+    const msgTime = new Date().toISOString();
+    const textoCompleto = `🔔 *${titulo}*\n\n${cuerpo}`;
+
+    // 1. Buscar o crear el chat en crm_whatsapp_chats
+    let { data: chat } = await adminClient
+      .from('crm_whatsapp_chats')
+      .select('id, customer_id')
+      .eq('phone_number', formattedPhone)
+      .single();
+
+    let chatId = chat?.id;
+
+    if (!chatId) {
+      const { data: customers } = await adminClient
+        .from('customers')
+        .select('id, phone')
+        .not('phone', 'is', null);
+
+      let matchedCustomerId = null;
+      if (customers) {
+        const match = customers.find(c => {
+          const custDigits = cleanDigits(c.phone);
+          return custDigits && custDigits.slice(-9) === phoneDigits.slice(-9);
+        });
+        if (match) matchedCustomerId = match.id;
+      }
+
+      const { data: newChat, error: newChatErr } = await adminClient
+        .from('crm_whatsapp_chats')
+        .insert([{
+          phone_number: formattedPhone,
+          session_status: 'bot',
+          customer_id: matchedCustomerId,
+          last_interaction: msgTime
+        }])
+        .select('id')
+        .single();
+
+      if (newChatErr) {
+        console.error('Error al crear chat en LiveChat:', newChatErr);
+        return;
+      }
+      chatId = newChat.id;
+    } else {
+      await adminClient
+        .from('crm_whatsapp_chats')
+        .update({ last_interaction: msgTime })
+        .eq('id', chatId);
+    }
+
+    // 2. Insertar el mensaje con sender_type 'bot' (autorizado por el check constraint de Postgres)
+    await adminClient
+      .from('crm_whatsapp_messages')
+      .insert([{
+        chat_id: chatId,
+        sender_type: 'bot',
+        message_type: 'text',
+        content: textoCompleto,
+        created_at: msgTime
+      }]);
+
+    console.log(`[LiveChat Alert] Notificación registrada para ${formattedPhone}: ${titulo}`);
+  } catch (err) {
+    console.error('Error en registrarNotificacionEnLiveChat:', err);
+  }
+}
