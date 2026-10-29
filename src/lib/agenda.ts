@@ -276,7 +276,7 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
     const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
     const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
     if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
-        const numerosEncargados = ['56984021940'];
+        const numerosEncargados = ['56984021940', '56937667709'];
         const mensajeWsp = `🔔 *Nueva Cita Agendada*\n\n*Cliente:* ${nombre} ${apellido}\n*Fecha:* ${fechaLegible}\n*Hora:* ${horaLegible}\n*Tel:* ${celular}`;
         
         for (const numeroEncargado of numerosEncargados) {

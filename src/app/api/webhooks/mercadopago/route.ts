@@ -301,7 +301,7 @@ async function updateDatabaseAndNotify(
             const clientePhone = customerObj?.phone?.replace(/[^0-9]/g, '');
 
             // Alerta a los dueños
-            for (const ownerNum of ['56984021940']) {
+            for (const ownerNum of ['56984021940', '56937667709']) {
                 await sendWsp(ownerNum, 'alerta_pago_recibido', [
                     clienteName, prenda, monto, externalRef, paymentMethodLabel
                 ], 'en');

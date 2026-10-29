@@ -1,5 +1,16 @@
 import { createClient } from '@/lib/supabase/server';
 
+/**
+ * Números de teléfono autorizados para recibir alertas operativas y administrativas:
+ * - Derivación humana de IA (Handoff)
+ * - Agendamientos de citas
+ * - Pagos POS / Caja y Webpay
+ * - Pagos de Novias / Alta Costura
+ * - Pagos Mercado Pago
+ * - Correos entrantes
+ */
+export const ADMIN_NOTIFICATION_PHONES: string[] = ['56984021940', '56937667709'];
+
 export async function sendWelcomeNotifications(customer: { id: string; full_name: string; email: string; phone: string }) {
   const supabase = await createClient();
   

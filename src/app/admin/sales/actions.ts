@@ -70,7 +70,7 @@ export async function requestSaleDeletionAuthorizationAction(payload: {
         const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
         const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
         if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
-            const numerosEncargados = ['56984021940'];
+            const numerosEncargados = ['56984021940', '56937667709'];
             for (const numeroEncargado of numerosEncargados) {
                 try {
                     // Send alert_pos template with custom details
@@ -279,7 +279,7 @@ export async function requestSaleStatusAuthorizationAction(payload: {
         const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
         const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
         if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
-            const numerosEncargados = ['56984021940'];
+            const numerosEncargados = ['56984021940', '56937667709'];
             for (const numeroEncargado of numerosEncargados) {
                 try {
                     await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {

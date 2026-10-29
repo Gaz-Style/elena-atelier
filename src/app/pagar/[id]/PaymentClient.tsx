@@ -27,7 +27,7 @@ export default function PaymentClient({ orderId, total }: { orderId: string; tot
 
             if (method === 'transbank') {
                 const sessionId = `session_online_${Date.now()}`;
-                const callbackUrl = `${window.location.origin}/pagar/webpay-callback`;
+                const callbackUrl = `${window.location.origin}/api/webpay/callback`;
                 
                 const tbkRes = await createWebpayTransaction(buyOrder, sessionId, total, callbackUrl);
                 if (tbkRes.success && tbkRes.url && tbkRes.token) {

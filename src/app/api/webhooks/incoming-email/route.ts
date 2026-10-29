@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient as createAdminClient } from '@supabase/supabase-js';
 
-const ADMIN_PHONE = '56984021940';
+const ADMIN_PHONES = ['56984021940', '56937667709'];
 
 export async function POST(req: Request) {
     try {
@@ -56,34 +56,40 @@ export async function POST(req: Request) {
         const templateName = process.env.WHATSAPP_EMAIL_TEMPLATE_NAME || 'notificacion_correo_entrante';
 
         if (token && phoneId) {
-            const fbResponse = await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    messaging_product: 'whatsapp',
-                    to: ADMIN_PHONE,
-                    type: 'template',
-                    template: {
-                        name: templateName,
-                        language: { code: 'es_CL' },
-                        components: [{
-                            type: 'body',
-                            parameters: [
-                                { type: 'text', text: name },
-                                { type: 'text', text: fromEmail },
-                                { type: 'text', text: cleanSubject }
-                            ]
-                        }]
-                    }
-                })
-            });
+            for (const adminPhone of ADMIN_PHONES) {
+                try {
+                    const fbResponse = await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            messaging_product: 'whatsapp',
+                            to: adminPhone,
+                            type: 'template',
+                            template: {
+                                name: templateName,
+                                language: { code: 'es_CL' },
+                                components: [{
+                                    type: 'body',
+                                    parameters: [
+                                        { type: 'text', text: name },
+                                        { type: 'text', text: fromEmail },
+                                        { type: 'text', text: cleanSubject }
+                                    ]
+                                }]
+                            }
+                        })
+                    });
 
-            const fbData = await fbResponse.json();
-            if (!fbResponse.ok) {
-                console.error('[INCOMING EMAIL] WhatsApp notification failed:', JSON.stringify(fbData));
+                    const fbData = await fbResponse.json();
+                    if (!fbResponse.ok) {
+                        console.error(`[INCOMING EMAIL] WhatsApp notification failed for ${adminPhone}:`, JSON.stringify(fbData));
+                    }
+                } catch (err) {
+                    console.error(`[INCOMING EMAIL] Error sending alert to ${adminPhone}:`, err);
+                }
             }
         }
 

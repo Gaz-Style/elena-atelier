@@ -678,7 +678,7 @@ ${ragContext}`;
                                     
                                     // Si hubo handoff, notificar al admin mediante Plantilla de WhatsApp oficial
                                     if (isHandoffTriggered) {
-                                        const adminPhones = ['56984021940'];
+                                        const adminPhones = ['56984021940', '56937667709'];
                                         const livechatUrl = 'https://elenalacosturera.cl/admin/livechat';
                                         const motivoLimpio = (handoffMotivo || 'Consulta de cliente derivada a humano').slice(0, 100);
                                         const prioridadTexto = handoffUrgency === 'alta' ? 'Alta' : 'Normal';

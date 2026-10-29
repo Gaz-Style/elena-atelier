@@ -1703,7 +1703,7 @@ export async function sendBridalPaymentConfirmationEmailAction(projectId: string
             const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
             if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
                 const prenda = project.project_type || 'Vestido';
-                for (const ownerNum of ['56984021940']) {
+                for (const ownerNum of ['56984021940', '56937667709']) {
                     await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
                         method: 'POST',
                         headers: {
@@ -1822,7 +1822,7 @@ export async function generateBridalPaymentLinksAction(projectId: string, cuotaI
             const shortId = projectId.split('-')[0];
             const buyOrder = `BRDL_${shortId}_C${cuotaIndex}`;
             const sessionId = `sess_${shortId}`;
-            const returnUrl = `${siteUrl}/portal-novias/${projectId}/webpay-callback`;
+            const returnUrl = `${siteUrl}/api/webpay/callback`;
 
             const tbkRes = await createWebpayTransaction(buyOrder, sessionId, amount, returnUrl);
             if (tbkRes.success) {

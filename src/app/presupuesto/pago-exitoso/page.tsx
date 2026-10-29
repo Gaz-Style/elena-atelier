@@ -24,8 +24,31 @@ function CallbackContent() {
     const isMpError = searchParams.get('error') === 'true';
 
     useEffect(() => {
+        // 0. Detectar confirmación previa desde Route Handler Server-Side (/api/webpay/callback)
+        const tbkStatus = searchParams.get('status');
+        if (tbkStatus === 'approved') {
+            const amount = Number(searchParams.get('amount')) || 0;
+            const buyOrder = searchParams.get('buy_order') || 'N/A';
+            const authCode = searchParams.get('auth_code') || '000000';
+            const paymentTypeCode = searchParams.get('payment_type') || 'VD';
+            const cardNumber = searchParams.get('card') || 'XXXX';
+            const installments = Number(searchParams.get('installments')) || 0;
+
+            setPaymentData({
+                amount,
+                buy_order: buyOrder,
+                authorization_code: authCode,
+                payment_type_code: paymentTypeCode,
+                card_detail: { card_number: cardNumber },
+                installments_number: installments,
+                response_code: 0
+            });
+            setLoading(false);
+            return;
+        }
+
         // 1. Detectar anulación de Transbank
-        if (tbk_token) {
+        if (tbk_token || tbkStatus === 'aborted') {
             setError('La compra fue anulada en el portal de Webpay (no se realizó ningún cargo).');
             setLoading(false);
             return;

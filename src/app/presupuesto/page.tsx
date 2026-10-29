@@ -229,7 +229,7 @@ function BudgetContent() {
                 setStatus('paying');
             } else if (method === 'transbank') {
                 const sessionId = `session_web_${orderId}`;
-                const callbackUrl = `${window.location.origin}/presupuesto/pago-exitoso`;
+                const callbackUrl = `${window.location.origin}/api/webpay/callback?source=presupuesto`;
                 
                 const tbkRes = await createWebpayTransaction(buyOrder, sessionId, data.total, callbackUrl);
                 

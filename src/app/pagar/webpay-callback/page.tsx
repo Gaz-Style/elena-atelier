@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { CheckCircle2, XCircle, Loader2, ArrowLeft, Printer, ShoppingBag, CreditCard } from 'lucide-react';
+import { CheckCircle2, XCircle, Loader2, ArrowLeft, ShoppingBag } from 'lucide-react';
 import { commitWebpayTransaction } from '@/lib/transbank';
 import { updateOrderStatusToPaidAction } from '@/app/admin/pos/actions';
 
@@ -13,54 +12,90 @@ function CallbackContent() {
     const [loading, setLoading] = useState(true);
     const [paymentData, setPaymentData] = useState<any | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const hasExecutedFallback = useRef(false);
 
+    const status = searchParams.get('status');
     const token_ws = searchParams.get('token_ws');
     const tbk_token = searchParams.get('TBK_TOKEN');
 
     useEffect(() => {
-        if (tbk_token) {
+        // --- 1. RUTA PRINCIPAL SEGURA: Redirigido desde Route Handler Server-Side (/api/webpay/callback) ---
+        if (status === 'approved') {
+            const amount = Number(searchParams.get('amount')) || 0;
+            const buyOrder = searchParams.get('buy_order') || 'N/A';
+            const authCode = searchParams.get('auth_code') || '000000';
+            const paymentTypeCode = searchParams.get('payment_type') || 'VD';
+            const cardNumber = searchParams.get('card') || 'XXXX';
+            const installments = Number(searchParams.get('installments')) || 0;
+
+            setPaymentData({
+                amount,
+                buy_order: buyOrder,
+                authorization_code: authCode,
+                payment_type_code: paymentTypeCode,
+                card_detail: { card_number: cardNumber },
+                installments_number: installments,
+                response_code: 0
+            });
+            setLoading(false);
+            return;
+        }
+
+        if (status === 'aborted' || tbk_token) {
             setError('La compra fue anulada por el usuario en el portal de Webpay (no se realizó ningún cargo).');
             setLoading(false);
             return;
         }
 
-        if (!token_ws) {
-            setError('No se recibió el token de confirmación de Webpay.');
+        if (status === 'rejected' || status === 'failed') {
+            const errorMsg = searchParams.get('error') || 'La transacción bancaria fue rechazada por el emisor de la tarjeta.';
+            const respCode = searchParams.get('response_code');
+            if (respCode) {
+                setPaymentData({ response_code: Number(respCode) });
+            }
+            setError(errorMsg);
             setLoading(false);
             return;
         }
 
-        // Llamar al commit de Webpay
-        commitWebpayTransaction(token_ws)
-            .then(async (res) => {
-                if (res.success && res.data && res.data.response_code === 0) {
-                    setPaymentData(res.data);
-                    try {
-                        await updateOrderStatusToPaidAction(res.data.buy_order, res.data.amount);
-                    } catch (fallbackErr) {
-                        console.error('Error en respaldo updateOrderStatusToPaidAction:', fallbackErr);
-                    }
-                } else {
-                    if (res.success && res.data) {
+        // --- 2. RESPALDO LEGACY: Si entra directo con token_ws sin pasar por /api (ej. enlaces guardados) ---
+        if (token_ws && !status) {
+            if (hasExecutedFallback.current) return;
+            hasExecutedFallback.current = true;
+
+            console.warn('[Webpay Callback] Fallback cliente ejecutándose para token_ws legacy');
+            commitWebpayTransaction(token_ws)
+                .then(async (res) => {
+                    if (res.success && res.data && res.data.response_code === 0) {
                         setPaymentData(res.data);
+                        try {
+                            await updateOrderStatusToPaidAction(res.data.buy_order, res.data.amount);
+                        } catch (fallbackErr) {
+                            console.error('Error en respaldo updateOrderStatusToPaidAction:', fallbackErr);
+                        }
+                    } else {
+                        if (res.success && res.data) {
+                            setPaymentData(res.data);
+                        }
+                        setError(res.error || 'La transacción no pudo ser autorizada.');
                     }
-                    setError(res.error || 'La transacción no pudo ser autorizada.');
-                }
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error('Error al confirmar transacción:', err);
-                setError('Ocurrió un error inesperado al procesar el pago.');
-                setLoading(false);
-            });
-    }, [token_ws]);
+                    setLoading(false);
+                })
+                .catch((err) => {
+                    console.error('Error al confirmar transacción legacy:', err);
+                    setError('Ocurrió un error inesperado al procesar el pago.');
+                    setLoading(false);
+                });
+            return;
+        }
+
+        // Si no hay ningún parámetro válido
+        setError('No se recibió información de la transacción de Webpay.');
+        setLoading(false);
+    }, [status, token_ws, tbk_token, searchParams]);
 
     const formatCurrency = (val: number) => {
         return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(val);
-    };
-
-    const handlePrint = () => {
-        window.print();
     };
 
     if (loading) {
@@ -68,9 +103,9 @@ function CallbackContent() {
             <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-[#EAEAEA]">
                 <Loader2 className="w-12 h-12 animate-spin text-[#C5A880]" />
                 <div className="text-center space-y-2">
-                    <h2 className="font-serif text-2xl font-light tracking-wide text-white">Confirmando Pago con Transbank</h2>
+                    <h2 className="font-serif text-2xl font-light tracking-wide text-white">Validando Comprobante</h2>
                     <p className="text-sm font-light text-gray-400 max-w-md">
-                        Por favor, no cierres la ventana. Estamos procesando la autorización de tu pago seguro...
+                        Cargando los datos autorizados de tu compra...
                     </p>
                 </div>
             </div>
@@ -85,9 +120,9 @@ function CallbackContent() {
                 </div>
                 
                 <div className="space-y-2">
-                    <h2 className="font-serif text-2xl font-light text-white">Pago Rechazado o Fallido</h2>
+                    <h2 className="font-serif text-2xl font-light text-white">Pago No Completado</h2>
                     <p className="text-xs font-mono uppercase tracking-widest text-red-400">
-                        Código de respuesta: {paymentData?.response_code ?? 'Error de sistema'}
+                        {paymentData?.response_code ? `Código de respuesta: ${paymentData.response_code}` : 'Operación Cancelada'}
                     </p>
                     <p className="text-sm text-gray-400 leading-relaxed pt-2">
                         {error || 'La transacción bancaria fue rechazada por el emisor de la tarjeta o cancelada por el usuario.'}
