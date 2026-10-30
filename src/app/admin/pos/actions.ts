@@ -900,7 +900,45 @@ export async function createPOSOrdersAction(payload: {
         derivedStatus = 'paid';
     }
 
-    // 1. Insert Sales Ledger record
+    // 1. Verificar si la orden ya existe (para evitar duplicaciones al cambiar método de pago)
+    const { data: existingSale } = await supabase
+        .from('sales_ledger')
+        .select('id')
+        .eq('internal_id', internalId)
+        .maybeSingle();
+
+    if (existingSale) {
+        const { error: updateError } = await supabase
+            .from('sales_ledger')
+            .update({
+                paid_amount: paidAmount,
+                status: derivedStatus === 'paid' ? 'completed' : (derivedStatus === 'partial' ? 'partial' : 'pending'),
+                payment_method: finalPaymentMethod || null,
+            })
+            .eq('id', existingSale.id);
+
+        if (updateError) {
+            console.error('Error updating existing sales ledger entry:', updateError);
+            return { success: false, error: updateError.message };
+        }
+
+        await supabase
+            .from('production_orders')
+            .update({
+                payment_status: derivedStatus === 'paid' ? 'paid' : (derivedStatus === 'partial' ? 'partial' : 'pending'),
+                payment_method: finalPaymentMethod || null,
+                paid_amount: paidAmount
+            })
+            .eq('pos_order_id', internalId);
+
+        revalidatePath('/admin/pos');
+        revalidatePath('/admin/sales');
+        revalidatePath('/admin/production-board');
+
+        return { success: true, orderId: internalId.replace(/^order_/, ''), saleId: existingSale.id };
+    }
+
+    // 1. Insert Sales Ledger record (nueva venta)
     const { data: saleData, error: saleError } = await supabase
         .from('sales_ledger')
         .insert([{
@@ -2061,11 +2099,94 @@ export async function wakeUpMercadoPagoTerminalAction(amount: number, descriptio
         }
 
         const data = await response.json();
+
+        // Guardar de inmediato external_transaction_id en sales_ledger
+        if (data?.id) {
+            try {
+                const adminSupabase = getAdminClient();
+                await adminSupabase
+                    .from('sales_ledger')
+                    .update({ external_transaction_id: data.id })
+                    .eq('internal_id', posOrderId);
+            } catch (updateErr) {
+                console.error('[Terminal] Error guardando ID de orden MP en sales_ledger:', updateErr);
+            }
+        }
+
         return { success: true, data };
     } catch (err: unknown) {
         console.error('Error llamando a MP Point API:', err);
         return { success: false, error: err instanceof Error ? err.message : String(err) };
     }
+}
+
+export async function cancelPendingPOSOrderAction(posOrderId: string) {
+    const supabase = getAdminClient();
+    const cleanId = posOrderId.replace(/^order_/, '');
+
+    console.log(`[POS Cancel] Cancelando y liberando maquinita para orden: ${posOrderId}`);
+
+    // 1. Obtener la venta
+    const { data: sale } = await supabase
+        .from('sales_ledger')
+        .select('id, internal_id, external_transaction_id, status')
+        .or(`internal_id.eq.${posOrderId},internal_id.eq.${cleanId}`)
+        .maybeSingle();
+
+    const mpToken = process.env.MP_ACCESS_TOKEN;
+    const mpOrderId = sale?.external_transaction_id;
+
+    // 2. Liberar maquinita física en Mercado Pago de inmediato
+    if (mpToken) {
+        const { randomUUID } = require('crypto');
+        if (mpOrderId && mpOrderId.startsWith('ORD')) {
+            try {
+                console.log(`[Terminal] Cancelando orden MP ${mpOrderId} para liberar maquinita`);
+                await fetch(`https://api.mercadopago.com/v1/orders/${mpOrderId}/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${mpToken}`,
+                        'Content-Type': 'application/json',
+                        'X-Idempotency-Key': randomUUID(),
+                        'x-allow-cancelable-status': 'at_terminal'
+                    }
+                });
+            } catch (err) {
+                console.error('[Terminal] Error cancelando orden en MP API:', err);
+            }
+        }
+
+        // Anular también InStore QR de caja si hubiera orden abierta
+        const collectorId = mpToken.split('-').pop() || '3682215796';
+        const externalPosId = 'caja1vitacura';
+        try {
+            await fetch(`https://api.mercadopago.com/instore/orders/qr/seller/collectors/${collectorId}/pos/${externalPosId}/qrs`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${mpToken}` }
+            });
+        } catch (err) {
+            // Ignorar si no había orden activa
+        }
+    }
+
+    // 3. La maquinita se libera, pero la orden se mantiene PENDIENTE en el sistema para que
+    // el cajero pueda cobrarla por otro método en el POS o buscar al cliente y saldar la deuda.
+    if (sale) {
+        await supabase
+            .from('sales_ledger')
+            .update({ status: 'pending' })
+            .eq('id', sale.id);
+
+        await supabase
+            .from('production_orders')
+            .update({ payment_status: 'pending' })
+            .or(`pos_order_id.eq.${posOrderId},pos_order_id.eq.${cleanId}`);
+    }
+
+    revalidatePath('/admin/pos');
+    revalidatePath('/admin/sales');
+
+    return { success: true };
 }
 
 export async function requestDiscountAuthorizationAction(payload: {

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { usePOS } from './POSContext';
 import { CheckCircle, Printer, MessageSquare, Plus, ExternalLink, Copy, Loader2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { sendOrderConfirmationEmailAction, checkOrderStatusAction } from '@/app/admin/pos/actions';
+import { sendOrderConfirmationEmailAction, checkOrderStatusAction, cancelPendingPOSOrderAction } from '@/app/admin/pos/actions';
 
 export default function Step5Confirmation() {
   const { 
@@ -82,6 +82,15 @@ export default function Step5Confirmation() {
   };
 
   const handleCancelTerminalPayment = () => {
+    try {
+      const rawId = String(checkoutResult?.internal_id || checkoutResult?.orderId || checkoutResult?.order_number || '');
+      const posOrderId = (rawId.startsWith('order_') || rawId.startsWith('ERP-') || rawId.startsWith('WO-'))
+        ? rawId
+        : `order_${rawId}`;
+      cancelPendingPOSOrderAction(posOrderId).catch(console.error);
+    } catch (e) {
+      console.error('Error al liberar maquinita:', e);
+    }
     setCurrentStep(4);
   };
 

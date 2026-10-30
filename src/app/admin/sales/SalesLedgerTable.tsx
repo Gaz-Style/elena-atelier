@@ -237,7 +237,7 @@ export default function SalesLedgerTable({ sales, bridalProjects = [], prodOrder
 
     // 3. Ventas Registradas (Cuotas del mes)
     const mainSales = salesList.filter(s => {
-        if (s.status === 'cancelled' || s.internal_id.includes('_balance_')) return false;
+        if (s.status === 'cancelled' || s.status === 'canceled' || s.internal_id.includes('_balance_')) return false;
         const sParts = getChileDateParts(s.created_at);
         if (selectedYear && sParts.year !== selectedYear) return false;
         if (selectedMonth && sParts.month !== selectedMonth) return false;
@@ -247,7 +247,7 @@ export default function SalesLedgerTable({ sales, bridalProjects = [], prodOrder
 
     // 4. Ventas de Hoy
     const todaysMainSales = salesList.filter(s => {
-        if (s.status === 'cancelled') return false;
+        if (s.status === 'cancelled' || s.status === 'canceled') return false;
         if (s.internal_id.includes('_balance_')) return false;
         const sParts = getChileDateParts(s.created_at);
         return sParts.dateStr === todayChileStr;
@@ -544,7 +544,7 @@ export default function SalesLedgerTable({ sales, bridalProjects = [], prodOrder
                                             <td className="p-4"><div className="flex items-center gap-2"><CreditCard className="w-3 h-3 text-gray-400" /><span className="capitalize">{sale.payment_method?.replace(/_/g, ' ') || 'No registrado'}</span></div></td>
                                             <td className="p-4">
                                                 <select
-                                                    value={sale.status}
+                                                    value={sale.status === 'canceled' ? 'cancelled' : sale.status}
                                                     onChange={(e) => handleStatusChange(sale, e.target.value)}
                                                     className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider outline-none border border-transparent cursor-pointer transition-all ${
                                                         sale.status === 'completed' 

@@ -22,6 +22,7 @@ export default function Step4Payment() {
     setSplitCashAmount,
     splitCardAmount,
     setSplitCardAmount,
+    checkoutResult,
     setCheckoutResult,
     isCajaOpen,
     posMode,
@@ -179,12 +180,13 @@ export default function Step4Payment() {
         }
       }
 
-      const newOrderIdNumber = Math.floor(Math.random() * 90000) + 10000;
-      let finalOrderIdStr = `order_${newOrderIdNumber}`;
-
-      if (posMode === 'pay_balance' && pendingOrderToPay) {
-        finalOrderIdStr = pendingOrderToPay.internal_id;
-      }
+      const orderNumberToUse = checkoutResult?.orderId 
+        ? checkoutResult.orderId.replace(/^order_/, '')
+        : pendingOrderToPay?.internal_id 
+        ? pendingOrderToPay.internal_id.replace(/^order_/, '')
+        : (Math.floor(Math.random() * 90000) + 10000).toString();
+      
+      const finalOrderIdStr = `order_${orderNumberToUse}`;
 
       let finalPaymentMethodStr = initialPaymentType === 'zero'
         ? 'Pago Contra Entrega'
@@ -282,7 +284,7 @@ export default function Step4Payment() {
             sendOrderConfirmationEmailAction({
               customerEmail: selectedCustomer?.email,
               customerName: selectedCustomer?.full_name,
-              orderId: newOrderIdNumber,
+              orderId: Number(orderNumberToUse) || 0,
               items: cart.map(item => ({ name: item.name, price: item.price, category: item.category, notes: item.details?.notes || '' })),
               total: total,
               paymentMethod: 'Pago Contra Entrega',
@@ -309,7 +311,7 @@ export default function Step4Payment() {
           setIsProcessing(false);
           return;
         }
-        wakeUpMercadoPagoTerminalAction(amountForTerminal, "Orden #" + newOrderIdNumber, finalOrderIdStr).catch(console.error);
+        wakeUpMercadoPagoTerminalAction(amountForTerminal, "Orden #" + orderNumberToUse, finalOrderIdStr).catch(console.error);
       }
 
       const orderData = {
@@ -338,7 +340,7 @@ export default function Step4Payment() {
           sendOrderConfirmationEmailAction({
             customerEmail: selectedCustomer?.email,
             customerName: selectedCustomer?.full_name,
-            orderId: newOrderIdNumber,
+            orderId: Number(orderNumberToUse) || 0,
             items: cart.map(item => ({ name: item.name, price: item.price, category: item.category, notes: item.details?.notes || '' })),
             total: amountToPay,
             paymentMethod: finalPaymentMethodStr || '',

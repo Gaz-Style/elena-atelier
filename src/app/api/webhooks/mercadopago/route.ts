@@ -30,16 +30,16 @@ async function updateDatabaseStatusFailed(
 
     const cleanRef = externalRef.split('_balance_')[0];
 
-    // Actualizar production_orders
+    // En las ventas de taller y POS, si el cobro con tarjeta falla o se cancela en la maquinita,
+    // la orden DEBE permanecer PENDIENTE para que el cliente pueda pagarla por otro método en el POS.
     await supabase
         .from('production_orders')
-        .update({ payment_status: failedStatus })
+        .update({ payment_status: 'pending' })
         .eq('pos_order_id', cleanRef);
 
-    // Actualizar sales_ledger
     await supabase
         .from('sales_ledger')
-        .update({ status: failedStatus, external_transaction_id: paymentId })
+        .update({ status: 'pending', external_transaction_id: paymentId })
         .eq('internal_id', externalRef);
 }
 
