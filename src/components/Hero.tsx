@@ -150,21 +150,29 @@ export default function Hero() {
                         Diseño & Alta Costura
                     </motion.p>
 
-                    <div className="flex flex-col sm:flex-row justify-center items-center gap-6 px-4 mt-12 md:mt-14">
-                        {/* Botón Primario: Navegación de Descubrimiento (Ver Colección) */}
+                    <div className="flex flex-col sm:flex-row justify-center items-center gap-4 md:gap-6 px-4 mt-12 md:mt-14">
+                        {/* Botón Primario: Agendar Cita en Atelier (Alta Conversión) */}
                         <Link
-                            href="/portafolio"
-                            className="glass-btn group relative w-full sm:w-auto px-10 py-[18px] border-[0.5px] border-white/26 border-t-white/48 border-l-white/48 border-b-white/15 border-r-white/15 text-white font-sans text-xs uppercase tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/92 hover:border-[#f5f2eb] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] whitespace-nowrap cursor-pointer inline-flex items-center justify-center gap-2.5"
+                            href="/agenda"
+                            className="glass-btn group relative w-full sm:w-auto px-8 md:px-10 py-[18px] border-[0.5px] border-white/26 border-t-white/48 border-l-white/48 border-b-white/15 border-r-white/15 text-white font-sans text-xs uppercase tracking-[0.25em] font-semibold bg-white/[0.08] backdrop-blur-[10px] transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-[#f5f2eb]/92 hover:border-[#f5f2eb] text-center shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] rounded-[1px] whitespace-nowrap cursor-pointer inline-flex items-center justify-center gap-2.5"
                         >
                             <span className="glass-text relative z-10 flex items-center justify-center gap-2 whitespace-nowrap">
-                                VER COLECCIÓN
+                                AGENDAR CITA
                                 <svg className="w-3.5 h-3.5 stroke-[#f5f2eb] group-hover:stroke-[#121212] transition-colors duration-500 transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" strokeWidth="1.5">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                                 </svg>
                             </span>
                         </Link>
 
-                        {/* Botón Secundario: Contacto Directo a WhatsApp */}
+                        {/* Botón Secundario: Ver Colección */}
+                        <Link
+                            href="/portafolio"
+                            className="w-full sm:w-auto px-6 py-[16px] border border-white/20 text-white/80 hover:text-white font-sans text-xs uppercase tracking-[0.22em] font-medium bg-black/20 hover:bg-white/10 backdrop-blur-[5px] transition-all duration-300 text-center rounded-[1px] whitespace-nowrap inline-flex items-center justify-center"
+                        >
+                            <span>Ver Colección</span>
+                        </Link>
+
+                        {/* Enlace Terciario: Contacto Directo a WhatsApp */}
                         <a
                             href="https://wa.me/56972812907?text=Hola%20Elena%20La%20Costurera,%20me%20gustar%C3%ADa%20hacerte%20una%20consulta."
                             target="_blank"

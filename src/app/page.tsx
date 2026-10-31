@@ -108,7 +108,7 @@ export default function Home() {
             <div className="flex-[1] flex flex-col gap-8 md:gap-12">
               {/* CARD B: Del Boceto a la Prenda - WORKSPACE, PROCESS */}
               <Link 
-                href="/appointment" 
+                href="/cursos" 
                 className="group relative flex-1 min-h-[350px] md:min-h-[260px] overflow-hidden rounded-sm flex flex-col justify-end p-8 shadow-2xl border border-white/5 hover:border-white/20 transition-all duration-700"
               >
                 <Image 

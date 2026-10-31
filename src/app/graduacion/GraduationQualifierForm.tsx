@@ -6,6 +6,7 @@ import { ArrowRight, CheckCircle2, Calendar, ShieldCheck, Sparkles, MessageCircl
 import { trackEvent } from '@/components/FacebookPixel';
 import { trackTikTokEvent } from '@/components/TikTokPixel';
 import { trackGAEvent } from '@/components/GoogleAnalytics';
+import { guardarProspectoGraduacionAction } from './actions';
 
 export default function GraduationQualifierForm() {
     const [step, setStep] = useState(1);
@@ -54,6 +55,16 @@ export default function GraduationQualifierForm() {
             })
         }).catch((err) => console.error('Server tracking error:', err));
 
+        // Persistir en BD en Paso 1 (por si no completa Paso 2)
+        guardarProspectoGraduacionAction({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            serviceType: formData.serviceType,
+            eventDate: formData.eventDate,
+            step: 1
+        }).catch((err) => console.error('Error guardando lead paso 1:', err));
+
         setStep(2);
     };
 
@@ -61,8 +72,18 @@ export default function GraduationQualifierForm() {
         e.preventDefault();
         setIsSaving(true);
         
-        // Simulate database/API registration
-        await new Promise((resolve) => setTimeout(resolve, 1200));
+        // Persistir en BD con todos los datos calificados
+        await guardarProspectoGraduacionAction({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            serviceType: formData.serviceType,
+            school: formData.school,
+            eventDate: formData.eventDate,
+            stylePreference: formData.stylePreference,
+            details: formData.details,
+            step: 2
+        });
         
         trackEvent('Schedule', {
             content_name: 'Diseño Calificado Completo',
