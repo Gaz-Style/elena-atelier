@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Send, Bot, User, Phone, CheckCircle, Search, ToggleLeft, ToggleRight, MessageSquare, ArrowLeft as ArrowLeftMobile, Smile } from 'lucide-react';
+import { ArrowLeft, Send, Bot, User, Phone, CheckCircle, Search, ToggleLeft, ToggleRight, MessageSquare, ArrowLeft as ArrowLeftMobile, Smile, X } from 'lucide-react';
 import { getWhatsAppChatsAction, getWhatsAppMessagesAction, sendWhatsAppMessageAction, toggleBotSessionAction } from './actions';
 
 // Icono simple de WhatsApp (Omnicanal)
@@ -19,6 +19,7 @@ export default function LiveChatPage() {
     const [replyText, setReplyText] = useState('');
     const [loading, setLoading] = useState(true);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [sending, setSending] = useState(false);
     const [sendError, setSendError] = useState<string | null>(null);
@@ -78,6 +79,23 @@ export default function LiveChatPage() {
         const interval = setInterval(loadChats, 10000);
         return () => clearInterval(interval);
     }, []);
+
+    const filteredChats = useMemo(() => {
+        if (!searchQuery.trim()) return chats;
+        const query = searchQuery.toLowerCase().trim();
+        const cleanQuery = query.replace(/\D/g, '');
+
+        return chats.filter((chat: any) => {
+            const name = (chat.customers?.full_name || '').toLowerCase();
+            const phone = (chat.phone_number || '').toLowerCase();
+            const cleanPhone = phone.replace(/\D/g, '');
+
+            const matchesName = name.includes(query);
+            const matchesPhone = phone.includes(query) || (cleanQuery.length > 0 && cleanPhone.includes(cleanQuery));
+
+            return matchesName || matchesPhone;
+        });
+    }, [chats, searchQuery]);
 
     useEffect(() => {
         let interval: NodeJS.Timeout;
@@ -223,22 +241,35 @@ export default function LiveChatPage() {
                             <Search className="w-4 h-4 absolute left-3 top-2.5 text-gray-400" />
                             <input 
                                 type="text" 
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Busca un chat o contacto" 
-                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-gray-100 border-none rounded-lg outline-none focus:bg-white focus:ring-1 focus:ring-brand-terracotta transition-colors" 
+                                className="w-full pl-9 pr-8 py-1.5 text-sm bg-gray-100 border-none rounded-lg outline-none focus:bg-white focus:ring-1 focus:ring-brand-terracotta transition-colors" 
                             />
+                            {searchQuery && (
+                                <button 
+                                    onClick={() => setSearchQuery('')}
+                                    className="absolute right-2.5 top-2.5 text-gray-400 hover:text-gray-600 transition-colors"
+                                    title="Limpiar búsqueda"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            )}
                         </div>
                     </div>
                     
                     <div className="flex-grow overflow-y-auto bg-white">
                         {loading ? (
                             <p className="text-center text-sm text-gray-400 p-8 animate-pulse">Cargando chats...</p>
-                        ) : chats.length === 0 ? (
+                        ) : filteredChats.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full text-gray-400 p-8">
                                 <MessageSquare className="w-10 h-10 mb-3 opacity-20" />
-                                <p className="text-sm">Bandeja vacía</p>
+                                <p className="text-sm">
+                                    {searchQuery ? `No hay resultados para "${searchQuery}"` : 'Bandeja vacía'}
+                                </p>
                             </div>
                         ) : (
-                            chats.map(chat => (
+                            filteredChats.map(chat => (
                                 <button
                                     key={chat.id}
                                     onClick={() => handleSelectChat(chat)}
