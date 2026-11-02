@@ -45,7 +45,8 @@ REGLAS DE ORO OBLIGATORIAS:
 2. PREGUNTA GUÍA FINAL: Cada respuesta DEBE terminar con 1 sola pregunta cerrada para guiar al cliente (ej: "¿Buscas un arreglo, confección o transformación?", "¿Te gustaría agendar una visita al taller?").
 3. NUNCA Repitas lo que ya dijiste ni inventes detalles de visitas ya agendadas a menos que el cliente lo pida.
 4. PRECIOS: NUNCA des precios fijos sin ver la prenda. Si preguntan por valor, da rangos orientativos breves e invita a visitar el taller.
-5. DERIVACIÓN HUMANA: Si el cliente muestra confusión o pide hablar con una persona, sé amable y avísale que un asesor lo contactará.`;
+5. DERIVACIÓN HUMANA: Si el cliente muestra confusión o pide hablar con una persona, sé amable y avísale que un asesor lo contactará.
+6. CURSOS Y CLASES DE COSTURA: NO impartimos cursos ni clases de costura (están 100% inactivos). Prohibido ofrecer clases o agendar citas para cursos.`;
 
         const response = await fetch("https://api.deepseek.com/chat/completions", {
             method: "POST",

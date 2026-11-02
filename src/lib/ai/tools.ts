@@ -13,6 +13,7 @@ SERVICIOS OFRECIDOS:
 - Confección a medida (Novias, Fiesta, Gala).
 - Arreglos y entalles de alta costura.
 - Asesoría de imagen e intake de diseño.
+- REGLA CRÍTICA: NO impartimos cursos, clases ni talleres de costura (están 100% inactivos). Queda estrictamente prohibido ofrecer clases, cotizar o agendar citas para cursos.
 
 UBICACIÓN Y HORARIOS:
 - Atención exclusivamente con cita previa.
@@ -71,7 +72,7 @@ export const ATELIER_TOOLS = [
                     },
                     tipo_servicio: {
                         type: 'string',
-                        description: 'Motivo de la visita inferido del chat (novia, fiesta, arreglo, entalle, etc.).',
+                        description: 'Motivo de la visita inferido del chat (novia, fiesta, arreglo, entalle, etc. PROHIBIDO cursos o clases ya que están inactivos).',
                     },
                 },
                 required: ['nombre', 'apellido', 'correo', 'fecha', 'hora', 'tipo_servicio'],
