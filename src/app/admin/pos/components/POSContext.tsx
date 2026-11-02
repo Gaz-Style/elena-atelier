@@ -51,7 +51,7 @@ interface POSState {
   // Step 4: Payments
   paymentMethod: 'mercadopago_point' | 'transbank' | 'cash' | 'split' | null;
   setPaymentMethod: (method: any) => void;
-  initialPaymentType: 'total' | '50percent' | 'zero';
+  initialPaymentType: 'total' | '50percent' | 'custom' | 'zero';
   setInitialPaymentType: (type: any) => void;
   splitCardAmount: number;
   setSplitCardAmount: (amount: number) => void;

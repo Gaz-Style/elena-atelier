@@ -46,6 +46,7 @@ export default function Step4Payment() {
   const [exclusivityType, setExclusivityType] = useState('none');
   const [exclusivityEventId, setExclusivityEventId] = useState('');
   const [exclusivityDesignName, setExclusivityDesignName] = useState('');
+  const [customAbono, setCustomAbono] = useState<number>(0);
 
   const total = posMode === 'pay_balance' && pendingOrderToPay 
     ? pendingOrderToPay.balance 
@@ -54,6 +55,7 @@ export default function Step4Payment() {
   let amountToPay = 0;
   if (initialPaymentType === 'total') amountToPay = total;
   else if (initialPaymentType === '50percent') amountToPay = Math.round(total / 2);
+  else if (initialPaymentType === 'custom') amountToPay = customAbono;
   else if (initialPaymentType === 'zero') amountToPay = 0;
 
   // ─── Budget generation: opens modal with WhatsApp & Email sharing (same as old POS) ───
@@ -159,6 +161,10 @@ export default function Step4Payment() {
   const handleProcessPayment = async () => {
     if (initialPaymentType !== 'zero' && !paymentMethod) return alert("Selecciona un método de pago");
     if (posMode === 'new_sale' && !selectedCustomer) return alert("Selecciona un cliente para continuar");
+    if (initialPaymentType === 'custom' && (!customAbono || customAbono <= 0)) {
+      alert("Por favor ingresa un monto de abono válido mayor a 0.");
+      return;
+    }
     
     setIsProcessing(true);
     try {
@@ -206,7 +212,11 @@ export default function Step4Payment() {
       }
 
       let finalPaidAmount = amountToPay;
-      let finalPaymentStatus = initialPaymentType === 'total' ? 'completed' : initialPaymentType === '50percent' ? 'partial' : 'pending';
+      let finalPaymentStatus = (initialPaymentType === 'total' || amountToPay >= total)
+        ? 'completed'
+        : (initialPaymentType === '50percent' || initialPaymentType === 'custom')
+        ? 'partial'
+        : 'pending';
       const isMixedTerminal = paymentMethod === 'cash' && splitCardAmount > 0;
       if (initialPaymentType !== 'zero' && (paymentMethod === 'mercadopago_point' || paymentMethod === 'transbank' || isMixedTerminal)) {
         finalPaymentStatus = 'pending_terminal';
@@ -432,9 +442,9 @@ export default function Step4Payment() {
             <div className="text-right">
               <p className="text-[10px] uppercase tracking-widest text-zinc-500 mb-0.5">A cobrar ahora</p>
               <p className="text-3xl font-serif text-emerald-600">${amountToPay.toLocaleString('es-CL')}</p>
-              {initialPaymentType === '50percent' && (
+              {(initialPaymentType === '50percent' || (initialPaymentType === 'custom' && customAbono > 0 && customAbono < total)) && (
                 <p className="text-[10px] text-zinc-400 mt-0.5 font-medium">
-                  Saldo pendiente restante: ${Math.round(total - amountToPay).toLocaleString('es-CL')}
+                  Saldo pendiente restante: ${Math.max(0, Math.round(total - amountToPay)).toLocaleString('es-CL')}
                 </p>
               )}
             </div>
@@ -445,15 +455,17 @@ export default function Step4Payment() {
             <label className="block text-[10px] uppercase tracking-widest font-bold text-zinc-700 mb-3">
               {posMode === 'pay_balance' ? 'Monto a Cobrar' : 'Abono Inicial'}
             </label>
-            <div className={`grid ${posMode === 'pay_balance' ? 'grid-cols-2' : 'grid-cols-3'} gap-3`}>
+            <div className={`grid ${posMode === 'pay_balance' ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4'} gap-2.5`}>
               {(posMode === 'pay_balance'
                 ? [
                     { value: 'total', label: `Pago Total ($${total.toLocaleString('es-CL')})` },
                     { value: '50percent', label: `Abono 50% ($${Math.round(total / 2).toLocaleString('es-CL')})` },
+                    { value: 'custom', label: 'Otro Monto' },
                   ]
                 : [
                     { value: 'total', label: 'Pago Total' },
                     { value: '50percent', label: 'Abono 50%' },
+                    { value: 'custom', label: 'Otro Monto' },
                     { value: 'zero', label: 'Contra Entrega' },
                   ]
               ).map(opt => (
@@ -462,14 +474,19 @@ export default function Step4Payment() {
                   type="button"
                   onClick={() => {
                     setInitialPaymentType(opt.value);
-                    const nextAmount = opt.value === 'total' ? total : opt.value === '50percent' ? Math.round(total / 2) : 0;
+                    let nextAmount = 0;
+                    if (opt.value === 'total') nextAmount = total;
+                    else if (opt.value === '50percent') nextAmount = Math.round(total / 2);
+                    else if (opt.value === 'custom') nextAmount = customAbono > 0 ? customAbono : 0;
+                    else if (opt.value === 'zero') nextAmount = 0;
+
                     if (paymentMethod === 'cash') {
                       setSplitCashAmount(nextAmount);
                       setSplitCardAmount(0);
                     }
                     if (opt.value === 'zero') setPaymentMethod(null);
                   }}
-                  className={`py-2.5 text-[9px] uppercase tracking-widest font-bold transition-all rounded-sm border ${
+                  className={`py-2.5 px-1 text-[9px] uppercase tracking-widest font-bold transition-all rounded-sm border text-center ${
                     initialPaymentType === opt.value
                       ? 'bg-[#C17B5C] text-white border-[#C17B5C]'
                       : 'bg-white text-slate-600 border-zinc-200 hover:border-[#C17B5C]'
@@ -479,6 +496,44 @@ export default function Step4Payment() {
                 </button>
               ))}
             </div>
+
+            {/* Input para Monto Personalizado */}
+            {initialPaymentType === 'custom' && (
+              <div className="mt-3.5 p-4 bg-zinc-50 border border-zinc-200 rounded-sm space-y-2 animate-in fade-in duration-200">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] uppercase tracking-widest font-bold text-zinc-700">
+                    Ingresa Monto Personalizado del Abono
+                  </label>
+                  <span className="text-[11px] text-zinc-400">Máximo: ${total.toLocaleString('es-CL')}</span>
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 font-bold text-sm">$</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoFocus
+                    value={customAbono > 0 ? customAbono.toLocaleString('es-CL') : ''}
+                    placeholder="Ej: 30.000"
+                    onChange={e => {
+                      const raw = Number(e.target.value.replace(/[^0-9]/g, '')) || 0;
+                      const val = Math.min(raw, total);
+                      setCustomAbono(val);
+                      if (paymentMethod === 'cash') {
+                        setSplitCashAmount(val);
+                        setSplitCardAmount(0);
+                      }
+                    }}
+                    className="w-full bg-white border border-zinc-300 rounded-sm pl-8 pr-4 py-2.5 text-base font-semibold text-zinc-900 outline-none focus:border-[#C17B5C] focus:ring-1 focus:ring-[#C17B5C] transition-all"
+                  />
+                </div>
+                {customAbono > 0 && (
+                  <div className="flex justify-between text-xs text-zinc-600 pt-1 border-t border-zinc-200/60 mt-2">
+                    <span>A cobrar ahora: <strong className="text-emerald-700 font-mono font-bold">${customAbono.toLocaleString('es-CL')}</strong></span>
+                    <span>Quedará saldo pendiente: <strong className="text-zinc-800 font-mono font-bold">${Math.max(0, total - customAbono).toLocaleString('es-CL')}</strong></span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Método de Pago */}
