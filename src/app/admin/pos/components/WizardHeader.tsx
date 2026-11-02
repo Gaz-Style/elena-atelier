@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils';
 
 export default function WizardHeader() {
   const { currentStep, setCurrentStep, budgetId } = usePOS();
-  
-  const steps: { num: 1 | 2 | 3 | 4 | 5; label: string; icon: React.ElementType }[] = [
+
+  const steps = [
     { num: 1, label: 'Cliente', icon: User },
     { num: 2, label: 'Servicio', icon: ShoppingCart },
     { num: 3, label: 'Producción', icon: Calendar },
@@ -34,20 +34,20 @@ export default function WizardHeader() {
           const isClickable = step.num < currentStep || (budgetId && step.num <= 4 && currentStep !== 5);
           return (
             <React.Fragment key={step.num}>
-              <div 
-                onClick={() => isClickable && setCurrentStep(step.num)}
+              <div
+                onClick={() => isClickable && setCurrentStep(step.num as any)}
                 className={cn(
                   "flex flex-col items-center gap-1.5 relative select-none",
                   isClickable ? "cursor-pointer group" : "cursor-default"
                 )}
               >
-                <div 
+                <div
                   className={cn(
                     "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-colors shadow-sm",
-                    currentStep === step.num 
-                      ? "bg-zinc-900 text-white border-2 border-zinc-900" 
-                      : currentStep > step.num 
-                        ? "bg-zinc-100 text-zinc-900 border-2 border-zinc-900 group-hover:bg-zinc-200" 
+                    currentStep === step.num
+                      ? "bg-zinc-900 text-white border-2 border-zinc-900"
+                      : currentStep > step.num
+                        ? "bg-zinc-100 text-zinc-900 border-2 border-zinc-900 group-hover:bg-zinc-200"
                         : "bg-zinc-50 text-zinc-400 border border-zinc-200"
                   )}
                 >
@@ -61,10 +61,10 @@ export default function WizardHeader() {
                   {step.label}
                 </span>
               </div>
-              
+
               {i < steps.length - 1 && (
                 <div className="flex-1 h-px bg-zinc-200 mx-2 md:mx-4 relative">
-                  <div 
+                  <div
                     className="absolute left-0 top-0 h-full bg-zinc-900 transition-all duration-300"
                     style={{ width: currentStep > step.num ? '100%' : '0%' }}
                   />
