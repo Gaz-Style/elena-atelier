@@ -1710,6 +1710,37 @@ export async function getBudgetAction(id: string) {
     return { success: true, data: data.payload };
 }
 
+export async function getSaleToPayAction(saleIdOrInternalId: string) {
+    const supabase = getAdminClient();
+    let query = supabase
+        .from('sales_ledger')
+        .select(`
+            id,
+            internal_id,
+            customer_id,
+            total_amount,
+            paid_amount,
+            status,
+            payment_method,
+            customers (
+                id,
+                full_name,
+                email,
+                phone
+            )
+        `);
+
+    if (saleIdOrInternalId.startsWith('order_') || saleIdOrInternalId.startsWith('WO-') || saleIdOrInternalId.startsWith('ERP-')) {
+        query = query.eq('internal_id', saleIdOrInternalId);
+    } else {
+        query = query.eq('id', saleIdOrInternalId);
+    }
+
+    const { data: sale, error } = await query.maybeSingle();
+    if (error || !sale) return null;
+    return sale as any;
+}
+
 export async function updateOrderStatusToPaidAction(posOrderId: string, amountPaid?: number) {
     const supabase = getAdminClient();
     

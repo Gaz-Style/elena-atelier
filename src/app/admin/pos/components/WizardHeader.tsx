@@ -6,7 +6,7 @@ import { User, ShoppingCart, Calendar, CreditCard, CheckCircle } from 'lucide-re
 import { cn } from '@/lib/utils';
 
 export default function WizardHeader() {
-  const { currentStep, setCurrentStep, budgetId } = usePOS();
+  const { currentStep, setCurrentStep, budgetId, posMode, pendingOrderToPay } = usePOS();
 
   const steps = [
     { num: 1, label: 'Cliente', icon: User },
@@ -29,9 +29,22 @@ export default function WizardHeader() {
           </span>
         </div>
       )}
+
+      {posMode === 'pay_balance' && pendingOrderToPay && (
+        <div className="max-w-3xl mx-auto mb-2 flex items-center justify-between text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded">
+          <span className="font-medium flex items-center gap-1.5">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Cobro de Saldo: <strong className="font-mono">{pendingOrderToPay.internal_id}</strong>
+          </span>
+          <span className="text-[11px] text-emerald-700 font-bold">
+            Saldo: ${Number(pendingOrderToPay.balance || 0).toLocaleString('es-CL')}
+          </span>
+        </div>
+      )}
+
       <div className="max-w-3xl mx-auto flex items-center justify-between">
         {steps.map((step, i) => {
-          const isClickable = step.num < currentStep || (budgetId && step.num <= 4 && currentStep !== 5);
+          const isClickable = step.num < currentStep || (budgetId && step.num <= 4 && currentStep !== 5) || (posMode === 'pay_balance' && (step.num === 1 || step.num === 4) && currentStep !== 5);
           return (
             <React.Fragment key={step.num}>
               <div

@@ -10,7 +10,7 @@ import Step4Payment from './Step4Payment';
 import Step5Confirmation from './Step5Confirmation';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getEstimatedDatesAction, getBudgetAction } from '@/app/admin/pos/actions';
+import { getEstimatedDatesAction, getBudgetAction, getSaleToPayAction } from '@/app/admin/pos/actions';
 
 function LiveSummaryBar() {
   const { selectedCustomer, cart, estimatedDates, currentStep, setCurrentStep, deadline } = usePOS();
@@ -88,7 +88,7 @@ function LiveSummaryBar() {
   );
 }
 
-function WizardContent({ initialConfig, initialCajaOpen, initialBudget }: { initialConfig: any, initialCajaOpen: boolean, initialBudget?: any }) {
+function WizardContent({ initialConfig, initialCajaOpen, initialBudget, initialPendingSale }: { initialConfig: any, initialCajaOpen: boolean, initialBudget?: any, initialPendingSale?: any }) {
   const { 
     currentStep, 
     setCurrentStep, 
@@ -98,10 +98,13 @@ function WizardContent({ initialConfig, initialCajaOpen, initialBudget }: { init
     clearCart, 
     addToCart, 
     setBudgetId,
+    setPosMode,
+    setPendingOrderToPay,
     cart 
   } = usePOS();
   
   const hasInitializedBudget = React.useRef(false);
+  const hasInitializedSale = React.useRef(false);
 
   useEffect(() => {
     setAtelierConfig(initialConfig);
@@ -155,12 +158,53 @@ function WizardContent({ initialConfig, initialCajaOpen, initialBudget }: { init
       setCurrentStep(3);
     };
 
-    if (initialBudget) {
+    const applyPendingSale = (sale: any) => {
+      if (!sale || hasInitializedSale.current) return;
+      hasInitializedSale.current = true;
+
+      const cust = Array.isArray(sale.customers) ? sale.customers[0] : sale.customers;
+      if (cust) {
+        setSelectedCustomer({
+          id: cust.id || sale.customer_id,
+          full_name: cust.full_name || 'Cliente',
+          email: cust.email || '',
+          phone: cust.phone || '',
+        });
+      } else if (sale.customer_id) {
+        setSelectedCustomer({
+          id: sale.customer_id,
+          full_name: 'Cliente',
+          email: '',
+          phone: '',
+        });
+      }
+
+      const balance = Math.max(0, Number(sale.total_amount || 0) - Number(sale.paid_amount || 0));
+      setPosMode('pay_balance');
+      setPendingOrderToPay({
+        sale_id: sale.id,
+        internal_id: sale.internal_id,
+        balance: balance
+      });
+
+      // Jump directly to Step 4: Payment
+      setCurrentStep(4);
+    };
+
+    if (initialPendingSale) {
+      applyPendingSale(initialPendingSale);
+    } else if (initialBudget) {
       applyBudget(initialBudget);
     } else if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
+      const sId = urlParams.get('saleId');
       const bId = urlParams.get('budgetId');
-      if (bId && !hasInitializedBudget.current) {
+
+      if (sId && !hasInitializedSale.current) {
+        getSaleToPayAction(sId).then((res) => {
+          if (res) applyPendingSale(res);
+        }).catch((err) => console.error('Error loading sale in POS:', err));
+      } else if (bId && !hasInitializedBudget.current) {
         getBudgetAction(bId).then((res) => {
           if (res.success && res.data) {
             applyBudget({ id: bId, ...res.data });
@@ -168,7 +212,7 @@ function WizardContent({ initialConfig, initialCajaOpen, initialBudget }: { init
         }).catch((err) => console.error('Error loading budget in POS:', err));
       }
     }
-  }, [initialBudget]);
+  }, [initialBudget, initialPendingSale]);
 
   return (
     <div className={`flex flex-col bg-zinc-50/50 ${cart.length > 0 ? 'pb-24' : 'pb-6'}`}>
@@ -185,10 +229,25 @@ function WizardContent({ initialConfig, initialCajaOpen, initialBudget }: { init
   );
 }
 
-export default function POSWizardClient({ initialConfig, initialCajaOpen, initialBudget }: { initialConfig: any, initialCajaOpen: boolean, initialBudget?: any }) {
+export default function POSWizardClient({ 
+  initialConfig, 
+  initialCajaOpen, 
+  initialBudget,
+  initialPendingSale
+}: { 
+  initialConfig: any, 
+  initialCajaOpen: boolean, 
+  initialBudget?: any,
+  initialPendingSale?: any
+}) {
   return (
     <POSProvider>
-      <WizardContent initialConfig={initialConfig} initialCajaOpen={initialCajaOpen} initialBudget={initialBudget} />
+      <WizardContent 
+        initialConfig={initialConfig} 
+        initialCajaOpen={initialCajaOpen} 
+        initialBudget={initialBudget}
+        initialPendingSale={initialPendingSale}
+      />
     </POSProvider>
   );
 }

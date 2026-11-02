@@ -167,7 +167,7 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
                                     <span>{formatCurrency(sale.tax_amount)}</span>
                                 </div>
                                 <div className="pt-4 border-t border-gray-700 flex justify-between font-bold text-white text-lg">
-                                    <span>Total pagado</span>
+                                    <span>{sale.status === 'pending' ? 'Total por pagar' : sale.status === 'partial' ? 'Saldo pendiente' : 'Total pagado'}</span>
                                     <span className="text-brand-sand">{formatCurrency(sale.total_amount)}</span>
                                 </div>
                             </div>
@@ -184,7 +184,7 @@ export default async function SaleDetailPage({ params }: { params: Promise<{ id:
                         <section className="bg-white border border-gray-200 rounded-sm shadow-sm p-6 space-y-4">
                             <h2 className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-4">Acciones de Venta</h2>
                             
-                            {sale.status === 'pending' && (
+                            {(sale.status === 'pending' || sale.status === 'partial') && (
                                 <CobrarEnCajaButton
                                     saleId={sale.id}
                                     internalId={sale.internal_id}
