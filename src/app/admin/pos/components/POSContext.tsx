@@ -71,6 +71,9 @@ interface POSState {
 
   pendingOrderToPay: { internal_id: string, balance: number, sale_id: number } | null;
   setPendingOrderToPay: (order: any) => void;
+
+  budgetId: string | null;
+  setBudgetId: (id: string | null) => void;
 }
 
 const POSContext = createContext<POSState | undefined>(undefined);
@@ -111,6 +114,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
   const [isCajaOpen, setIsCajaOpen] = useState<boolean | null>(null);
   const [checkoutResult, setCheckoutResult] = useState<any>(null);
   const [pendingOrderToPay, setPendingOrderToPay] = useState<any>(null);
+  const [budgetId, setBudgetId] = useState<string | null>(null);
 
   return (
     <POSContext.Provider value={{
@@ -128,7 +132,8 @@ export function POSProvider({ children }: { children: ReactNode }) {
       operators, setOperators,
       isCajaOpen, setIsCajaOpen,
       checkoutResult, setCheckoutResult,
-      pendingOrderToPay, setPendingOrderToPay
+      pendingOrderToPay, setPendingOrderToPay,
+      budgetId, setBudgetId
     }}>
       {children}
     </POSContext.Provider>

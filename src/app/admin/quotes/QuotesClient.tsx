@@ -280,17 +280,14 @@ export default function QuotesClient({ budgets }: { budgets: Budget[] }) {
                                                         <ExternalLink className="w-3.5 h-3.5" />
                                                     </a>
 
-                                                    {/* Mark as accepted (if still pending) */}
+                                                    {/* Mark as accepted (if still pending) -> Redirect to POS to define dates and payment */}
                                                     {budget.status === 'pending' && (
                                                         <button
-                                                            onClick={() => updateStatus(budget.id, 'accepted')}
-                                                            disabled={actionLoading === budget.id + 'accepted'}
-                                                            className="p-2 rounded-sm border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 transition-colors text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 disabled:opacity-50"
-                                                            title="Marcar como aceptado (cliente pagó presencialmente)"
+                                                            onClick={() => router.push(`/admin/pos?budgetId=${budget.id}`)}
+                                                            className="p-2 rounded-sm border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 hover:border-emerald-400 transition-colors text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-sm"
+                                                            title="Aceptar e ir al POS para definir fecha de entrega y pago"
                                                         >
-                                                            {actionLoading === budget.id + 'accepted'
-                                                                ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                                                                : <CheckCircle2 className="w-3.5 h-3.5" />}
+                                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                                                             <span className="hidden md:inline">Aceptar</span>
                                                         </button>
                                                     )}

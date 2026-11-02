@@ -10,7 +10,7 @@ import Step4Payment from './Step4Payment';
 import Step5Confirmation from './Step5Confirmation';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getEstimatedDatesAction } from '@/app/admin/pos/actions';
+import { getEstimatedDatesAction, getBudgetAction } from '@/app/admin/pos/actions';
 
 function LiveSummaryBar() {
   const { selectedCustomer, cart, estimatedDates, currentStep, setCurrentStep, deadline } = usePOS();
@@ -88,15 +88,87 @@ function LiveSummaryBar() {
   );
 }
 
-function WizardContent({ initialConfig, initialCajaOpen }: { initialConfig: any, initialCajaOpen: boolean }) {
-  const { currentStep, setAtelierConfig, setIsCajaOpen } = usePOS();
+function WizardContent({ initialConfig, initialCajaOpen, initialBudget }: { initialConfig: any, initialCajaOpen: boolean, initialBudget?: any }) {
+  const { 
+    currentStep, 
+    setCurrentStep, 
+    setAtelierConfig, 
+    setIsCajaOpen, 
+    setSelectedCustomer, 
+    clearCart, 
+    addToCart, 
+    setBudgetId,
+    cart 
+  } = usePOS();
   
+  const hasInitializedBudget = React.useRef(false);
+
   useEffect(() => {
     setAtelierConfig(initialConfig);
     setIsCajaOpen(initialCajaOpen);
   }, [initialConfig, initialCajaOpen]);
 
-  const { cart } = usePOS();
+  useEffect(() => {
+    const applyBudget = (budget: any) => {
+      if (!budget || hasInitializedBudget.current) return;
+      hasInitializedBudget.current = true;
+
+      // 1. Set Customer
+      if (budget.customerId && budget.customerId !== 'unassigned') {
+        setSelectedCustomer({
+          id: budget.customerId,
+          full_name: budget.customerName || 'Cliente Presupuesto',
+          email: budget.customerEmail || '',
+          phone: budget.customerPhone || '',
+        });
+      } else if (budget.customerName) {
+        setSelectedCustomer({
+          id: 'unassigned',
+          full_name: budget.customerName,
+          email: budget.customerEmail || '',
+          phone: budget.customerPhone || '',
+        });
+      }
+
+      // 2. Set Cart
+      if (Array.isArray(budget.cart) && budget.cart.length > 0) {
+        clearCart();
+        budget.cart.forEach((item: any) => {
+          addToCart({
+            id: item.id?.toString() || Math.random().toString(),
+            name: item.name,
+            price: Number(item.price) || 0,
+            category: item.category || 'Confección',
+            isCustom: !!item.isCustom,
+            assignedOperatorId: item.assignedOperatorId || 'unassigned',
+            details: item.details || {},
+          });
+        });
+      }
+
+      // 3. Track Budget ID
+      if (budget.id) {
+        setBudgetId(budget.id);
+      }
+
+      // 4. Move directly to Step 3: Production & Dates
+      setCurrentStep(3);
+    };
+
+    if (initialBudget) {
+      applyBudget(initialBudget);
+    } else if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const bId = urlParams.get('budgetId');
+      if (bId && !hasInitializedBudget.current) {
+        getBudgetAction(bId).then((res) => {
+          if (res.success && res.data) {
+            applyBudget({ id: bId, ...res.data });
+          }
+        }).catch((err) => console.error('Error loading budget in POS:', err));
+      }
+    }
+  }, [initialBudget]);
 
   return (
     <div className={`flex flex-col bg-zinc-50/50 ${cart.length > 0 ? 'pb-24' : 'pb-6'}`}>
@@ -113,10 +185,10 @@ function WizardContent({ initialConfig, initialCajaOpen }: { initialConfig: any,
   );
 }
 
-export default function POSWizardClient({ initialConfig, initialCajaOpen }: { initialConfig: any, initialCajaOpen: boolean }) {
+export default function POSWizardClient({ initialConfig, initialCajaOpen, initialBudget }: { initialConfig: any, initialCajaOpen: boolean, initialBudget?: any }) {
   return (
     <POSProvider>
-      <WizardContent initialConfig={initialConfig} initialCajaOpen={initialCajaOpen} />
+      <WizardContent initialConfig={initialConfig} initialCajaOpen={initialCajaOpen} initialBudget={initialBudget} />
     </POSProvider>
   );
 }

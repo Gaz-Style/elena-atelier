@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { usePOS } from './POSContext';
-import { createPOSOrdersAction, saveBudgetAction, sendBudgetEmailAction, wakeUpMercadoPagoTerminalAction, checkDesignExclusivityAction, sendOrderConfirmationEmailAction, sendWhatsAppPaymentConfirmationAction } from '@/app/admin/pos/actions';
+import { createPOSOrdersAction, saveBudgetAction, sendBudgetEmailAction, wakeUpMercadoPagoTerminalAction, checkDesignExclusivityAction, sendOrderConfirmationEmailAction, sendWhatsAppPaymentConfirmationAction, updateBudgetStatusAction } from '@/app/admin/pos/actions';
 import { payOrderBalanceAction } from '@/app/admin/caja/actions';
 import { CreditCard, Wallet, AlertCircle, Globe, Loader2, Copy, Mail, MessageSquare, X } from 'lucide-react';
 
@@ -28,7 +28,8 @@ export default function Step4Payment() {
     posMode,
     pendingOrderToPay,
     setPosMode,
-    clearCart
+    clearCart,
+    budgetId
   } = usePOS();
   
   const [isProcessing, setIsProcessing] = useState(false);
@@ -279,6 +280,9 @@ export default function Step4Payment() {
         };
         const result = await createPOSOrdersAction(orderData);
         if (result.success) {
+          if (budgetId) {
+            updateBudgetStatusAction(budgetId, 'accepted').catch(err => console.error("Error updating budget status:", err));
+          }
           // Email WITH payment link for Contra Entrega
           if (selectedCustomer?.email) {
             sendOrderConfirmationEmailAction({
@@ -335,6 +339,9 @@ export default function Step4Payment() {
       const result = await createPOSOrdersAction(orderData);
       
       if (result.success) {
+        if (budgetId) {
+          updateBudgetStatusAction(budgetId, 'accepted').catch(err => console.error("Error updating budget status:", err));
+        }
         // Email WITHOUT payment link for normal paid methods (except mercadopago_point, which waits for confirmation in Step 5)
         if (selectedCustomer?.email && paymentMethod !== 'mercadopago_point') {
           sendOrderConfirmationEmailAction({
