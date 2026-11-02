@@ -52,7 +52,7 @@ export default function Step4Payment() {
     : cart.reduce((sum, item) => sum + item.price, 0);
   
   let amountToPay = 0;
-  if (initialPaymentType === 'total' || posMode === 'pay_balance') amountToPay = total;
+  if (initialPaymentType === 'total') amountToPay = total;
   else if (initialPaymentType === '50percent') amountToPay = Math.round(total / 2);
   else if (initialPaymentType === 'zero') amountToPay = 0;
 
@@ -424,44 +424,62 @@ export default function Step4Payment() {
           {/* Totales */}
           <div className="flex justify-between items-center pb-5 border-b border-zinc-100">
             <div>
-              <p className="text-[10px] uppercase tracking-widest text-zinc-500 mb-0.5">Total de la Orden</p>
+              <p className="text-[10px] uppercase tracking-widest text-zinc-500 mb-0.5">
+                {posMode === 'pay_balance' ? 'Saldo de la Orden' : 'Total de la Orden'}
+              </p>
               <p className="text-3xl font-serif text-zinc-900">${total.toLocaleString('es-CL')}</p>
             </div>
             <div className="text-right">
               <p className="text-[10px] uppercase tracking-widest text-zinc-500 mb-0.5">A cobrar ahora</p>
               <p className="text-3xl font-serif text-emerald-600">${amountToPay.toLocaleString('es-CL')}</p>
+              {initialPaymentType === '50percent' && (
+                <p className="text-[10px] text-zinc-400 mt-0.5 font-medium">
+                  Saldo pendiente restante: ${Math.round(total - amountToPay).toLocaleString('es-CL')}
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Abono Inicial */}
-          {posMode !== 'pay_balance' && (
-            <div>
-              <label className="block text-[10px] uppercase tracking-widest font-bold text-zinc-700 mb-3">Abono Inicial</label>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { value: 'total', label: 'Pago Total' },
-                  { value: '50percent', label: 'Abono 50%' },
-                  { value: 'zero', label: 'Contra Entrega' },
-                ].map(opt => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => {
-                      setInitialPaymentType(opt.value);
-                      if (opt.value === 'zero') setPaymentMethod(null);
-                    }}
-                    className={`py-2.5 text-[9px] uppercase tracking-widest font-bold transition-all rounded-sm border ${
-                      initialPaymentType === opt.value
-                        ? 'bg-[#C17B5C] text-white border-[#C17B5C]'
-                        : 'bg-white text-slate-600 border-zinc-200 hover:border-[#C17B5C]'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+          {/* Abono / Monto a Cobrar */}
+          <div>
+            <label className="block text-[10px] uppercase tracking-widest font-bold text-zinc-700 mb-3">
+              {posMode === 'pay_balance' ? 'Monto a Cobrar' : 'Abono Inicial'}
+            </label>
+            <div className={`grid ${posMode === 'pay_balance' ? 'grid-cols-2' : 'grid-cols-3'} gap-3`}>
+              {(posMode === 'pay_balance'
+                ? [
+                    { value: 'total', label: `Pago Total ($${total.toLocaleString('es-CL')})` },
+                    { value: '50percent', label: `Abono 50% ($${Math.round(total / 2).toLocaleString('es-CL')})` },
+                  ]
+                : [
+                    { value: 'total', label: 'Pago Total' },
+                    { value: '50percent', label: 'Abono 50%' },
+                    { value: 'zero', label: 'Contra Entrega' },
+                  ]
+              ).map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    setInitialPaymentType(opt.value);
+                    const nextAmount = opt.value === 'total' ? total : opt.value === '50percent' ? Math.round(total / 2) : 0;
+                    if (paymentMethod === 'cash') {
+                      setSplitCashAmount(nextAmount);
+                      setSplitCardAmount(0);
+                    }
+                    if (opt.value === 'zero') setPaymentMethod(null);
+                  }}
+                  className={`py-2.5 text-[9px] uppercase tracking-widest font-bold transition-all rounded-sm border ${
+                    initialPaymentType === opt.value
+                      ? 'bg-[#C17B5C] text-white border-[#C17B5C]'
+                      : 'bg-white text-slate-600 border-zinc-200 hover:border-[#C17B5C]'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
 
           {/* Método de Pago */}
           {initialPaymentType !== 'zero' && (

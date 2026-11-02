@@ -100,6 +100,7 @@ function WizardContent({ initialConfig, initialCajaOpen, initialBudget, initialP
     setBudgetId,
     setPosMode,
     setPendingOrderToPay,
+    setInitialPaymentType,
     cart 
   } = usePOS();
   
@@ -181,6 +182,7 @@ function WizardContent({ initialConfig, initialCajaOpen, initialBudget, initialP
 
       const balance = Math.max(0, Number(sale.total_amount || 0) - Number(sale.paid_amount || 0));
       setPosMode('pay_balance');
+      setInitialPaymentType('total');
       setPendingOrderToPay({
         sale_id: sale.id,
         internal_id: sale.internal_id,
