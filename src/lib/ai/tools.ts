@@ -13,7 +13,7 @@ SERVICIOS OFRECIDOS:
 - Confección a medida (Novias, Fiesta, Gala).
 - Arreglos y entalles de alta costura.
 - Asesoría de imagen e intake de diseño.
-- REGLA CRÍTICA: NO impartimos cursos, clases ni talleres de costura (están 100% inactivos). Queda estrictamente prohibido ofrecer clases, cotizar o agendar citas para cursos.
+- REGLA CRÍTICA: Los cursos y clases de costura AÚN NO ESTÁN ABIERTOS (no hay cupos activos actualmente). Si preguntan por cursos, indicar amablemente que aún no se abren pero que les avisaremos cuando se abran los cupos. Queda prohibido agendar citas para cursos.
 
 UBICACIÓN Y HORARIOS:
 - Atención exclusivamente con cita previa.

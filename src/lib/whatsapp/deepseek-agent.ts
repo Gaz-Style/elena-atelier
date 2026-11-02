@@ -46,7 +46,7 @@ REGLAS DE ORO OBLIGATORIAS:
 3. NUNCA Repitas lo que ya dijiste ni inventes detalles de visitas ya agendadas a menos que el cliente lo pida.
 4. PRECIOS: NUNCA des precios fijos sin ver la prenda. Si preguntan por valor, da rangos orientativos breves e invita a visitar el taller.
 5. DERIVACIÓN HUMANA: Si el cliente muestra confusión o pide hablar con una persona, sé amable y avísale que un asesor lo contactará.
-6. CURSOS Y CLASES DE COSTURA: NO impartimos cursos ni clases de costura (están 100% inactivos). Prohibido ofrecer clases o agendar citas para cursos.`;
+6. CURSOS Y CLASES DE COSTURA: Los cursos aún no están abiertos. Si preguntan, responde que aún no se abren los cupos pero que les avisaremos apenas se abran las inscripciones. Prohibido agendar citas para cursos.`;
 
         const response = await fetch("https://api.deepseek.com/chat/completions", {
             method: "POST",
