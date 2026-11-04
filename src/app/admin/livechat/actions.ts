@@ -301,49 +301,39 @@ export async function sendReviewRequestTemplateAction(chatId: string) {
 
         const reviewMessageText = `Hola ${firstName}, qué gusto saludarte. Esperamos que tu experiencia y la atención en nuestro taller hayan sido de tu completo agrado. ✨\n\nTu opinión es muy importante para nuestro equipo, ya que nos ayuda muchísimo a seguir mejorando y a que más personas nos conozcan en Vitacura.\n\n¿Nos regalarías un minuto para dejarnos tu valoración en Google? Puedes hacerlo directamente en este enlace:\n\n${reviewUrl}\n\n¡Muchísimas gracias por tu tiempo y por confiar en nosotras!\n\nElena La Costurera`;
 
-        // 1. Try sending as direct text message first (works immediately if 24h customer window is open)
-        let directRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
+        // Enviar EXCLUSIVAMENTE mediante la plantilla oficial aprobada en Meta WhatsApp Manager
+        const templatePayload = {
+            messaging_product: 'whatsapp',
+            to: finalPhone,
+            type: 'template',
+            template: {
+                name: 'solicitud_resena_cliente',
+                language: { code: 'es_CL' },
+                components: [{
+                    type: 'body',
+                    parameters: [
+                        { type: 'text', text: firstName },
+                        { type: 'text', text: reviewUrl }
+                    ]
+                }]
+            }
+        };
+
+        let tRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                messaging_product: 'whatsapp',
-                to: finalPhone,
-                type: 'text',
-                text: {
-                    preview_url: true,
-                    body: reviewMessageText
-                }
-            })
+            body: JSON.stringify(templatePayload)
         });
+        let tData = await tRes.json();
+        console.log('WhatsApp review template response (es_CL):', tData);
 
-        let directData = await directRes.json();
-        console.log('WhatsApp direct review message response:', directData);
-
-        // 2. If direct text fails (e.g. error code 131047: window closed > 24 hours), fall back to Meta template
-        if (directData.error) {
-            console.warn('Direct message failed, attempting template fallback:', directData.error);
-
-            const templatePayload = {
-                messaging_product: 'whatsapp',
-                to: finalPhone,
-                type: 'template',
-                template: {
-                    name: 'solicitud_resena_cliente',
-                    language: { code: 'es_CL' },
-                    components: [{
-                        type: 'body',
-                        parameters: [
-                            { type: 'text', text: firstName },
-                            { type: 'text', text: reviewUrl }
-                        ]
-                    }]
-                }
-            };
-
-            let tRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
+        // Si falla por código de idioma, reintentar con 'es' y 'es_LA'
+        if (tData.error && (tData.error.code === 132001 || tData.error.error_subcode === 2494011)) {
+            templatePayload.template.language.code = 'es';
+            tRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
@@ -351,32 +341,30 @@ export async function sendReviewRequestTemplateAction(chatId: string) {
                 },
                 body: JSON.stringify(templatePayload)
             });
-            let tData = await tRes.json();
-            console.log('WhatsApp review template response (es_CL):', tData);
+            tData = await tRes.json();
+            console.log('WhatsApp review template response (es):', tData);
+        }
 
-            // Retry with 'es' if es_CL fails
-            if (tData.error && (tData.error.code === 132001 || tData.error.error_subcode === 2494011)) {
-                templatePayload.template.language.code = 'es';
-                tRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(templatePayload)
-                });
-                tData = await tRes.json();
-                console.log('WhatsApp review template response (es):', tData);
-            }
+        if (tData.error && (tData.error.code === 132001 || tData.error.error_subcode === 2494011)) {
+            templatePayload.template.language.code = 'es_LA';
+            tRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(templatePayload)
+            });
+            tData = await tRes.json();
+            console.log('WhatsApp review template response (es_LA):', tData);
+        }
 
-            if (tData.error) {
-                return {
-                    success: false,
-                    error: directData.error.code === 131047
-                        ? `La ventana de 24h está cerrada y la plantilla de Meta aún no está aprobada (${tData.error.message})`
-                        : `Meta API: ${directData.error.message || tData.error.message}`
-                };
-            }
+        // Si Meta rechaza la plantilla o no está aprobada, NO REGISTRAR NADA EN LA BASE DE DATOS
+        if (tData.error) {
+            return {
+                success: false,
+                error: `Meta API: ${tData.error.message} (Verifica que la plantilla esté aprobada en Meta WhatsApp Manager)`
+            };
         }
 
         // Record message in DB
