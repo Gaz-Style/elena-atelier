@@ -299,38 +299,51 @@ export async function sendReviewRequestTemplateAction(chatId: string) {
         const firstName = fullName ? fullName.split(' ')[0] : 'Estimada clienta';
         const reviewUrl = 'https://www.elenalacosturera.cl/opiniones';
 
-        const templatePayload = {
-            messaging_product: 'whatsapp',
-            to: finalPhone,
-            type: 'template',
-            template: {
-                name: 'solicitud_resena_cliente',
-                language: { code: 'es_CL' },
-                components: [{
-                    type: 'body',
-                    parameters: [
-                        { type: 'text', text: firstName },
-                        { type: 'text', text: reviewUrl }
-                    ]
-                }]
-            }
-        };
+        const reviewMessageText = `Hola ${firstName}, qué gusto saludarte. Esperamos que tu experiencia y la atención en nuestro taller hayan sido de tu completo agrado. ✨\n\nTu opinión es muy importante para nuestro equipo, ya que nos ayuda muchísimo a seguir mejorando y a que más personas nos conozcan en Vitacura.\n\n¿Nos regalarías un minuto para dejarnos tu valoración en Google? Puedes hacerlo directamente en este enlace:\n\n${reviewUrl}\n\n¡Muchísimas gracias por tu tiempo y por confiar en nosotras!\n\nElena La Costurera`;
 
-        let wRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
+        // 1. Try sending as direct text message first (works immediately if 24h customer window is open)
+        let directRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(templatePayload)
+            body: JSON.stringify({
+                messaging_product: 'whatsapp',
+                to: finalPhone,
+                type: 'text',
+                text: {
+                    preview_url: true,
+                    body: reviewMessageText
+                }
+            })
         });
-        let wData = await wRes.json();
-        console.log('WhatsApp review template response (es_CL):', wData);
 
-        // Retry with 'es' if es_CL fails
-        if (wData.error && (wData.error.code === 132001 || wData.error.error_subcode === 2494011)) {
-            templatePayload.template.language.code = 'es';
-            wRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
+        let directData = await directRes.json();
+        console.log('WhatsApp direct review message response:', directData);
+
+        // 2. If direct text fails (e.g. error code 131047: window closed > 24 hours), fall back to Meta template
+        if (directData.error) {
+            console.warn('Direct message failed, attempting template fallback:', directData.error);
+
+            const templatePayload = {
+                messaging_product: 'whatsapp',
+                to: finalPhone,
+                type: 'template',
+                template: {
+                    name: 'solicitud_resena_cliente',
+                    language: { code: 'es_CL' },
+                    components: [{
+                        type: 'body',
+                        parameters: [
+                            { type: 'text', text: firstName },
+                            { type: 'text', text: reviewUrl }
+                        ]
+                    }]
+                }
+            };
+
+            let tRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
@@ -338,16 +351,36 @@ export async function sendReviewRequestTemplateAction(chatId: string) {
                 },
                 body: JSON.stringify(templatePayload)
             });
-            wData = await wRes.json();
-            console.log('WhatsApp review template response (es):', wData);
-        }
+            let tData = await tRes.json();
+            console.log('WhatsApp review template response (es_CL):', tData);
 
-        if (wData.error) {
-            return { success: false, error: `Meta API: ${wData.error.message}` };
+            // Retry with 'es' if es_CL fails
+            if (tData.error && (tData.error.code === 132001 || tData.error.error_subcode === 2494011)) {
+                templatePayload.template.language.code = 'es';
+                tRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(templatePayload)
+                });
+                tData = await tRes.json();
+                console.log('WhatsApp review template response (es):', tData);
+            }
+
+            if (tData.error) {
+                return {
+                    success: false,
+                    error: directData.error.code === 131047
+                        ? `La ventana de 24h está cerrada y la plantilla de Meta aún no está aprobada (${tData.error.message})`
+                        : `Meta API: ${directData.error.message || tData.error.message}`
+                };
+            }
         }
 
         // Record message in DB
-        const readableContent = `⭐ *Solicitud de Reseña en Google Enviada*\n\nHola ${firstName}, qué gusto saludarte. Esperamos que tu experiencia y la atención en nuestro taller hayan sido de tu completo agrado. ✨\n\nTu opinión es muy importante para nuestro equipo, ya que nos ayuda muchísimo a seguir mejorando y a que más personas nos conozcan en Vitacura.\n\n¿Nos regalarías un minuto para dejarnos tu valoración en Google? Puedes hacerlo directamente en este enlace:\n\n${reviewUrl}\n\n¡Muchísimas gracias por tu tiempo y por confiar en nosotras!\n\nElena La Costurera`;
+        const readableContent = `⭐ *Solicitud de Reseña en Google Enviada*\n\n${reviewMessageText}`;
 
         await Promise.all([
             adminClient.from('crm_whatsapp_messages').insert([{

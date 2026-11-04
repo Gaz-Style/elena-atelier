@@ -222,7 +222,7 @@ export default function LiveChatPage() {
     const handleSendReviewRequest = async () => {
         if (!selectedChat || sendingReview) return;
         const customerName = selectedChat.customers?.full_name?.split(' ')[0] || 'la clienta';
-        if (!confirm(`¿Enviar plantilla oficial de reseña de Google a ${customerName}?`)) return;
+        if (!confirm(`¿Enviar solicitud de reseña de Google a ${customerName}?`)) return;
 
         setSendingReview(true);
         try {
@@ -233,7 +233,7 @@ export default function LiveChatPage() {
                 scrollToBottom();
                 alert(`⭐ Solicitud de reseña enviada exitosamente a ${customerName}.`);
             } else {
-                alert(`No se pudo enviar la plantilla: ${res.error || 'Error desconocido'}`);
+                alert(`No se pudo enviar la reseña: ${res.error || 'Error desconocido'}`);
             }
         } catch (e: any) {
             alert(`Error: ${e.message}`);
