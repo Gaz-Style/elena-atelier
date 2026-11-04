@@ -1920,7 +1920,7 @@ export async function generateBridalPaymentLinksAction(projectId: string, cuotaI
             console.error('Error generating transbank link for bride:', e);
         }
 
-        return { success: true, mpLink, tbkLink, tbkToken, amount };
+        return { success: true, mpLink, tbkLink, tbkToken, amount, cuotaName };
     } catch (e: any) {
         console.error('Error generating payment links:', e);
         return { success: false, error: e.message };

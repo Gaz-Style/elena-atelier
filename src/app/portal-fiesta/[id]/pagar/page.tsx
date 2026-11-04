@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useEffect, useState, Suspense } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { CreditCard, Loader2, Lock, ArrowRight, Building, Copy, Check } from 'lucide-react';
 
-export default function PortalFiestaPagarPage() {
+function FiestaPagarContent() {
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const cuotaIndex = parseInt(searchParams.get('cuota') || '0', 10);
+
     const [loading, setLoading] = useState(true);
     const [errorMsg, setErrorMsg] = useState('');
     const [links, setLinks] = useState<any>(null);
@@ -14,14 +17,14 @@ export default function PortalFiestaPagarPage() {
 
     useEffect(() => {
         if (params?.id) {
-            loadLinks(params.id as string);
+            loadLinks(params.id as string, cuotaIndex);
         }
-    }, [params]);
+    }, [params, cuotaIndex]);
 
-    async function loadLinks(id: string) {
+    async function loadLinks(id: string, cuotaIdx: number) {
         try {
             const { generateBridalPaymentLinksAction } = await import('@/app/admin/novias/actions');
-            const res = await generateBridalPaymentLinksAction(id);
+            const res = await generateBridalPaymentLinksAction(id, cuotaIdx);
             if (res.success) {
                 setLinks(res);
             } else {
@@ -56,6 +59,14 @@ export default function PortalFiestaPagarPage() {
         );
     }
 
+    const displayTitle = cuotaIndex === 0
+        ? 'Pago de Reserva'
+        : (links?.cuotaName ? `Pago de ${links.cuotaName}` : `Pago de Cuota ${cuotaIndex + 1}`);
+
+    const displaySubtitle = cuotaIndex === 0
+        ? 'Abono para dar inicio al proyecto y asegurar tu cupo de producción.'
+        : `Abono correspondiente a la cuota ${cuotaIndex + 1} de tu vestido.`;
+
     return (
         <div className="min-h-screen bg-[#F3EFEA] font-sans text-[#4A4A4A] flex flex-col relative overflow-hidden" style={{ backgroundImage: "url('/novia/fondo_fiesta.webp')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundAttachment: 'fixed' }}>
             {/* Overlay and Elegant Background Glow */}
@@ -88,9 +99,9 @@ export default function PortalFiestaPagarPage() {
                     </div>
 
                     <div className="text-center mt-6 mb-10 border-b border-[#C17F5F]/20 pb-8">
-                        <h2 className="font-serif text-2xl text-[#1A1A1A] mb-3 tracking-wide">Pago de Reserva</h2>
+                        <h2 className="font-serif text-2xl text-[#1A1A1A] mb-3 tracking-wide">{displayTitle}</h2>
                         <p className="text-xs text-gray-600 font-light leading-relaxed">
-                            Abono para dar inicio al proyecto y asegurar tu cupo de producción.
+                            {displaySubtitle}
                         </p>
                     </div>
 
@@ -186,5 +197,17 @@ export default function PortalFiestaPagarPage() {
                 </div>
             </main>
         </div>
+    );
+}
+
+export default function PortalFiestaPagarPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#F8F6F0] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-[#C17F5F]" />
+            </div>
+        }>
+            <FiestaPagarContent />
+        </Suspense>
     );
 }
