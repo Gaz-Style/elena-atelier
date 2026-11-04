@@ -390,3 +390,22 @@ input, select, textarea {
   transform: translate3d(0, 0, 0);
   animation: marquee 55s linear infinite;
 }
+
+/* Custom scrollbar para chat textarea & popovers estilo WhatsApp */
+.custom-chat-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-chat-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-chat-scrollbar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 9999px;
+}
+.custom-chat-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+.custom-chat-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 transparent;
+}

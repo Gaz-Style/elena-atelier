@@ -31,6 +31,42 @@ export default function LiveChatPage() {
     const autoRevertRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    // Ajuste inteligente y automático de altura del textarea (estilo WhatsApp)
+    const adjustTextareaHeight = () => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        // Reset temporal para permitir que scrollHeight disminuya si se borra texto
+        textarea.style.height = 'auto';
+
+        if (!replyText) {
+            textarea.style.height = '32px';
+            textarea.style.overflowY = 'hidden';
+            return;
+        }
+
+        const scrollHeight = textarea.scrollHeight;
+        const maxHeight = 160; // Permite revisar cómodamente de 6 a 7 líneas completas
+        const minHeight = 32;
+
+        if (scrollHeight > maxHeight) {
+            textarea.style.height = `${maxHeight}px`;
+            textarea.style.overflowY = 'auto';
+        } else {
+            textarea.style.height = `${Math.max(scrollHeight, minHeight)}px`;
+            textarea.style.overflowY = 'hidden';
+        }
+    };
+
+    useEffect(() => {
+        adjustTextareaHeight();
+    }, [replyText, selectedChat?.id]);
+
+    useEffect(() => {
+        window.addEventListener('resize', adjustTextareaHeight);
+        return () => window.removeEventListener('resize', adjustTextareaHeight);
+    }, [replyText]);
+
     const AUTO_REVERT_SECS = 180; // 3 minutos
 
     const clearAutoRevert = () => {
@@ -152,6 +188,10 @@ export default function LiveChatPage() {
         if (!replyText.trim() || !selectedChat || sending) return;
         const txt = replyText;
         setReplyText('');
+        if (textareaRef.current) {
+            textareaRef.current.style.height = '32px';
+            textareaRef.current.style.overflowY = 'hidden';
+        }
         setSendError(null);
         setSending(true);
         
@@ -472,77 +512,82 @@ export default function LiveChatPage() {
                                 )}
                                 
                                 <div className="flex items-end gap-2 max-w-5xl mx-auto relative">
-                                {/* Emoji Picker Popover - outside overflow-hidden */}
-                                {showEmojiPicker && (
-                                    <div className="absolute bottom-[52px] left-0 bg-white rounded-xl shadow-xl border border-gray-200 p-3 z-50 w-[320px] max-h-[280px] overflow-y-auto">
-                                        {[
-                                            { label: 'Frecuentes', emojis: ['😊', '👍', '❤️', '🙏', '✨', '🎉', '💯', '🔥', '👏', '😍', '🥰', '💪'] },
-                                            { label: 'Caras', emojis: ['😀', '😃', '😄', '😁', '😆', '🥹', '😅', '🤣', '😂', '🙂', '😉', '😌', '😘', '🤔', '🤗', '😎', '🫡', '🤩'] },
-                                            { label: 'Gestos', emojis: ['👋', '🤝', '✌️', '🤞', '👌', '💅', '🫶', '🙌', '👀', '💬', '📸', '📌'] },
-                                            { label: 'Moda & Costura', emojis: ['🧵', '🪡', '✂️', '👗', '👔', '👖', '👠', '👜', '🎀', '💎', '🪭', '👰'] },
-                                            { label: 'Objetos', emojis: ['📅', '⏰', '📍', '📞', '💌', '🏷️', '💳', '🧾', '📦', '🚚', '⭐', '🌟'] },
-                                        ].map((cat) => (
-                                            <div key={cat.label} className="mb-2">
-                                                <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1 px-1">{cat.label}</p>
-                                                <div className="grid grid-cols-9 gap-0.5">
-                                                    {cat.emojis.map((emoji) => (
-                                                        <button
-                                                            key={emoji}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setReplyText(prev => prev + emoji);
-                                                                textareaRef.current?.focus();
-                                                            }}
-                                                            className="w-8 h-8 flex items-center justify-center text-xl hover:bg-gray-100 rounded transition-colors cursor-pointer"
-                                                        >
-                                                            {emoji}
-                                                        </button>
-                                                    ))}
+                                    {/* Emoji Picker Popover - positioned above the input box */}
+                                    {showEmojiPicker && (
+                                        <div className="absolute bottom-full mb-2.5 left-0 bg-white rounded-xl shadow-xl border border-gray-200 p-3 z-50 w-[320px] max-h-[280px] overflow-y-auto custom-chat-scrollbar">
+                                            {[
+                                                { label: 'Frecuentes', emojis: ['😊', '👍', '❤️', '🙏', '✨', '🎉', '💯', '🔥', '👏', '😍', '🥰', '💪'] },
+                                                { label: 'Caras', emojis: ['😀', '😃', '😄', '😁', '😆', '🥹', '😅', '🤣', '😂', '🙂', '😉', '😌', '😘', '🤔', '🤗', '😎', '🫡', '🤩'] },
+                                                { label: 'Gestos', emojis: ['👋', '🤝', '✌️', '🤞', '👌', '💅', '🫶', '🙌', '👀', '💬', '📸', '📌'] },
+                                                { label: 'Moda & Costura', emojis: ['🧵', '🪡', '✂️', '👗', '👔', '👖', '👠', '👜', '🎀', '💎', '🪭', '👰'] },
+                                                { label: 'Objetos', emojis: ['📅', '⏰', '📍', '📞', '💌', '🏷️', '💳', '🧾', '📦', '🚚', '⭐', '🌟'] },
+                                            ].map((cat) => (
+                                                <div key={cat.label} className="mb-2">
+                                                    <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1 px-1">{cat.label}</p>
+                                                    <div className="grid grid-cols-9 gap-0.5">
+                                                        {cat.emojis.map((emoji) => (
+                                                            <button
+                                                                key={emoji}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setReplyText(prev => prev + emoji);
+                                                                    textareaRef.current?.focus();
+                                                                }}
+                                                                className="w-8 h-8 flex items-center justify-center text-xl hover:bg-gray-100 rounded transition-colors cursor-pointer"
+                                                            >
+                                                                {emoji}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Cápsula de entrada estilo WhatsApp */}
+                                    <div className="flex-grow bg-white rounded-[22px] flex items-end px-2.5 py-1 min-h-[44px] border border-gray-200/80 shadow-sm focus-within:border-[#00a884]/60 focus-within:ring-1 focus-within:ring-[#00a884]/20 transition-all">
+                                        {/* Emoji Picker Button */}
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                            className={`p-1.5 mb-[2px] rounded-full transition-colors shrink-0 ${showEmojiPicker ? 'text-[#00a884] bg-emerald-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
+                                            title="Emojis"
+                                        >
+                                            <Smile className="w-6 h-6" />
+                                        </button>
+
+                                        <textarea
+                                            ref={textareaRef}
+                                            value={replyText}
+                                            onChange={(e) => { 
+                                                setReplyText(e.target.value); 
+                                                setSendError(null);
+                                                if (selectedChat?.id && selectedChat?.session_status !== 'bot') {
+                                                    startAutoRevert(selectedChat.id);
+                                                }
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' && !e.shiftKey) {
+                                                    e.preventDefault();
+                                                    handleSend();
+                                                }
+                                            }}
+                                            onFocus={() => setShowEmojiPicker(false)}
+                                            placeholder="Escribe un mensaje"
+                                            rows={1}
+                                            className="w-full py-1.5 px-2 text-[15px] leading-[22px] text-gray-800 placeholder:text-gray-400 bg-transparent outline-none resize-none custom-chat-scrollbar"
+                                            style={{ minHeight: '32px', maxHeight: '160px' }}
+                                        />
                                     </div>
-                                )}
-                                <div className="flex-grow bg-white rounded-3xl flex items-center px-2 min-h-[44px]">
-                                    {/* Emoji Picker Button */}
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                        className={`p-2 rounded-full transition-colors shrink-0 ${showEmojiPicker ? 'text-[#00a884]' : 'text-gray-500 hover:text-gray-700'}`}
-                                    >
-                                        <Smile className="w-6 h-6" />
-                                    </button>
 
-
-                                    <textarea
-                                        ref={textareaRef}
-                                        value={replyText}
-                                        onChange={(e) => { 
-                                            setReplyText(e.target.value); 
-                                            setSendError(null);
-                                            if (selectedChat?.id && selectedChat?.session_status !== 'bot') {
-                                                startAutoRevert(selectedChat.id);
-                                            }
-                                        }}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && !e.shiftKey) {
-                                                e.preventDefault();
-                                                handleSend();
-                                            }
-                                        }}
-                                        onFocus={() => setShowEmojiPicker(false)}
-                                        placeholder="Escribe un mensaje"
-                                        className="w-full py-3 text-[15px] bg-transparent outline-none resize-none max-h-[120px] scrollbar-hide flex items-center"
-                                        rows={1}
-                                        style={{ height: replyText.split('\n').length > 1 ? 'auto' : '44px' }}
-                                    />
-                                </div>
+                                    {/* Botón Enviar */}
                                     <button
                                         onClick={handleSend}
                                         disabled={!replyText.trim() || sending}
-                                        className="bg-[#00a884] text-white rounded-full w-[44px] h-[44px] flex items-center justify-center shrink-0 transition-transform active:scale-95 disabled:opacity-50"
+                                        className="bg-[#00a884] hover:bg-[#008f6f] text-white rounded-full w-[44px] h-[44px] flex items-center justify-center shrink-0 mb-[1px] shadow-sm transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                                        title="Enviar mensaje"
                                     >
-                                        {sending ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-5 h-5 ml-1" />}
+                                        {sending ? <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-5 h-5 ml-0.5" />}
                                     </button>
                                 </div>
                             </div>
