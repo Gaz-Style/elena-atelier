@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-    ArrowLeft, Heart, Crown, GraduationCap, Calendar, DollarSign, CheckCircle2,
+    ArrowLeft, Mail, MessageCircle, Heart, Crown, GraduationCap, Calendar, DollarSign, CheckCircle2,
     Clock, AlertCircle, FileText, Ruler, Camera, StickyNote, Loader2, Printer,
     ChevronDown, ChevronUp, X, Save, Trash2
 } from 'lucide-react';
@@ -240,13 +240,19 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     }
 
     async function handleSendWelcomeEmail() {
-        if (!confirm('¿Enviar correo de bienvenida a la clienta para que complete sus datos?')) return;
+        if (!confirm('¿Enviar propuesta y bienvenida a la clienta por Correo y WhatsApp?')) return;
         setSaving(true);
         const res = await sendBridalWelcomeEmailAction(projectId);
         if (!res.success) {
-            alert('Error al enviar correo: ' + res.error);
+            alert('Error al enviar: ' + (res.error || 'Desconocido'));
         } else {
-            alert('Correo enviado exitosamente.');
+            if ((res as any).whatsappSent) {
+                alert('✨ Correo y WhatsApp enviados exitosamente a la clienta.');
+            } else if ((res as any).customerPhone) {
+                alert('📧 Correo enviado y registrado en LiveChat.\nℹ️ WhatsApp procesado con la API oficial.');
+            } else {
+                alert('📧 Correo enviado exitosamente (La clienta no tiene teléfono registrado para WhatsApp).');
+            }
         }
         await loadProject(projectId);
         setSaving(false);
@@ -391,14 +397,29 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                                     </div>
                                     <p className="text-zinc-500 text-sm">{serviceTypeLabel[project.service_type]} · {typeConfig.label}</p>
                                     {project.description && <p className="text-zinc-400 text-xs mt-1 italic">"{project.description}"</p>}
-                                    <div className="flex flex-wrap gap-2 mt-3">
+                                    <div className="flex flex-wrap items-center gap-2 mt-3">
                                         <button
                                             onClick={handleSendWelcomeEmail}
                                             disabled={saving}
-                                            className="text-[10px] uppercase tracking-widest font-bold bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-zinc-300"
+                                            className="text-[10px] uppercase tracking-widest font-bold bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-lg transition-colors disabled:bg-zinc-300 flex items-center gap-1.5 shadow-sm"
+                                            title="Envía el correo de bienvenida y la plantilla oficial por WhatsApp a la clienta"
                                         >
-                                            Enviar Correo de Bienvenida y Video
+                                            <Mail className="w-3.5 h-3.5 text-[#C17F5F]" />
+                                            Enviar Bienvenida (Correo + WhatsApp)
                                         </button>
+
+                                        {project.customers?.phone && (
+                                            <a
+                                                href={`https://wa.me/${project.customers.phone.replace(/\D/g, '').startsWith('56') ? project.customers.phone.replace(/\D/g, '') : '56' + project.customers.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${project.customers?.full_name?.split(' ')[0] || ''}, gusto en saludarte. Ya hemos generado la propuesta y presupuesto para tu vestido, y puedes revisarlo directamente en el siguiente enlace:\n\nhttps://www.elenalacosturera.cl/${project.project_type === 'madrina' || project.project_type === 'graduacion' ? 'portal-fiesta' : 'portal-novias'}/${project.id}/induccion\n\nEn este portal encontrarás todos los detalles de la prenda, el cronograma de fechas de prueba y el botón de pago integrado para abonar tu 50% en línea (vía Webpay con tarjeta de débito o crédito).\n\nRecuerda que para asegurar tu cupo e iniciar el trabajo en el taller lo antes posible, se requiere dicho abono del 50%.\n\nCualquier duda, quedamos a tu completa disposición. ¡Que tengas un excelente día!\n\nUn cordial saludo,\nElena La Costurera`)}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-[10px] uppercase tracking-widest font-bold bg-[#00a884] hover:bg-[#008f6f] text-white px-3.5 py-2 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+                                                title="Abrir chat directo en WhatsApp Web o celular"
+                                            >
+                                                <MessageCircle className="w-3.5 h-3.5" />
+                                                Abrir WhatsApp Directo
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             </div>

@@ -901,7 +901,7 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
     try {
         const supabase = getAdminClient();
         const { data: project } = await supabase.from('bridal_projects')
-            .select('*, customers(email, full_name)')
+            .select('*, customers(email, full_name, phone)')
             .eq('id', projectId).single();
             
         if (!project || !project.customers?.email) throw new Error('Proyecto o correo no encontrado');
@@ -1114,10 +1114,91 @@ export async function sendBridalWelcomeEmailAction(projectId: string) {
             attachments
         });
 
-        // Update project status to indicate email sent
+        // 2. ENVÍO DE WHATSAPP OFICIAL (Plantilla presupuesto_alta_costura)
+        const customerPhone = project.customers?.phone;
+        const customerFirstName = customerName.split(' ')[0] || customerName;
+        let whatsappSent = false;
+        let whatsappError: string | null = null;
+
+        if (customerPhone) {
+            const cleanDigits = customerPhone.replace(/\D/g, '');
+            const finalPhone = cleanDigits.startsWith('56') ? cleanDigits : `56${cleanDigits}`;
+
+            const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
+            const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+            if (WHATSAPP_API_TOKEN && PHONE_NUMBER_ID && finalPhone.length >= 9) {
+                const templatePayload = {
+                    messaging_product: 'whatsapp',
+                    to: finalPhone,
+                    type: 'template',
+                    template: {
+                        name: 'presupuesto_alta_costura',
+                        language: { code: 'es_CL' },
+                        components: [
+                            {
+                                type: 'body',
+                                parameters: [
+                                    { type: 'text', text: customerFirstName },
+                                    { type: 'text', text: portalLink }
+                                ]
+                            }
+                        ]
+                    }
+                };
+
+                try {
+                    let wRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(templatePayload)
+                    });
+                    let wData = await wRes.json();
+                    console.log('[WhatsApp Presupuesto Alta Costura (es_CL)]:', wData);
+
+                    // Si Meta reporta que la plantilla no existe en es_CL (código 132001), reintentar con 'es'
+                    if (wData.error && (wData.error.code === 132001 || wData.error.error_subcode === 2494011)) {
+                        templatePayload.template.language.code = 'es';
+                        wRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(templatePayload)
+                        });
+                        wData = await wRes.json();
+                        console.log('[WhatsApp Presupuesto Alta Costura (es)]:', wData);
+                    }
+
+                    if (wData.messages && wData.messages.length > 0) {
+                        whatsappSent = true;
+                    } else if (wData.error) {
+                        whatsappError = wData.error.message;
+                    }
+                } catch (wErr: any) {
+                    console.error('Error al enviar plantilla WhatsApp a clienta:', wErr);
+                    whatsappError = wErr.message;
+                }
+
+                // 3. Registrar el mensaje en la bandeja de LiveChat para visibilidad del taller
+                try {
+                    const { registrarNotificacionEnLiveChat } = await import('@/lib/notifications');
+                    const wspMensajeVisible = `Hola ${customerFirstName}, gusto en saludarte. Ya hemos generado la propuesta y presupuesto para tu vestido, y puedes revisarlo directamente en el siguiente enlace:\n\n${portalLink}\n\nEn este portal encontrarás todos los detalles de la prenda, el cronograma de fechas de prueba y el botón de pago integrado para abonar tu 50% en línea (vía Webpay con tarjeta de débito o crédito).\n\nRecuerda que para asegurar tu cupo e iniciar el trabajo en el taller lo antes posible, se requiere dicho abono del 50%.\n\nCualquier duda, quedamos a tu completa disposición. ¡Que tengas un excelente día!\n\nUn cordial saludo,\nElena La Costurera`;
+                    await registrarNotificacionEnLiveChat(finalPhone, 'Presupuesto Alta Costura Enviado', wspMensajeVisible);
+                } catch (errLive) {
+                    console.error('Error al registrar mensaje en LiveChat:', errLive);
+                }
+            }
+        }
+
+        // Update project status to indicate email and whatsapp sent
         await supabase.from('bridal_projects').update({ status: 'consulta' }).eq('id', projectId);
         revalidatePath('/admin/novias');
-        return { success: true };
+        return { success: true, emailSent: true, whatsappSent, customerPhone, whatsappError };
     } catch (e: any) {
         console.error('Error sending welcome email:', e);
         return { success: false, error: e.message };
@@ -1128,7 +1209,7 @@ export async function sendBridalInductionEmailAction(projectId: string) {
     try {
         const supabase = getAdminClient();
         const { data: project } = await supabase.from('bridal_projects')
-            .select('*, customers(email, full_name)')
+            .select('*, customers(email, full_name, phone)')
             .eq('id', projectId).single();
             
         if (!project || !project.customers?.email) throw new Error('Proyecto o correo no encontrado');
@@ -1302,7 +1383,7 @@ export async function sendBridalContractEmailAction(projectId: string) {
     try {
         const supabase = getAdminClient();
         const { data: project } = await supabase.from('bridal_projects')
-            .select('*, customers(email, full_name)')
+            .select('*, customers(email, full_name, phone)')
             .eq('id', projectId).single();
             
         if (!project || !project.customers?.email) throw new Error('Proyecto no encontrado');
@@ -1412,7 +1493,7 @@ export async function sendBridalThankYouEmailAction(projectId: string) {
     try {
         const supabase = getAdminClient();
         const { data: project } = await supabase.from('bridal_projects')
-            .select('*, customers(email, full_name)')
+            .select('*, customers(email, full_name, phone)')
             .eq('id', projectId).single();
             
         if (!project || !project.customers?.email) throw new Error('Proyecto no encontrado');
@@ -1482,7 +1563,7 @@ export async function sendBridalPaymentConfirmationEmailAction(projectId: string
     try {
         const supabase = getAdminClient();
         const { data: project } = await supabase.from('bridal_projects')
-            .select('*, customers(email, full_name)')
+            .select('*, customers(email, full_name, phone)')
             .eq('id', projectId).single();
             
         if (!project || !project.customers?.email) throw new Error('Proyecto no encontrado');
