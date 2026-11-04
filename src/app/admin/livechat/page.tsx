@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Send, Bot, User, Phone, CheckCircle, Search, ToggleLeft, ToggleRight, MessageSquare, ArrowLeft as ArrowLeftMobile, Smile, X } from 'lucide-react';
-import { getWhatsAppChatsAction, getWhatsAppMessagesAction, sendWhatsAppMessageAction, toggleBotSessionAction } from './actions';
+import { ArrowLeft, Send, Bot, User, Phone, CheckCircle, Search, ToggleLeft, ToggleRight, MessageSquare, ArrowLeft as ArrowLeftMobile, Smile, X, Star } from 'lucide-react';
+import { getWhatsAppChatsAction, getWhatsAppMessagesAction, sendWhatsAppMessageAction, toggleBotSessionAction, sendReviewRequestTemplateAction } from './actions';
 
 // Icono simple de WhatsApp (Omnicanal)
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -19,6 +19,7 @@ export default function LiveChatPage() {
     const [replyText, setReplyText] = useState('');
     const [loading, setLoading] = useState(true);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [sendingReview, setSendingReview] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [sending, setSending] = useState(false);
@@ -217,6 +218,30 @@ export default function LiveChatPage() {
         }
     };
 
+
+    const handleSendReviewRequest = async () => {
+        if (!selectedChat || sendingReview) return;
+        const customerName = selectedChat.customers?.full_name?.split(' ')[0] || 'la clienta';
+        if (!confirm(`¿Enviar plantilla oficial de reseña de Google a ${customerName}?`)) return;
+
+        setSendingReview(true);
+        try {
+            const res = await sendReviewRequestTemplateAction(selectedChat.id);
+            if (res.success) {
+                const msgs = await getWhatsAppMessagesAction(selectedChat.id);
+                setMessages(msgs);
+                scrollToBottom();
+                alert(`⭐ Solicitud de reseña enviada exitosamente a ${customerName}.`);
+            } else {
+                alert(`No se pudo enviar la plantilla: ${res.error || 'Error desconocido'}`);
+            }
+        } catch (e: any) {
+            alert(`Error: ${e.message}`);
+        } finally {
+            setSendingReview(false);
+        }
+    };
+
     const toggleBot = async () => {
         if (!selectedChat) return;
         const newStatus = selectedChat.session_status === 'bot' ? false : true;
@@ -376,7 +401,20 @@ export default function LiveChatPage() {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-3 pr-2">
+                                <div className="flex items-center gap-2 sm:gap-3 pr-2">
+                                    <button 
+                                        onClick={handleSendReviewRequest}
+                                        disabled={sendingReview}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 shadow-sm disabled:opacity-50 active:scale-95"
+                                        title="Enviar plantilla oficial por WhatsApp para solicitar reseña en Google"
+                                    >
+                                        {sendingReview ? (
+                                            <span className="w-3.5 h-3.5 border-2 border-amber-700/30 border-t-amber-800 rounded-full animate-spin" />
+                                        ) : (
+                                            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                                        )}
+                                        <span className="hidden sm:inline">Pedir Reseña</span>
+                                    </button>
                                     {selectedChat.session_status !== 'bot' && autoRevertSeconds !== null && (
                                         <span className="hidden sm:inline-block text-[12px] text-orange-800 bg-orange-100 px-3 py-1 rounded-full font-medium animate-pulse">
                                             Reanuda IA en {autoRevertSeconds}s

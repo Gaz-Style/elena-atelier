@@ -260,3 +260,111 @@ export async function sendWhatsAppTemplateAction(chatId: string, templateName: s
 }
 
 
+
+export async function sendReviewRequestTemplateAction(chatId: string) {
+    const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
+    const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+    if (!WHATSAPP_API_TOKEN || !PHONE_NUMBER_ID) {
+        return { success: false, error: 'Configuración de WhatsApp incompleta (Falta Token o ID de teléfono)' };
+    }
+
+    try {
+        const { createClient: createAdminClient } = await import('@supabase/supabase-js');
+        const adminClient = createAdminClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
+        // Fetch chat with customer info
+        const { data: chatData, error: chatErr } = await adminClient
+            .from('crm_whatsapp_chats')
+            .select('*, customers(full_name, phone)')
+            .eq('id', chatId)
+            .single();
+
+        if (chatErr || !chatData) {
+            return { success: false, error: 'Chat no encontrado' };
+        }
+
+        const rawPhone = chatData.phone_number || chatData.customers?.phone;
+        if (!rawPhone) {
+            return { success: false, error: 'No se encontró número de teléfono para este chat' };
+        }
+
+        const cleanDigits = rawPhone.replace(/\D/g, '');
+        const finalPhone = cleanDigits.startsWith('56') ? cleanDigits : `56${cleanDigits}`;
+
+        const fullName = chatData.customers?.full_name || '';
+        const firstName = fullName ? fullName.split(' ')[0] : 'Estimada clienta';
+        const reviewUrl = 'https://www.elenalacosturera.cl/opiniones';
+
+        const templatePayload = {
+            messaging_product: 'whatsapp',
+            to: finalPhone,
+            type: 'template',
+            template: {
+                name: 'solicitud_resena_cliente',
+                language: { code: 'es_CL' },
+                components: [{
+                    type: 'body',
+                    parameters: [
+                        { type: 'text', text: firstName },
+                        { type: 'text', text: reviewUrl }
+                    ]
+                }]
+            }
+        };
+
+        let wRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(templatePayload)
+        });
+        let wData = await wRes.json();
+        console.log('WhatsApp review template response (es_CL):', wData);
+
+        // Retry with 'es' if es_CL fails
+        if (wData.error && (wData.error.code === 132001 || wData.error.error_subcode === 2494011)) {
+            templatePayload.template.language.code = 'es';
+            wRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(templatePayload)
+            });
+            wData = await wRes.json();
+            console.log('WhatsApp review template response (es):', wData);
+        }
+
+        if (wData.error) {
+            return { success: false, error: `Meta API: ${wData.error.message}` };
+        }
+
+        // Record message in DB
+        const readableContent = `⭐ *Solicitud de Reseña en Google Enviada*\n\nHola ${firstName}, qué gusto saludarte. Esperamos que tu experiencia y la atención en nuestro taller hayan sido de tu completo agrado. ✨\n\nTu opinión es muy importante para nuestro equipo, ya que nos ayuda muchísimo a seguir mejorando y a que más personas nos conozcan en Vitacura.\n\n¿Nos regalarías un minuto para dejarnos tu valoración en Google? Puedes hacerlo directamente en este enlace:\n\n${reviewUrl}\n\n¡Muchísimas gracias por tu tiempo y por confiar en nosotras!\n\nElena La Costurera`;
+
+        await Promise.all([
+            adminClient.from('crm_whatsapp_messages').insert([{
+                chat_id: chatId,
+                sender_type: 'human',
+                message_type: 'text',
+                content: readableContent
+            }]),
+            adminClient.from('crm_whatsapp_chats').update({
+                session_status: 'human_handoff',
+                last_interaction: new Date().toISOString()
+            }).eq('id', chatId)
+        ]);
+
+        return { success: true };
+    } catch (e: any) {
+        console.error('Error sending review request template:', e);
+        return { success: false, error: e.message };
+    }
+}
