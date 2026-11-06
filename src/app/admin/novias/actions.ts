@@ -2429,7 +2429,6 @@ export async function registerBridalInstallment(projectId: string, installmentIn
 
     return { success: true };
 }
-}
 
 export async function updatePaymentPlanAction(projectId: string, paymentPlanJson: string) {
     const supabase = getAdminClient();
