@@ -82,15 +82,26 @@ async function handleWebpayCallback(request: NextRequest) {
                         process.env.NEXT_PUBLIC_SUPABASE_URL!,
                         process.env.SUPABASE_SERVICE_ROLE_KEY!
                     );
-                    const { data: project } = await supabase
-                        .from('bridal_projects')
-                        .select('id')
-                        .or(`id.eq.${rawId},id.like.${rawId}%`)
-                        .maybeSingle();
+
+                    let project = null;
+                    if (rawId.length === 36) {
+                        const { data: p } = await supabase.from('bridal_projects').select('id, project_type').eq('id', rawId).maybeSingle();
+                        project = p;
+                    } else if (/^[0-9a-fA-F]{8}$/.test(rawId)) {
+                        const { data: p } = await supabase.from('bridal_projects').select('id, project_type')
+                            .gte('id', `${rawId}-0000-0000-0000-000000000000`)
+                            .lte('id', `${rawId}-ffff-ffff-ffff-ffffffffffff`)
+                            .maybeSingle();
+                        project = p;
+                    } else {
+                        const { data: list } = await supabase.from('bridal_projects').select('id, project_type').limit(100);
+                        project = list?.find(p => p.id.toLowerCase().startsWith(rawId.toLowerCase())) || null;
+                    }
 
                     if (project?.id) {
+                        const portalFolder = project.project_type === 'novia' ? 'portal-novias' : 'portal-fiesta';
                         return NextResponse.redirect(
-                            `${baseUrl}/portal-novias/${project.id}/pago-exitoso`,
+                            `${baseUrl}/${portalFolder}/${project.id}/pago-exitoso`,
                             { status: 303 }
                         );
                     }

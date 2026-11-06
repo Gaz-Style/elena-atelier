@@ -54,12 +54,21 @@ export async function commitWebpayTransaction(token: string) {
                         const rawId = parts[0].replace('BRDL_', '').replace('bridal_', '');
                         cuotaIndex = parseInt(parts[1], 10) || 0;
 
-                        // Buscar el proyecto por ID corto o UUID completo
-                        const { data: project } = await supabase
-                            .from('bridal_projects')
-                            .select('id')
-                            .or(`id.eq.${rawId},id.like.${rawId}%`)
-                            .maybeSingle();
+                        // Buscar el proyecto por ID corto o UUID completo (compatible con tipo UUID en Postgres)
+                        let project = null;
+                        if (rawId.length === 36) {
+                            const { data: p } = await supabase.from('bridal_projects').select('id').eq('id', rawId).maybeSingle();
+                            project = p;
+                        } else if (/^[0-9a-fA-F]{8}$/.test(rawId)) {
+                            const { data: p } = await supabase.from('bridal_projects').select('id')
+                                .gte('id', `${rawId}-0000-0000-0000-000000000000`)
+                                .lte('id', `${rawId}-ffff-ffff-ffff-ffffffffffff`)
+                                .maybeSingle();
+                            project = p;
+                        } else {
+                            const { data: list } = await supabase.from('bridal_projects').select('id').limit(100);
+                            project = list?.find(p => p.id.toLowerCase().startsWith(rawId.toLowerCase())) || null;
+                        }
 
                         if (project) projectId = project.id;
                     }

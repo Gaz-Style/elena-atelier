@@ -1778,6 +1778,72 @@ export async function sendBridalPaymentConfirmationEmailAction(projectId: string
             attachments
         });
 
+        // Notificación de WhatsApp a la Clienta
+        const customerPhone = project.customers?.phone;
+        if (customerPhone) {
+            try {
+                const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+                const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
+                if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
+                    const cleanPhone = customerPhone.replace(/\D/g, '');
+                    const finalPhone = cleanPhone.startsWith('56') ? cleanPhone : `56${cleanPhone}`;
+                    const prenda = project.project_type || 'Vestido';
+                    
+                    const clientPayload = {
+                        messaging_product: 'whatsapp',
+                        to: finalPhone,
+                        type: 'template',
+                        template: {
+                            name: 'confirmacion_pago_cliente',
+                            language: { code: 'es_CL' },
+                            components: [{
+                                type: 'body',
+                                parameters: [
+                                    { type: 'text', text: customerName },
+                                    { type: 'text', text: `${prenda} (${cuotaName})` },
+                                    { type: 'text', text: formattedAmount },
+                                    { type: 'text', text: `BRDL_${projectId.substring(0,8)}` },
+                                    { type: 'text', text: paymentMethod }
+                                ]
+                            }]
+                        }
+                    };
+
+                    let cRes = await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify(clientPayload)
+                    });
+                    let cData = await cRes.json();
+                    if (cData.error && (cData.error.code === 132001 || cData.error.error_subcode === 2494011)) {
+                        clientPayload.template.language.code = 'es';
+                        cRes = await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify(clientPayload)
+                        });
+                        cData = await cRes.json();
+                    }
+
+                    if (cRes.ok) {
+                        try {
+                            const { data: chatData } = await supabase.from('crm_whatsapp_chats').select('id').eq('phone_number', finalPhone).maybeSingle();
+                            if (chatData?.id) {
+                                await supabase.from('crm_whatsapp_messages').insert([{
+                                    chat_id: chatData.id,
+                                    sender_type: 'bot',
+                                    message_type: 'text',
+                                    content: `[Sistema] ${paymentMethod}: Se envió la plantilla confirmacion_pago_cliente a la clienta por ${cuotaName} (${formattedAmount}).`
+                                }]);
+                            }
+                        } catch (logErr) {}
+                    }
+                }
+            } catch (wErr) {
+                console.error('Error enviando confirmación WhatsApp a clienta (Portal Novias):', wErr);
+            }
+        }
+
         // Notificación de WhatsApp a Dueñas (Portal Novias)
         try {
             const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
@@ -1791,32 +1857,46 @@ export async function sendBridalPaymentConfirmationEmailAction(projectId: string
                         })
                         .catch(err => console.error('Error registrando alerta novias en LiveChat:', err));
 
-                    await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+                    const ownerPayload = {
+                        messaging_product: 'whatsapp',
+                        to: ownerNum,
+                        type: 'template',
+                        template: {
+                            name: 'alerta_pago_recibido',
+                            language: { code: 'es_CL' },
+                            components: [{
+                                type: 'body',
+                                parameters: [
+                                    { type: 'text', text: customerName },
+                                    { type: 'text', text: `${prenda} (${cuotaName})` },
+                                    { type: 'text', text: formattedAmount },
+                                    { type: 'text', text: projectId.substring(0,8) },
+                                    { type: 'text', text: paymentMethod }
+                                ]
+                            }]
+                        }
+                    };
+
+                    let oRes = await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({
-                            messaging_product: 'whatsapp',
-                            to: ownerNum,
-                            type: 'template',
-                            template: {
-                                name: 'alerta_pago_recibido',
-                                language: { code: 'en' },
-                                components: [{
-                                    type: 'body',
-                                    parameters: [
-                                        { type: 'text', text: customerName },
-                                        { type: 'text', text: `${prenda} (${cuotaName})` },
-                                        { type: 'text', text: formattedAmount },
-                                        { type: 'text', text: projectId.substring(0,8) },
-                                        { type: 'text', text: paymentMethod }
-                                    ]
-                                }]
-                            }
-                        })
+                        body: JSON.stringify(ownerPayload)
                     });
+                    let oData = await oRes.json();
+                    if (oData.error && (oData.error.code === 132001 || oData.error.error_subcode === 2494011)) {
+                        ownerPayload.template.language.code = 'es';
+                        await fetch(`https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(ownerPayload)
+                        });
+                    }
                 }
             }
         } catch (wspErr) {
@@ -2241,6 +2321,7 @@ export async function deleteBridalInspiration(projectId: string, inspirationId: 
 
 export async function registerBridalInstallment(projectId: string, installmentIndex: number, paymentMethod: string = 'Efectivo/Transferencia', shouldNotify: boolean = true) {
     const supabase = getAdminClient();
+    const nowIso = new Date().toISOString();
     
     // 1. Fetch work_order
     const { data: woData } = await supabase
@@ -2248,67 +2329,70 @@ export async function registerBridalInstallment(projectId: string, installmentIn
         .select('*')
         .eq('legacy_bridal_project_id', projectId)
         .maybeSingle();
-        
-    if (!woData || !woData.payment_plan || !woData.payment_plan.cuotas) {
-        return { success: false, error: 'Plan de pagos no encontrado' };
+
+    let amount = 0;
+    let customerId = woData?.customer_id || '';
+    
+    if (woData && woData.payment_plan && woData.payment_plan.cuotas) {
+        const plan = woData.payment_plan;
+        const cuota = plan.cuotas[installmentIndex];
+        if (cuota) {
+            cuota.status = 'paid';
+            cuota.fecha = nowIso;
+            amount = cuota.amount || cuota.monto || 0;
+            
+            // Recalculate total paid
+            const newPaidAmount = plan.cuotas
+                .filter((c: any) => c.status === 'paid')
+                .reduce((acc: number, curr: any) => acc + (curr.amount || curr.monto || 0), 0);
+                
+            let newPaymentStatus = 'pending';
+            if (newPaidAmount >= (woData.total_amount || 0) && (woData.total_amount || 0) > 0) newPaymentStatus = 'paid';
+            else if (newPaidAmount > 0) newPaymentStatus = 'partial';
+            
+            // Update work_order
+            await supabase
+                .from('work_orders')
+                .update({
+                    payment_plan: plan,
+                    paid_amount: newPaidAmount,
+                    payment_status: newPaymentStatus,
+                    updated_at: nowIso
+                })
+                .eq('legacy_bridal_project_id', projectId);
+        }
     }
     
-    const plan = woData.payment_plan;
-    const cuota = plan.cuotas[installmentIndex];
-    if (!cuota) return { success: false, error: 'Cuota no encontrada' };
-    
-    cuota.status = 'paid';
-    cuota.fecha = new Date().toISOString();
-    
-    // Recalculate total paid
-    const newPaidAmount = plan.cuotas
-        .filter((c: any) => c.status === 'paid')
-        .reduce((acc: number, curr: any) => acc + (curr.amount || curr.monto || 0), 0);
-        
-    let newPaymentStatus = 'pending';
-    if (newPaidAmount >= (woData.total_amount || 0) && (woData.total_amount || 0) > 0) newPaymentStatus = 'paid';
-    else if (newPaidAmount > 0) newPaymentStatus = 'partial';
-    
-    // Update work_order
-    const { error: woError } = await supabase
-        .from('work_orders')
-        .update({
-            payment_plan: plan,
-            paid_amount: newPaidAmount,
-            payment_status: newPaymentStatus,
-            updated_at: new Date().toISOString()
-        })
-        .eq('legacy_bridal_project_id', projectId);
-        
-    if (woError) return { success: false, error: woError.message };
-    
     // 2. Dual write/update bridal_projects status
+    const { data: projData } = await supabase.from('bridal_projects').select('*').eq('id', projectId).single();
+    if (!projData) return { success: false, error: 'Proyecto no encontrado' };
+
+    if (!amount) {
+        amount = installmentIndex === 0 ? projData.payment_1_amount : installmentIndex === 1 ? projData.payment_2_amount : projData.payment_3_amount;
+    }
+    if (!customerId) customerId = projData.customer_id;
+
     const updates: Record<string, any> = {
-        updated_at: new Date().toISOString()
+        updated_at: nowIso
     };
     
     // If it's the first installment, mark as en_proceso
     if (installmentIndex === 0) {
         updates.status = 'en_proceso';
-    }
-    
-    // Sync payment_1, 2, 3 columns if they exist in standard positions
-    if (installmentIndex === 0) {
         updates.payment_1_status = 'paid';
-        updates.payment_1_date = cuota.fecha;
+        updates.payment_1_date = nowIso;
     } else if (installmentIndex === 1) {
         updates.payment_2_status = 'paid';
-        updates.payment_2_date = cuota.fecha;
-    } else if (installmentIndex === 2 && plan.cuotas.length === 3) {
+        updates.payment_2_date = nowIso;
+    } else if (installmentIndex === 2) {
         updates.payment_3_status = 'paid';
-        updates.payment_3_date = cuota.fecha;
+        updates.payment_3_date = nowIso;
     }
     
     await supabase.from('bridal_projects').update(updates).eq('id', projectId);
     
     // 3. Register in sales_ledger
     const ledgerId = `bridal_${projectId}_custom_p${installmentIndex + 1}`;
-    const amount = cuota.amount || cuota.monto || 0;
     
     const { data: existingLedger } = await supabase
         .from('sales_ledger')
@@ -2321,7 +2405,7 @@ export async function registerBridalInstallment(projectId: string, installmentIn
             .from('sales_ledger')
             .insert([{
                 internal_id: ledgerId,
-                customer_id: woData.customer_id,
+                customer_id: customerId,
                 total_amount: amount,
                 paid_amount: amount,
                 status: 'completed',
@@ -2331,17 +2415,20 @@ export async function registerBridalInstallment(projectId: string, installmentIn
     }
     
     revalidatePath(`/admin/novias/${projectId}`);
+    revalidatePath(`/portal-novias/${projectId}`);
+    revalidatePath(`/portal-fiesta/${projectId}`);
     
-    // Trigger email payment confirmation receipt
+    // Trigger email and WhatsApp payment confirmation receipt
     if (shouldNotify) {
         try {
             await sendBridalPaymentConfirmationEmailAction(projectId, installmentIndex, amount, paymentMethod);
         } catch (mailErr) {
-            console.error('Error automatically sending payment confirmation email in registerBridalInstallment:', mailErr);
+            console.error('Error automatically sending payment confirmation in registerBridalInstallment:', mailErr);
         }
     }
 
     return { success: true };
+}
 }
 
 export async function updatePaymentPlanAction(projectId: string, paymentPlanJson: string) {
