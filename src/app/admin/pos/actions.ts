@@ -1738,6 +1738,35 @@ export async function getSaleToPayAction(saleIdOrInternalId: string) {
 
     const { data: sale, error } = await query.maybeSingle();
     if (error || !sale) return null;
+
+    // Sincronizar paid_amount real si existen pagos de saldo o registros en producción
+    if (sale.internal_id) {
+        const baseOrderId = sale.internal_id.split('_balance_')[0];
+        
+        const { data: balancePayments } = await supabase
+            .from('sales_ledger')
+            .select('paid_amount, total_amount')
+            .like('internal_id', `${baseOrderId}_balance_%`)
+            .eq('status', 'completed');
+
+        let accumulatedPaid = Number(sale.paid_amount) || 0;
+        if (balancePayments && balancePayments.length > 0) {
+            const sumBalances = balancePayments.reduce((acc: number, b: any) => acc + (Number(b.paid_amount) || Number(b.total_amount) || 0), 0);
+            accumulatedPaid = Math.max(accumulatedPaid, sumBalances);
+        }
+
+        const { data: prodOrders } = await supabase
+            .from('production_orders')
+            .select('paid_amount')
+            .eq('pos_order_id', baseOrderId)
+            .limit(1);
+        if (prodOrders && prodOrders.length > 0 && Number(prodOrders[0].paid_amount) > accumulatedPaid) {
+            accumulatedPaid = Number(prodOrders[0].paid_amount);
+        }
+
+        sale.paid_amount = accumulatedPaid;
+    }
+
     return sale as any;
 }
 
