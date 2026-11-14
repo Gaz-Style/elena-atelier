@@ -43,10 +43,19 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const resolvedParams = await params;
-    const comuna = formatTitle(resolvedParams.comuna);
+    const slug = resolvedParams.comuna;
+    const comuna = formatTitle(slug);
 
-    const title = `Costurera & Modista en ${comuna} | Arreglos de Ropa | ELENA`;
-    const description = `Servicio de costurera y modista profesional en ${comuna}. Arreglos de ropa, vestidos, sastrería y calce perfecto con retiro a domicilio. Agenda tu cita en línea.`;
+    let title = `Costurera & Modista en ${comuna} | Arreglos de Ropa | ELENA`;
+    let description = `Servicio de costurera y modista profesional en ${comuna}. Arreglos de ropa, vestidos, sastrería y calce perfecto con retiro a domicilio. Agenda tu cita en línea.`;
+
+    if (slug === 'las-condes') {
+        title = `Costurera & Sastrería Las Condes | Arreglos Finos en Tabancura | Elena`;
+        description = `¿Arreglos de ropa o bastas en Las Condes? Atelier en Av. Tabancura 1091 (Of. 319) con estacionamiento. Calce anatómico, vestidos y sastrería. Cotiza por WhatsApp.`;
+    } else if (slug === 'lo-barnechea' || slug === 'la-dehesa' || slug === 'los-trapenses') {
+        title = `Costurera & Sastrería ${comuna} | Arreglos a 3 min en Tabancura | Elena`;
+        description = `Arreglos de ropa, bastas y sastrería a 3 min de La Dehesa por Costanera Norte. Atelier en Tabancura 1091 con estacionamiento o retiro a domicilio en ${comuna}.`;
+    }
 
     return {
         title,
@@ -271,6 +280,18 @@ export default async function CosturasComunaPage({ params }: Props) {
                     </div>
 
                     <div className="max-w-4xl mx-auto text-center relative z-10">
+                        {(resolvedParams.comuna === 'lo-barnechea' || resolvedParams.comuna === 'la-dehesa' || resolvedParams.comuna === 'los-trapenses') && (
+                            <div className="inline-flex items-center gap-2 bg-[#C17F5F]/20 border border-[#C17F5F]/50 px-4 py-2 rounded-full text-xs text-[#E29D7A] font-medium mb-4 backdrop-blur-md shadow-lg">
+                                <MapPin className="w-3.5 h-3.5 text-[#C17F5F] shrink-0" />
+                                <span>A solo 3 minutos de La Dehesa por Costanera Norte · Tabancura 1091 (Estacionamiento)</span>
+                            </div>
+                        )}
+                        {resolvedParams.comuna === 'las-condes' && (
+                            <div className="inline-flex items-center gap-2 bg-[#C17F5F]/20 border border-[#C17F5F]/50 px-4 py-2 rounded-full text-xs text-[#E29D7A] font-medium mb-4 backdrop-blur-md shadow-lg">
+                                <MapPin className="w-3.5 h-3.5 text-[#C17F5F] shrink-0" />
+                                <span>Atelier limítrofe en Av. Tabancura 1091 (Of. 319) · Estacionamiento para clientes</span>
+                            </div>
+                        )}
                         <p className="inline-flex items-center gap-2 text-xs text-[#C17F5F] uppercase tracking-widest font-bold mb-6 sm:mb-8 md:mb-10 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                             <MapPin className="w-3.5 h-3.5" /> Servicio y retiro a domicilio en {comuna}
                         </p>

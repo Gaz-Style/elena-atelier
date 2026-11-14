@@ -37,16 +37,23 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const resolvedParams = await params;
+    const slug = resolvedParams.comuna;
+    const comuna = formatTitle(slug);
 
+    let title = `Vestidos de Fiesta, Gala & Graduación en ${comuna} | Elena La Costurera`;
+    let description = `Diseños exclusivos de alta costura a medida para gala, fiesta y graduación para clientas de ${comuna}. Agenda tu prueba en nuestro Atelier de Vitacura.`;
 
-    const comuna = formatTitle(resolvedParams.comuna);
+    if (slug === 'providencia') {
+        title = `Vestidos de Fiesta, Gala & Graduación en Providencia | Alta Costura | Elena`;
+        description = `Diseño y confección de vestidos de fiesta, gala, madrinas y graduación para clientas de Providencia. Atelier de Alta Costura en Vitacura. Agenda tu prueba.`;
+    }
     
     return {
-        title: `Vestidos de Graduación y Fiesta en ${comuna} | Elena La Costurera`,
-        description: `Catálogo de vestidos de graduación y fiesta confeccionados a medida para clientas de ${comuna}. Agenda tu cita en nuestro Atelier.`,
+        title,
+        description,
         openGraph: {
-            title: `Vestidos de Graduación y Fiesta en ${comuna}`,
-            description: `Descubre nuestra colección de vestidos exclusivos y hechos a medida. Atención especial para ${comuna}.`,
+            title,
+            description,
         },
     };
 }
@@ -115,16 +122,16 @@ export default async function GraduationCommunePage({ params }: Props) {
                 <div className="text-center px-6 mb-4">
                     <span className="text-[10px] uppercase tracking-[0.45em] font-semibold text-brand-sand block mb-2">Colección Exclusiva</span>
                     <h1 className="font-serif text-3xl md:text-5xl font-bold uppercase tracking-tight text-white mb-2">
-                        Vestidos de Graduación en {comuna}
+                        Vestidos de Fiesta, Gala & Graduación en {comuna}
                     </h1>
                     <div className="hidden md:block space-y-4 pt-2">
                         {['Vitacura', 'Las Condes', 'Lo Barnechea', 'Providencia', 'La Reina', 'Ñuñoa'].includes(comuna) ? (
                             <p className="text-white/70 text-xs sm:text-sm font-light max-w-xl mx-auto leading-relaxed">
-                                Diseño exclusivo y pruebas presenciales en nuestro Atelier de Vitacura para clientas de {comuna}.
+                                Diseño exclusivo y pruebas presenciales en nuestro Atelier de Vitacura para clientas de {comuna}. Confección a medida para fiestas, galas, madrinas y graduaciones.
                             </p>
                         ) : (
                             <p className="text-white/70 text-xs sm:text-sm font-light max-w-xl mx-auto leading-relaxed">
-                                El vestido de tus sueños merece el viaje. Recibimos frecuentemente a clientas de {comuna} en nuestro Atelier de Vitacura, garantizando un calce perfecto, exclusividad total y una experiencia de Alta Costura.
+                                El vestido de tus sueños merece el viaje. Recibimos frecuentemente a clientas de {comuna} en nuestro Atelier de Vitacura, garantizando un calce perfecto, exclusividad total y una experiencia de Alta Costura en vestidos de gala y fiesta.
                             </p>
                         )}
                     </div>
