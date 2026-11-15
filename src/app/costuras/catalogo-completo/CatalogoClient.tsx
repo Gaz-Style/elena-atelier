@@ -321,7 +321,7 @@ export default function CatalogoClient() {
                     <div className="space-y-1">
                         <span className="text-[10px] md:text-xs text-[#C17F5F] uppercase tracking-widest font-bold">Inventario Oficial 2026 — Sector Oriente</span>
                         <h1 className="font-serif text-2xl sm:text-3xl md:text-5xl text-white font-extrabold leading-tight">
-                            Catálogo Completo de <span className="italic text-[#E29D7A]">Arreglos</span>
+                            Lista de Precios & <span className="italic text-[#E29D7A]">Catálogo de Arreglos</span>
                         </h1>
                     </div>
                     <p className="text-xs md:text-base text-white/70 max-w-3xl font-light leading-relaxed">

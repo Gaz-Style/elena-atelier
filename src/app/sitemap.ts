@@ -43,6 +43,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.85,
         },
         {
+            url: `${baseUrl}/precios`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.95,
+        },
+        {
+            url: `${baseUrl}/costuras/catalogo-completo`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.95,
+        },
+        {
             url: `${baseUrl}/restauracion`,
             lastModified: new Date(),
             changeFrequency: 'monthly',
