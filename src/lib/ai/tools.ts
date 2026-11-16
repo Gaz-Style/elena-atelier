@@ -74,6 +74,10 @@ export const ATELIER_TOOLS = [
                         type: 'string',
                         description: 'Motivo de la visita inferido del chat (novia, fiesta, arreglo, entalle, etc. PROHIBIDO cursos o clases ya que están inactivos).',
                     },
+                    notas: {
+                        type: 'string',
+                        description: 'Detalle conciso de la prenda y arreglo que necesita el cliente (ej: Vestido de fiesta: ajuste busto y basta; 2 trajes para entallar).',
+                    },
                 },
                 required: ['nombre', 'apellido', 'correo', 'fecha', 'hora', 'tipo_servicio'],
                 additionalProperties: false,
@@ -149,7 +153,17 @@ export async function executeAtelierTool(name: string, args: any, extraData?: an
             const celular = extraData?.celular || '';
             const correo = args.correo || '';
             const fecha_hora = `${args.fecha}T${args.hora}:00`;
-            const resultado = await agendar_visita(nombre, apellido, celular, correo, fecha_hora, 'whatsapp');
+            const detalleFinal = [args.tipo_servicio, args.notas].filter(Boolean).join(' - ') || 'Cita general';
+            const resultado = await agendar_visita(
+                nombre, 
+                apellido, 
+                celular, 
+                correo, 
+                fecha_hora, 
+                'whatsapp',
+                undefined,
+                detalleFinal
+            );
             if (resultado.includes('error interno') || resultado.includes('Lo siento') || resultado.includes('no atiende')) {
                 return JSON.stringify({ status: 'error', reason: resultado });
             }

@@ -33,7 +33,8 @@ export async function guardarCitaCliente(data: {
             data.correo,
             data.fecha_hora,
             'web',
-            utms
+            utms,
+            data.motivo
         );
 
         revalidatePath('/admin/agenda');

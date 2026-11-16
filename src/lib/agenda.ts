@@ -107,7 +107,14 @@ export async function consultar_disponibilidad(fecha_inicial: string) {
 import fs from 'fs';
 import path from 'path';
 
-export async function enviar_correo_confirmacion(nombre: string, apellido: string, celular: string, correo: string, fechaAjustada: string) {
+export async function enviar_correo_confirmacion(
+    nombre: string, 
+    apellido: string, 
+    celular: string, 
+    correo: string, 
+    fechaAjustada: string,
+    detalleServicio?: string
+) {
     if (!correo) return;
     
     const dateObj = new Date(fechaAjustada);
@@ -259,12 +266,13 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
     );
     
     // 2. Notificación interna a Elena
+    const detalleLinea = detalleServicio ? `\nDetalle / Prenda: ${detalleServicio}` : '';
     promises.push(
         transporter.sendMail({
             from: `"Atelier Bot" <${process.env.SMTP_USER}>`,
             to: process.env.SMTP_USER,
-            subject: `NUEVA CITA: ${nombre} ${apellido} - ${fechaLegible} ${horaLegible}`,
-            text: `Se ha agendado una nueva cita:\nNombre: ${nombre} ${apellido}\nCelular: ${celular}\nCorreo: ${correo}\nFecha: ${fechaLegible} a las ${horaLegible}`
+            subject: `NUEVA CITA: ${nombre} ${apellido}${detalleServicio ? ` (${detalleServicio})` : ''} - ${fechaLegible} ${horaLegible}`,
+            text: `Se ha agendado una nueva cita:\nNombre: ${nombre} ${apellido}\nCelular: ${celular}\nCorreo: ${correo}\nFecha: ${fechaLegible} a las ${horaLegible}${detalleLinea}`
         }).then(info => {
             console.log('Correo interno de alerta enviado exitosamente:', info.messageId);
         }).catch(err => {
@@ -277,7 +285,12 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
     const WHATSAPP_API_TOKEN = process.env.WHATSAPP_API_TOKEN;
     if (WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_API_TOKEN) {
         const numerosEncargados = ['56984021940', '56937667709'];
-        const mensajeWsp = `🔔 *Nueva Cita Agendada*\n\n*Cliente:* ${nombre} ${apellido}\n*Fecha:* ${fechaLegible}\n*Hora:* ${horaLegible}\n*Tel:* ${celular}`;
+        const detalleTextoWsp = detalleServicio ? `\n*Prenda / Detalle:* ${detalleServicio}` : '';
+        const mensajeWsp = `🔔 *Nueva Cita Agendada*\n\n*Cliente:* ${nombre} ${apellido}\n*Fecha:* ${fechaLegible}\n*Hora:* ${horaLegible}\n*Tel:* ${celular}${detalleTextoWsp}`;
+        
+        // Para la plantilla de Meta alerta_nueva_cita (exactamente 4 parámetros):
+        // Inyectamos el detalle en el nombre para cumplir la Opción A sin romper Meta
+        const nombreConDetalle = detalleServicio ? `${nombre} ${apellido} (${detalleServicio})` : `${nombre} ${apellido}`;
         
         for (const numeroEncargado of numerosEncargados) {
             // Registrar también en la bandeja de LiveChat para visibilidad del taller
@@ -304,7 +317,7 @@ export async function enviar_correo_confirmacion(nombre: string, apellido: strin
                             components: [{
                                 type: 'body',
                                 parameters: [
-                                    { type: 'text', text: `${nombre} ${apellido}` },
+                                    { type: 'text', text: nombreConDetalle },
                                     { type: 'text', text: fechaLegible },
                                     { type: 'text', text: horaLegible },
                                     { type: 'text', text: celular }
@@ -518,7 +531,8 @@ export async function agendar_visita(
     correo: string, 
     fecha_hora: string, 
     origen: string = 'whatsapp',
-    utms?: { utm_source?: string; utm_medium?: string; utm_campaign?: string; utm_term?: string }
+    utms?: { utm_source?: string; utm_medium?: string; utm_campaign?: string; utm_term?: string },
+    detalleServicio?: string
 ) {
     try {
         // Extraer fecha (YYYY-MM-DD) y hora (HH:mm) expresadas en hora local de Santiago
@@ -629,6 +643,7 @@ export async function agendar_visita(
                 origen: origen,
                 tipo_evento: 'cita_cliente',
                 estado: 'confirmado',
+                notas: detalleServicio || null,
                 utm_source: utms?.utm_source || null,
                 utm_medium: utms?.utm_medium || null,
                 utm_campaign: utms?.utm_campaign || null,
@@ -638,8 +653,8 @@ export async function agendar_visita(
 
         if (error) throw error;
 
-        // Enviar Correo Electrónico
-        await enviar_correo_confirmacion(nombre, apellido, celular, correo, fechaAjustada);
+        // Enviar Correo Electrónico y Notificaciones
+        await enviar_correo_confirmacion(nombre, apellido, celular, correo, fechaAjustada, detalleServicio);
 
         const horaLegible = dateObj.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' });
         const fechaLegible = dateObj.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Santiago' });

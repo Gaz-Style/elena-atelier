@@ -105,7 +105,7 @@ export async function processWhatsAppAIMessage(chatId: string, userMessage: stri
                         fecha: { type: "STRING", description: "Fecha de la cita (YYYY-MM-DD)" },
                         hora: { type: "STRING", description: "Hora de la cita (HH:MM)" },
                         tipo_servicio: { type: "STRING", description: "Arreglos, Novias, Graduación, Confección a medida" },
-                        notas: { type: "STRING", description: "Detalles adicionales (ej: 2 vestidos, urgente)" }
+                        notas: { type: "STRING", description: "Detalle conciso de la prenda y servicio que necesita la clienta (ej: Vestido de fiesta: ajuste busto y basta; 2 trajes para entallar)" }
                     },
                     required: ["nombre", "email", "fecha", "hora", "tipo_servicio"]
                 }
@@ -167,6 +167,7 @@ export async function processWhatsAppAIMessage(chatId: string, userMessage: stri
                 const primerNombre = partesNombre[0] || 'Cliente';
                 const apellido = partesNombre.slice(1).join(' ') || 'Atelier';
                 const fechaHoraIso = `${fecha}T${hora}:00`;
+                const detalleFinal = [tipo_servicio, notas].filter(Boolean).join(' - ') || 'Cita general';
 
                 functionResult = await agendar_visita(
                     primerNombre,
@@ -174,7 +175,9 @@ export async function processWhatsAppAIMessage(chatId: string, userMessage: stri
                     phoneNumber,
                     email,
                     fechaHoraIso,
-                    `whatsapp_${tipo_servicio || 'cita'}`
+                    `whatsapp_${tipo_servicio || 'cita'}`,
+                    undefined,
+                    detalleFinal
                 );
             }
 
