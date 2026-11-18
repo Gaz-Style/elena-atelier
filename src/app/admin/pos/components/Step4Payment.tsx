@@ -27,9 +27,11 @@ export default function Step4Payment() {
     isCajaOpen,
     posMode,
     pendingOrderToPay,
+    setPendingOrderToPay,
     setPosMode,
     clearCart,
-    budgetId
+    budgetId,
+    setBudgetId
   } = usePOS();
   
   const [isProcessing, setIsProcessing] = useState(false);
@@ -187,9 +189,7 @@ export default function Step4Payment() {
         }
       }
 
-      const orderNumberToUse = checkoutResult?.orderId 
-        ? checkoutResult.orderId.replace(/^order_/, '')
-        : pendingOrderToPay?.internal_id 
+      const orderNumberToUse = pendingOrderToPay?.internal_id 
         ? pendingOrderToPay.internal_id.replace(/^order_/, '')
         : (Math.floor(Math.random() * 90000) + 10000).toString();
       
@@ -391,7 +391,12 @@ export default function Step4Payment() {
   };
 
   const handleCancel = () => {
+    setCheckoutResult(null);
+    setPendingOrderToPay(null);
+    setBudgetId(null);
+    setSelectedCustomer(null);
     clearCart();
+    setDeadline('');
     setPosMode('new_sale');
     setInitialPaymentType('total');
     setPaymentMethod(null);
@@ -802,6 +807,9 @@ export default function Step4Payment() {
                   <button
                     onClick={() => {
                       setIsBudgetModalOpen(false);
+                      setCheckoutResult(null);
+                      setPendingOrderToPay(null);
+                      setBudgetId(null);
                       setSelectedCustomer(null);
                       clearCart();
                       setDeadline('');

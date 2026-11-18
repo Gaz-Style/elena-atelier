@@ -9,12 +9,19 @@ import { sendOrderConfirmationEmailAction, checkOrderStatusAction, cancelPending
 export default function Step5Confirmation() {
   const { 
     checkoutResult,
+    setCheckoutResult,
     selectedCustomer,
     setCurrentStep,
     setSelectedCustomer,
     clearCart,
     setDeadline,
     setPaymentMethod,
+    setPendingOrderToPay,
+    setBudgetId,
+    setPosMode,
+    setInitialPaymentType,
+    setSplitCardAmount,
+    setSplitCashAmount,
   } = usePOS();
 
   const [isSending, setIsSending] = useState(false);
@@ -74,10 +81,17 @@ export default function Step5Confirmation() {
   }
 
   const handleNewSale = () => {
+    setCheckoutResult(null);
+    setPendingOrderToPay(null);
+    setBudgetId(null);
     setSelectedCustomer(null);
     clearCart();
     setDeadline('');
     setPaymentMethod(null);
+    setInitialPaymentType('total');
+    setSplitCardAmount(0);
+    setSplitCashAmount(0);
+    setPosMode('new_sale');
     setCurrentStep(1);
   };
 
