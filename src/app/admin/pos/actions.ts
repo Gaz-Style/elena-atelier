@@ -1918,13 +1918,15 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
                 const WHATSAPP_API_TOKEN = process.env.NEXT_PUBLIC_WHATSAPP_API_TOKEN || process.env.WHATSAPP_API_TOKEN;
                 const PHONE_NUMBER_ID = process.env.NEXT_PUBLIC_WHATSAPP_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_NUMBER_ID;
                 if (WHATSAPP_API_TOKEN && PHONE_NUMBER_ID) {
+                    const actualTxAmount = (amountPaid !== undefined && amountPaid > 0) ? amountPaid : finalTotal;
+                    const formattedMonto = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(actualTxAmount);
+
                     // Envolver en interruptor de seguridad
                     if (ENABLE_CLIENT_PAYMENT_WHATSAPP) {
                         if (custInfo.phone) {
                             const cleanPhone = custInfo.phone.replace(/\D/g, '');
                             const finalPhone = cleanPhone.startsWith('56') ? cleanPhone : `56${cleanPhone}`;
                             const prenda = orderInfo.description || 'Servicio';
-                            const formattedMonto = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(finalTotal);
                             
                             const wpRes = await fetch(`https://graph.facebook.com/v21.0/${PHONE_NUMBER_ID}/messages`, {
                                 method: 'POST',
@@ -1997,7 +1999,6 @@ export async function updateOrderStatusToPaidAction(posOrderId: string, amountPa
                     // Alerta a los dueños (independiente de si el cliente tiene teléfono o no)
                     for (const ownerNum of ['56984021940', '56937667709']) {
                         try {
-                            const formattedMonto = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(finalTotal);
                             import('@/lib/notifications')
                                 .then(({ registrarNotificacionEnLiveChat }) => {
                                     registrarNotificacionEnLiveChat(ownerNum, 'Pago Webpay Aprobado', `Cliente: ${custInfo.full_name || 'Clienta'}\nPrenda: ${orderInfo.description || 'Prenda'}\nMonto: ${formattedMonto}\nOrden: ${posOrderId}\nMétodo: Webpay Plus`);
