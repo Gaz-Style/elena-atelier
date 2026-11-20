@@ -2250,6 +2250,54 @@ export async function cancelPendingPOSOrderAction(posOrderId: string) {
     return { success: true };
 }
 
+export async function deleteDraftPOSOrderAction(posOrderId: string) {
+    const supabase = getAdminClient();
+    const cleanId = posOrderId.replace(/^order_/, '');
+
+    console.log(`[POS Cleanup] Eliminando borrador no pagado: ${posOrderId}`);
+
+    // Buscar la venta
+    const { data: sale } = await supabase
+        .from('sales_ledger')
+        .select('id, paid_amount')
+        .or(`internal_id.eq.${posOrderId},internal_id.eq.${cleanId}`)
+        .maybeSingle();
+
+    // Solo eliminamos si no tiene abonos o pagos reales (paid_amount === 0)
+    if (sale && (!sale.paid_amount || sale.paid_amount === 0)) {
+        // 1. Eliminar de work_order_items y work_orders
+        const { data: wos } = await supabase
+            .from('work_orders')
+            .select('id')
+            .eq('sale_id', sale.id);
+        
+        if (wos && wos.length > 0) {
+            const woIds = wos.map(w => w.id);
+            await supabase.from('work_order_items').delete().in('work_order_id', woIds);
+            await supabase.from('work_orders').delete().in('id', woIds);
+        }
+
+        // 2. Eliminar de production_orders
+        await supabase
+            .from('production_orders')
+            .delete()
+            .or(`pos_order_id.eq.${posOrderId},pos_order_id.eq.${cleanId}`);
+
+        // 3. Eliminar de sales_ledger
+        await supabase
+            .from('sales_ledger')
+            .delete()
+            .eq('id', sale.id);
+
+        revalidatePath('/admin/pos');
+        revalidatePath('/admin/sales');
+        revalidatePath('/admin/agenda');
+        revalidatePath('/admin/production-board');
+    }
+
+    return { success: true };
+}
+
 export async function requestDiscountAuthorizationAction(payload: {
     sellerName: string;
     itemName: string;

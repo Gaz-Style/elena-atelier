@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { usePOS } from './POSContext';
-import { createPOSOrdersAction, saveBudgetAction, sendBudgetEmailAction, wakeUpMercadoPagoTerminalAction, checkDesignExclusivityAction, sendOrderConfirmationEmailAction, sendWhatsAppPaymentConfirmationAction, updateBudgetStatusAction } from '@/app/admin/pos/actions';
+import { createPOSOrdersAction, saveBudgetAction, sendBudgetEmailAction, wakeUpMercadoPagoTerminalAction, checkDesignExclusivityAction, sendOrderConfirmationEmailAction, sendWhatsAppPaymentConfirmationAction, updateBudgetStatusAction, deleteDraftPOSOrderAction } from '@/app/admin/pos/actions';
 import { payOrderBalanceAction } from '@/app/admin/caja/actions';
 import { CreditCard, Wallet, AlertCircle, Globe, Loader2, Copy, Mail, MessageSquare, X } from 'lucide-react';
 
@@ -31,7 +31,9 @@ export default function Step4Payment() {
     setPosMode,
     clearCart,
     budgetId,
-    setBudgetId
+    setBudgetId,
+    activeDraftOrderId,
+    setActiveDraftOrderId
   } = usePOS();
   
   const [isProcessing, setIsProcessing] = useState(false);
@@ -189,11 +191,19 @@ export default function Step4Payment() {
         }
       }
 
-      const orderNumberToUse = pendingOrderToPay?.internal_id 
-        ? pendingOrderToPay.internal_id.replace(/^order_/, '')
-        : (Math.floor(Math.random() * 90000) + 10000).toString();
+      let orderNumberToUse = '';
+      if (pendingOrderToPay?.internal_id) {
+        orderNumberToUse = pendingOrderToPay.internal_id.replace(/^order_/, '');
+      } else if (activeDraftOrderId) {
+        orderNumberToUse = activeDraftOrderId.replace(/^order_/, '');
+      } else {
+        orderNumberToUse = (Math.floor(Math.random() * 90000) + 10000).toString();
+      }
       
       const finalOrderIdStr = `order_${orderNumberToUse}`;
+      if (!pendingOrderToPay && !activeDraftOrderId) {
+        setActiveDraftOrderId(finalOrderIdStr);
+      }
 
       let finalPaymentMethodStr = initialPaymentType === 'zero'
         ? 'Pago Contra Entrega'
@@ -391,6 +401,10 @@ export default function Step4Payment() {
   };
 
   const handleCancel = () => {
+    if (activeDraftOrderId) {
+      deleteDraftPOSOrderAction(activeDraftOrderId).catch(console.error);
+      setActiveDraftOrderId(null);
+    }
     setCheckoutResult(null);
     setPendingOrderToPay(null);
     setBudgetId(null);
@@ -807,6 +821,10 @@ export default function Step4Payment() {
                   <button
                     onClick={() => {
                       setIsBudgetModalOpen(false);
+                      if (activeDraftOrderId) {
+                        deleteDraftPOSOrderAction(activeDraftOrderId).catch(console.error);
+                        setActiveDraftOrderId(null);
+                      }
                       setCheckoutResult(null);
                       setPendingOrderToPay(null);
                       setBudgetId(null);

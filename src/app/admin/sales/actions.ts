@@ -136,10 +136,29 @@ export async function deleteSaleAction(saleId: string) {
         .maybeSingle();
 
     if (sale) {
+        // 1. Eliminar pagos de saldo asociados
         await supabase
             .from('sales_ledger')
             .delete()
             .like('internal_id', `${sale.internal_id}_balance_%`);
+
+        // 2. Eliminar prendas asociadas en producción
+        await supabase
+            .from('production_orders')
+            .delete()
+            .eq('pos_order_id', sale.internal_id);
+
+        // 3. Eliminar órdenes de trabajo e ítems asociados
+        const { data: wos } = await supabase
+            .from('work_orders')
+            .select('id')
+            .eq('sale_id', saleId);
+
+        if (wos && wos.length > 0) {
+            const woIds = wos.map(w => w.id);
+            await supabase.from('work_order_items').delete().in('work_order_id', woIds);
+            await supabase.from('work_orders').delete().in('id', woIds);
+        }
     }
 
     const { error } = await supabase
@@ -152,6 +171,8 @@ export async function deleteSaleAction(saleId: string) {
     }
 
     revalidatePath('/admin/sales');
+    revalidatePath('/admin/agenda');
+    revalidatePath('/admin/production-board');
     return { success: true };
 }
 

@@ -22,6 +22,7 @@ export default function Step5Confirmation() {
     setInitialPaymentType,
     setSplitCardAmount,
     setSplitCashAmount,
+    setActiveDraftOrderId,
   } = usePOS();
 
   const [isSending, setIsSending] = useState(false);
@@ -56,8 +57,10 @@ export default function Step5Confirmation() {
           if (res.status === 'paid' || res.status === 'completed' || res.status === 'partial' || hasNewPayment) {
             setIsPaymentConfirmed(true);
             setConfirmedPaidAmount(res.paidAmount ?? checkoutResult.total);
+            setActiveDraftOrderId(null);
           } else if (res.status === 'canceled' || res.status === 'rejected' || res.status === 'abandoned') {
             alert('El pago fue rechazado o cancelado en el terminal. Por favor, inténtelo de nuevo o seleccione otro método de pago.');
+            cancelPendingPOSOrderAction(posOrderId).catch(console.error);
             clearInterval(intervalId);
             setCurrentStep(4);
           }
@@ -81,6 +84,7 @@ export default function Step5Confirmation() {
   }
 
   const handleNewSale = () => {
+    setActiveDraftOrderId(null);
     setCheckoutResult(null);
     setPendingOrderToPay(null);
     setBudgetId(null);

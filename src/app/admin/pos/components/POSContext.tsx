@@ -74,6 +74,9 @@ interface POSState {
 
   budgetId: string | null;
   setBudgetId: (id: string | null) => void;
+
+  activeDraftOrderId: string | null;
+  setActiveDraftOrderId: (id: string | null) => void;
 }
 
 const POSContext = createContext<POSState | undefined>(undefined);
@@ -115,6 +118,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
   const [checkoutResult, setCheckoutResult] = useState<any>(null);
   const [pendingOrderToPay, setPendingOrderToPay] = useState<any>(null);
   const [budgetId, setBudgetId] = useState<string | null>(null);
+  const [activeDraftOrderId, setActiveDraftOrderId] = useState<string | null>(null);
 
   return (
     <POSContext.Provider value={{
@@ -133,7 +137,8 @@ export function POSProvider({ children }: { children: ReactNode }) {
       isCajaOpen, setIsCajaOpen,
       checkoutResult, setCheckoutResult,
       pendingOrderToPay, setPendingOrderToPay,
-      budgetId, setBudgetId
+      budgetId, setBudgetId,
+      activeDraftOrderId, setActiveDraftOrderId
     }}>
       {children}
     </POSContext.Provider>
